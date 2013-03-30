@@ -1,0 +1,127 @@
+* {
+	box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	-webkit-box-sizing:border-box;
+}
+html, body {
+	background:#222;
+	color:#fefefe;
+	font-family:monospace;
+	height:100%;
+	width:100%;
+	margin:0;
+	padding:0;
+}
+a {
+	color:white;
+}
+a:hover {
+	color:white;
+}
+a:visited {
+	color:#444;
+}
+#main {
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+	flex-direction:column;
+	-webkit-flex-direction:column;
+	flex-wrap:wrap;
+	-webkit-flex-wrap:wrap;
+	align-items:stretch;
+	-webkit-align-items:stretch;
+	width:100%;
+	height:100%;
+	max-height:100%;
+	max-width:100%;
+}
+#chatarea {
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+	flex-direction:row;
+	-webkit-flex-direction:row;
+	flex:5 0 90%;
+	-webkit-flex:5 0 90%;
+	min-height:0;
+}
+#chatinput {
+	padding:1em;
+	flex:1 0 10%;
+	-webkit-flex:1 0 10%;
+	display:flex;
+	display:-webkit-flex;
+	align-items:stretch;
+}
+#chatlog {
+	overflow-y:auto;
+	padding:1em;
+	flex:8 0 auto;
+	-webkit-flex:8 0 auto;
+	max-height:100%;
+}
+#linklog {
+	flex:0 0 auto;
+	-webkit-flex:0 0 auto;
+	min-width:100px;
+	padding:1em;
+	max-height:100%;
+	z-index:4;
+	position:relative;
+	overflow-y:scroll;
+}
+.imageThumbnail {
+	max-width:100%;
+	margin-bottom:1em;
+}
+.imageThumbnail a {
+	display:block;
+}
+.imageThumbnail img {
+	width:100%;
+	height:auto;
+}
+.chatMessage, .imageThumbnail img {
+	border-radius:5px;
+}
+.imageThumbnail img {
+	width:200px;
+	height:auto;
+}
+.chatMessage {
+	display:flex;
+	display:-webkit-flex;
+	margin:0.5em 0;
+	padding:0.5em;
+	background:#303030;
+	clear:both;
+	box-shadow:1px 1px 1px #151515;
+	text-shadow:1px 1px 1px #151515;
+}
+.chatMessage > div {
+	display:inline-block;
+	padding:0.25em 0.5em;
+}
+.chatMessage .time {
+	color:#666;
+}
+.chatMessage .nick {
+	color:#53D940;
+	width:8em;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+	overflow:hidden;
+}
+#chatinput textarea {
+	width:100%;
+	padding:0.45em;
+	border-radius:0.5em;
+}
+#ghetto_templates {
+	display:none;
+}
+.clearfix {
+	display:block !important;
+	clear:both;
+}

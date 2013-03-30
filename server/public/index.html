@@ -1,0 +1,159 @@
+<html>
+<head>
+	<title>Chat</title>
+	<link rel="stylesheet" type="text/css" href="/main.css">
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="/moment.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		$(document).ready(function () {
+
+			var imageURL = /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|].(jpg|png|bmp|gif|svg))/gi
+			var LINK = /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi
+			var imageContainer = $("#imageThumbnail").html();
+			var messageContainer = $("#chatMessage").html();
+
+			var scrollback = [];
+			var scrollbackPosition = 0;
+
+			function addToScrollback(userInput) {
+				scrollback.push(userInput);
+				scrollbackPosition += 1;
+			}
+			function scrollbackUp() {
+				if (scrollbackPosition > 0) {
+					scrollbackPosition -= 1;
+				}
+				return scrollback[scrollbackPosition];
+			}
+			function scrollbackDown() {
+				if (scrollbackPosition < scrollback.length) {
+					scrollbackPosition += 1;
+				}
+				return scrollback[scrollbackPosition];
+			}
+			function resetScrollbackPosition() {
+				scrollbackPosition = scrollback.length;
+			}
+
+			function handleChatMessage(msg) {
+
+				var imageText = msg.body;
+				var images;
+
+				if (images = msg.body.match(imageURL)) {
+					for (var i = 0, l = images.length; i < l; i++) {
+						var href = images[i];
+						images[i] = $(imageContainer);
+						images[i].find("a").attr("href", href);
+						images[i].find("img").attr("src", href);
+						$("#linklog h1").after(images[i]);
+					}
+
+					msg.body = msg.body.replace(imageURL, "").trim(); // remove the URLs
+				}
+
+				// hyperify hyperlinks:
+				msg.body = msg.body.replace(LINK,'<a target="_blank" href="$1">$1</a>');
+
+				msg.nickname = msg.nickname || "Anonymous";
+
+				if (msg.body.length) {
+					var chat = $(messageContainer);
+					chat.find(".nick").html(msg.nickname).attr("title", msg.nickname);
+					chat.find(".body").html(msg.body);
+					chat.find(".time").html("[" + moment().format('hh:mm:ss') + "]")
+									.data("timestamp", moment().unix() + "000");
+
+					$("#chatlog").append(chat);
+				}
+			}
+
+
+			var socket = io.connect(window.location.href);
+			socket.on('connect', function () {
+				socket.on('chat', function (msg) {
+					handleChatMessage(msg);
+					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
+				});
+
+				$("#chatinput textarea").on("keydown", function (ev) {
+					$this = $(this);
+					switch (ev.keyCode) {
+						case 13: // enter
+							ev.preventDefault();
+							var userInput = $this.val();
+							var message = {
+								body: userInput
+							};
+							addToScrollback(userInput)
+							$this.val("");
+							socket.emit('chat', message);
+							resetScrollbackPosition();
+							break;
+						case 38: // up
+							$this.val(scrollbackUp());
+							break;
+						case 40: // down
+							$this.val(scrollbackDown());
+							break;
+						case 27: // escape
+							resetScrollbackPosition();
+							$this.val("");
+							break;
+						default:
+							console.log(ev.keyCode);
+							break;
+					}
+
+				});
+			});
+			socket.on('disconnect', function () {
+				$("#chatinput textarea").off();
+				handleChatMessage({body: "Unexpected d/c from server"});
+			});
+
+			$("#chatlog").on("hover", ".time", function (ev) {
+				console.log($(ev.target).text());
+				$(ev.target).attr("title", moment($(ev.target).data("timestamp")).fromNow());
+			});
+
+			$("#chatinput textarea").focus();
+	  });
+	</script>
+</head>
+<body>
+	<header>
+
+	</header>
+	<section id="main">
+		<section id="chatarea">
+			<div id="chatlog">
+
+			</div>
+			<div id="linklog">
+				<h1>Links</h1>
+			</div>
+		</section>
+		<section id="chatinput">
+			<textarea></textarea>
+		</section>
+	</section>
+	<div id="ghetto_templates">
+		<div id="chatMessage">
+			<div class="chatMessage">
+				<div class="time"></div>
+				<div class="nick"></div>
+				<div class="body"></div>
+			</div>
+		</div>
+		<div id="imageThumbnail">
+			<div class="imageThumbnail">
+				<a href="" target="_blank">
+					<img src="" target="_blank" />
+				</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
