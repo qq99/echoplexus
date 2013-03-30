@@ -17,6 +17,8 @@ server.listen(PORT);
 console.log('Listening on port', PORT);
 
 
+var SERVER = "SYSTEM";
+
 // regexes:
 var NICK = /^\/nick/;
 
@@ -27,7 +29,9 @@ sio.sockets.on('connection', function (socket) {
 	socket.set('nick', "Anonymous");
 
 	socket.emit('chat', {
-		body: 'Welcome to a new experimental chat.  Try sending an image URL.  Test: http://i.imgur.com/Qpkx6FJh.jpg'
+		nickname: SERVER,
+		body: 'Welcome to a new experimental chat.  Try sending an image URL.  Test: http://i.imgur.com/Qpkx6FJh.jpg',
+		type: "SYSTEM"
 	});
 	socket.broadcast.emit('chat', {
 		body: 'Somebody has joined the chat.'

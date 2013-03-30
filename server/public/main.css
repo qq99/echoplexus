@@ -19,7 +19,7 @@ a:hover {
 	color:white;
 }
 a:visited {
-	color:#444;
+	color:#999;
 }
 #main {
 	width:100%;
@@ -89,6 +89,9 @@ a:visited {
 	text-overflow:ellipsis;
 	white-space:nowrap;
 	overflow:hidden;
+}
+.chatMessage .nick.system {
+	color:#CC2222;
 }
 #chatinput textarea {
 	width:100%;
