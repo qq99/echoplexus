@@ -29,6 +29,76 @@
 				}
 			}; // helpful regexes
 
+			function Notifications () {
+				var hasPermission = 1;
+				if (window.webkitNotifications) {
+ 					hasPermission = window.webkitNotifications.checkPermission();
+				}
+				function notify(user,body) {
+					if (document.hasFocus()) {
+
+					} else {
+						if (hasPermission == 0) { // allowed
+							var notification = window.webkitNotifications.createNotification(
+								'http://i.stack.imgur.com/dmHl0.png',
+								user + " says:",
+								body
+							);
+
+							// notification.onclick = function () {
+							// 	window.open("http://stackoverflow.com/a/13328397/1269037");
+							// 	notification.close();
+							// }
+							notification.show();
+							setTimeout(function () {
+								notification.cancel();
+							}, 5000);
+						} else { // not allowed
+							// hmm
+						}
+					}
+				}
+				function requestNotificationPermission() {
+					if (window.webkitNotifications) {
+						window.webkitNotifications.requestPermission();
+					}
+				}
+
+				return {
+					notify: notify,
+					request: requestNotificationPermission
+				};
+			}
+
+			function Autocomplete () {
+				var pool = [],
+					cur = 0;
+				return {
+					setPool: function (arr) {
+						pool = arr;
+					},
+					next: function (stub) {
+						if (!pool.length) return "";
+						stub = stub.toLowerCase();
+						var name;
+						var candidates = pool.filter(function (element, index, array) {
+							return (element.toLowerCase().indexOf(stub) !== -1);
+						});
+
+						if (!candidates.length) return "";
+
+						cur += 1;
+						cur = cur % candidates.length;
+						name = candidates[cur];
+						
+						return name;
+					}
+				}
+			}
+
+			var autocomplete = new Autocomplete();
+			var notifications = new Notifications();
+
 			function Client (initdSocket) {
 				var nick = "Anonymous",
 					socket = initdSocket;
@@ -99,7 +169,6 @@
 				if (end === -1) {
 					end = s.length;
 				}
-				console.log(s, start, end);
 				return "http://youtube.com/v/" + s.substring(start,end);
 			}
 
@@ -161,14 +230,21 @@
 								break;
 						}
 					}
+					if (msg.nickname === session.getNick()) {
+						chat.find(".nick").addClass('me');
+					}
 					$("#chatlog").append(chat);
 					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
+				}
+
+				if (msg.body.indexOf(session.getNick()) !== -1) {
+					notifications.notify(msg.nickname, msg.body.substring(0,50));
+					chat.addClass("highlight");
 				}
 			}
 
 
 			var socket = io.connect(window.location.href);
-			console.log(socket);
 			socket.on('connect', function () {
 				session = new Client(socket);
 				socket.on('chat', function (msg) {
@@ -176,11 +252,12 @@
 					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
 				});
 				socket.on('userlist', function (msg) {
-					console.log(msg);
 					if (msg.users && msg.users.length) {
+						autocomplete.setPool(msg.users);
 						$("#userlist .body").html("");
 						for (var i = 0, l = msg.users.length; i < l; i++) {
-							$("#userlist .body").append("<div class='user'>").text(msg.users[i]);
+							var user = $("<div class='user'></div>").text(msg.users[i]);
+							$("#userlist .body").append(user);
 						}
 					}
 				});
@@ -213,15 +290,31 @@
 							scrollback.reset();
 							$this.val("");
 							break;
-						case 76:
+						case 76: // L
 							if (ev.ctrlKey) {
 								ev.preventDefault();
 								$("#chatlog").html("");
 								$("#linklog .imageThumbnail").remove();
 							}
 							break;
+						case 9: // tab key
+							ev.preventDefault();
+							var text = $(this).val().split(" ");
+							var stub = text[text.length - 1];
+							
+							var completion = autocomplete.next(stub);
+
+							if (completion !== "") {
+								text[text.length - 1] = completion;
+							}
+							if (text.length === 1) {
+								text[0] = text[0] + ", ";
+							}
+
+							$(this).val(text.join(" "));
+							break;
 						default:
-							console.log(ev, ev.keyCode);
+							// console.log(ev, ev.keyCode);
 							break;
 					}
 
@@ -239,6 +332,11 @@
 			});
 
 			$("#chatinput textarea").focus();
+
+			$(window).on("click", function () {
+				notifications.request();
+			});
+
 	  });
 	</script>
 </head>

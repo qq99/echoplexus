@@ -106,6 +106,9 @@ a:visited {
 	clear:both;
 	box-shadow:1px 1px 1px #151515;
 }
+.chatMessage.highlight {
+	background:#444 !important;
+}
 .chatMessage > div {
 	display:inline-block;
 	padding:0.25em 0.5em;
@@ -114,12 +117,18 @@ a:visited {
 	color:#666;
 	float:right;
 }
+.chatMessage.highlight .time {
+	color:#efefef;
+}
 .chatMessage .nick {
 	color:#53D940;
 	width:8em;
 	text-overflow:ellipsis;
 	white-space:nowrap;
 	overflow:hidden;
+}
+.chatMessage .nick.me {
+	color:yellow;
 }
 .chatMessage .nick.system {
 	color:#CC2222;
