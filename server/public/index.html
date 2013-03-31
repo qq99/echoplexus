@@ -1,8 +1,10 @@
 <html>
 <head>
 	<title>Chat</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel="stylesheet" type="text/css" href="/main.css">
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="/jquery.cookie.js"></script>
 	<script src="/moment.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 	<script>
@@ -13,17 +15,28 @@
 
 			var R = {
 				imageURL: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|].(jpg|png|bmp|gif|svg))/gi,
-				URL: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi
+				URL: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
+				commands: {
+					nick: /^\/nick/
+				}
 			}; // helpful regexes
 
-			function Session () {
-				var nick = "Anonymous";
+			function Client (initdSocket) {
+				var nick = "Anonymous",
+					socket = initdSocket;
 				return {
 					setNick: function(newNickname) {
 						nick = newNickname;
+						socket.emit("nickname", {
+							nickname: newNickname
+						});
+						$.cookie("nickname", newNickname);
 					},
 					getNick: function() {
 						return nick;
+					},
+					speak: function (msg) {
+						socket.emit('chat', msg);
 					}
 				};
 			}
@@ -55,12 +68,28 @@
 			}
 
 			var scrollback = new Scrollback();
-			var session = new Session();
 
 			function handleChatMessage(msg) {
 
-				msg.nickname = msg.nickname || "Anonymous";
+				if (!msg.body) return;
 
+				if (msg.body.match(R.commands.nick)) {
+					msg.body = msg.body.replace(R.commands.nick, "").trim();
+					session.setNick(msg.body);
+					return;
+				} else {
+					session.speak(msg);
+				}
+				msg.nickname = session.getNick();
+
+				renderChatMessage(msg);
+			}
+
+			function renderChatMessage(msg) {
+				console.log(msg);
+				msg.nickname = msg.nickname;
+
+				// put image links on the side:
 				var images;
 				if (images = msg.body.match(R.imageURL)) {
 					for (var i = 0, l = images.length; i < l; i++) {
@@ -69,13 +98,11 @@
 							img.find("a").attr("href", href)
 										  .attr("title", "Linked by " + msg.nickname)
 								.find("img").attr("src", href);
-						$("#linklog h1").after(img);
+						$("#linklog .body").prepend(img);
 					}
 
 					msg.body = msg.body.replace(R.imageURL, "").trim(); // remove the URLs
 				}
-
-				var hyperlinks = msg.body.match(R.URL);
 
 				// hyperify hyperlinks:
 				msg.body = msg.body.replace(R.URL,'<a target="_blank" href="$1">$1</a>');
@@ -97,16 +124,32 @@
 						}
 					}
 					$("#chatlog").append(chat);
+					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
 				}
 			}
 
 
 			var socket = io.connect(window.location.href);
+			console.log(socket);
 			socket.on('connect', function () {
+				session = new Client(socket);
 				socket.on('chat', function (msg) {
-					handleChatMessage(msg);
+					renderChatMessage(msg);
 					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
 				});
+				socket.on('userlist', function (msg) {
+					console.log(msg);
+					if (msg.users && msg.users.length) {
+						$("#userlist .body").html("");
+						for (var i = 0, l = msg.users.length; i < l; i++) {
+							$("#userlist .body").append("<div class='user'>" + msg.users[i] + "</div>");
+						}
+					}
+				});
+
+				if ($.cookie("nickname")) {
+					session.setNick($.cookie("nickname"));
+				}
 
 				$("#chatinput textarea").on("keydown", function (ev) {
 					$this = $(this);
@@ -118,8 +161,8 @@
 								body: userInput
 							};
 							scrollback.add(userInput);
+							handleChatMessage(message);
 							$this.val("");
-							socket.emit('chat', message);
 							scrollback.reset();
 							break;
 						case 38: // up
@@ -132,20 +175,28 @@
 							scrollback.reset();
 							$this.val("");
 							break;
+						case 76:
+							if (ev.ctrlKey) {
+								ev.preventDefault();
+								$("#chatlog").html("");
+								$("#linklog .imageThumbnail").remove();
+							}
+							break;
 						default:
-							console.log(ev.keyCode);
+							console.log(ev, ev.keyCode);
 							break;
 					}
 
 				});
 			});
 			socket.on('disconnect', function () {
+				// socket.removeAllListeners('chat'); 
+				// socket.removeAllListeners('userlist');
 				$("#chatinput textarea").off();
 				handleChatMessage({body: "Unexpected d/c from server"});
 			});
 
 			$("#chatlog").on("hover", ".chatMessage", function (ev) {
-				console.log($(ev.target));
 				$(ev.target).attr("title", "sent " + moment($(ev.target).data("timestamp")).fromNow());
 			});
 
@@ -163,8 +214,23 @@
 
 			</div>
 			<section id=""></section>
-			<div id="linklog">
-				<h1>Links</h1>
+			<div id="supportbar">
+				<div id="userlist">
+					<div class="header">
+						<h1>Users</h1>
+					</div>
+					<div class="body">
+
+					</div>
+				</div>
+				<div id="linklog">
+					<div class="header">
+						<h1>Media & Links</h1>
+					</div>
+					<div class="body">
+
+					</div>
+				</div>
 			</div>
 		</section>
 		<section id="chatinput">

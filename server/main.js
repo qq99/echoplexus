@@ -1,4 +1,5 @@
 var express = require('express'),
+	_ = require('underscore'),
 	fs = require('fs'),
 	jade = require('jade'),
 	sio = require('socket.io'),
@@ -17,7 +18,66 @@ server.listen(PORT);
 console.log('Listening on port', PORT);
 
 
-var SERVER = "SYSTEM";
+var SERVER = "Server";
+
+function Clients () {
+	function Client () {
+		var nick = "Anonymous-" + parseInt(Math.random()*9000, 10),
+			lastActivity = new Date();
+		
+		return {
+			setNick: function(newNickname) {
+				nick = newNickname;
+			},
+			getNick: function() {
+				return nick;
+			},
+			isIdle: function () {
+				if (((lastActivity - (new Date())) / (1000*60)) < 5) {
+					return false;
+				} else {
+					return true;
+				}
+			},
+			active: function () {
+				lastActivity = new Date();
+			}
+		};
+	}
+	
+	function ID () {
+		var cur = 0;
+		return {
+			next: function () {
+				return cur += 1;
+			}
+		}
+	}
+
+	var id = new ID();
+	var clients = {};
+	return {
+		add: function () {
+			var ref = id.next();
+			clients[ref] = new Client();
+			return ref;
+		},
+		get: function (id) {
+			return clients[id];
+		},//
+		userlist: function () {
+			return _.map(clients, function (value, key, list) {
+				return value.getNick();
+			});
+		},
+		kill: function (id) {
+			delete clients[id];
+		}
+	}
+}
+
+
+var clients = new Clients();
 
 // regexes:
 var NICK = /^\/nick/;
@@ -26,44 +86,65 @@ var NICK = /^\/nick/;
 sio = sio.listen(server);
 
 sio.sockets.on('connection', function (socket) {
-	socket.set('nick', "Anonymous");
+	var clientID = clients.add(),
+		client = clients.get(clientID);
 
 	socket.emit('chat', {
 		nickname: SERVER,
 		body: 'Welcome to a new experimental chat.  Try sending an image URL.  Test: http://i.imgur.com/Qpkx6FJh.jpg',
 		type: "SYSTEM"
 	});
-	socket.broadcast.emit('chat', {
-		body: 'Somebody has joined the chat.'
+	socket.emit('userlist', {
+		users: clients.userlist()
 	});
+	socket.broadcast.emit('chat', {
+		nickname: SERVER,
+		body: client.getNick() + ' has joined the chat.',
+		type: "SYSTEM"
+	});
+
+
+	socket.on('nickname', function (data) {
+		var newName = data.nickname.replace(NICK, "").trim(),
+			prevName = client.getNick();
+
+		client.setNick(newName);
+
+		socket.broadcast.emit('chat', {
+			nickname: SERVER,
+			body: prevName + " is now known as " + newName,
+			type: "SYSTEM"
+		});
+		socket.emit('chat', {
+			nickname: SERVER,
+			body: "You are now known as " + newName,
+			type: "SYSTEM"
+		});
+		socket.broadcast.emit('userlist', {
+			users: clients.userlist()
+		});
+		socket.emit('userlist', {
+			users: clients.userlist()
+		});
+	});
+
 	socket.on('chat', function (data) {
 		if (data.body) {
-			if (data.body.match(NICK)) {
-				var newName = data.body.replace(NICK, "").trim();
-				socket.get('nick', function (err, prevName) {
-					socket.set('nick', newName);
-					socket.broadcast.emit('chat', {
-						body: prevName + " is now known as " + newName
-					});
-					socket.emit('chat', {
-						body: "You are now known as " + newName
-					});
-				});
-
-			} else {
-				socket.get('nick', function (err, name) {
-					data.nickname = name;
-					socket.broadcast.emit('chat', data);
-					socket.emit('chat', data);
-				});
-			}
+			console.log('wtf',client.getNick());
+			data.nickname = client.getNick();
+			socket.broadcast.emit('chat', data);
 		}  	
 	});
 	socket.on('disconnect', function () {
-		socket.get('nick', function (err, name) {
-			socket.broadcast.emit('chat', {
-				body: name + ' has left the chat.'
-			});
+		clients.kill(clientID);
+		socket.emit('userlist', {
+			users: clients.userlist()
+		});
+
+		socket.broadcast.emit('chat', {
+			nickname: SERVER,
+			body: client.getNick() + ' has left the chat.',
+			type: "SYSTEM"
 		});
 	})
 });
