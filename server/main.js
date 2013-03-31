@@ -103,7 +103,6 @@ sio.sockets.on('connection', function (socket) {
 		type: "SYSTEM"
 	});
 
-
 	socket.on('nickname', function (data) {
 		var newName = data.nickname.replace(NICK, "").trim(),
 			prevName = client.getNick();
@@ -137,7 +136,7 @@ sio.sockets.on('connection', function (socket) {
 	});
 	socket.on('disconnect', function () {
 		clients.kill(clientID);
-		socket.emit('userlist', {
+		socket.broadcast.emit('userlist', {
 			users: clients.userlist()
 		});
 

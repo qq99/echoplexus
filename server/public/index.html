@@ -86,9 +86,6 @@
 			}
 
 			function renderChatMessage(msg) {
-				console.log(msg);
-				msg.nickname = msg.nickname;
-
 				// put image links on the side:
 				var images;
 				if (images = msg.body.match(R.imageURL)) {
@@ -104,14 +101,25 @@
 					msg.body = msg.body.replace(R.imageURL, "").trim(); // remove the URLs
 				}
 
-				// hyperify hyperlinks:
+				// put hyperlinks on the side:
+				var links;
+				if (links = msg.body.match(R.URL)) {
+					for (var i = 0, l = links.length; i < l; i++) {
+						$("#linklog .body").prepend("<a href='" + links[i] + "' target='_blank'>" + links[i] + "</a>");
+					}
+				}
+
+				// sanitize the body:
+				msg.body = msg.body.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+				// hyperify hyperlinks for the chatlog:
 				msg.body = msg.body.replace(R.URL,'<a target="_blank" href="$1">$1</a>');
 
 				if (msg.body.length) {
 					var chat = $(messageContainer);
-					chat.find(".nick").html(msg.nickname).attr("title", msg.nickname);
+					chat.find(".nick").text(msg.nickname).attr("title", msg.nickname);
 					chat.find(".body").html(msg.body);
-					chat.find(".time").html("[" + moment().format('hh:mm:ss') + "]");
+					chat.find(".time").text("[" + moment().format('hh:mm:ss') + "]");
 					chat.attr("data-timestamp", moment().unix() + "000");
 
 					if (msg.type) {
@@ -142,7 +150,7 @@
 					if (msg.users && msg.users.length) {
 						$("#userlist .body").html("");
 						for (var i = 0, l = msg.users.length; i < l; i++) {
-							$("#userlist .body").append("<div class='user'>" + msg.users[i] + "</div>");
+							$("#userlist .body").append("<div class='user'>").text(msg.users[i]);
 						}
 					}
 				});

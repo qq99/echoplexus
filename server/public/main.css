@@ -73,6 +73,10 @@ a:visited {
 	position:relative;
 	overflow-y:auto;
 }
+#linklog a {
+	display:block;
+	margin-bottom:1em;
+}
 .imageThumbnail {
 	width:100%;
 	max-width:100%;
