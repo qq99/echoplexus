@@ -19,6 +19,7 @@ h1 {
 	font-family:sans-serif;
 	font-weight:normal;
 	font-style:italic;
+	border-bottom: 1px solid #444;
 }
 div > h1:first-child {
 	margin-top:0px;
@@ -58,20 +59,26 @@ a:visited {
 #supportbar {
 	width:20%;
 	float:right;
+	padding:1em;
 }
 #userlist {
 	height:20%;
 	width:100%;
-	padding:1em;
 	overflow-y:auto;
 }
 #linklog {
 	width:100%;
 	height:80%;
-	padding:1em;
+	min-width:300px;
 	z-index:4;
 	position:relative;
 	overflow-y:auto;
+}
+#linklog object {
+	display:block;
+	margin-bottom:1em;
+	width:100%;
+	height:auto;
 }
 #linklog a {
 	display:block;

@@ -91,7 +91,7 @@ sio.sockets.on('connection', function (socket) {
 
 	socket.emit('chat', {
 		nickname: SERVER,
-		body: 'Welcome to a new experimental chat.  Try sending an image URL.  Test: http://i.imgur.com/Qpkx6FJh.jpg',
+		body: 'Welcome to a new experimental chat.  Try sending an image/youtube URL.  Use /nick to set your name.  Test: http://i.imgur.com/Qpkx6FJh.jpg https://www.youtube.com/watch?v=6NMr2VrhmFI&feature=plcp',
 		type: "SYSTEM"
 	});
 	socket.emit('userlist', {

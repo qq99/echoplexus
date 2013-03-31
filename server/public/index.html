@@ -13,8 +13,16 @@
 			var imageContainer = $("#imageThumbnail").html();
 			var messageContainer = $("#chatMessage").html();
 
+			var fl_obj_template = '<object>' +
+                          '<param name="movie" value=""></param>' +   
+                          '<param name="allowFullScreen" value="true"></param>' +   
+                          '<param name="allowscriptaccess" value="always"></param>' +   
+                          '<embed src="" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="300" height="200"></embed>' +   
+                          '</object>'; 
+
 			var R = {
 				imageURL: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|].(jpg|png|bmp|gif|svg))/gi,
+				youtubeURL: /(\b(https?|http):\/\/(www.)*(youtube.com)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
 				URL: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
 				commands: {
 					nick: /^\/nick/
@@ -85,6 +93,16 @@
 				renderChatMessage(msg);
 			}
 
+			function makeYoutubeURL(s) {
+				var start = s.indexOf("v=") + 2;
+				var end = s.indexOf("&", start);
+				if (end === -1) {
+					end = s.length;
+				}
+				console.log(s, start, end);
+				return "http://youtube.com/v/" + s.substring(start,end);
+			}
+
 			function renderChatMessage(msg) {
 				// put image links on the side:
 				var images;
@@ -99,6 +117,18 @@
 					}
 
 					msg.body = msg.body.replace(R.imageURL, "").trim(); // remove the URLs
+				}
+
+				// put youtube linsk on the side:
+				var youtubes;
+				if (youtubes = msg.body.match(R.youtubeURL)) {
+					for (var i = 0, l = youtubes.length; i < l; i++) {
+						var src = makeYoutubeURL(youtubes[i]),
+							yt = $(fl_obj_template);
+							yt.find("embed").attr("src", src)
+							  .find("param[name='movie']").attr("src", src);
+						$("#linklog .body").prepend(yt);
+					}
 				}
 
 				// put hyperlinks on the side:
