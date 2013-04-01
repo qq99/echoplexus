@@ -29,6 +29,53 @@
 				}
 			}; // helpful regexes
 
+			if (window.Storage) {
+				Storage.prototype.setObj = function(key, obj) {
+					return this.setItem(key, JSON.stringify(obj))
+				}
+				Storage.prototype.getObj = function(key) {
+					return JSON.parse(this.getItem(key))
+				}
+			}
+
+			function Log() {
+				var log = [],
+					logMax = 200;
+
+				if (window.Storage) {
+					var prevLog = window.localStorage.getObj("log");
+					if (log.length > 500) {
+						window.localStorage.setObj("log", null);
+					} else if (prevLog) {
+						log = prevLog;
+					}
+
+					return {
+						add: function (obj) {
+							if (log.length > logMax) {
+								log.unshift();
+							}
+							log.push(obj);
+							window.localStorage.setObj("log", log);
+						},
+						empty: function () {
+							return (log.length === 0);
+						},
+						all: function () {
+							return log;
+						}
+					}
+				} else { /// return a fake for those without localStorage
+					return {
+						add: function () {},
+						empty: function () { return true; },
+						all: function () {
+							return log;
+						}
+					}
+				}
+			}
+
 			function Notifications () {
 				var hasPermission = 1;
 				if (window.webkitNotifications) {
@@ -52,7 +99,7 @@
 							notification.show();
 							setTimeout(function () {
 								notification.cancel();
-							}, 5000);
+							}, 15000);
 						} else { // not allowed
 							// hmm
 						}
@@ -159,8 +206,6 @@
 					session.speak(msg);
 				}
 				msg.nickname = session.getNick();
-
-				renderChatMessage(msg);
 			}
 
 			function makeYoutubeURL(s) {
@@ -173,9 +218,11 @@
 			}
 
 			function renderChatMessage(msg) {
+				var autoload_media = $("#autoload_media").attr("checked");
+
 				// put image links on the side:
 				var images;
-				if (images = msg.body.match(R.imageURL)) {
+				if (autoload_media && (images = msg.body.match(R.imageURL))) {
 					for (var i = 0, l = images.length; i < l; i++) {
 						var href = images[i],
 							img = $(imageContainer);
@@ -190,7 +237,7 @@
 
 				// put youtube linsk on the side:
 				var youtubes;
-				if (youtubes = msg.body.match(R.youtubeURL)) {
+				if (autoload_media && (youtubes = msg.body.match(R.youtubeURL))) {
 					for (var i = 0, l = youtubes.length; i < l; i++) {
 						var src = makeYoutubeURL(youtubes[i]),
 							yt = $(fl_obj_template);
@@ -218,8 +265,8 @@
 					var chat = $(messageContainer);
 					chat.find(".nick").text(msg.nickname).attr("title", msg.nickname);
 					chat.find(".body").html(msg.body);
-					chat.find(".time").text("[" + moment().format('hh:mm:ss') + "]");
-					chat.attr("data-timestamp", moment().unix() + "000");
+					chat.find(".time").text("[" + moment(msg.timestamp).format('hh:mm:ss') + "]");
+					chat.attr("data-timestamp", msg.timestamp);
 
 					if (msg.type) {
 						switch (msg.type) {
@@ -244,10 +291,19 @@
 			}
 
 
+			var log = new Log();
 			var socket = io.connect(window.location.href);
 			socket.on('connect', function () {
 				session = new Client(socket);
+
+				if (!log.empty()) {
+					var entries = log.all();
+					for (var i = 0, l = entries.length; i < l; i++) {
+						renderChatMessage(entries[i]);
+					}
+				}
 				socket.on('chat', function (msg) {
+					log.add(msg);
 					renderChatMessage(msg);
 					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
 				});
@@ -294,7 +350,7 @@
 							if (ev.ctrlKey) {
 								ev.preventDefault();
 								$("#chatlog").html("");
-								$("#linklog .imageThumbnail").remove();
+								$("#linklog .body").html("");
 							}
 							break;
 						case 9: // tab key
@@ -331,6 +387,10 @@
 				$(ev.target).attr("title", "sent " + moment($(ev.target).data("timestamp")).fromNow());
 			});
 
+			$("span.options").on("click", function (ev) {
+				$(this).siblings("div.options").toggle();
+			});
+
 			$("#chatinput textarea").focus();
 
 			$(window).on("click", function () {
@@ -362,6 +422,13 @@
 				<div id="linklog">
 					<div class="header">
 						<h1>Media & Links</h1>
+						<span id="linklog-options" class="options">options</span>
+						<div class="options">
+							<div class="option">
+								<input checked id="autoload_media" type="checkbox" />
+								<label for="autoload_media">Autoload Media</label>
+							</div>
+						</div>
 					</div>
 					<div class="body">
 

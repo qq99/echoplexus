@@ -91,8 +91,9 @@ sio.sockets.on('connection', function (socket) {
 
 	socket.emit('chat', {
 		nickname: SERVER,
-		body: 'Welcome to a new experimental chat.  Try sending an image/youtube URL.  Use /nick to set your name.  Test: http://i.imgur.com/Qpkx6FJh.jpg https://www.youtube.com/watch?v=6NMr2VrhmFI&feature=plcp',
-		type: "SYSTEM"
+		body: 'Welcome to a new experimental chat.  Try sending an image/youtube URL.  Use /nick to set your name. http://i.imgur.com/Qpkx6FJh.jpg', // https://www.youtube.com/watch?v=6NMr2VrhmFI&feature=plcp',
+		type: "SYSTEM",
+		timestamp: (new Date()).toJSON()
 	});
 	socket.emit('userlist', {
 		users: clients.userlist()
@@ -100,7 +101,8 @@ sio.sockets.on('connection', function (socket) {
 	socket.broadcast.emit('chat', {
 		nickname: SERVER,
 		body: client.getNick() + ' has joined the chat.',
-		type: "SYSTEM"
+		type: "SYSTEM",
+		timestamp: (new Date()).toJSON()
 	});
 
 	socket.on('nickname', function (data) {
@@ -112,12 +114,14 @@ sio.sockets.on('connection', function (socket) {
 		socket.broadcast.emit('chat', {
 			nickname: SERVER,
 			body: prevName + " is now known as " + newName,
-			type: "SYSTEM"
+			type: "SYSTEM",
+			timestamp: (new Date()).toJSON()
 		});
 		socket.emit('chat', {
 			nickname: SERVER,
 			body: "You are now known as " + newName,
-			type: "SYSTEM"
+			type: "SYSTEM",
+			timestamp: (new Date()).toJSON()
 		});
 		socket.broadcast.emit('userlist', {
 			users: clients.userlist()
@@ -129,9 +133,10 @@ sio.sockets.on('connection', function (socket) {
 
 	socket.on('chat', function (data) {
 		if (data.body) {
-			console.log('wtf',client.getNick());
 			data.nickname = client.getNick();
+			data.timestamp = (new Date()).toJSON();
 			socket.broadcast.emit('chat', data);
+			socket.emit('chat', data);
 		}  	
 	});
 	socket.on('disconnect', function () {
@@ -143,7 +148,8 @@ sio.sockets.on('connection', function (socket) {
 		socket.broadcast.emit('chat', {
 			nickname: SERVER,
 			body: client.getNick() + ' has left the chat.',
-			type: "SYSTEM"
+			type: "SYSTEM",
+			timestamp: (new Date()).toJSON()
 		});
 	})
 });

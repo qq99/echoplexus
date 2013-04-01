@@ -6,7 +6,7 @@
 html, body {
 	text-shadow:1px 1px 1px #151515;
 	background:#222;
-	color:#fefefe;
+	color:#dfdfdf;
 	font-family:monospace;
 	height:100%;
 	width:100%;
@@ -89,6 +89,23 @@ a:visited {
 	max-width:100%;
 	margin-bottom:1em;
 }
+.header {
+	position:relative;
+}
+.header span.options {
+	position: absolute;
+	top: 0;
+	right: 0;
+	padding-right: 1em;
+	font-style: italic;
+	line-height: 2em;
+	cursor:pointer;
+}
+.header div.options {
+	display:none;
+	margin-top:-1em;
+	margin-bottom:1em;
+}
 .imageThumbnail a {
 	display:block;
 }
@@ -96,18 +113,17 @@ a:visited {
 	width:100%;
 	height:auto;
 }
-.chatMessage, .imageThumbnail img {
+.imageThumbnail img {
 	border-radius:5px;
 }
 .chatMessage {
-	margin:0.5em 0;
-	padding:0.5em;
-	background:#303030;
-	clear:both;
-	box-shadow:1px 1px 1px #151515;
+	margin:0 0 0.25em 0;
+}
+.chatMessage:nth-child(2n) {
+	background:#2f2f2f;
 }
 .chatMessage.highlight {
-	background:#444 !important;
+	background:#555;
 }
 .chatMessage > div {
 	display:inline-block;
@@ -134,6 +150,7 @@ a:visited {
 	color:#CC2222;
 }
 #chatinput textarea {
+	outline:none;
 	width:100%;
 	height:100%;
 	max-width:100%;
@@ -142,6 +159,8 @@ a:visited {
 	min-height:100%;
 	padding:0.45em;
 	border-radius:0.5em;
+	border:none;
+	box-shadow:inset 8px 8px 69px -8px #CCC;
 }
 #ghetto_templates {
 	display:none;
