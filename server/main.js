@@ -5,7 +5,7 @@ var express = require('express'),
 	sio = require('socket.io'),
 	app = express(),
 	server = require('http').createServer(app),
-	PORT = 8999;
+	PORT = 9000;
 
 
 // Standard App:
@@ -93,7 +93,8 @@ sio.sockets.on('connection', function (socket) {
 		nickname: SERVER,
 		body: 'Welcome to a new experimental chat.  Try sending an image/youtube URL.  Use /nick to set your name. http://i.imgur.com/Qpkx6FJh.jpg', // https://www.youtube.com/watch?v=6NMr2VrhmFI&feature=plcp',
 		type: "SYSTEM",
-		timestamp: (new Date()).toJSON()
+		timestamp: (new Date()).toJSON(),
+		log: false
 	});
 	socket.emit('userlist', {
 		users: clients.userlist()
@@ -115,13 +116,15 @@ sio.sockets.on('connection', function (socket) {
 			nickname: SERVER,
 			body: prevName + " is now known as " + newName,
 			type: "SYSTEM",
-			timestamp: (new Date()).toJSON()
+			timestamp: (new Date()).toJSON(),
+			log: false
 		});
 		socket.emit('chat', {
 			nickname: SERVER,
 			body: "You are now known as " + newName,
 			type: "SYSTEM",
-			timestamp: (new Date()).toJSON()
+			timestamp: (new Date()).toJSON(),
+			log: false
 		});
 		socket.broadcast.emit('userlist', {
 			users: clients.userlist()
@@ -137,7 +140,7 @@ sio.sockets.on('connection', function (socket) {
 			data.timestamp = (new Date()).toJSON();
 			socket.broadcast.emit('chat', data);
 			socket.emit('chat', data);
-		}  	
+		}
 	});
 	socket.on('disconnect', function () {
 		clients.kill(clientID);
@@ -149,7 +152,8 @@ sio.sockets.on('connection', function (socket) {
 			nickname: SERVER,
 			body: client.getNick() + ' has left the chat.',
 			type: "SYSTEM",
-			timestamp: (new Date()).toJSON()
+			timestamp: (new Date()).toJSON(),
+			log: false
 		});
 	})
 });
