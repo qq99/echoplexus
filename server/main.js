@@ -174,6 +174,7 @@ sio.sockets.on('connection', function (socket) {
 						if (err) throw err;
 
 						if (derivedKey.toString() !== expectedHash) { // FAIL
+							client.setIdentified(false);
 							socket.emit('chat', {
 								nickname: SERVER,
 								type: "SYSTEM",
@@ -185,6 +186,12 @@ sio.sockets.on('connection', function (socket) {
 								type: "SYSTEM",
 								timestamp: (new Date()).toJSON(),
 								body: nick + " just failed to identify himself"
+							});
+							socket.broadcast.emit('userlist', {
+								users: clients.userlist()
+							});
+							socket.emit('userlist', {
+								users: clients.userlist()
 							});
 						} else { // ident'd
 							client.setIdentified(true);
