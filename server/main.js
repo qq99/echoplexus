@@ -166,50 +166,61 @@ sio.sockets.on('connection', function (socket) {
 	socket.on("identify", function (data) {
 		var nick = client.getNick();
 		try {
-			redisC.hget("salts", nick, function (err, salt) {
-				if (err) throw err;
-				redisC.hget("passwords", nick, function (err, expectedHash) {
-					if (err) throw err;
-					crypto.pbkdf2(data.password, salt, 200, 256, function (err, derivedKey) {
-						if (err) throw err;
-
-						if (derivedKey.toString() !== expectedHash) { // FAIL
-							client.setIdentified(false);
-							socket.emit('chat', {
-								nickname: SERVER,
-								type: "SYSTEM",
-								timestamp: (new Date()).toJSON(),
-								body: "Wrong password for " + nick
-							});
-							socket.broadcast.emit('chat', {
-								nickname: SERVER,
-								type: "SYSTEM",
-								timestamp: (new Date()).toJSON(),
-								body: nick + " just failed to identify himself"
-							});
-							socket.broadcast.emit('userlist', {
-								users: clients.userlist()
-							});
-							socket.emit('userlist', {
-								users: clients.userlist()
-							});
-						} else { // ident'd
-							client.setIdentified(true);
-							socket.emit('chat', {
-								nickname: SERVER,
-								type: "SYSTEM",
-								timestamp: (new Date()).toJSON(),
-								body: "You are now identified for " + nick
-							});
-							socket.broadcast.emit('userlist', {
-								users: clients.userlist()
-							});
-							socket.emit('userlist', {
-								users: clients.userlist()
-							});
-						}
+			redisC.sismember("users", nick, function (err, reply) {
+				if (!reply) {
+					socket.emit('chat', {
+						nickname: SERVER,
+						type: "SYSTEM",
+						timestamp: (new Date()).toJSON(),
+						body: "There's no registration on file for " + nick
 					});
-				});
+				} else {
+					redisC.hget("salts", nick, function (err, salt) {
+						if (err) throw err;
+						redisC.hget("passwords", nick, function (err, expectedHash) {
+							if (err) throw err;
+							crypto.pbkdf2(data.password, salt, 1000, 256, function (err, derivedKey) {
+								if (err) throw err;
+
+								if (derivedKey.toString() !== expectedHash) { // FAIL
+									client.setIdentified(false);
+									socket.emit('chat', {
+										nickname: SERVER,
+										type: "SYSTEM",
+										timestamp: (new Date()).toJSON(),
+										body: "Wrong password for " + nick
+									});
+									socket.broadcast.emit('chat', {
+										nickname: SERVER,
+										type: "SYSTEM",
+										timestamp: (new Date()).toJSON(),
+										body: nick + " just failed to identify himself"
+									});
+									socket.broadcast.emit('userlist', {
+										users: clients.userlist()
+									});
+									socket.emit('userlist', {
+										users: clients.userlist()
+									});
+								} else { // ident'd
+									client.setIdentified(true);
+									socket.emit('chat', {
+										nickname: SERVER,
+										type: "SYSTEM",
+										timestamp: (new Date()).toJSON(),
+										body: "You are now identified for " + nick
+									});
+									socket.broadcast.emit('userlist', {
+										users: clients.userlist()
+									});
+									socket.emit('userlist', {
+										users: clients.userlist()
+									});
+								}
+							});
+						});
+					});
+				}
 			});
 		} catch (e) { // identification error
 			socket.emit('chat', {
@@ -231,7 +242,7 @@ sio.sockets.on('connection', function (socket) {
 						if (ex) throw ex;
 						var salt = buf.toString();
 						
-						crypto.pbkdf2(data.password, salt, 200, 256, function (err, derivedKey) {
+						crypto.pbkdf2(data.password, salt, 1000, 256, function (err, derivedKey) {
 							if (err) throw err;
 
 							redisC.sadd("users", nick, function (err, reply) {
