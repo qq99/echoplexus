@@ -25,7 +25,10 @@
 				youtubeURL: /(\b(https?|http):\/\/(www.)*(youtube.com)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
 				URL: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
 				commands: {
-					nick: /^\/nick/
+					nick: /^\/nick/,
+					server_register: /^\/server register/,
+					server_identify: /^\/server identify/,
+					failed_command: /^\//,
 				}
 			}; // helpful regexes
 
@@ -213,10 +216,23 @@
 					body = body.replace(R.commands.nick, "").trim();
 					session.setNick(body);
 					return;
+				} else if (msg.body.match(R.commands.server_register)) {
+					msg.body = msg.body.replace(R.commands.server_register, "").trim();
+					socket.emit('register_nick', {
+						password: msg.body
+					});
+					return;
+				} else if (msg.body.match(R.commands.server_identify)) {
+					msg.body = msg.body.replace(R.commands.server_identify, "").trim();
+					socket.emit('identify', {
+						password: msg.body
+					});
+					return;
+				} else if (msg.body.match(R.commands.failed_command)) {
+					return;
 				} else {
 					session.speak(msg);
 				}
-				msg.nickname = session.getNick();
 			}
 
 			function makeYoutubeURL(s) {
@@ -334,7 +350,12 @@
 						autocomplete.setPool(msg.users);
 						$("#userlist .body").html("");
 						for (var i = 0, l = msg.users.length; i < l; i++) {
-							var user = $("<div class='user'></div>").text(msg.users[i]);
+							var user = $("<div class='user'></div>").text(msg.users[i].	nick);
+							if (msg.users[i].identified) {
+								user.append("<span class='ident'>✓</span>");
+							} else {
+								user.append("<span class='ident'>✗</span>");
+							}
 							$("#userlist .body").append(user);
 						}
 					}
@@ -402,8 +423,8 @@
 				});
 			});
 			socket.on('disconnect', function () {
-				// socket.removeAllListeners('chat'); 
-				// socket.removeAllListeners('userlist');
+				socket.removeAllListeners('chat'); 
+				socket.removeAllListeners('userlist');
 				$("#chatinput textarea").off();
 				handleChatMessage({body: "Unexpected d/c from server", log: false});
 			});

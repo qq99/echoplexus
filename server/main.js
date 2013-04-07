@@ -1,9 +1,12 @@
 var express = require('express'),
 	_ = require('underscore'),
+	crypto = require('crypto'),
 	fs = require('fs'),
+	redis = require('redis'),
 	jade = require('jade'),
 	sio = require('socket.io'),
 	app = express(),
+	redisC = redis.createClient(),
 	server = require('http').createServer(app),
 	PORT = 9000;
 
@@ -23,6 +26,7 @@ var SERVER = "Server";
 function Clients () {
 	function Client () {
 		var nick = "Anonymous-" + parseInt(Math.random()*9000, 10),
+			identified = false,
 			lastActivity = new Date();
 		
 		return {
@@ -41,6 +45,15 @@ function Clients () {
 			},
 			active: function () {
 				lastActivity = new Date();
+			},
+			setIdentified: function (isHe) {
+				identified = isHe;
+			},
+			serialize: function () {
+				return {
+					nick : nick,
+					identified: identified
+				};
 			}
 		};
 	}
@@ -67,7 +80,7 @@ function Clients () {
 		},//
 		userlist: function () {
 			return _.map(clients, function (value, key, list) {
-				return value.getNick();
+				return value.serialize();
 			});
 		},
 		kill: function (id) {
@@ -110,6 +123,17 @@ sio.sockets.on('connection', function (socket) {
 		var newName = data.nickname.replace(NICK, "").trim(),
 			prevName = client.getNick();
 
+		if (newName === "") {
+			socket.emit('chat', {
+				nickname: SERVER,
+				body: "You may not use the empty string as a nickname.",
+				type: "SYSTEM",
+				timestamp: (new Date()).toJSON(),
+				log: false
+			});
+			return;
+		}
+
 		client.setNick(newName);
 
 		socket.broadcast.emit('chat', {
@@ -131,6 +155,118 @@ sio.sockets.on('connection', function (socket) {
 		});
 		socket.emit('userlist', {
 			users: clients.userlist()
+		});
+	});
+
+	socket.on('help', function () {
+
+	});
+
+	socket.on("identify", function (data) {
+		var nick = client.getNick();
+		try {
+			redisC.hget("salts", nick, function (err, salt) {
+				if (err) throw err;
+				redisC.hget("passwords", nick, function (err, expectedHash) {
+					if (err) throw err;
+					crypto.pbkdf2(data.password, salt, 200, 256, function (err, derivedKey) {
+						if (err) throw err;
+
+						if (derivedKey.toString() !== expectedHash) { // FAIL
+							socket.emit('chat', {
+								nickname: SERVER,
+								type: "SYSTEM",
+								timestamp: (new Date()).toJSON(),
+								body: "Wrong password for " + nick
+							});
+							socket.broadcast.emit('chat', {
+								nickname: SERVER,
+								type: "SYSTEM",
+								timestamp: (new Date()).toJSON(),
+								body: nick + " just failed to identify himself"
+							});
+						} else { // ident'd
+							client.setIdentified(true);
+							socket.emit('chat', {
+								nickname: SERVER,
+								type: "SYSTEM",
+								timestamp: (new Date()).toJSON(),
+								body: "You are now identified for " + nick
+							});
+							socket.broadcast.emit('userlist', {
+								users: clients.userlist()
+							});
+							socket.emit('userlist', {
+								users: clients.userlist()
+							});
+						}
+					});
+				});
+			});
+		} catch (e) { // identification error
+			socket.emit('chat', {
+				nickname: SERVER,
+				type: "SYSTEM",
+				timestamp: (new Date()).toJSON(),
+				body: "Error identifying yourself: " + e
+			});
+		}
+	});
+
+	socket.on('register_nick', function (data) {
+		var nick = client.getNick();
+		redisC.sismember("users", nick, function (err, reply) {
+			if (err) throw err;
+			if (!reply) { // nick is not in use
+				try { // try crypto & persistence
+					crypto.randomBytes(256, function (ex, buf) {
+						if (ex) throw ex;
+						var salt = buf.toString();
+						
+						crypto.pbkdf2(data.password, salt, 200, 256, function (err, derivedKey) {
+							if (err) throw err;
+
+							redisC.sadd("users", nick, function (err, reply) {
+								if (err) throw err;
+							});
+							redisC.hset("salts", nick, salt, function (err, reply) {
+								if (err) throw err;
+							});
+							redisC.hset("passwords", nick, derivedKey.toString(), function (err, reply) {
+								if (err) throw err;
+							});
+
+							client.setIdentified(true);
+							socket.emit('chat', {
+								nickname: SERVER,
+								type: "SYSTEM",
+								timestamp: (new Date()).toJSON(),
+								body: "You have registered your nickname.  Please remember your password."
+							});
+							socket.broadcast.emit('userlist', {
+								users: clients.userlist()
+							});
+							socket.emit('userlist', {
+								users: clients.userlist()
+							});
+						});
+					});
+				} catch (e) {
+					socket.emit('chat', {
+						nickname: SERVER,
+						type: "SYSTEM",
+						timestamp: (new Date()).toJSON(),
+						body: "Error in registering your nickname: " + e
+					});
+				}
+			} else { // nick is already in use
+				socket.emit('chat', {
+					nickname: SERVER,
+					type: "SYSTEM",
+					timestamp: (new Date()).toJSON(),
+					body: "That nickname is already registered by somebody."
+				});
+			}
 		});
 	});
 
