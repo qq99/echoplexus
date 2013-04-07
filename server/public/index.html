@@ -9,6 +9,13 @@
 	<script src="/socket.io/socket.io.js"></script>
 	<script>
 		$(document).ready(function () {
+			var autoload_media = true;
+			if ($.cookie("autoload_media") !== null) {
+				if ($.cookie("autoload_media") === "false") {
+					$("#autoload_media").removeAttr("checked");
+					autoload_media = false;
+				}
+			}
 
 			var imageContainer = $("#imageThumbnail").html();
 			var messageContainer = $("#chatMessage").html();
@@ -242,7 +249,6 @@
 			}
 
 			function renderChatMessage(msg) {
-				var autoload_media = $("#autoload_media").attr("checked");
 				var body = msg.body;
 				// put image links on the side:
 				var images;
@@ -440,6 +446,11 @@
 
 			$(window).on("click", function () {
 				notifications.request();
+			});
+
+			$("#autoload_media").on("click", function () {
+				$.cookie("autoload_media", $(this).prop("checked"));
+				autoload_media = !autoload_media;
 			});
 
 	  });
