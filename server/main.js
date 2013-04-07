@@ -179,7 +179,7 @@ sio.sockets.on('connection', function (socket) {
 						if (err) throw err;
 						redisC.hget("passwords", nick, function (err, expectedHash) {
 							if (err) throw err;
-							crypto.pbkdf2(data.password, salt, 1000, 256, function (err, derivedKey) {
+							crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
 								if (err) throw err;
 
 								if (derivedKey.toString() !== expectedHash) { // FAIL
@@ -242,7 +242,7 @@ sio.sockets.on('connection', function (socket) {
 						if (ex) throw ex;
 						var salt = buf.toString();
 						
-						crypto.pbkdf2(data.password, salt, 1000, 256, function (err, derivedKey) {
+						crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
 							if (err) throw err;
 
 							redisC.sadd("users", nick, function (err, reply) {
