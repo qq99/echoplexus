@@ -122,6 +122,7 @@ sio.sockets.on('connection', function (socket) {
 	socket.on('nickname', function (data) {
 		var newName = data.nickname.replace(NICK, "").trim(),
 			prevName = client.getNick();
+		client.setIdentified(false);
 
 		if (newName === "") {
 			socket.emit('chat', {

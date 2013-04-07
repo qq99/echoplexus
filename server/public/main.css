@@ -169,3 +169,13 @@ a:visited {
 	display:block !important;
 	clear:both;
 }
+.ident {
+	font-family:sans-serif;
+	padding-left:0.5em;
+}
+.ident.yes {
+	color:green;
+}
+.ident.no {
+	color:red;
+}

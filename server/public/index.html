@@ -26,8 +26,8 @@
 				URL: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
 				commands: {
 					nick: /^\/nick/,
-					server_register: /^\/server register/,
-					server_identify: /^\/server identify/,
+					register: /^\/register/,
+					identify: /^\/identify/,
 					failed_command: /^\//,
 				}
 			}; // helpful regexes
@@ -100,14 +100,11 @@
 								body
 							);
 
-							// notification.onclick = function () {
-							// 	window.open("http://stackoverflow.com/a/13328397/1269037");
-							// 	notification.close();
-							// }
+
 							notification.show();
 							setTimeout(function () {
 								notification.cancel();
-							}, 8000);
+							}, 5000);
 						} else { // not allowed
 							// hmm
 						}
@@ -216,14 +213,14 @@
 					body = body.replace(R.commands.nick, "").trim();
 					session.setNick(body);
 					return;
-				} else if (msg.body.match(R.commands.server_register)) {
-					msg.body = msg.body.replace(R.commands.server_register, "").trim();
+				} else if (msg.body.match(R.commands.register)) {
+					msg.body = msg.body.replace(R.commands.register, "").trim();
 					socket.emit('register_nick', {
 						password: msg.body
 					});
 					return;
-				} else if (msg.body.match(R.commands.server_identify)) {
-					msg.body = msg.body.replace(R.commands.server_identify, "").trim();
+				} else if (msg.body.match(R.commands.identify)) {
+					msg.body = msg.body.replace(R.commands.identify, "").trim();
 					socket.emit('identify', {
 						password: msg.body
 					});
@@ -321,7 +318,7 @@
 					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
 				}
 
-				if (body.indexOf(session.getNick()) !== -1) {
+				if (body.toLowerCase().split(" ").indexOf(session.getNick().toLowerCase()) !== -1) {
 					notifications.notify(msg.nickname, body.substring(0,50));
 					chat.addClass("highlight");
 				}
@@ -347,14 +344,16 @@
 				});
 				socket.on('userlist', function (msg) {
 					if (msg.users && msg.users.length) {
-						autocomplete.setPool(msg.users);
+						autocomplete.setPool(msg.users.map(function (user) {
+							return user.nick;
+						}));
 						$("#userlist .body").html("");
 						for (var i = 0, l = msg.users.length; i < l; i++) {
 							var user = $("<div class='user'></div>").text(msg.users[i].	nick);
 							if (msg.users[i].identified) {
-								user.append("<span class='ident'>✓</span>");
+								user.append("<span class='ident yes'>✓</span>");
 							} else {
-								user.append("<span class='ident'>✗</span>");
+								user.append("<span class='ident no'>✗</span>");
 							}
 							$("#userlist .body").append(user);
 						}
@@ -402,9 +401,10 @@
 						case 9: // tab key
 							ev.preventDefault();
 							var text = $(this).val().split(" ");
-							var stub = text[text.length - 1];
-							
+							var stub = text[text.length - 1];				
 							var completion = autocomplete.next(stub);
+
+							console.log(text, stub, completion);
 
 							if (completion !== "") {
 								text[text.length - 1] = completion;
@@ -416,7 +416,6 @@
 							$(this).val(text.join(" "));
 							break;
 						default:
-							// console.log(ev, ev.keyCode);
 							break;
 					}
 
