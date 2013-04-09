@@ -12,8 +12,6 @@ server: server/main.js
 install_packages:
 	npm install $(NODE_PACKAGES) && gem install $(GEMS)
 
-assets: css
-
 css: $(SASS_FILES)
 	mkdir -p $(PUBLIC_DIR)/css 
 	sass --style compressed sass/combined.scss:$(PUBLIC_DIR)/css/main.css

@@ -7,23 +7,45 @@
 
 	<script type="text/javascript" src="/codemirror-3.11/lib/codemirror.js"></script>
 	<script src="/codemirror-3.11/mode/javascript/javascript.js"></script>
+	<script src="/js/underscore-min.js"></script>
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 	<script src="/jquery.cookie.js"></script>
 	<script src="/moment.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 	<script>
 		$(document).ready(function () {
-			var autoload_media = true;
-			if ($.cookie("autoload_media") !== null) {
-				if ($.cookie("autoload_media") === "false") {
-					$("#autoload_media").removeAttr("checked");
-					autoload_media = false;
+			// consider these persistent options
+			// we use a cookie for these since they're small and more compatible
+			var options = {
+				"autoload_media": true,
+				"suppress_join": false
+			};
+
+			function updateOption (option) {
+				// update the options hash based upon the cookie
+				var $option = $("#" + option);
+				if ($.cookie(option) !== null) {
+					if ($.cookie(option) === "false") {
+						$option.removeAttr("checked");
+						options[option] = false;
+					} else {
+						$option.attr("checked", "checked");
+						options[option] = true;
+					}
 				}
+				// bind events to the click of the element of the same ID as the option's key
+				$option.on("click", function () {
+					$.cookie(option, $(this).prop("checked"));
+					options[option] = !options[option];
+				});
 			}
 
+			_.each(_.keys(options), updateOption); // update all options we know about
+
+
+			// ghetto templates:
 			var imageContainer = $("#imageThumbnail").html();
 			var messageContainer = $("#chatMessage").html();
-
 			var fl_obj_template = '<object>' +
                           '<param name="movie" value=""></param>' +   
                           '<param name="allowFullScreen" value="true"></param>' +   
@@ -31,18 +53,22 @@
                           '<embed src="" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="300" height="200"></embed>' +   
                           '</object>'; 
 
+            // utility: a container of useful regexes arranged into some a rough taxonomy
 			var R = {
-				imageURL: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|].(jpg|png|bmp|gif|svg))/gi,
-				youtubeURL: /(\b(https?|http):\/\/(www.)*(youtube.com)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
-				URL: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
+				urls: {
+					image: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|].(jpg|png|bmp|gif|svg))/gi,
+					youtube: /(\b(https?|http):\/\/(www.)*(youtube.com)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
+					all_others: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi
+				},
 				commands: {
 					nick: /^\/nick/,
 					register: /^\/register/,
 					identify: /^\/identify/,
 					failed_command: /^\//,
 				}
-			}; // helpful regexes
+			};
 
+			// utility: extend the local storage protoype if it exists
 			if (window.Storage) {
 				Storage.prototype.setObj = function(key, obj) {
 					return this.setItem(key, JSON.stringify(obj))
@@ -52,6 +78,7 @@
 				}
 			}
 
+			// object: a persistent log if local storage is available ELSE noops
 			function Log() {
 				var log = [],
 					logMax = 200;
@@ -91,6 +118,7 @@
 				}
 			}
 
+			// object: a wrapper around Chrome OS-level notifications
 			function Notifications () {
 				var hasPermission = 1,
 					enabled = false;
@@ -136,20 +164,30 @@
 				};
 			}
 
+			// object: given a string A, returns a string B iff A is a substring of B
+			//	transforms A,B -> lowerCase for the comparison
+			//		TODO: use a scheme involving something like l-distance instead
 			function Autocomplete () {
 				var pool = [],
-					cur = 0;
+					cur = 0,
+					lastStub,
+					candidates;
+
 				return {
 					setPool: function (arr) {
 						pool = arr;
+						candidates = [];
+						lastStub = null;
 					},
 					next: function (stub) {
 						if (!pool.length) return "";
-						stub = stub.toLowerCase();
-						var name;
-						var candidates = pool.filter(function (element, index, array) {
-							return (element.toLowerCase().indexOf(stub) !== -1);
-						});
+
+						stub = stub.toLowerCase(); // transform the stub -> lcase
+						if (stub !== lastStub) { // update memoized candidates
+							candidates = pool.filter(function (element, index, array) {
+								return (element.toLowerCase().indexOf(stub) !== -1);
+							});
+						}
 
 						if (!candidates.length) return "";
 
@@ -161,10 +199,6 @@
 					}
 				}
 			}
-
-			var autocomplete = new Autocomplete();
-			var notifications = new Notifications();
-			var uniqueImages = {};
 
 			function Client (initdSocket) {
 				var nick = "Anonymous",
@@ -186,9 +220,14 @@
 				};
 			}
 
+			// object: a stack-like data structure supporting only:
+			//	- an index representing the currently looked-at element
+			//	- adding new elements to the top of the stack
+			//	- emptying the stack
 			function Scrollback () {
 				var buffer = [],
 					position = 0;
+				
 				return {
 					add: function (userInput) {
 						buffer.push(userInput);
@@ -213,12 +252,15 @@
 			}
 
 			var scrollback = new Scrollback();
+			var autocomplete = new Autocomplete();
+			var notifications = new Notifications();
+			var log = new Log();
+			var uniqueImages = {};
 
 			function handleChatMessage(msg) {
 
-				if (!msg.body) return;
+				if (!msg.body) return; // if there's no body, we probably don't want to do anything
 				var body = msg.body;
-
 
 				if (body.match(R.commands.nick)) {
 					body = body.replace(R.commands.nick, "").trim();
@@ -254,9 +296,17 @@
 
 			function renderChatMessage(msg) {
 				var body = msg.body;
+
+				if (options["suppress_join"]) {
+					console.log(msg.class);
+					if (msg.class === "join" || msg.class === "part") {
+						return;
+					}
+				}
+
 				// put image links on the side:
 				var images;
-				if (autoload_media && (images = body.match(R.imageURL))) {
+				if (options["autoload_media"] && (images = body.match(R.urls.image))) {
 					for (var i = 0, l = images.length; i < l; i++) {
 						var href = images[i],
 							img = $(imageContainer);
@@ -270,12 +320,12 @@
 						}
 					}
 
-					body = body.replace(R.imageURL, "").trim(); // remove the URLs
+					body = body.replace(R.urls.image, "").trim(); // remove the URLs
 				}
 
 				// put youtube linsk on the side:
 				var youtubes;
-				if (autoload_media && (youtubes = body.match(R.youtubeURL))) {
+				if (options["autoload_media"] && (youtubes = body.match(R.urls.youtube))) {
 					for (var i = 0, l = youtubes.length; i < l; i++) {
 						var src = makeYoutubeURL(youtubes[i]),
 							yt = $(fl_obj_template);
@@ -290,7 +340,7 @@
 
 				// put hyperlinks on the side:
 				var links;
-				if (links = body.match(R.URL)) {
+				if (links = body.match(R.urls.all_others)) {
 					for (var i = 0, l = links.length; i < l; i++) {
 						if (uniqueImages[links[i]] === undefined) {
 							$("#linklog .body").prepend("<a href='" + links[i] + "' target='_blank'>" + links[i] + "</a>");
@@ -303,7 +353,7 @@
 				body = body.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 				// hyperify hyperlinks for the chatlog:
-				body = body.replace(R.URL,'<a target="_blank" href="$1">$1</a>');
+				body = body.replace(R.urls.all_others,'<a target="_blank" href="$1">$1</a>');
 
 				if (body.length) {
 					var chat = $(messageContainer);
@@ -344,7 +394,6 @@
         		continueComments: "Enter"
 			});
 
-			var log = new Log();
 			var socket = io.connect(window.location.href);
 			socket.on('connect', function () {
 				session = new Client(socket);
@@ -362,7 +411,6 @@
 					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
 				});
 				socket.on('userlist', function (msg) {
-					console.log(msg);
 					if (msg.users && msg.users.length) {
 						autocomplete.setPool(msg.users.map(function (user) {
 							return user.nick;
@@ -431,8 +479,6 @@
 							var stub = text[text.length - 1];				
 							var completion = autocomplete.next(stub);
 
-							console.log(text, stub, completion);
-
 							if (completion !== "") {
 								text[text.length - 1] = completion;
 							}
@@ -469,10 +515,7 @@
 				notifications.request();
 			});
 
-			$("#autoload_media").on("click", function () {
-				$.cookie("autoload_media", $(this).prop("checked"));
-				autoload_media = !autoload_media;
-			});
+
 
 			$("#codeButton").on("click", function (ev) {
 				ev.preventDefault();
@@ -494,12 +537,29 @@
 
 			editor.on("change", function (instance, change) {
 				if (change.origin !== undefined) {
-					console.log("emitted", change);
 					socket.emit("code:change", change);
-				} else {
-					console.log("rendered", change);
 				}
+				updateJsEval();
 			});
+			
+
+			var iframe = document.getElementById("repl-frame").contentWindow;
+			var updateJsEval = _.debounce(function () {
+				var script = editor.getValue();
+				var wrapped_script = "(function(){" + script + "})();";
+				if (script !== "") {
+					var result;
+					try {
+						result = iframe.eval(wrapped_script);
+						if (_.isObject(result)) {
+							result = JSON.stringify(result);
+						}
+					} catch (e) {
+						result = e.toString();
+					}
+					$("#result_pane .output").text(result);
+				}
+			}, 500);
 
 	  });
 	</script>
@@ -511,7 +571,7 @@
 	<section id="main">
 		<section id="header">
 			<h1 id="chatButton">Chat</h1>
-			<h1 id="codeButton">Code</h1>
+			<h1 id="codeButton">JavaScript</h1>
 		</section>
 		<section id="panes">
 			<section id="chatting">
@@ -537,6 +597,10 @@
 										<input checked id="autoload_media" type="checkbox" />
 										<label for="autoload_media">Autoload Media</label>
 									</div>
+									<div class="option">
+										<input id="suppress_join" type="checkbox" />
+										<label for="suppress_join">Suppress Join/Part Messages</label>
+									</div>
 								</div>
 							</div>
 							<div class="body">
@@ -552,10 +616,17 @@
 			<section id="coding">
 				<section id="codearea">
 					<div id="codelog">
-						<textarea id="code" name="code">function () {}</textarea>
+						<textarea id="code" name="code">return 5;</textarea>
 					</div>
-					<div id="repl_result">
-
+					<div id="result_pane">
+						<div class="html-area">
+							<h1>HTML</h1>
+							<iframe seamless sandbox="allow-scripts allow-same-origin" id="repl-frame"></iframe>
+						</div>
+						<div class="console-area">
+							<h1>Result</h1>
+							<div class="output"></div>
+						</div>
 					</div>
 				</section>
 			</section>

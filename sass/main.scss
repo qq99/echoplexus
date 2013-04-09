@@ -75,9 +75,11 @@ a {
 	overflow:hidden;
 	#codelog {
 		width:80%;
+		float:left;
 	}
-	#repl_result {
+	#result_pane {
 		width:20%;
+		float:right;
 	}
 
 	.CodeMirror {
@@ -91,6 +93,16 @@ a {
 	textarea {
 		width:100%;
 		height:100%;
+	}
+	#repl-frame {
+		width:100%;
+		height:50%;
+	}
+	#result_pane {
+		& > div {
+			height: 50%;
+			padding:1em;
+		}
 	}
 }
 

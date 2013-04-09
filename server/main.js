@@ -116,6 +116,7 @@ sio.sockets.on('connection', function (socket) {
 		nickname: SERVER,
 		body: client.getNick() + ' has joined the chat.',
 		type: "SYSTEM",
+		class: "join",
 		timestamp: (new Date()).toJSON()
 	});
 
@@ -313,6 +314,7 @@ sio.sockets.on('connection', function (socket) {
 			nickname: SERVER,
 			body: client.getNick() + ' has left the chat.',
 			type: "SYSTEM",
+			class: "part",
 			timestamp: (new Date()).toJSON(),
 			log: false
 		});
