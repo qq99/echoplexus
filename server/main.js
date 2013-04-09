@@ -104,7 +104,7 @@ sio.sockets.on('connection', function (socket) {
 
 	socket.emit('chat', {
 		nickname: SERVER,
-		body: 'Welcome to a new experimental chat.  Try sending an image/youtube URL.  Use /nick to set your name. http://i.imgur.com/Qpkx6FJh.jpg', // https://www.youtube.com/watch?v=6NMr2VrhmFI&feature=plcp',
+		body: 'Welcome to a new experimental chat.  Change your nickname with `/nick yournickname`.  Register with `/register yourpassword`.  Identify yourself with `/identify yourpassword`.  http://i.imgur.com/Qpkx6FJh.jpg',
 		type: "SYSTEM",
 		timestamp: (new Date()).toJSON(),
 		log: false
