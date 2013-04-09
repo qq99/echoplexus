@@ -39,15 +39,67 @@ a:visited {
 	max-height:100%;
 	max-width:100%;
 }
+#header {
+	height:5%;
+	padding:1em;
+}
+#header h1 {
+	display:inline-block;
+	margin:0px;
+	margin-right:1em;
+	padding:0px;
+	cursor:pointer;
+	border-bottom:0px;
+	color:#666;
+}
+
+#panes {
+	height:95%;
+	position:relative;
+}
+#panes > section {
+	height:100%;
+	width:100%;
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+#coding {
+	display:none;
+}
+#codearea {
+	height:100%;
+	overflow:hidden;
+}
+#codearea .CodeMirror {
+	width:100%;
+	height:100%;
+}
+#codearea > div {
+	height:100%;
+}
+#codearea textarea {
+	width:100%;
+	height:100%;
+}
+#codelog {
+	width:80%;
+}
+#repl_result {
+	width:20%;
+}
+
 #chatarea {
-	height:90%;
+	height:95%;
 }
 #chatarea > div {
 	height:100%;
+	padding-bottom:0;
 }
 #chatinput {
 	padding:1em;
-	height:10%;
+	height:5%;
 }
 #chatlog {
 	overflow-y:auto;

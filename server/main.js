@@ -289,6 +289,11 @@ sio.sockets.on('connection', function (socket) {
 		});
 	});
 
+	socket.on('code:change', function (data) {
+		data.timestamp = (new Date()).toJSON();
+		socket.broadcast.emit('code:change', data);
+	});
+
 	socket.on('chat', function (data) {
 		if (data.body) {
 			data.nickname = client.getNick();
