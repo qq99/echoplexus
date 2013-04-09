@@ -392,6 +392,7 @@
 					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
 				});
 				socket.on('userlist', function (msg) {
+					console.log(msg);
 					if (msg.users && msg.users.length) {
 						autocomplete.setPool(msg.users.map(function (user) {
 							return user.nick;

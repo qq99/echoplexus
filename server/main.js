@@ -109,7 +109,7 @@ sio.sockets.on('connection', function (socket) {
 		timestamp: (new Date()).toJSON(),
 		log: false
 	});
-	socket.emit('userlist', {
+	sio.sockets.emit('userlist', {
 		users: clients.userlist()
 	});
 	socket.broadcast.emit('chat', {
@@ -303,12 +303,13 @@ sio.sockets.on('connection', function (socket) {
 		}
 	});
 	socket.on('disconnect', function () {
+		console.log("killing ", clientID);
 		clients.kill(clientID);
-		socket.broadcast.emit('userlist', {
+		sio.sockets.emit('userlist', {
 			users: clients.userlist()
 		});
 
-		socket.broadcast.emit('chat', {
+		sio.sockets.emit('chat', {
 			nickname: SERVER,
 			body: client.getNick() + ' has left the chat.',
 			type: "SYSTEM",
