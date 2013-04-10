@@ -23,7 +23,7 @@ h2 {
 }
 h1, h2 {
 	color:#999;
-	font-family:sans-serif;
+	font-family: 'Noto Sans', sans-serif;
 	font-weight:normal;
 	font-style:italic;
 	border-bottom: 1px solid #444;
@@ -47,6 +47,8 @@ a {
 	max-width:100%;
 }
 #header {
+	position:relative;
+	z-index:2;
 	height:5%;
 	padding:1em;
 	h1 {
@@ -59,7 +61,8 @@ a {
 		color:#efefef;
 		transition:all 0.25s ease-in-out;
 		&:hover {
-			color:gold;
+			color:#999;
+			text-shadow:2px 2px 2px #252525;
 		}
 	}
 }
@@ -70,6 +73,7 @@ a {
 #panes {
 	height:95%;
 	position:relative;
+	z-index:1;
 	& > section {
 		height:100%;
 		width:100%;
@@ -124,21 +128,56 @@ a {
 	}
 }
 
-
-
-#chatarea {
-	position:relative;
-	height:95%;
-	& > div {
-		height:100%;
-		padding-bottom:0;
-	}
-}
-#chatinput {
-	padding:0.5em 1em;
-	height:5%;
-}
 $supportbar-width: 300px;
+
+#chatting {
+	$chatinput-height:5em;
+	#chatarea {
+		position:relative;
+		height:100%;
+		padding-bottom:$chatinput-height + 1em;
+		& > div {
+			height:100%;
+			padding-bottom:0;
+		}
+	}
+	#chatinput {
+		width:100%;
+		padding:1em;
+		position:absolute;
+		bottom:0;
+		left:0;
+		height:$chatinput-height;
+		padding-right:$supportbar-width;
+		textarea, input {
+			background:rgba(0,0,0,0.5);
+			outline:none;
+			width:100%;
+			height:100%;
+			max-width:100%;
+			max-height:100%;
+			min-width:100%;
+			min-height:100%;
+			padding:0.25em 2em;
+			border-radius:10em;
+			border:none;
+			box-shadow:inset 2px 2px 1px rgba(0,0,0,0.55),inset -2px -2px 1px -1px rgba(0,0,0,0.3);
+			position:relative;
+			transition:background 0.25s ease-out, color 0.75s ease-out;
+			&:focus {
+				background:rgba(0,0,0,0.30);
+				color:#efefef;
+			}
+			&::-webkit-input-placeholder { color:silver; }
+			&::-moz-placeholder { color:silver; } /* firefox 19+ */
+			&:-ms-input-placeholder { color:silver; } /* ie */
+			&:-moz-placeholder { color:silver; }
+		}
+	}
+
+}
+
+
 #chatlog {
 	overflow:hidden;
 	max-height:100%;
@@ -255,19 +294,6 @@ $supportbar-width: 300px;
 	}
 }
 
-#chatinput textarea {
-	outline:none;
-	width:100%;
-	height:100%;
-	max-width:100%;
-	max-height:100%;
-	min-width:100%;
-	min-height:100%;
-	padding:0.45em;
-	border-radius:0.5em;
-	border:none;
-	box-shadow:inset 8px 8px 69px -8px #CCC;
-}
 #ghetto_templates {
 	display:none;
 }

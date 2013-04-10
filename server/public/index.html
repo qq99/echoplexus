@@ -4,6 +4,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
 	<link rel="stylesheet" type="text/css" href="/codemirror-3.11/lib/codemirror.css" />
+	<link href='http://fonts.googleapis.com/css?family=Noto+Sans:700,400italic,700italic,400' rel='stylesheet' type='text/css'>
 
 	<script type="text/javascript" src="/codemirror-3.11/lib/codemirror.js"></script>
 	<script src="/codemirror-3.11/mode/javascript/javascript.js"></script>
@@ -477,7 +478,7 @@
 				}
 
 
-				$("#chatinput textarea").on("keydown", function (ev) {
+				$("#chatinput input").on("keydown", function (ev) {
 					$this = $(this);
 					switch (ev.keyCode) {
 						// enter:
@@ -541,7 +542,7 @@
 				socket.removeAllListeners('chat'); 
 				socket.removeAllListeners('userlist');
 				socket.removeAllListeners('code:change code:authoritative_push code:sync code:request');
-				$("#chatinput textarea").off();
+				$("#chatinput input").off();
 				handleChatMessage({body: "Unexpected d/c from server", log: false});
 			});
 
@@ -553,7 +554,7 @@
 				$(this).siblings("div.options").toggle();
 			});
 
-			$("#chatinput textarea").focus();
+			$("#chatinput input").focus();
 
 			$(window).on("click", function () {
 				notifications.request();
@@ -667,7 +668,7 @@
 					</div>
 				</section>
 				<section id="chatinput">
-					<textarea></textarea>
+					<input placeholder="Say something..."></input>
 				</section>
 			</section>
 			<section id="coding">
