@@ -24,12 +24,14 @@ console.log('Listening on port', PORT);
 var SERVER = "Server";
 
 function Clients () {
-	function Client () {
+	function Client (socketRef) {
 		var nick = "Anonymous-" + parseInt(Math.random()*9000, 10),
 			identified = false,
+			socket = socketRef,
 			lastActivity = new Date();
-		
+
 		return {
+			socket: socket,
 			setNick: function(newNickname) {
 				nick = newNickname;
 			},
@@ -70,9 +72,9 @@ function Clients () {
 	var id = new ID();
 	var clients = {};
 	return {
-		add: function () {
+		add: function (socketRef) {
 			var ref = id.next();
-			clients[ref] = new Client();
+			clients[ref] = new Client(socketRef);
 			return ref;
 		},
 		get: function (id) {
@@ -86,11 +88,44 @@ function Clients () {
 		kill: function (id) {
 			delete clients[id];
 		}
-	}
+	};
 }
 
+function CodeCache () {
+	var currentState = "",
+		mruClient = null,
+		ops = [];
+
+	return {
+		set: function (state) {
+			currentState = state;
+			ops = [];
+		},
+		add: function (op, client) {
+			mruClient = client;
+			ops.push(op);
+		},
+		syncFromClient: function () {
+			if (mruClient === null) return;
+
+			mruClient.socket.emit('code:request');
+		},
+		syncToClient: function () {
+			return {
+				start: currentState,
+				ops: ops
+			};
+		},
+		remove: function (client) {
+			if (mruClient === client) {
+				mruClient = null;
+			}
+		}
+	};
+}
 
 var clients = new Clients();
+var codeCache = new CodeCache();
 
 // regexes:
 var NICK = /^\/nick/;
@@ -99,7 +134,7 @@ var NICK = /^\/nick/;
 sio = sio.listen(server);
 
 sio.sockets.on('connection', function (socket) {
-	var clientID = clients.add(),
+	var clientID = clients.add(socket),
 		client = clients.get(clientID);
 
 	socket.emit('chat', {
@@ -109,6 +144,9 @@ sio.sockets.on('connection', function (socket) {
 		timestamp: (new Date()).toJSON(),
 		log: false
 	});
+	
+	socket.emit('code:authoritative_push', codeCache.syncToClient());
+
 	sio.sockets.emit('userlist', {
 		users: clients.userlist()
 	});
@@ -292,7 +330,12 @@ sio.sockets.on('connection', function (socket) {
 
 	socket.on('code:change', function (data) {
 		data.timestamp = (new Date()).toJSON();
+		codeCache.add(data, client);
 		socket.broadcast.emit('code:change', data);
+	});
+	socket.on('code:full_transcript', function (data) {
+		codeCache.set(data.code);
+		socket.broadcast.emit('code:sync', data);
 	});
 
 	socket.on('chat', function (data) {
@@ -305,6 +348,9 @@ sio.sockets.on('connection', function (socket) {
 	});
 	socket.on('disconnect', function () {
 		console.log("killing ", clientID);
+
+		codeCache.remove(client);
+
 		clients.kill(clientID);
 		sio.sockets.emit('userlist', {
 			users: clients.userlist()
@@ -318,5 +364,8 @@ sio.sockets.on('connection', function (socket) {
 			timestamp: (new Date()).toJSON(),
 			log: false
 		});
-	})
+	});
+
+	setInterval(codeCache.syncFromClient, 1000*30);
+
 });

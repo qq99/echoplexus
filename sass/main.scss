@@ -14,7 +14,6 @@ html, body {
 	margin:0;
 	padding:0;
 	text-rendering:optimize-legibility;
-	word-break:break-word;
 }
 h1 {
 	font-size:1.7em;
@@ -94,6 +93,7 @@ a {
 	#result_pane {
 		width:50%;
 		float:right;
+		word-break:break-word;
 	}
 
 	.CodeMirror {
@@ -233,6 +233,9 @@ $supportbar-width: 300px;
 		padding:0.25em 0.5em;
 	}
 
+	.body {
+		word-break:break-word;
+	}
 	.time {
 		color:#666;
 		float:right;

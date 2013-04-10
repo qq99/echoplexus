@@ -437,12 +437,37 @@
 					}
 				});
 
-
-				socket.on("code:change", function (change) {
+				function applyChanges (change) {
 					editor.replaceRange(change.text, change.from, change.to);
 					while (change.next !== undefined) { // apply all the changes we receive until there are no more
 						change = change.next
 						editor.replaceRange(change.text, change.from, change.to);
+					}
+				}
+
+				socket.on("code:change", function (change) {
+					console.log("change");
+					applyChanges(change);
+				});
+
+				socket.on("code:request", function () {
+					console.log("request");
+					socket.emit("code:full_transcript", {
+						code: editor.getValue()
+					});
+				});
+				socket.on("code:sync", function (data) {
+					console.log("sync");
+					if (editor.getValue() !== data.code) {
+						editor.setValue(data.code);
+					}
+				});
+
+				socket.on("code:authoritative_push", function (data) {
+					console.log("push");
+					editor.setValue(data.start);
+					for (var i = 0; i < data.ops.length; i ++) {
+						applyChanges(data.ops[i]);
 					}
 				});
 
@@ -646,7 +671,10 @@
 			<section id="coding">
 				<section id="codearea">
 					<div id="codelog">
-						<textarea id="code" name="code">return 5;</textarea>
+						<textarea id="code" name="code">
+// requires at least 1 return statement
+return {this: "is", a: "test"};
+						</textarea>
 					</div>
 					<div id="result_pane">
 						<div class="html-area">
