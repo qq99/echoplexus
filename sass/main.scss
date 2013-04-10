@@ -87,11 +87,11 @@ a {
 	height:100%;
 	overflow:hidden;
 	#codelog {
-		width:80%;
+		width:50%;
 		float:left;
 	}
 	#result_pane {
-		width:20%;
+		width:50%;
 		float:right;
 	}
 
@@ -126,6 +126,7 @@ a {
 
 
 #chatarea {
+	position:relative;
 	height:95%;
 	& > div {
 		height:100%;
@@ -155,6 +156,7 @@ $supportbar-width: 300px;
 	top:0;
 	right:0;
 	padding:1em;
+	padding-top:0px;
 }
 #userlist {
 	height:20%;
@@ -194,18 +196,22 @@ $supportbar-width: 300px;
 .header {
 	position:relative;
 }
-.header span.options {
-	position: absolute;
-	top: 0;
-	right: 0;
-	padding-right: 1em;
-	font-style: italic;
-	cursor:pointer;
-}
-.header div.options {
-	display:none;
-	margin-top:-1em;
-	margin-bottom:1em;
+.header {
+	span.options {
+		position: absolute;
+		top: 0;
+		right: 0;
+		padding-right: 1em;
+		font-style: italic;
+		cursor:pointer;
+		font-size:0.78em;
+	}
+	div.options {
+		font-size:0.7em;
+		display:none;
+		margin-top:-1em;
+		margin-bottom:1em;
+	}
 }
 .chatMessage {
 	margin:0 0 0.25em 0;
