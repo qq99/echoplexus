@@ -298,7 +298,6 @@
 				var body = msg.body;
 
 				if (options["suppress_join"]) {
-					console.log(msg.class);
 					if (msg.class === "join" || msg.class === "part") {
 						return;
 					}
@@ -355,29 +354,26 @@
 				// hyperify hyperlinks for the chatlog:
 				body = body.replace(R.urls.all_others,'<a target="_blank" href="$1">$1</a>');
 
-				if (body.length) {
+				if (body.length) { // if there's anything left in the body, 
 					var chat = $(messageContainer);
 					chat.find(".nick").text(msg.nickname).attr("title", msg.nickname);
 					chat.find(".body").html(body);
 					chat.find(".time").text("[" + moment(msg.timestamp).format('hh:mm:ss') + "]");
 					chat.attr("data-timestamp", msg.timestamp);
 
-					if (msg.type) {
-						switch (msg.type) {
-							case "SYSTEM":
-								chat.find(".nick").addClass("system");
-								break;
-							default:
-								break;
-						}
+					// special styling of nickname depending on who you are:
+					if (msg.type === "SYSTEM") {
+						chat.find(".nick").addClass("system");
 					}
 					if (msg.nickname === session.getNick()) {
 						chat.find(".nick").addClass('me');
 					}
-					$("#chatlog").append(chat);
-					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
+					// add message to the chatlog
+					$("#chatlog .messages").append(chat);
+					$("#chatlog .messages").scrollTop($("#chatlog .messages")[0].scrollHeight);
 				}
 
+				// scan through the message and determine if we need to notify somebody that was mentioned:
 				if (body.toLowerCase().split(" ").indexOf(session.getNick().toLowerCase()) !== -1) {
 					notifications.notify(msg.nickname, body.substring(0,50));
 					chat.addClass("highlight");
@@ -398,51 +394,65 @@
 			socket.on('connect', function () {
 				session = new Client(socket);
 
+				// if there's something in the persistent chatlog, render it:
 				if (!log.empty()) {
 					var entries = log.all();
 					for (var i = 0, l = entries.length; i < l; i++) {
 						renderChatMessage(entries[i]);
 					}
 				}
+
+
 				notifications.enable();
+
+
 				socket.on('chat', function (msg) {
 					log.add(msg);
 					renderChatMessage(msg);
-					$("#chatlog").scrollTop($("#chatlog")[0].scrollHeight);
+					$("#chatlog .messages").scrollTop($("#chatlog .messages")[0].scrollHeight);
 				});
+
+
 				socket.on('userlist', function (msg) {
 					if (msg.users && msg.users.length) {
-						autocomplete.setPool(msg.users.map(function (user) {
+						autocomplete.setPool(_.map(msg.users, function (user) {
 							return user.nick;
 						}));
 						$("#userlist .body").html("");
 						for (var i = 0, l = msg.users.length; i < l; i++) {
 							var user = $("<div class='user'></div>").text(msg.users[i].	nick);
+
 							if (msg.users[i].identified) {
 								user.append("<span class='ident yes'>✓</span>");
 							} else {
 								user.append("<span class='ident no'>✗</span>");
 							}
+							
 							$("#userlist .body").append(user);
 						}
 					}
 				});
+
+
 				socket.on("code:change", function (change) {
 					editor.replaceRange(change.text, change.from, change.to);
-					while (change.next !== undefined) {
+					while (change.next !== undefined) { // apply all the changes we receive until there are no more
 						change = change.next
 						editor.replaceRange(change.text, change.from, change.to);
 					}
 				});
 
+
 				if ($.cookie("nickname")) {
 					session.setNick($.cookie("nickname"));
 				}
 
+
 				$("#chatinput textarea").on("keydown", function (ev) {
 					$this = $(this);
 					switch (ev.keyCode) {
-						case 13: // enter
+						// enter:
+						case 13:
 							ev.preventDefault();
 							var userInput = $this.val();
 							scrollback.add(userInput);
@@ -456,24 +466,29 @@
 							$this.val("");
 							scrollback.reset();
 							break;
-						case 38: // up
+						// up:
+						case 38:
 							$this.val(scrollback.prev());
 							break;
-						case 40: // down
+						// down
+						case 40:
 							$this.val(scrollback.next());
 							break;
-						case 27: // escape
+						// escape
+						case 27:
 							scrollback.reset();
 							$this.val("");
 							break;
-						case 76: // L
+						// L
+						case 76:
 							if (ev.ctrlKey) {
 								ev.preventDefault();
-								$("#chatlog").html("");
+								$("#chatlog .messages").html("");
 								$("#linklog .body").html("");
 							}
 							break;
-						case 9: // tab key
+						 // tab key
+						case 9:
 							ev.preventDefault();
 							var text = $(this).val().split(" ");
 							var stub = text[text.length - 1];				
@@ -487,8 +502,6 @@
 							}
 
 							$(this).val(text.join(" "));
-							break;
-						default:
 							break;
 					}
 
@@ -577,12 +590,12 @@
 			<section id="chatting">
 				<section id="chatarea">
 					<div id="chatlog">
-
+						<div class="messages"></div>
 					</div>
 					<div id="supportbar">
 						<div id="userlist">
 							<div class="header">
-								<h1>Users</h1>
+								<h2>Users</h2>
 							</div>
 							<div class="body">
 
@@ -590,7 +603,7 @@
 						</div>
 						<div id="linklog">
 							<div class="header">
-								<h1>Media & Links</h1>
+								<h2>Media & Links</h2>
 								<span id="linklog-options" class="options">options</span>
 								<div class="options">
 									<div class="option">
@@ -620,11 +633,11 @@
 					</div>
 					<div id="result_pane">
 						<div class="html-area">
-							<h1>HTML</h1>
+							<h2>HTML</h2>
 							<iframe seamless sandbox="allow-scripts allow-same-origin" id="repl-frame"></iframe>
 						</div>
 						<div class="console-area">
-							<h1>Result</h1>
+							<h2>Result</h2>
 							<div class="output"></div>
 						</div>
 					</div>

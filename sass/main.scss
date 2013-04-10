@@ -16,13 +16,19 @@ html, body {
 	text-rendering:optimize-legibility;
 }
 h1 {
+	font-size:1.7em;
+}
+h2 {
+	font-size:1em;
+}
+h1, h2 {
 	color:#999;
 	font-family:sans-serif;
 	font-weight:normal;
 	font-style:italic;
 	border-bottom: 1px solid #444;
 }
-div > h1:first-child {
+div > h1:first-child, div > h2:first-child, div > h3:first-child {
 	margin-top:0px;
 }
 a {
@@ -51,9 +57,16 @@ a {
 		cursor:pointer;
 		border-bottom:0px;
 		color:#efefef;
+		transition:all 0.25s ease-in-out;
+		&:hover {
+			color:gold;
+		}
 	}
 }
 
+.header {
+	font-family:sans-serif;
+}
 #panes {
 	height:95%;
 	position:relative;
@@ -103,6 +116,10 @@ a {
 			height: 50%;
 			padding:1em;
 		}
+		iframe {
+			height:100%;
+			width:100%;
+		}
 	}
 }
 
@@ -116,19 +133,27 @@ a {
 	}
 }
 #chatinput {
-	padding:1em;
+	padding:0.5em 1em;
 	height:5%;
 }
+$supportbar-width: 300px;
 #chatlog {
-	overflow-y:auto;
-	padding:1em;
+	overflow:hidden;
 	max-height:100%;
-	width:80%;
-	float:left;
+	width:100%;
+	padding-right:$supportbar-width;
+	.messages {
+		padding:1em;
+		width:100%;
+		height:100%;
+		overflow-y:auto;
+	}
 }
 #supportbar {
-	width:20%;
-	float:right;
+	width:$supportbar-width;
+	position:absolute;
+	top:0;
+	right:0;
 	padding:1em;
 }
 #userlist {
@@ -137,9 +162,8 @@ a {
 	overflow-y:auto;
 }
 #linklog {
-	width:100%;
 	height:80%;
-	min-width:300px;
+	width:100%;
 	z-index:4;
 	position:relative;
 	overflow-y:auto;
