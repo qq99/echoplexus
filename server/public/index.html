@@ -567,7 +567,7 @@
 			var updateJsEval = _.debounce(function () {
 				var script = editor.getValue();
 				var wrapped_script = script;
-				var wrapped_script = "(function(){" + script + "})();";
+				var wrapped_script = "(function(){ $('body').html(''); " + script + "})();";
 				if (script !== "") {
 					var result;
 					try {
