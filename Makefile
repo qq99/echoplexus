@@ -1,6 +1,6 @@
 GEMS=sass
-NODE_PACKAGES=express socket.io underscore crypto redis
-SASS_FILES=sass/combined.scss sass/main.scss
+NODE_PACKAGES=express socket.io underscore crypto redis nodemon
+SASS_FILES=sass/combined.scss sass/main.scss sass/monokai.scss
 PUBLIC_DIR=server/public
 
 
