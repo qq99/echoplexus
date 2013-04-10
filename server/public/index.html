@@ -294,6 +294,10 @@
 				return "http://youtube.com/v/" + s.substring(start,end);
 			}
 
+			function scrollChat() {
+				$("#chatlog .messages").scrollTop($("#chatlog .messages")[0].scrollHeight);
+			}
+
 			function renderChatMessage(msg) {
 				var body = msg.body;
 
@@ -370,7 +374,7 @@
 					}
 					// add message to the chatlog
 					$("#chatlog .messages").append(chat);
-					$("#chatlog .messages").scrollTop($("#chatlog .messages")[0].scrollHeight);
+					scrollChat();
 				}
 
 				// scan through the message and determine if we need to notify somebody that was mentioned:
@@ -409,7 +413,7 @@
 				socket.on('chat', function (msg) {
 					log.add(msg);
 					renderChatMessage(msg);
-					$("#chatlog .messages").scrollTop($("#chatlog .messages")[0].scrollHeight);
+					scrollChat();
 				});
 
 
@@ -544,7 +548,9 @@
 				ev.preventDefault();
 				if ($("#chatting:visible").length === 0) {
 					$("#coding").fadeOut();
-					$("#chatting").fadeIn();
+					$("#chatting").fadeIn(function () {
+						scrollChat();
+					});
 				}
 			});
 
@@ -557,8 +563,10 @@
 			
 
 			var iframe = document.getElementById("repl-frame").contentWindow;
+
 			var updateJsEval = _.debounce(function () {
 				var script = editor.getValue();
+				var wrapped_script = script;
 				var wrapped_script = "(function(){" + script + "})();";
 				if (script !== "") {
 					var result;
@@ -566,11 +574,20 @@
 						result = iframe.eval(wrapped_script);
 						if (_.isObject(result)) {
 							result = JSON.stringify(result);
+						} 
+						else if (result === undefined) {
+							result = "undefined";
+						}
+						else {
+							result = result.toString();
 						}
 					} catch (e) {
 						result = e.toString();
 					}
+					console.log(result);
 					$("#result_pane .output").text(result);
+				} else {
+					$("#result_pane .output").text("");
 				}
 			}, 500);
 
@@ -634,7 +651,7 @@
 					<div id="result_pane">
 						<div class="html-area">
 							<h2>HTML</h2>
-							<iframe seamless sandbox="allow-scripts allow-same-origin" id="repl-frame"></iframe>
+							<iframe src="/codeframe.html" sandbox="allow-forms allow-scripts allow-same-origin" id="repl-frame"></iframe>
 						</div>
 						<div class="console-area">
 							<h2>Result</h2>
