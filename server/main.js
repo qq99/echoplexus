@@ -8,7 +8,7 @@ var express = require('express'),
 	app = express(),
 	redisC = redis.createClient(),
 	server = require('http').createServer(app),
-	PORT = 6919;
+	PORT = 9000;
 
 
 // Standard App:

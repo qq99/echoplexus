@@ -582,6 +582,12 @@
 				}
 			});
 
+			$(window).on("blur", function () {
+				$("body").addClass("blurred");
+			}).on("focus", function () {
+				$("body").removeClass("blurred");
+			});
+
 			editor.on("change", function (instance, change) {
 				if (change.origin !== undefined && change.origin !== "setValue") {
 					socket.emit("code:change", change);
