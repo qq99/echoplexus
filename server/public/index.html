@@ -537,8 +537,10 @@
 				});
 			});
 			socket.on('disconnect', function () {
+				socket.removeAllListeners();
 				socket.removeAllListeners('chat'); 
 				socket.removeAllListeners('userlist');
+				socket.removeAllListeners('code:change code:authoritative_push code:sync code:request');
 				$("#chatinput textarea").off();
 				handleChatMessage({body: "Unexpected d/c from server", log: false});
 			});
@@ -580,7 +582,7 @@
 			});
 
 			editor.on("change", function (instance, change) {
-				if (change.origin !== undefined) {
+				if (change.origin !== undefined && change.origin !== "setValue") {
 					socket.emit("code:change", change);
 				}
 				updateJsEval();
