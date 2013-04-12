@@ -458,7 +458,7 @@ $(document).ready(function () {
 
 		socket.on("code:cursorActivity", function (data) {
 			var pos = editor.charCoords(data.cursor);
-			console.log(data, pos, clients.get(data.id));
+			// console.log(data, pos, clients.get(data.id));
 			var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']");
 			if (!$ghostCursor.length) {
 				$ghostCursor = ("<div class='ghost-cursor' rel=" + data.id +"></div>");

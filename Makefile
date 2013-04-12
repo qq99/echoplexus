@@ -5,8 +5,8 @@ PUBLIC_DIR=server/public
 BUILD_DIR=build
 
 #  !! order is important in the client libs !!
-LIBS=client/lib/underscore-min.js client/lib/jquery.min.js client/lib/jquery.cookie.js client/lib/moment.min.js client/lib/codemirror-3.11/lib/codemirror.js client/lib/codemirror-3.11/mode/javascript/javascript.js
-CLIENT_JS=client/client.js client/ui.js
+LIBS=client/lib/underscore-min.js client/lib/jquery.min.js client/lib/jquery.cookie.js client/lib/moment.min.js
+CLIENT_JS=client/lib/codemirror-3.11/lib/codemirror.js client/lib/codemirror-3.11/mode/javascript/javascript.js client/client.js client/ui.js
 
 
 .PHONY: server install_packages assets clean
@@ -42,5 +42,8 @@ install_packages:
 client: .libs .js .css
 
 clean:
+	rm .libs
+	rm .js
+	rm .css
 	rm $(PUBLIC_DIR)/css/*.css
 	rm -rf $(BUILD_DIR)

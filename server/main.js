@@ -64,6 +64,9 @@ var NICK = /^\/nick/;
 
 // SocketIO:
 sio = sio.listen(server);
+sio.enable('browser client minification');
+sio.enable('browser client gzip');
+sio.set('log level', 1);
 
 function serverSentMessage (msg) {
 	return _.extend(msg, {
