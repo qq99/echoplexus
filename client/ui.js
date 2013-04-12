@@ -50,6 +50,7 @@ $(document).ready(function () {
 			nick: /^\/nick/,
 			register: /^\/register/,
 			identify: /^\/identify/,
+			topic: /^\/topic/,
 			failed_command: /^\//,
 		}
 	};
@@ -227,7 +228,6 @@ $(document).ready(function () {
 
 		if (!msg.body) return; // if there's no body, we probably don't want to do anything
 		var body = msg.body;
-
 		if (body.match(R.commands.nick)) {
 			body = body.replace(R.commands.nick, "").trim();
 			session.setNick(body);
@@ -242,6 +242,12 @@ $(document).ready(function () {
 			msg.body = msg.body.replace(R.commands.identify, "").trim();
 			socket.emit('identify', {
 				password: msg.body
+			});
+			return;
+		} else if (msg.body.match(R.commands.topic)) {
+			msg.body = msg.body.replace(R.commands.topic, "").trim();
+			socket.emit('topic', {
+				topic: msg.body
 			});
 			return;
 		} else if (msg.body.match(R.commands.failed_command)) {

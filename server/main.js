@@ -79,11 +79,13 @@ function serverSentMessage (msg) {
 sio.sockets.on('connection', function (socket) {
 	var clientID = clients.add({socketRef: socket}),
 		client = clients.get(clientID);
+	redisC.get('topic', function (err, res){
+		socket.emit('chat', serverSentMessage({
+			body: "Topic: " + res,
+			log: false
+		}));
+	});
 
-	socket.emit('chat', serverSentMessage({
-		body: 'Welcome to a new experimental chat.  Change your nickname with `/nick yournickname`.  Register with `/register yourpassword`.  Identify yourself with `/identify yourpassword`.  http://i.imgur.com/Qpkx6FJh.jpg',
-		log: false
-	}));
 	
 	socket.emit('code:authoritative_push', codeCache.syncToClient());
 
@@ -124,8 +126,16 @@ sio.sockets.on('connection', function (socket) {
 		});
 	});
 
-	socket.on('help', function () {
+	socket.on('help', function (data) {
 
+	});
+
+	socket.on('topic', function (data) {
+		redisC.set('topic', data.topic);
+		socket.emit('chat', serverSentMessage({
+			body: "Topic: " + data.topic,
+			log: false
+		}));
 	});
 
 	socket.on("identify", function (data) {
