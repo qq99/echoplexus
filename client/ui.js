@@ -537,6 +537,9 @@ $(document).ready(function () {
 		});
 	});
 	socket.on('disconnect', function () {
+		setTimeout(function () { // for dev, cheap auto-reload
+			window.location = window.location;
+		}, 2000);
 		socket.removeAllListeners();
 		socket.removeAllListeners('chat'); 
 		socket.removeAllListeners('userlist');

@@ -9,7 +9,7 @@ LIBS=client/lib/underscore-min.js client/lib/jquery.min.js client/lib/jquery.coo
 CLIENT_JS=client/client.js client/ui.js
 
 
-.PHONY: server install_packages assets css clean client_js client_libs
+.PHONY: server install_packages assets clean
 
 all: client
 
