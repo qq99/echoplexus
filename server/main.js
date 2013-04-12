@@ -10,86 +10,19 @@ var express = require('express'),
 	server = require('http').createServer(app),
 	PORT = 9000;
 
+// Custom objects:
+
+// shared with the client:
+var Client = require('../client/client.js').Client,
+	Clients = require('../client/client.js').Clients;
 
 // Standard App:
 app.use(express.static(__dirname + '/public'));
-app.get("/views/chat", function (req, res) {
-
-});
 
 server.listen(PORT);
 console.log('Listening on port', PORT);
 
-
 var SERVER = "Server";
-
-function Clients () {
-	function Client (socketRef) {
-		var nick = "Anonymous-" + parseInt(Math.random()*9000, 10),
-			identified = false,
-			socket = socketRef,
-			lastActivity = new Date();
-
-		return {
-			socket: socket,
-			setNick: function(newNickname) {
-				nick = newNickname;
-			},
-			getNick: function() {
-				return nick;
-			},
-			isIdle: function () {
-				if (((lastActivity - (new Date())) / (1000*60)) < 5) {
-					return false;
-				} else {
-					return true;
-				}
-			},
-			active: function () {
-				lastActivity = new Date();
-			},
-			setIdentified: function (isHe) {
-				identified = isHe;
-			},
-			serialize: function () {
-				return {
-					nick : nick,
-					identified: identified
-				};
-			}
-		};
-	}
-	
-	function ID () {
-		var cur = 0;
-		return {
-			next: function () {
-				return cur += 1;
-			}
-		}
-	}
-
-	var id = new ID();
-	var clients = {};
-	return {
-		add: function (socketRef) {
-			var ref = id.next();
-			clients[ref] = new Client(socketRef);
-			return ref;
-		},
-		get: function (id) {
-			return clients[id];
-		},//
-		userlist: function () {
-			return _.map(clients, function (value, key, list) {
-				return value.serialize();
-			});
-		},
-		kill: function (id) {
-			delete clients[id];
-		}
-	};
-}
 
 function CodeCache () {
 	var currentState = "",
@@ -133,30 +66,33 @@ var NICK = /^\/nick/;
 // SocketIO:
 sio = sio.listen(server);
 
+function serverSentMessage (msg) {
+	return _.extend(msg, {
+		nickname: SERVER,
+		type: "SYSTEM",
+		timestamp: (new Date()).toJSON()
+	});
+}
+
 sio.sockets.on('connection', function (socket) {
-	var clientID = clients.add(socket),
+	var clientID = clients.add({socketRef: socket}),
 		client = clients.get(clientID);
 
-	socket.emit('chat', {
-		nickname: SERVER,
+	socket.emit('chat', serverSentMessage({
 		body: 'Welcome to a new experimental chat.  Change your nickname with `/nick yournickname`.  Register with `/register yourpassword`.  Identify yourself with `/identify yourpassword`.  http://i.imgur.com/Qpkx6FJh.jpg',
-		type: "SYSTEM",
-		timestamp: (new Date()).toJSON(),
 		log: false
-	});
+	}));
 	
 	socket.emit('code:authoritative_push', codeCache.syncToClient());
 
 	sio.sockets.emit('userlist', {
 		users: clients.userlist()
 	});
-	socket.broadcast.emit('chat', {
-		nickname: SERVER,
+	socket.broadcast.emit('chat', serverSentMessage({
 		body: client.getNick() + ' has joined the chat.',
-		type: "SYSTEM",
+		client: client.serialize(),
 		class: "join",
-		timestamp: (new Date()).toJSON()
-	});
+	}));
 
 	socket.on('nickname', function (data) {
 		var newName = data.nickname.replace(NICK, "").trim(),
@@ -164,36 +100,24 @@ sio.sockets.on('connection', function (socket) {
 		client.setIdentified(false);
 
 		if (newName === "") {
-			socket.emit('chat', {
-				nickname: SERVER,
+			socket.emit('chat', serverSentMessage({
 				body: "You may not use the empty string as a nickname.",
-				type: "SYSTEM",
-				timestamp: (new Date()).toJSON(),
 				log: false
-			});
+			}));
 			return;
 		}
 
 		client.setNick(newName);
 
-		socket.broadcast.emit('chat', {
-			nickname: SERVER,
+		socket.broadcast.emit('chat', serverSentMessage({
 			body: prevName + " is now known as " + newName,
-			type: "SYSTEM",
-			timestamp: (new Date()).toJSON(),
 			log: false
-		});
-		socket.emit('chat', {
-			nickname: SERVER,
+		}));
+		socket.emit('chat', serverSentMessage({
 			body: "You are now known as " + newName,
-			type: "SYSTEM",
-			timestamp: (new Date()).toJSON(),
 			log: false
-		});
-		socket.broadcast.emit('userlist', {
-			users: clients.userlist()
-		});
-		socket.emit('userlist', {
+		}));
+		sio.sockets.emit('userlist', {
 			users: clients.userlist()
 		});
 	});
@@ -207,12 +131,9 @@ sio.sockets.on('connection', function (socket) {
 		try {
 			redisC.sismember("users", nick, function (err, reply) {
 				if (!reply) {
-					socket.emit('chat', {
-						nickname: SERVER,
-						type: "SYSTEM",
-						timestamp: (new Date()).toJSON(),
+					socket.emit('chat', serverSentMessage({
 						body: "There's no registration on file for " + nick
-					});
+					}));
 				} else {
 					redisC.hget("salts", nick, function (err, salt) {
 						if (err) throw err;
@@ -223,36 +144,21 @@ sio.sockets.on('connection', function (socket) {
 
 								if (derivedKey.toString() !== expectedHash) { // FAIL
 									client.setIdentified(false);
-									socket.emit('chat', {
-										nickname: SERVER,
-										type: "SYSTEM",
-										timestamp: (new Date()).toJSON(),
+									socket.emit('chat', serverSentMessage({
 										body: "Wrong password for " + nick
-									});
-									socket.broadcast.emit('chat', {
-										nickname: SERVER,
-										type: "SYSTEM",
-										timestamp: (new Date()).toJSON(),
+									}));
+									socket.broadcast.emit('chat', serverSentMessage({
 										body: nick + " just failed to identify himself"
-									});
-									socket.broadcast.emit('userlist', {
-										users: clients.userlist()
-									});
-									socket.emit('userlist', {
+									}));
+									sio.sockets.emit('userlist', {
 										users: clients.userlist()
 									});
 								} else { // ident'd
 									client.setIdentified(true);
-									socket.emit('chat', {
-										nickname: SERVER,
-										type: "SYSTEM",
-										timestamp: (new Date()).toJSON(),
+									socket.emit('chat', serverSentMessage({
 										body: "You are now identified for " + nick
-									});
-									socket.broadcast.emit('userlist', {
-										users: clients.userlist()
-									});
-									socket.emit('userlist', {
+									}));
+									sio.sockets.emit('userlist', {
 										users: clients.userlist()
 									});
 								}
@@ -262,12 +168,9 @@ sio.sockets.on('connection', function (socket) {
 				}
 			});
 		} catch (e) { // identification error
-			socket.emit('chat', {
-				nickname: SERVER,
-				type: "SYSTEM",
-				timestamp: (new Date()).toJSON(),
+			socket.emit('chat', serverSentMessage({
 				body: "Error identifying yourself: " + e
-			});
+			}));
 		}
 	});
 
@@ -295,39 +198,33 @@ sio.sockets.on('connection', function (socket) {
 							});
 
 							client.setIdentified(true);
-							socket.emit('chat', {
-								nickname: SERVER,
-								type: "SYSTEM",
-								timestamp: (new Date()).toJSON(),
+							socket.emit('chat', serverSentMessage({
 								body: "You have registered your nickname.  Please remember your password."
-							});
-							socket.broadcast.emit('userlist', {
-								users: clients.userlist()
-							});
-							socket.emit('userlist', {
+							}));
+							sio.sockets.emit('userlist', {
 								users: clients.userlist()
 							});
 						});
 					});
 				} catch (e) {
-					socket.emit('chat', {
-						nickname: SERVER,
-						type: "SYSTEM",
-						timestamp: (new Date()).toJSON(),
+					socket.emit('chat', serverSentMessage({
 						body: "Error in registering your nickname: " + e
-					});
+					}));
 				}
 			} else { // nick is already in use
-				socket.emit('chat', {
-					nickname: SERVER,
-					type: "SYSTEM",
-					timestamp: (new Date()).toJSON(),
+				socket.emit('chat', serverSentMessage({
 					body: "That nickname is already registered by somebody."
-				});
+				}));
 			}
 		});
 	});
 
+	socket.on('code:cursorActivity', function (data) {
+		socket.broadcast.emit('code:cursorActivity', {
+			cursor: data.cursor,
+			id: client.id
+		});
+	});
 	socket.on('code:change', function (data) {
 		data.timestamp = (new Date()).toJSON();
 		codeCache.add(data, client);
@@ -356,14 +253,12 @@ sio.sockets.on('connection', function (socket) {
 			users: clients.userlist()
 		});
 
-		sio.sockets.emit('chat', {
-			nickname: SERVER,
+		sio.sockets.emit('chat', serverSentMessage({
 			body: client.getNick() + ' has left the chat.',
-			type: "SYSTEM",
+			clientID: clientID,
 			class: "part",
-			timestamp: (new Date()).toJSON(),
 			log: false
-		});
+		}));
 	});
 
 	setInterval(codeCache.syncFromClient, 1000*30);
