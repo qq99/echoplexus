@@ -3,7 +3,6 @@ var express = require('express'),
 	crypto = require('crypto'),
 	fs = require('fs'),
 	redis = require('redis'),
-	jade = require('jade'),
 	sio = require('socket.io'),
 	app = express(),
 	redisC = redis.createClient(),
@@ -244,7 +243,7 @@ sio.sockets.on('connection', function (socket) {
 		}
 	});
 	socket.on('disconnect', function () {
-		console.log("killing ", clientID);
+		// console.log("killing ", clientID);
 
 		codeCache.remove(client);
 

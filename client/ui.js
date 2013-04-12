@@ -397,7 +397,7 @@ $(document).ready(function () {
 
 
 		socket.on('userlist', function (msg) {
-			console.log(msg);
+			// console.log(msg);
 			if (msg.users && msg.users.length) {
 				_.each(msg.users, function (user) {
 					clients.add({

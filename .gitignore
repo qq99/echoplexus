@@ -4,3 +4,6 @@ server/public/css
 server/public/*.js
 *.swp
 build
+.libs
+.css
+.js
