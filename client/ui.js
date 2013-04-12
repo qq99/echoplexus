@@ -381,7 +381,9 @@ $(document).ready(function () {
 		socket.on('chat', function (msg) {
 			switch (msg.class) {
 				case "join":
-					clients.add(msg.client);
+					clients.add({
+						client: msg.client
+					});
 					break;
 				case "part":
 					clients.kill(msg.clientID);
@@ -395,7 +397,13 @@ $(document).ready(function () {
 
 
 		socket.on('userlist', function (msg) {
+			console.log(msg);
 			if (msg.users && msg.users.length) {
+				_.each(msg.users, function (user) {
+					clients.add({
+						client: user
+					});
+				});
 				autocomplete.setPool(_.map(msg.users, function (user) {
 					return user.nick;
 				}));
@@ -423,25 +431,25 @@ $(document).ready(function () {
 		}
 
 		socket.on("code:change", function (change) {
-			console.log("change");
+			// console.log("change");
 			applyChanges(change);
 		});
 
 		socket.on("code:request", function () {
-			console.log("request");
+			// console.log("request");
 			socket.emit("code:full_transcript", {
 				code: editor.getValue()
 			});
 		});
 		socket.on("code:sync", function (data) {
-			console.log("sync");
+			// console.log("sync");
 			if (editor.getValue() !== data.code) {
 				editor.setValue(data.code);
 			}
 		});
 
 		socket.on("code:authoritative_push", function (data) {
-			console.log("push");
+			// console.log("push");
 			editor.setValue(data.start);
 			for (var i = 0; i < data.ops.length; i ++) {
 				applyChanges(data.ops[i]);
@@ -450,11 +458,17 @@ $(document).ready(function () {
 
 		socket.on("code:cursorActivity", function (data) {
 			var pos = editor.charCoords(data.cursor);
-			console.log(data, pos);
+			console.log(data, pos, clients.get(data.id));
 			var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']");
-			if (!ghostCursor.length) {
-				$ghostCursor = $("body").append("<div class='ghost-cursor'></div>");
+			if (!$ghostCursor.length) {
+				$ghostCursor = ("<div class='ghost-cursor' rel=" + data.id +"></div>");
+				$("body").append($ghostCursor);
 			}
+			$ghostCursor.css({
+				background: clients.get(data.id).getColor().toRGB(),
+				top: pos.top,
+				left: pos.left
+			});
 		});
 
 
@@ -580,7 +594,7 @@ $(document).ready(function () {
 		updateJsEval();
 	});
 	editor.on("cursorActivity", function (instance) {
-		console.log("mycoords", instance.cursorCoords());
+		// console.log("mycoords", instance.cursorCoords());
 		socket.emit("code:cursorActivity", {
 			cursor: instance.getCursor()
 		});
@@ -609,7 +623,7 @@ $(document).ready(function () {
 			} catch (e) {
 				result = e.toString();
 			}
-			console.log(result);
+			// console.log(result);
 			$("#result_pane .output").text(result);
 		} else {
 			$("#result_pane .output").text("");

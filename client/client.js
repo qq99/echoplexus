@@ -3,25 +3,33 @@
 		_ = require('underscore');
 	}
 
-	exports.Color = function (r,g,b,a) {
+	exports.Color = function (options) {
 		var _r, _g, _b, _a;
 
-		_r = (r) ? r : parseInt(Math.random(255),10);
-		_g = (g) ? g : parseInt(Math.random(255),10);
-		_b = (b) ? b : parseInt(Math.random(255),10);
-		_a = (a) ? a : Math.random();
+		options = options || {};
+
+		_r = (options.r) ? options.r : parseInt(Math.random()*100+155,10);
+		_g = (options.g) ? options.g : parseInt(Math.random()*100+155,10);
+		_b = (options.b) ? options.b : parseInt(Math.random()*100+155,10);
+		_a = (options.a) ? options.a : Math.random();
 
 		return {
 			r: _r,
 			g: _g,
 			b: _b,
-			a: _a
+			a: _a,
+			toRGB: function () {
+				return "rgb(" + _r + "," + _g + "," + _b + ")";
+			},
+			toRGBA: function () {
+				return "rgb(" + _r + "," + _g + "," + _b + "," + _a + ")";
+			}
 		};
 	};
 
 	exports.Client = function (options) {
 		var nick = "Anonymous" || options.nick,
-			color = new exports.Color(),
+			color = options.color ? new exports.Color(options.color) : new exports.Color(),
 			id = options.id || null,
 			identified = false,
 			socket = options.socketRef,
@@ -29,6 +37,7 @@
 			lastActivity = new Date();
 
 		return {
+			id: id,
 			socket: socket,
 			setNick: function(newNickname) {
 				nick = newNickname;
@@ -39,6 +48,9 @@
 					});
 					$.cookie("nickname", newNickname);
 				}
+			},
+			getColor: function () {
+				return color;
 			},
 			getNick: function() {
 				return nick;
@@ -61,6 +73,7 @@
 			},
 			serialize: function () {
 				return {
+					id: id,
 					nick : nick,
 					color: color,
 					identified: identified
@@ -89,12 +102,13 @@
 		return {
 			add: function (options) {
 				if (options.client) {
-					clients[options.client.id] = options.client;
+					if (clients[options.client.id]) return; // don't add twice
+					clients[options.client.id] = new exports.Client(options.client);
 				} else {
 					var ref = id.next();
 					clients[ref] = new exports.Client({
 						socketRef: options.socketRef,
-						id: id,
+						id: ref,
 						serverSide: true
 					});
 					return ref;

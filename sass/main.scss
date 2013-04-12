@@ -312,3 +312,9 @@ $supportbar-width: 300px;
 .ident.no {
 	color:red;
 }
+.ghost-cursor {
+	position:absolute;
+	width:1px;
+	height:1em;
+	box-shadow: 1px 1px 1px black;
+}
