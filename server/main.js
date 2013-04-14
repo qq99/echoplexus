@@ -294,7 +294,7 @@ sio.sockets.on('connection', function (socket) {
 							screenshotter.on("exit", function (data) {
 								console.log('screenshotter exit: ' + data);
 								sio.sockets.emit('chat', serverSentMessage({
-									body: "Preview generated of " + url + " at " + urlRoot() + "/sandbox/" + fileName
+									body: "Preview generated of " + url + ". " + urlRoot() + "/sandbox/" + fileName
 								}));
 							});
 						})(urls[i], randomFilename); // call our closure with our random filename
