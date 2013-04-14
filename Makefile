@@ -3,10 +3,11 @@ NODE_PACKAGES=express socket.io underscore crypto redis nodemon uglify-js
 SASS_FILES=sass/combined.scss sass/main.scss sass/monokai.scss
 PUBLIC_DIR=server/public
 BUILD_DIR=build
+SANDBOX_USERNAME=sandbox
 
 #  !! order is important in the client libs !!
 LIBS=client/lib/underscore-min.js client/lib/jquery.min.js client/lib/jquery.cookie.js client/lib/moment.min.js
-CLIENT_JS=client/lib/codemirror-3.11/lib/codemirror.js client/lib/codemirror-3.11/mode/javascript/javascript.js client/client.js client/ui.js
+CLIENT_JS=client/lib/codemirror-3.11/lib/codemirror.js client/lib/codemirror-3.11/mode/javascript/javascript.js client/client.js client/regex.js client/ui.js
 
 
 .PHONY: server install_packages assets clean
@@ -40,6 +41,15 @@ install_packages:
 	touch .css
 
 client: .libs .js .css
+
+dangerzone:
+	echo 'Creating a new user account with disabled login named ' $(SANDBOX_USERNAME)
+	sudo adduser --disable-login --gecos 'Sandbox' $(SANDBOX_USERNAME)
+	mkdir -p $(PUBLIC_DIR)/sandbox
+	echo 'Allowing $(SANDBOX_USERNAME) user access to ' $(PUBLIC_DIR)/sandbox
+	chown -R :sandbox $(PUBLIC_DIR)/sandbox
+	chmod -R g+rw $(PUBLIC_DIR)/sandbox
+	echo 'If you want to run phantomjs-screenshotter, you must now run sudo make server.'
 
 clean:
 	rm .libs

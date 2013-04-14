@@ -7,21 +7,40 @@ var express = require('express'),
 	app = express(),
 	redisC = redis.createClient(),
 	server = require('http').createServer(app),
-	PORT = 9000;
+	spawn = require('child_process').spawn,
+	PUBLIC_FOLDER = __dirname + '/public',
+	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
+	// customize me:
+	SCHEME = "http",
+	FQDN = "echoplex.anthonycameron.com",
+	PORT = 9000,
+	SERVER_NAME = 'Server',
+	DANGERZONE = true; // http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
+
 
 // Custom objects:
-
 // shared with the client:
 var Client = require('../client/client.js').Client,
-	Clients = require('../client/client.js').Clients;
+	Clients = require('../client/client.js').Clients,
+	REGEXES = require('../client/regex.js').REGEXES;
 
 // Standard App:
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(PUBLIC_FOLDER));
 
 server.listen(PORT);
+
+if (DANGERZONE) {
+	process.setgid('sandbox');
+	process.setuid('sandbox');
+	console.log('Now leaving the DANGERZONE!', 'New User ID:', process.getuid(), 'New Group ID:', process.getgid());
+	console.log('Probably still a somewhat dangerous zone, tho.');
+}
+
 console.log('Listening on port', PORT);
 
-var SERVER = "Server";
+function urlRoot(){
+	return SCHEME + "://" + FQDN + ":" + PORT + "/";
+}
 
 function CodeCache () {
 	var currentState = "",
@@ -59,9 +78,6 @@ function CodeCache () {
 var clients = new Clients();
 var codeCache = new CodeCache();
 
-// regexes:
-var NICK = /^\/nick/;
-
 // SocketIO:
 sio = sio.listen(server);
 sio.enable('browser client minification');
@@ -70,7 +86,7 @@ sio.set('log level', 1);
 
 function serverSentMessage (msg) {
 	return _.extend(msg, {
-		nickname: SERVER,
+		nickname: SERVER_NAME,
 		type: "SYSTEM",
 		timestamp: (new Date()).toJSON()
 	});
@@ -99,7 +115,7 @@ sio.sockets.on('connection', function (socket) {
 	}));
 
 	socket.on('nickname', function (data) {
-		var newName = data.nickname.replace(NICK, "").trim(),
+		var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
 			prevName = client.getNick();
 		client.setIdentified(false);
 
@@ -253,6 +269,38 @@ sio.sockets.on('connection', function (socket) {
 			data.timestamp = (new Date()).toJSON();
 			socket.broadcast.emit('chat', data);
 			socket.emit('chat', data);
+
+			if (DANGERZONE) {
+				var urls = data.body.match(REGEXES.urls.all_others);
+				if (urls) {
+					for (var i = 0; i < urls.length; i++) {
+						
+						var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg";
+						(function (url, fileName) {
+							var output = SANDBOXED_FOLDER + "/" + fileName;
+							console.log("Processing ", urls[i]);
+							var screenshotter = spawn('/opt/bin/phantomjs',
+								['../../phantomjs-screenshot/main.js', url, output],
+								{
+									cwd: __dirname
+								});
+
+							screenshotter.stdout.on('data', function (data) {
+								console.log('screenshotter stdout: ' + data);
+							});
+							screenshotter.stderr.on('data', function (data) {
+								console.log('screenshotter stderr: ' + data);
+							});
+							screenshotter.on("exit", function (data) {
+								console.log('screenshotter exit: ' + data);
+								sio.sockets.emit('chat', serverSentMessage({
+									body: "Preview generated of " + url + " at " + urlRoot() + "/sandbox/" + fileName
+								}));
+							});
+						})(urls[i], randomFilename); // call our closure with our random filename
+					}
+				}
+			}
 		}
 	});
 	socket.on('disconnect', function () {

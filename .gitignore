@@ -7,3 +7,4 @@ build
 .libs
 .css
 .js
+server/public/sandbox
