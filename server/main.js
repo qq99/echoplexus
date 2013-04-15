@@ -275,9 +275,11 @@ sio.sockets.on('connection', function (socket) {
 				if (urls) {
 					for (var i = 0; i < urls.length; i++) {
 						
-						var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg";
+						var randomFilename = parseInt(Math.random()*9000,10).toString() + ".png";
 						(function (url, fileName) {
-							var output = SANDBOXED_FOLDER + "/" + fileName;
+							var output = SANDBOXED_FOLDER + "/" + fileName,
+								results = "";
+							
 							console.log("Processing ", urls[i]);
 							var screenshotter = spawn('/opt/bin/phantomjs',
 								['../../phantomjs-screenshot/main.js', url, output],
@@ -287,6 +289,7 @@ sio.sockets.on('connection', function (socket) {
 
 							screenshotter.stdout.on('data', function (data) {
 								console.log('screenshotter stdout: ' + data);
+								results += data.toString().trimLeft().trimRight();
 							});
 							screenshotter.stderr.on('data', function (data) {
 								console.log('screenshotter stderr: ' + data);
@@ -294,7 +297,7 @@ sio.sockets.on('connection', function (socket) {
 							screenshotter.on("exit", function (data) {
 								console.log('screenshotter exit: ' + data);
 								sio.sockets.emit('chat', serverSentMessage({
-									body: "Preview generated of " + url + ". " + urlRoot() + "/sandbox/" + fileName
+									body: '"' + results + '" (' + url + '). ' + urlRoot() + '/sandbox/' + fileName
 								}));
 							});
 						})(urls[i], randomFilename); // call our closure with our random filename
