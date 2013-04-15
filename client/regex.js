@@ -12,6 +12,10 @@
 			identify: /^\/identify/,
 			topic: /^\/topic/,
 			failed_command: /^\//,
+		},
+		phantomjs: {
+			delimiter: /!!!/g,
+			parameter: /!!!\w+!!!/,
 		}
 	};
 

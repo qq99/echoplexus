@@ -271,16 +271,21 @@ sio.sockets.on('connection', function (socket) {
 			socket.emit('chat', data);
 
 			if (DANGERZONE) {
-				var urls = data.body.match(REGEXES.urls.all_others);
+				// strip out other things the client is doing before we attempt to render the web page
+				var urls = data.body.replace(REGEXES.urls.image, "")
+									.replace(REGEXES.urls.youtube,"")
+									.match(REGEXES.urls.all_others);
 				if (urls) {
 					for (var i = 0; i < urls.length; i++) {
 						
-						var randomFilename = parseInt(Math.random()*9000,10).toString() + ".png";
-						(function (url, fileName) {
+						var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg";
+						
+						(function (url, fileName) { // run our screenshotting routine in a self-executing closure so we can keep the current filename & url
 							var output = SANDBOXED_FOLDER + "/" + fileName,
-								results = "";
+								pageData = {};
 							
 							console.log("Processing ", urls[i]);
+							// requires that the phantomjs-screenshot repo is a sibling repo of this one
 							var screenshotter = spawn('/opt/bin/phantomjs',
 								['../../phantomjs-screenshot/main.js', url, output],
 								{
@@ -289,16 +294,34 @@ sio.sockets.on('connection', function (socket) {
 
 							screenshotter.stdout.on('data', function (data) {
 								console.log('screenshotter stdout: ' + data);
-								results += data.toString().trimLeft().trimRight();
+								data = data.toString(); // explicitly cast it, who knows what type it is having come from a process
+
+								// attempt to extract any parameters phantomjs might expose via stdout
+								var tmp = data.match(REGEXES.phantomjs.parameter);
+								if (tmp.length) {
+									var key = tmp[0].replace(REGEXES.phantomjs.delimiter, "").trim();
+									var value = data.replace(REGEXES.phantomjs.parameter, "").trim();
+									pageData[key] = value;
+								}
 							});
 							screenshotter.stderr.on('data', function (data) {
 								console.log('screenshotter stderr: ' + data);
 							});
 							screenshotter.on("exit", function (data) {
 								console.log('screenshotter exit: ' + data);
-								sio.sockets.emit('chat', serverSentMessage({
-									body: '"' + results + '" (' + url + '). ' + urlRoot() + '/sandbox/' + fileName
-								}));
+								if (pageData.title && pageData.excerpt) {
+									sio.sockets.emit('chat', serverSentMessage({
+										body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + '/sandbox/' + fileName
+									}));
+								} else if (pageData.title) {
+									sio.sockets.emit('chat', serverSentMessage({
+										body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + '/sandbox/' + fileName
+									}));
+								} else {
+									sio.sockets.emit('chat', serverSentMessage({
+										body: urlRoot() + '/sandbox/' + fileName
+									}));
+								}
 							});
 						})(urls[i], randomFilename); // call our closure with our random filename
 					}
