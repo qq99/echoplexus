@@ -8,3 +8,4 @@ build
 .css
 .js
 server/public/sandbox
+.npm-debug.log

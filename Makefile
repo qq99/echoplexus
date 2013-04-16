@@ -1,5 +1,6 @@
 GEMS=sass
-NODE_PACKAGES=express socket.io underscore crypto redis nodemon uglify-js
+GLOBAL_NODE_PACKAGES=nodemon uglify-js
+NODE_PACKAGES=express socket.io underscore crypto redis
 SASS_FILES=sass/combined.scss sass/main.scss sass/monokai.scss
 PUBLIC_DIR=server/public
 BUILD_DIR=build
@@ -18,7 +19,7 @@ server: server/main.js
 	nodemon server/main.js
 
 install_packages:
-	npm install $(NODE_PACKAGES) && gem install $(GEMS)
+	npm install $(NODE_PACKAGES) && gem install $(GEMS) && sudo npm install -g $(GLOBAL_NODE_PACKAGES)
 
 
 .libs: $(LIBS)
@@ -44,8 +45,9 @@ client: .libs .js .css
 
 dangerzone:
 	echo 'Creating a new user account with disabled login named ' $(SANDBOX_USERNAME)
-	sudo adduser --disable-login --gecos 'Sandbox' $(SANDBOX_USERNAME)
+	sudo adduser --disabled-login --gecos 'Sandbox' $(SANDBOX_USERNAME)
 	mkdir -p $(PUBLIC_DIR)/sandbox
+dangerzone_dir:
 	echo 'Allowing $(SANDBOX_USERNAME) user access to ' $(PUBLIC_DIR)/sandbox
 	chown -R :sandbox $(PUBLIC_DIR)/sandbox
 	chmod -R g+rw $(PUBLIC_DIR)/sandbox
