@@ -108,6 +108,33 @@ a {
 	& > div {
 		height:100%;
 	}
+	.editor {
+		position:relative;
+		.explanation {
+			font-family:'Noto Sans', sans-serif;
+			font-size:0.7em;
+			position:absolute;
+			top:0;
+			right:0;
+			padding: 0.5em 1em;
+			background: #333;
+		}
+	}
+	.editor:first-child {
+		.explanation {
+			border-top-right-radius: 1em;
+			border-bottom-left-radius: 1em;
+		}
+		.CodeMirror {
+			border-top-right-radius:1em;
+		}
+		border-bottom:1px solid #333;
+	}
+	.editor:last-child {
+		.explanation {
+			border-bottom-left-radius: 1em;
+		}
+	}
 	textarea {
 		width:100%;
 		height:50%;
