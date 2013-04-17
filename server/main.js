@@ -12,7 +12,7 @@ var express = require('express'),
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
 	// customize me:
 	SCHEME = "http",
-	FQDN = "echoplex.us",
+	FQDN = "echoplex.anthonycameron.com",
 	PORT = 9000,
 	SERVER_NAME = 'Server',
 	DANGERZONE = true; // http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
@@ -42,8 +42,9 @@ function urlRoot(){
 	return SCHEME + "://" + FQDN + ":" + PORT + "/";
 }
 
-function CodeCache () {
+function CodeCache (namespace) {
 	var currentState = "",
+		namespace = (typeof namespace !== "undefined") ? namespace : "",
 		mruClient = null,
 		ops = [];
 
@@ -59,7 +60,7 @@ function CodeCache () {
 		syncFromClient: function () {
 			if (mruClient === null) return;
 
-			mruClient.socket.emit('code:request');
+			mruClient.socket.emit(namespace + ':code:request');
 		},
 		syncToClient: function () {
 			return {
@@ -76,7 +77,15 @@ function CodeCache () {
 }
 
 var clients = new Clients();
-var codeCache = new CodeCache();
+// var codeCache = new CodeCache();
+
+var editorNamespaces = ["js", "html"];
+var editors = _.map(editorNamespaces, function (n) {
+	return {
+		namespace: n,
+		codeCache: new CodeCache(n)
+	};
+});
 
 // SocketIO:
 sio = sio.listen(server);
@@ -92,6 +101,12 @@ function serverSentMessage (msg) {
 	});
 }
 
+_.each(editors, function (obj) {
+	var codeCache = obj.codeCache;
+	// do once!!
+	setInterval(codeCache.syncFromClient, 1000*30);
+});
+
 sio.sockets.on('connection', function (socket) {
 	var clientID = clients.add({socketRef: socket}),
 		client = clients.get(clientID);
@@ -102,8 +117,9 @@ sio.sockets.on('connection', function (socket) {
 		}));
 	});
 
-	
-	socket.emit('code:authoritative_push', codeCache.syncToClient());
+	_.each(editors, function (obj) {
+		socket.emit(obj.namespace + ':code:authoritative_push', obj.codeCache.syncToClient());
+	});
 
 	sio.sockets.emit('userlist', {
 		users: clients.userlist()
@@ -247,20 +263,24 @@ sio.sockets.on('connection', function (socket) {
 		});
 	});
 
-	socket.on('code:cursorActivity', function (data) {
-		socket.broadcast.emit('code:cursorActivity', {
-			cursor: data.cursor,
-			id: client.id
+	_.each(editors, function (obj) {
+		var namespace = obj.namespace;
+		var codeCache = obj.codeCache;
+		socket.on(namespace + ':code:cursorActivity', function (data) {
+			socket.broadcast.emit(namespace + ':code:cursorActivity', {
+				cursor: data.cursor,
+				id: client.id
+			});
 		});
-	});
-	socket.on('code:change', function (data) {
-		data.timestamp = (new Date()).toJSON();
-		codeCache.add(data, client);
-		socket.broadcast.emit('code:change', data);
-	});
-	socket.on('code:full_transcript', function (data) {
-		codeCache.set(data.code);
-		socket.broadcast.emit('code:sync', data);
+		socket.on(namespace + ':code:change', function (data) {
+			data.timestamp = (new Date()).toJSON();
+			codeCache.add(data, client);
+			socket.broadcast.emit(namespace + ':code:change', data);
+		});
+		socket.on(namespace + ':code:full_transcript', function (data) {
+			codeCache.set(data.code);
+			socket.broadcast.emit(namespace + ':code:sync', data);
+		});
 	});
 
 	socket.on('chat', function (data) {
@@ -332,7 +352,9 @@ sio.sockets.on('connection', function (socket) {
 	socket.on('disconnect', function () {
 		// console.log("killing ", clientID);
 
-		codeCache.remove(client);
+		_.each(editors, function (obj) {
+			obj.codeCache.remove(client);
+		})
 
 		clients.kill(clientID);
 		sio.sockets.emit('userlist', {
@@ -346,7 +368,5 @@ sio.sockets.on('connection', function (socket) {
 			log: false
 		}));
 	});
-
-	setInterval(codeCache.syncFromClient, 1000*30);
 
 });

@@ -356,8 +356,8 @@ $(document).ready(function () {
 		}
 	}
 
-
-	window.editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+	var editors = [];
+	var jsEditor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
 		lineNumbers: true,
 		mode: "text/javascript",
 		theme: "monokai",
@@ -365,6 +365,20 @@ $(document).ready(function () {
 		highlightActiveLine: true,
 		continueComments: "Enter"
 	});
+	var htmlEditor = CodeMirror.fromTextArea(document.getElementById("htmlEditor"), {
+		lineNumbers: true,
+		mode: "text/html",
+		theme: "monokai"
+	});
+
+	editors.push({
+		namespace: "js",
+		editor: jsEditor
+	}, {
+		namespace: "html",
+		editor: htmlEditor
+	});
+
 
 	var socket = io.connect(window.location.href);
 	socket.on('connect', function () {
@@ -428,7 +442,7 @@ $(document).ready(function () {
 			}
 		});
 
-		function applyChanges (change) {
+		function applyChanges (editor, change) {
 			editor.replaceRange(change.text, change.from, change.to);
 			while (change.next !== undefined) { // apply all the changes we receive until there are no more
 				change = change.next
@@ -436,47 +450,51 @@ $(document).ready(function () {
 			}
 		}
 
-		socket.on("code:change", function (change) {
-			// console.log("change");
-			applyChanges(change);
-		});
+		_.each(editors, function (obj) {
+			var editor = obj.editor;
+			var namespace = obj.namespace.toString();
 
-		socket.on("code:request", function () {
-			// console.log("request");
-			socket.emit("code:full_transcript", {
-				code: editor.getValue()
+			socket.on(namespace + ":code:change", function (change) {
+				// console.log("change");
+				applyChanges(editor, change);
+			});
+
+			socket.on(namespace + ":code:request", function () {
+				// console.log("request");
+				socket.emit("code:full_transcript", {
+					code: editor.getValue()
+				});
+			});
+			socket.on(namespace + ":code:sync", function (data) {
+				// console.log("sync");
+				if (editor.getValue() !== data.code) {
+					editor.setValue(data.code);
+				}
+			});
+
+			socket.on(namespace + ":code:authoritative_push", function (data) {
+				// console.log("push");
+				editor.setValue(data.start);
+				for (var i = 0; i < data.ops.length; i ++) {
+					applyChanges(editor, data.ops[i]);
+				}
+			});
+
+			socket.on(namespace + ":code:cursorActivity", function (data) {
+				var pos = editor.charCoords(data.cursor);
+				// console.log(data, pos, clients.get(data.id));
+				var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']");
+				if (!$ghostCursor.length) {
+					$ghostCursor = ("<div class='ghost-cursor' rel=" + data.id +"></div>");
+					$("body").append($ghostCursor);
+				}
+				$ghostCursor.css({
+					background: clients.get(data.id).getColor().toRGB(),
+					top: pos.top,
+					left: pos.left
+				});
 			});
 		});
-		socket.on("code:sync", function (data) {
-			// console.log("sync");
-			if (editor.getValue() !== data.code) {
-				editor.setValue(data.code);
-			}
-		});
-
-		socket.on("code:authoritative_push", function (data) {
-			// console.log("push");
-			editor.setValue(data.start);
-			for (var i = 0; i < data.ops.length; i ++) {
-				applyChanges(data.ops[i]);
-			}
-		});
-
-		socket.on("code:cursorActivity", function (data) {
-			var pos = editor.charCoords(data.cursor);
-			// console.log(data, pos, clients.get(data.id));
-			var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']");
-			if (!$ghostCursor.length) {
-				$ghostCursor = ("<div class='ghost-cursor' rel=" + data.id +"></div>");
-				$("body").append($ghostCursor);
-			}
-			$ghostCursor.css({
-				background: clients.get(data.id).getColor().toRGB(),
-				top: pos.top,
-				left: pos.left
-			});
-		});
-
 
 		if ($.cookie("nickname")) {
 			session.setNick($.cookie("nickname"));
@@ -575,7 +593,10 @@ $(document).ready(function () {
 		if ($("#coding:visible").length === 0) {
 			$("#chatting").fadeOut();
 			$("#coding").fadeIn(function () {
-				editor.refresh();
+				_.each(editors, function (obj) {
+					obj.editor.refresh();
+				});
+				$(".ghost-cursor").show();
 			});
 		}
 	});
@@ -586,6 +607,7 @@ $(document).ready(function () {
 			$("#coding").fadeOut();
 			$("#chatting").fadeIn(function () {
 				scrollChat();
+				$(".ghost-cursor").hide();
 			});
 		}
 	});
@@ -596,16 +618,20 @@ $(document).ready(function () {
 		$("body").removeClass("blurred");
 	});
 
-	editor.on("change", function (instance, change) {
-		if (change.origin !== undefined && change.origin !== "setValue") {
-			socket.emit("code:change", change);
-		}
-		updateJsEval();
-	});
-	editor.on("cursorActivity", function (instance) {
-		// console.log("mycoords", instance.cursorCoords());
-		socket.emit("code:cursorActivity", {
-			cursor: instance.getCursor()
+	_.each(editors, function (obj) {
+		var editor = obj.editor;
+		var namespace = obj.namespace;
+		
+		editor.on("change", function (instance, change) {
+			if (change.origin !== undefined && change.origin !== "setValue") {
+				socket.emit(namespace + ":code:change", change);
+			}
+			updateJsEval();
+		});
+		editor.on("cursorActivity", function (instance) {
+			socket.emit(namespace + ":code:cursorActivity", {
+				cursor: instance.getCursor()
+			});
 		});
 	});
 	
@@ -613,9 +639,16 @@ $(document).ready(function () {
 	var iframe = document.getElementById("repl-frame").contentWindow;
 
 	var updateJsEval = _.debounce(function () {
-		var script = editor.getValue();
-		var wrapped_script = script;
-		var wrapped_script = "(function(){ $('body').html(''); " + script + "})();";
+		values = {};
+		_.each(editors, function (obj) {
+			values[obj.namespace] = obj.editor.getValue();
+		});
+		var html = values["html"];
+		var script = values["js"];
+		var wrapped_script = "(function(){ " + script + "})();";
+		if (html !== "") {
+			$("body", document.getElementById("repl-frame").contentWindow.document).html(html);
+		}
 		if (script !== "") {
 			var result;
 			try {

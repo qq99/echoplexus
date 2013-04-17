@@ -8,7 +8,7 @@ SANDBOX_USERNAME=sandbox
 
 #  !! order is important in the client libs !!
 LIBS=client/lib/underscore-min.js client/lib/jquery.min.js client/lib/jquery.cookie.js client/lib/moment.min.js
-CLIENT_JS=client/lib/codemirror-3.11/lib/codemirror.js client/lib/codemirror-3.11/mode/javascript/javascript.js client/client.js client/regex.js client/ui.js
+CLIENT_JS=client/lib/codemirror-3.11/lib/codemirror.js client/lib/codemirror-3.11/mode/javascript/javascript.js client/lib/codemirror-3.11/mode/xml/xml.js client/lib/codemirror-3.11/mode/css/css.js client/lib/codemirror-3.11/mode/htmlmixed/htmlmixed.js client/client.js client/regex.js client/ui.js
 
 
 .PHONY: server install_packages assets clean
