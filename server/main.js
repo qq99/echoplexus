@@ -11,6 +11,7 @@ var express = require('express'),
 	PUBLIC_FOLDER = __dirname + '/public',
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
 	// customize me:
+	USE_PORT_IN_URL = false,
 	SCHEME = "http",
 	FQDN = "chat.echoplex.us",
 	PORT = 9000,
@@ -39,7 +40,11 @@ if (DANGERZONE) {
 console.log('Listening on port', PORT);
 
 function urlRoot(){
-	return SCHEME + "://" + FQDN + ":" + PORT + "/";
+	if (USE_PORT_IN_URL) {
+		return SCHEME + "://" + FQDN + ":" + PORT + "/";
+	} else {
+		return SCHEME + "://" + FQDN + "/";
+	}
 }
 
 function CodeCache (namespace) {
@@ -331,15 +336,15 @@ sio.sockets.on('connection', function (socket) {
 								console.log('screenshotter exit: ' + data);
 								if (pageData.title && pageData.excerpt) {
 									sio.sockets.emit('chat', serverSentMessage({
-										body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + '/sandbox/' + fileName
+										body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
 									}));
 								} else if (pageData.title) {
 									sio.sockets.emit('chat', serverSentMessage({
-										body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + '/sandbox/' + fileName
+										body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
 									}));
 								} else {
 									sio.sockets.emit('chat', serverSentMessage({
-										body: urlRoot() + '/sandbox/' + fileName
+										body: urlRoot() + 'sandbox/' + fileName
 									}));
 								}
 							});
