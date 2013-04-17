@@ -645,7 +645,11 @@ $(document).ready(function () {
 		});
 		var html = values["html"];
 		var script = values["js"];
-		var wrapped_script = "(function(){ " + script + "})();";
+		var wrapped_script = "(function(){ "; // execute in a closure
+		wrapped_script+= "return (function(window,$,_,alert,undefined) {" // don't allow user to override things
+		wrapped_script+= script;
+		wrapped_script+= "})(window,$,_, function () { return arguments; });"
+		wrapped_script +="})();";
 		if (html !== "") {
 			$("body", document.getElementById("repl-frame").contentWindow.document).html(html);
 		}
