@@ -174,7 +174,7 @@ $supportbar-width: 300px;
 	#chatarea {
 		position:relative;
 		height:100%;
-		padding-bottom:$chatinput-height + 1em;
+		padding-bottom:$chatinput-height;
 		& > div {
 			height:100%;
 			padding-bottom:0;
