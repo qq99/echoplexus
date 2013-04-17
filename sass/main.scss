@@ -93,7 +93,6 @@ a {
 	#codelog {
 		width:50%;
 		float:left;
-		padding-top:1em;
 	}
 	#result_pane {
 		width:50%;
@@ -217,6 +216,7 @@ $supportbar-width: 300px;
 	padding-right:$supportbar-width;
 	.messages {
 		padding:1em;
+		padding-bottom:0;
 		width:100%;
 		height:100%;
 		overflow-y:auto;
@@ -241,6 +241,10 @@ $supportbar-width: 300px;
 	z-index:4;
 	position:relative;
 	overflow-y:auto;
+	.body {
+		padding-right:10px;
+		overflow-x:hidden;
+	}
 }
 #linklog object {
 	display:block;
