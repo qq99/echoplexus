@@ -509,9 +509,7 @@ $(document).ready(function () {
 					ev.preventDefault();
 					var userInput = $this.val();
 					scrollback.add(userInput);
-					console.log(userInput);
 					userInput = userInput.split("\n");
-					console.log(userInput);
 					for (var i = 0, l = userInput.length; i < l; i++) {
 						handleChatMessage({
 							body: userInput[i]
@@ -651,17 +649,17 @@ $(document).ready(function () {
 		wrapped_script+= script;
 		wrapped_script+= "})(window,$,_, function () { return arguments; });"
 		wrapped_script +="})();";
-		if (html) {
-			var iframe = document.getElementById("repl-frame").contentDocument
-			var body = iframe.getElementsByTagName("body")[0];
-			iframe.open();
-			iframe.write(html);
-			iframe.close();
-		}
+
+		// first update the iframe from the HTML:
+		var iframe = document.getElementById("repl-frame").contentDocument
+		iframe.open();
+		iframe.write(html);
+		iframe.close();
+		// then execute the JS:
 		if (script !== "") {
 			var result;
 			try {
-				result = iframe.eval(wrapped_script);
+				result = document.getElementById("repl-frame").contentWindow.eval(wrapped_script);
 				if (_.isObject(result)) {
 					result = JSON.stringify(result);
 				} 
