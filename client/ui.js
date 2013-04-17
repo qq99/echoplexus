@@ -333,7 +333,7 @@ $(document).ready(function () {
 		if (body.length) { // if there's anything left in the body, 
 			var chat = $(messageContainer);
 			chat.find(".nick").text(msg.nickname).attr("title", msg.nickname);
-			chat.find(".body").html(body);
+			chat.find(".body").html("<pre>" + body + "</pre>");
 			chat.find(".time").text("[" + moment(msg.timestamp).format('hh:mm:ss') + "]");
 			chat.attr("data-timestamp", msg.timestamp);
 
@@ -501,7 +501,7 @@ $(document).ready(function () {
 		}
 
 
-		$("#chatinput input").on("keydown", function (ev) {
+		$("#chatinput textarea").on("keydown", function (ev) {
 			$this = $(this);
 			switch (ev.keyCode) {
 				// enter:
@@ -509,8 +509,9 @@ $(document).ready(function () {
 					ev.preventDefault();
 					var userInput = $this.val();
 					scrollback.add(userInput);
-
+					console.log(userInput);
 					userInput = userInput.split("\n");
+					console.log(userInput);
 					for (var i = 0, l = userInput.length; i < l; i++) {
 						handleChatMessage({
 							body: userInput[i]
@@ -568,7 +569,7 @@ $(document).ready(function () {
 		socket.removeAllListeners('chat'); 
 		socket.removeAllListeners('userlist');
 		socket.removeAllListeners('code:change code:authoritative_push code:sync code:request');
-		$("#chatinput input").off();
+		$("#chatinput textarea").off();
 		handleChatMessage({body: "Unexpected d/c from server", log: false});
 	});
 
@@ -580,7 +581,7 @@ $(document).ready(function () {
 		$(this).siblings("div.options").toggle();
 	});
 
-	$("#chatinput input").focus();
+	$("#chatinput textarea").focus();
 
 	$(window).on("click", function () {
 		notifications.request();

@@ -3,6 +3,10 @@
 	-moz-box-sizing:border-box;
 	-webkit-box-sizing:border-box;
 }
+pre {
+	margin:0px;
+	padding:0px;
+}
 html, body {
 	text-shadow:1px 1px 1px #151515;
 	background:#222;
@@ -185,6 +189,7 @@ $supportbar-width: 300px;
 		height:$chatinput-height;
 		padding-right:$supportbar-width;
 		textarea, input {
+			resize: none;
 			background:rgba(0,0,0,0.5);
 			outline:none;
 			width:100%;
@@ -207,6 +212,9 @@ $supportbar-width: 300px;
 			&::-moz-placeholder { color:silver; } /* firefox 19+ */
 			&:-ms-input-placeholder { color:silver; } /* ie */
 			&:-moz-placeholder { color:silver; }
+		}
+		textarea {
+			padding-top:0.85em;
 		}
 	}
 
