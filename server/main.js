@@ -12,7 +12,7 @@ var express = require('express'),
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
 	// customize me:
 	SCHEME = "http",
-	FQDN = "echoplex.anthonycameron.com",
+	FQDN = "chat.echoplex.us",
 	PORT = 9000,
 	SERVER_NAME = 'Server',
 	DANGERZONE = true; // http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s

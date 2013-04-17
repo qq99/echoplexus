@@ -650,7 +650,7 @@ $(document).ready(function () {
 		wrapped_script+= script;
 		wrapped_script+= "})(window,$,_, function () { return arguments; });"
 		wrapped_script +="})();";
-		if (html !== "") {
+		if (html) {
 			$("body", document.getElementById("repl-frame").contentWindow.document).html(html);
 		}
 		if (script !== "") {
