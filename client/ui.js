@@ -651,7 +651,11 @@ $(document).ready(function () {
 		wrapped_script+= "})(window,$,_, function () { return arguments; });"
 		wrapped_script +="})();";
 		if (html) {
-			$("body", document.getElementById("repl-frame").contentWindow.document).html(html);
+			var iframe = document.getElementById("repl-frame").contentDocument
+			var body = iframe.getElementsByTagName("body")[0];
+			iframe.open();
+			iframe.write(html);
+			iframe.close();
 		}
 		if (script !== "") {
 			var result;
