@@ -327,13 +327,23 @@ $(document).ready(function () {
 		// sanitize the body:
 		body = body.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+		// convert new lines to breaks:
+		if (body.match(/\n/g)) {
+			var lines = body.split(/\n/g);
+			body = "";
+			_.each(lines, function (line) {
+				line = "<pre>" + line + "</pre>";
+				body += line;
+			});
+		}
+
 		// hyperify hyperlinks for the chatlog:
 		body = body.replace(R.urls.all_others,'<a target="_blank" href="$1">$1</a>');
 
 		if (body.length) { // if there's anything left in the body, 
 			var chat = $(messageContainer);
 			chat.find(".nick").text(msg.nickname).attr("title", msg.nickname);
-			chat.find(".body").html("<pre>" + body + "</pre>");
+			chat.find(".body").html(body);
 			chat.find(".time").text("[" + moment(msg.timestamp).format('hh:mm:ss') + "]");
 			chat.attr("data-timestamp", msg.timestamp);
 
@@ -509,12 +519,15 @@ $(document).ready(function () {
 					ev.preventDefault();
 					var userInput = $this.val();
 					scrollback.add(userInput);
-					userInput = userInput.split("\n");
-					for (var i = 0, l = userInput.length; i < l; i++) {
-						handleChatMessage({
-							body: userInput[i]
-						});
-					}
+					// userInput = userInput.split("\n");
+					// for (var i = 0, l = userInput.length; i < l; i++) {
+					// 	handleChatMessage({
+					// 		body: userInput[i]
+					// 	});
+					// }
+					handleChatMessage({
+						body: userInput
+					});
 					$this.val("");
 					scrollback.reset();
 					break;

@@ -323,6 +323,11 @@ $supportbar-width: 300px;
 
 	.body {
 		word-break:break-word;
+		max-width:100%;
+		pre {
+			white-space: pre-wrap;
+			word-break:break-word;
+		}
 	}
 	.time {
 		color:#666;
