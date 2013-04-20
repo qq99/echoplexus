@@ -113,6 +113,9 @@ header {
 		width:100%;
 		height:100%;
 	}
+	.CodeMirror-scroll {
+		box-sizing:content-box;
+	}
 	& > div {
 		height:100%;
 	}
@@ -167,7 +170,33 @@ header {
 	}
 }
 
+::-webkit-scrollbar {
+	width:10px;
+}
+::-webkit-scrollbar-thumb {
+	background:rgba(0,0,0,0.3);
+	box-shadow:inset 2px 2px 10px -1px rgba(0,0,0,0.95);
+	border-radius:5px;
+}
+
 $supportbar-width: 300px;
+
+.resizable-pane {
+	position:relative;
+	width:100%;
+	height:100%;
+}
+.resize-target {
+	position:absolute;	
+	z-index:20;
+	&.horizontal {
+		height:100%;
+		width:0.5em;
+		right:-5px;
+		top:0;
+		cursor:w-resize;
+	}
+}
 
 #chatting {
 	$chatinput-height:5em;
