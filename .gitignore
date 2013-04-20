@@ -9,3 +9,4 @@ build
 .js
 server/public/sandbox
 .npm-debug.log
+server/config.js

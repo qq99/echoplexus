@@ -16,7 +16,7 @@ CLIENT_JS=client/lib/codemirror-3.11/lib/codemirror.js client/lib/codemirror-3.1
 all: client
 
 server: server/main.js
-	nodemon server/main.js
+	nodemon -e js --delay 5 server/main.js
 
 install_packages:
 	npm install $(NODE_PACKAGES) && gem install $(GEMS) && sudo npm install -g $(GLOBAL_NODE_PACKAGES)

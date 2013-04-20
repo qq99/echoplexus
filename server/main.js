@@ -9,14 +9,9 @@ var express = require('express'),
 	server = require('http').createServer(app),
 	spawn = require('child_process').spawn,
 	PUBLIC_FOLDER = __dirname + '/public',
-	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
-	// customize me:
-	USE_PORT_IN_URL = false,
-	SCHEME = "http",
-	FQDN = "chat.echoplex.us",
-	PORT = 8080,
-	SERVER_NAME = 'Server',
-	DANGERZONE = true; // http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
+	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox';
+
+var config = require('./config.js').Configuration;
 
 
 // Custom objects:
@@ -28,22 +23,22 @@ var Client = require('../client/client.js').Client,
 // Standard App:
 app.use(express.static(PUBLIC_FOLDER));
 
-server.listen(PORT);
+server.listen(config.host.PORT);
 
-if (DANGERZONE) {
+if (config.features.phantomjs_screenshot) {
 	process.setgid('sandbox');
 	process.setuid('sandbox');
 	console.log('Now leaving the DANGERZONE!', 'New User ID:', process.getuid(), 'New Group ID:', process.getgid());
 	console.log('Probably still a somewhat dangerous zone, tho.');
 }
 
-console.log('Listening on port', PORT);
+console.log('Listening on port', config.host.PORT);
 
 function urlRoot(){
-	if (USE_PORT_IN_URL) {
-		return SCHEME + "://" + FQDN + ":" + PORT + "/";
+	if (config.host.USE_PORT_IN_URL) {
+		return config.host.SCHEME + "://" + config.host.FQDN + ":" + config.host.PORT + "/";
 	} else {
-		return SCHEME + "://" + FQDN + "/";
+		return config.host.SCHEME + "://" + config.host.FQDN + "/";
 	}
 }
 
@@ -100,7 +95,7 @@ sio.set('log level', 1);
 
 function serverSentMessage (msg) {
 	return _.extend(msg, {
-		nickname: SERVER_NAME,
+		nickname: config.features.SERVER_NICK,
 		type: "SYSTEM",
 		timestamp: (new Date()).toJSON()
 	});
@@ -295,7 +290,7 @@ sio.sockets.on('connection', function (socket) {
 			socket.broadcast.emit('chat', data);
 			socket.emit('chat', data);
 
-			if (DANGERZONE) {
+			if (config.features.phantomjs_screenshot) {
 				// strip out other things the client is doing before we attempt to render the web page
 				var urls = data.body.replace(REGEXES.urls.image, "")
 									.replace(REGEXES.urls.youtube,"")
