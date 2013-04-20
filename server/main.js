@@ -14,7 +14,7 @@ var express = require('express'),
 	USE_PORT_IN_URL = false,
 	SCHEME = "http",
 	FQDN = "chat.echoplex.us",
-	PORT = 9000,
+	PORT = 8080,
 	SERVER_NAME = 'Server',
 	DANGERZONE = true; // http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
 
@@ -323,7 +323,7 @@ sio.sockets.on('connection', function (socket) {
 
 								// attempt to extract any parameters phantomjs might expose via stdout
 								var tmp = data.match(REGEXES.phantomjs.parameter);
-								if (tmp.length) {
+								if (tmp && tmp.length) {
 									var key = tmp[0].replace(REGEXES.phantomjs.delimiter, "").trim();
 									var value = data.replace(REGEXES.phantomjs.parameter, "").trim();
 									pageData[key] = value;
