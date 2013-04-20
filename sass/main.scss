@@ -181,23 +181,6 @@ header {
 
 $supportbar-width: 300px;
 
-.resizable-pane {
-	position:relative;
-	width:100%;
-	height:100%;
-}
-.resize-target {
-	position:absolute;	
-	z-index:20;
-	&.horizontal {
-		height:100%;
-		width:0.5em;
-		right:-5px;
-		top:0;
-		cursor:w-resize;
-	}
-}
-
 #chatting {
 	$chatinput-height:5em;
 	#chatarea {
@@ -354,6 +337,7 @@ $supportbar-width: 300px;
 		word-break:break-word;
 		max-width:100%;
 		pre {
+			tab-size:3;
 			white-space: pre-wrap;
 			word-break:break-word;
 		}
@@ -362,17 +346,24 @@ $supportbar-width: 300px;
 		color:#666;
 		float:right;
 	}
+
 	.nick {
+		text-align: right;
 		color:#53D940;
 		width:8em;
 		text-overflow:ellipsis;
 		white-space:nowrap;
 		overflow:hidden;
-		&.me {
-			color:yellow;		
-		}
 		&.system {
 			color:#CC2222;
+		}
+		&.me {
+			color:yellow;
+		}
+	}
+	&.me {
+		.body {
+			color:#999;
 		}
 	}
 }

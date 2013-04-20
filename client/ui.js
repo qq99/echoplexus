@@ -353,6 +353,7 @@ $(document).ready(function () {
 			}
 			if (msg.nickname === session.getNick()) {
 				chat.find(".nick").addClass('me');
+				chat.addClass('me');
 			}
 			// add message to the chatlog
 			$("#chatlog .messages").append(chat);
@@ -388,7 +389,6 @@ $(document).ready(function () {
 		namespace: "html",
 		editor: htmlEditor
 	});
-
 
 	var socket = io.connect(window.location.href);
 	socket.on('connect', function () {
@@ -623,6 +623,9 @@ $(document).ready(function () {
 			});
 		}
 	});
+
+
+
 
 	$(window).on("blur", function () {
 		$("body").addClass("blurred");
