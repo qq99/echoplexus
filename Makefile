@@ -46,8 +46,9 @@ client: .libs .js .css
 dangerzone:
 	echo 'Creating a new user account with disabled login named ' $(SANDBOX_USERNAME)
 	sudo adduser --disabled-login --gecos 'Sandbox' $(SANDBOX_USERNAME)
-	mkdir -p $(PUBLIC_DIR)/sandbox
+
 dangerzone_dir:
+	mkdir -p $(PUBLIC_DIR)/sandbox
 	echo 'Allowing $(SANDBOX_USERNAME) user access to ' $(PUBLIC_DIR)/sandbox
 	chown -R :sandbox $(PUBLIC_DIR)/sandbox
 	chmod -R g+rw $(PUBLIC_DIR)/sandbox
