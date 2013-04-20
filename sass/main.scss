@@ -396,6 +396,9 @@ $supportbar-width: 300px;
 
 .tooltip-target {
 	cursor:help;
+	> * {
+		cursor:help !important;
+	}
 }
 .tooltip {
 	z-index:1000;
