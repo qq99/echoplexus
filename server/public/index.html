@@ -31,11 +31,17 @@
 								<h2>Media & Links</h2>
 								<span id="linklog-options" class="options">options</span>
 								<div class="options">
-									<div class="option">
+									<div 
+										data-tooltip-title="What's this?"
+										data-tooltip-body="This will prevent images and videos from auto-loading."
+										class="tooltip-target option">
 										<input checked id="autoload_media" type="checkbox" />
 										<label for="autoload_media">Autoload Media</label>
 									</div>
-									<div class="option">
+									<div
+										data-tooltip-title="What's this?"
+										data-tooltip-body="This will prevent the display and logging of join/leave chat messages."
+										class="tooltip-target option">
 										<input id="suppress_join" type="checkbox" />
 										<label for="suppress_join">Suppress Join/Part Messages</label>
 									</div>
@@ -94,6 +100,26 @@
 				<a href="" target="_blank">
 					<img src="" target="_blank" />
 				</a>
+			</div>
+		</div>
+		<div id="identYes">
+			<span
+				data-tooltip-title="Identified"
+				data-tooltip-body="This user has confirmed his identity with the server."
+				data-tooltip-class="ident success"
+				class='tooltip-target ident yes'>✓</span>
+		</div>
+		<div id="identNo">
+			<span
+				data-tooltip-title="Not Identified"
+				data-tooltip-body="This user has not confirmed his identity with the server.  He could be anyone!"
+				data-tooltip-class="ident warn"
+				class='tooltip-target ident no'>✗</span>
+		</div>
+		<div id="tooltip">
+			<div class="tooltip">
+				<div class="title"></div>
+				<div class="body"></div>
 			</div>
 		</div>
 	<script src="/socket.io/socket.io.js"></script>

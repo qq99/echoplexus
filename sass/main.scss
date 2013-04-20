@@ -311,6 +311,9 @@ $supportbar-width: 300px;
 		display:none;
 		margin-top:-1em;
 		margin-bottom:1em;
+		.option {
+			display:inline-block;
+		}
 	}
 }
 .chatMessage {
@@ -377,7 +380,6 @@ $supportbar-width: 300px;
 }
 .ident {
 	font-family:sans-serif;
-	padding-left:0.5em;
 }
 .ident.yes {
 	color:green;
@@ -390,4 +392,66 @@ $supportbar-width: 300px;
 	width:1px;
 	height:1em;
 	box-shadow: 1px 1px 1px black;
+}
+
+.tooltip-target {
+	cursor:help;
+}
+.tooltip {
+	z-index:1000;
+	font-family:'Noto Sans', sans-serif;
+	&.warn {
+		.title {
+			color:orange;
+		}
+	}
+	&.success {
+		.title {
+			color:green;
+		}
+	}
+	$title-color:rgba(109,116,255,0.15);
+	$arrow-width:10px;
+	$arrow-height:5px;
+	position: absolute;
+	background: #111;
+	margin-top:10px;
+	width: 16em;
+	font-size: 0.8em;
+	border-radius: 1em;
+	margin-left: -8em;
+	text-align: center;
+	box-shadow:2px 2px 10px rgba(0,0,0,0.9);
+
+	opacity:0;
+	transition:opacity 0.2s ease-in-out;
+	&.showing {
+		opacity:1;
+	}
+	.title {
+		padding:0.5em;
+		background:$title-color;
+		border-top-left-radius: 1em;
+		border-top-right-radius: 1em;
+		font-weight:bold;
+	}
+	.body {
+		font-size:0.9em;
+		margin:0.5em 1em 0.75em 1em;
+		color:#ABABAB;
+	}
+	&::before {
+		/* upward arrow */
+		position: absolute;
+		content: "";
+		border-left: $arrow-width solid transparent;
+		border-right: $arrow-width solid transparent;
+		border-bottom: $arrow-height solid $title-color;
+		width: 0px;
+		height: 0px;
+		box-sizing: content-box;
+		top: -$arrow-height;
+		left: 50%;
+		margin-left: -$arrow-width;
+	}
 }

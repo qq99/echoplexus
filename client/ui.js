@@ -1,4 +1,41 @@
 $(document).ready(function () {
+
+	var transitionEvents = "webkitTransitionEnd transitionend oTransitionEnd";
+
+	$("body").on("mouseenter", ".tooltip-target", function(ev) {
+		var title = $(this).data("tooltip-title");
+		var body = $(this).data("tooltip-body");
+		var tclass = $(this).data("tooltip-class");
+
+		var $tooltip = $(tooltipTemplate);
+		var $target = $(ev.target);
+		if (!$target.hasClass("tooltip-target")) { // search up to find the true tooltip target
+			$target = $target.parents(".tooltip-target");
+		}
+		var targetOffset = $target.offset();
+		$tooltip.css({
+			left: targetOffset.left + ($target.width()/2),
+			top: targetOffset.top + ($target.height())
+		}).addClass(tclass)
+			.find(".title").text(title)
+		.end()
+			.find(".body").text(body);
+
+		$("body").append($tooltip);
+
+		setTimeout(function () {
+			$tooltip.addClass("showing");
+		},10);
+	}).on("mouseleave", ".tooltip-target", function (ev) {
+		$("body .tooltip").removeClass("showing");
+	});
+
+	$("body").on(transitionEvents, ".tooltip", function () {
+		if (!$(this).hasClass("showing")) {
+			$(this).remove();
+		}
+	});
+
 	// consider these persistent options
 	// we use a cookie for these since they're small and more compatible
 	var options = {
@@ -30,6 +67,9 @@ $(document).ready(function () {
 
 	// ghetto templates:
 	var clients = new Clients();
+	var tooltipTemplate = $("#tooltip").html();
+	var identYesTemplate = $("#identYes").html();
+	var identNoTemplate = $("#identNo").html();
 	var imageContainer = $("#imageThumbnail").html();
 	var messageContainer = $("#chatMessage").html();
 	var fl_obj_template = '<object>' +
@@ -38,22 +78,6 @@ $(document).ready(function () {
                   '<param name="allowscriptaccess" value="always"></param>' +   
                   '<embed src="" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="274" height="200"></embed>' +   
                   '</object>'; 
-
-    // utility: a container of useful regexes arranged into some a rough taxonomy
-	var R = {
-		urls: {
-			image: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|].(jpg|png|bmp|gif|svg))/gi,
-			youtube: /(\b(https?|http):\/\/(www.)*(youtube.com)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
-			all_others: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi
-		},
-		commands: {
-			nick: /^\/nick/,
-			register: /^\/register/,
-			identify: /^\/identify/,
-			topic: /^\/topic/,
-			failed_command: /^\//,
-		}
-	};
 
 	// utility: extend the local storage protoype if it exists
 	if (window.Storage) {
@@ -228,29 +252,29 @@ $(document).ready(function () {
 
 		if (!msg.body) return; // if there's no body, we probably don't want to do anything
 		var body = msg.body;
-		if (body.match(R.commands.nick)) {
-			body = body.replace(R.commands.nick, "").trim();
+		if (body.match(REGEXES.commands.nick)) {
+			body = body.replace(REGEXES.commands.nick, "").trim();
 			session.setNick(body);
 			return;
-		} else if (msg.body.match(R.commands.register)) {
-			msg.body = msg.body.replace(R.commands.register, "").trim();
+		} else if (msg.body.match(REGEXES.commands.register)) {
+			msg.body = msg.body.replace(REGEXES.commands.register, "").trim();
 			socket.emit('register_nick', {
 				password: msg.body
 			});
 			return;
-		} else if (msg.body.match(R.commands.identify)) {
-			msg.body = msg.body.replace(R.commands.identify, "").trim();
+		} else if (msg.body.match(REGEXES.commands.identify)) {
+			msg.body = msg.body.replace(REGEXES.commands.identify, "").trim();
 			socket.emit('identify', {
 				password: msg.body
 			});
 			return;
-		} else if (msg.body.match(R.commands.topic)) {
-			msg.body = msg.body.replace(R.commands.topic, "").trim();
+		} else if (msg.body.match(REGEXES.commands.topic)) {
+			msg.body = msg.body.replace(REGEXES.commands.topic, "").trim();
 			socket.emit('topic', {
 				topic: msg.body
 			});
 			return;
-		} else if (msg.body.match(R.commands.failed_command)) {
+		} else if (msg.body.match(REGEXES.commands.failed_command)) {
 			return;
 		} else {
 			session.speak(msg);
@@ -281,7 +305,7 @@ $(document).ready(function () {
 
 		// put image links on the side:
 		var images;
-		if (options["autoload_media"] && (images = body.match(R.urls.image))) {
+		if (options["autoload_media"] && (images = body.match(REGEXES.urls.image))) {
 			for (var i = 0, l = images.length; i < l; i++) {
 				var href = images[i],
 					img = $(imageContainer);
@@ -295,12 +319,12 @@ $(document).ready(function () {
 				}
 			}
 
-			body = body.replace(R.urls.image, "").trim(); // remove the URLs
+			body = body.replace(REGEXES.urls.image, "").trim(); // remove the URLs
 		}
 
 		// put youtube linsk on the side:
 		var youtubes;
-		if (options["autoload_media"] && (youtubes = body.match(R.urls.youtube))) {
+		if (options["autoload_media"] && (youtubes = body.match(REGEXES.urls.youtube))) {
 			for (var i = 0, l = youtubes.length; i < l; i++) {
 				var src = makeYoutubeURL(youtubes[i]),
 					yt = $(fl_obj_template);
@@ -315,7 +339,7 @@ $(document).ready(function () {
 
 		// put hyperlinks on the side:
 		var links;
-		if (links = body.match(R.urls.all_others)) {
+		if (links = body.match(REGEXES.urls.all_others)) {
 			for (var i = 0, l = links.length; i < l; i++) {
 				if (uniqueImages[links[i]] === undefined) {
 					$("#linklog .body").prepend("<a href='" + links[i] + "' target='_blank'>" + links[i] + "</a>");
@@ -338,7 +362,7 @@ $(document).ready(function () {
 		}
 
 		// hyperify hyperlinks for the chatlog:
-		body = body.replace(R.urls.all_others,'<a target="_blank" href="$1">$1</a>');
+		body = body.replace(REGEXES.urls.all_others,'<a target="_blank" href="$1">$1</a>');
 
 		if (body.length) { // if there's anything left in the body, 
 			var chat = $(messageContainer);
@@ -442,9 +466,9 @@ $(document).ready(function () {
 					var user = $("<div class='user'></div>").text(msg.users[i].	nick);
 
 					if (msg.users[i].identified) {
-						user.append("<span class='ident yes'>✓</span>");
+						user.append(identYesTemplate);
 					} else {
-						user.append("<span class='ident no'>✗</span>");
+						user.append(identNoTemplate);
 					}
 					
 					$("#userlist .body").append(user);
