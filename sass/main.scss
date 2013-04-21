@@ -316,12 +316,20 @@ $supportbar-width: 300px;
 		}
 	}
 }
-body.suppress_join {
-	.chatMessage.join, .chatMessage.part {
-		display:none;
+body {
+	&.suppress_join {
+		.chatMessage.join, .chatMessage.part {
+			display:none;
+		}
+	}
+	&.highlight_mine {
+		.chatMessage.me {
+			background:rgba(180,100,127,0.1);
+		}
 	}
 }
 .chatMessage {
+	transition:all 0.25s ease-in-out;
 	height:auto;
 	&.fromlog {
 		opacity:0.5;
@@ -371,11 +379,6 @@ body.suppress_join {
 		}
 		&.me {
 			color:yellow;
-		}
-	}
-	&.me {
-		.body {
-			color:#999;
 		}
 	}
 }

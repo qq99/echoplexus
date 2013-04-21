@@ -40,7 +40,8 @@ $(document).ready(function () {
 	// we use a cookie for these since they're small and more compatible
 	var options = {
 		"autoload_media": true,
-		"suppress_join": false
+		"suppress_join": false,
+		"highlight_mine": true
 	};
 
 	function updateOption (option) {
@@ -363,6 +364,7 @@ $(document).ready(function () {
 
 	function renderChatMessage(msg) {
 		var body = msg.body;
+		console.log(msg.cID, session.id());
 
 		// put image links on the side:
 		var images;
@@ -440,7 +442,7 @@ $(document).ready(function () {
 			if (msg.type === "SYSTEM") {
 				chat.find(".nick").addClass("system");
 			}
-			if (msg.nickname === session.getNick()) {
+			if (msg.you) { // if it's me!
 				chat.find(".nick").addClass('me');
 				chat.addClass('me');
 			}
@@ -547,6 +549,10 @@ $(document).ready(function () {
 
 
 		socket.on('userlist', function (msg) {
+			console.log(msg);
+			if (msg.you) {
+				session.setID(msg.you);
+			}
 			if (msg.users && msg.users.length) {
 				_.each(msg.users, function (user) {
 					clients.add({

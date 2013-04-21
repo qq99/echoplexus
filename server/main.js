@@ -130,8 +130,9 @@ sio.sockets.on('connection', function (socket) {
 		socket.emit(obj.namespace + ':code:authoritative_push', obj.codeCache.syncToClient());
 	});
 
+	var userlist = clients.userlist();
 	sio.sockets.emit('userlist', {
-		users: clients.userlist()
+		users: userlist
 	});
 	socket.broadcast.emit('chat', serverSentMessage({
 		body: client.getNick() + ' has joined the chat.',
@@ -307,6 +308,7 @@ sio.sockets.on('connection', function (socket) {
 
 	socket.on('chat', function (data) {
 		if (data.body) {
+			data.cID = client.id();
 			data.color = client.getColor().toRGB();
 			data.nickname = client.getNick();
 			data.timestamp = Number(new Date());
@@ -329,7 +331,9 @@ sio.sockets.on('connection', function (socket) {
 				});
 
 				socket.broadcast.emit('chat', data);
-				socket.emit('chat', data);
+				socket.emit('chat', _.extend(data, {
+					you: true
+				}));
 
 				if (config.features.phantomjs_screenshot) {
 					// strip out other things the client is doing before we attempt to render the web page

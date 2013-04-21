@@ -37,8 +37,13 @@
 			lastActivity = new Date();
 
 		return {
-			id: id,
+			id: function () {
+				return id;
+			},
 			socket: socket,
+			setID: function(newId) {
+				id = newId;
+			},
 			setNick: function(newNickname) {
 				nick = newNickname;
 
