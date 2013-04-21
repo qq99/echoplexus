@@ -97,7 +97,7 @@ function serverSentMessage (msg) {
 	return _.extend(msg, {
 		nickname: config.features.SERVER_NICK,
 		type: "SYSTEM",
-		timestamp: (new Date()).toJSON()
+		timestamp: Number(new Date())
 	});
 }
 
@@ -108,6 +108,15 @@ _.each(editors, function (obj) {
 });
 
 sio.sockets.on('connection', function (socket) {
+
+	// let the newly connected client know the ID of the latest logged message
+	redisC.hget("channels:currentMessageID", "default", function (err, reply) {
+		if (err) throw err;
+		socket.emit('chat:currentID', {
+			ID: reply
+		});
+	});
+
 	var clientID = clients.add({socketRef: socket}),
 		client = clients.get(clientID);
 	redisC.get('topic', function (err, res){
@@ -273,7 +282,7 @@ sio.sockets.on('connection', function (socket) {
 			});
 		});
 		socket.on(namespace + ':code:change', function (data) {
-			data.timestamp = (new Date()).toJSON();
+			data.timestamp = Number(new Date());
 			codeCache.add(data, client);
 			socket.broadcast.emit(namespace + ':code:change', data);
 		});
@@ -283,70 +292,102 @@ sio.sockets.on('connection', function (socket) {
 		});
 	});
 
+	socket.on('chat:history_request', function (data) {
+		console.log("requesting " + data.requestRange);
+		redisC.hmget("chatlog:default", data.requestRange, function (err, reply) {
+			if (err) throw err;
+			console.log(reply);
+			// emit the logged replies to the client requesting them
+			_.each(reply, function (chatMsg) {
+				if (chatMsg === null) return;
+				socket.emit('chat', JSON.parse(chatMsg));
+			});
+		});
+	});
+
 	socket.on('chat', function (data) {
 		if (data.body) {
 			data.nickname = client.getNick();
-			data.timestamp = (new Date()).toJSON();
-			socket.broadcast.emit('chat', data);
-			socket.emit('chat', data);
+			data.timestamp = Number(new Date());
 
-			if (config.features.phantomjs_screenshot) {
-				// strip out other things the client is doing before we attempt to render the web page
-				var urls = data.body.replace(REGEXES.urls.image, "")
-									.replace(REGEXES.urls.youtube,"")
-									.match(REGEXES.urls.all_others);
-				if (urls) {
-					for (var i = 0; i < urls.length; i++) {
-						
-						var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg";
-						
-						(function (url, fileName) { // run our screenshotting routine in a self-executing closure so we can keep the current filename & url
-							var output = SANDBOXED_FOLDER + "/" + fileName,
-								pageData = {};
+			// store in redis
+			redisC.hget("channels:currentMessageID", "default", function (err, reply) {
+				if (err) throw err;
+
+				var mID = 0;
+				if (reply) {
+					mID = parseInt(reply, 10);
+				}
+				redisC.hset("channels:currentMessageID", "default", mID+1);
+
+				data.ID = mID;
+
+				// store the chat message
+				redisC.hset("chatlog:default", mID, JSON.stringify(data), function (err, reply) {
+					if (err) throw err;
+				});
+
+				socket.broadcast.emit('chat', data);
+				socket.emit('chat', data);
+
+				if (config.features.phantomjs_screenshot) {
+					// strip out other things the client is doing before we attempt to render the web page
+					var urls = data.body.replace(REGEXES.urls.image, "")
+										.replace(REGEXES.urls.youtube,"")
+										.match(REGEXES.urls.all_others);
+					if (urls) {
+						for (var i = 0; i < urls.length; i++) {
 							
-							console.log("Processing ", urls[i]);
-							// requires that the phantomjs-screenshot repo is a sibling repo of this one
-							var screenshotter = spawn('/opt/bin/phantomjs',
-								['../../phantomjs-screenshot/main.js', url, output],
-								{
-									cwd: __dirname
+							var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg";
+							
+							(function (url, fileName) { // run our screenshotting routine in a self-executing closure so we can keep the current filename & url
+								var output = SANDBOXED_FOLDER + "/" + fileName,
+									pageData = {};
+								
+								console.log("Processing ", urls[i]);
+								// requires that the phantomjs-screenshot repo is a sibling repo of this one
+								var screenshotter = spawn('/opt/bin/phantomjs',
+									['../../phantomjs-screenshot/main.js', url, output],
+									{
+										cwd: __dirname
+									});
+
+								screenshotter.stdout.on('data', function (data) {
+									console.log('screenshotter stdout: ' + data);
+									data = data.toString(); // explicitly cast it, who knows what type it is having come from a process
+
+									// attempt to extract any parameters phantomjs might expose via stdout
+									var tmp = data.match(REGEXES.phantomjs.parameter);
+									if (tmp && tmp.length) {
+										var key = tmp[0].replace(REGEXES.phantomjs.delimiter, "").trim();
+										var value = data.replace(REGEXES.phantomjs.parameter, "").trim();
+										pageData[key] = value;
+									}
 								});
-
-							screenshotter.stdout.on('data', function (data) {
-								console.log('screenshotter stdout: ' + data);
-								data = data.toString(); // explicitly cast it, who knows what type it is having come from a process
-
-								// attempt to extract any parameters phantomjs might expose via stdout
-								var tmp = data.match(REGEXES.phantomjs.parameter);
-								if (tmp && tmp.length) {
-									var key = tmp[0].replace(REGEXES.phantomjs.delimiter, "").trim();
-									var value = data.replace(REGEXES.phantomjs.parameter, "").trim();
-									pageData[key] = value;
-								}
-							});
-							screenshotter.stderr.on('data', function (data) {
-								console.log('screenshotter stderr: ' + data);
-							});
-							screenshotter.on("exit", function (data) {
-								console.log('screenshotter exit: ' + data);
-								if (pageData.title && pageData.excerpt) {
-									sio.sockets.emit('chat', serverSentMessage({
-										body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
-									}));
-								} else if (pageData.title) {
-									sio.sockets.emit('chat', serverSentMessage({
-										body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
-									}));
-								} else {
-									sio.sockets.emit('chat', serverSentMessage({
-										body: urlRoot() + 'sandbox/' + fileName
-									}));
-								}
-							});
-						})(urls[i], randomFilename); // call our closure with our random filename
+								screenshotter.stderr.on('data', function (data) {
+									console.log('screenshotter stderr: ' + data);
+								});
+								screenshotter.on("exit", function (data) {
+									console.log('screenshotter exit: ' + data);
+									if (pageData.title && pageData.excerpt) {
+										sio.sockets.emit('chat', serverSentMessage({
+											body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
+										}));
+									} else if (pageData.title) {
+										sio.sockets.emit('chat', serverSentMessage({
+											body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
+										}));
+									} else {
+										sio.sockets.emit('chat', serverSentMessage({
+											body: urlRoot() + 'sandbox/' + fileName
+										}));
+									}
+								});
+							})(urls[i], randomFilename); // call our closure with our random filename
+						}
 					}
 				}
-			}
+			});
 		}
 	});
 	socket.on('disconnect', function () {

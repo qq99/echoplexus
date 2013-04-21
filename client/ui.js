@@ -82,21 +82,25 @@ $(document).ready(function () {
 	// utility: extend the local storage protoype if it exists
 	if (window.Storage) {
 		Storage.prototype.setObj = function(key, obj) {
-			return this.setItem(key, JSON.stringify(obj))
-		}
+			return this.setItem(key, JSON.stringify(obj));
+		};
 		Storage.prototype.getObj = function(key) {
-			return JSON.parse(this.getItem(key))
-		}
+			return JSON.parse(this.getItem(key));
+		};
 	}
 
 	// object: a persistent log if local storage is available ELSE noops
 	function Log() {
-		var log = [],
-			logMax = 200;
+		var latestID = -Infinity,
+			log = [], // should always be sorted by timestamp
+			logMax = 512;
+
+
 
 		if (window.Storage) {
 			var prevLog = window.localStorage.getObj("log");
-			if (log.length > 500) {
+			
+			if (log.length > logMax) { // kill the previous log, getting too big; TODO: make this smarter
 				window.localStorage.setObj("log", null);
 			} else if (prevLog) {
 				log = prevLog;
@@ -104,11 +108,25 @@ $(document).ready(function () {
 
 			return {
 				add: function (obj) {
-					if (obj.log === false) return;
+					if (obj.log === false) return; // don't store things we're explicitly ordered not to
+					if (obj.timestamp === false) return; // don't store things without a timestamp
+
+					if (obj.ID && obj.ID > latestID) { // keep track of highest so far
+						latestID = obj.ID;
+					}
+
+					// insert into the log
+					log.push(obj);
+
+					// sort the log for consistency:
+					log = _.sortBy(log, "timestamp");
+
+					// cull the older log entries
 					if (log.length > logMax) {
 						log.unshift();
 					}
-					log.push(obj);
+
+					// presist to localStorage:
 					window.localStorage.setObj("log", log);
 				},
 				empty: function () {
@@ -116,8 +134,44 @@ $(document).ready(function () {
 				},
 				all: function () {
 					return log;
+				},
+				latestID: function () {
+					return smallestSeenMessageID;
+				},
+				latestIs: function (id) {
+					id = parseInt(id, 10);
+					if (id > latestID) {
+						latestID = id;
+					}
+				},
+				getMissingIDs: function (N) {
+					// compile a list of the message IDs we know about
+					var known = _.without(_.map(log, function (obj) {
+						return obj.ID;
+					}), undefined);
+					// if we don't know about the server-sent latest ID, add it to the list:
+					if (known[known.length-1] !== latestID) {
+						known.push(latestID);
+					}
+
+					console.log("we know:", known);
+
+					// compile a list of message IDs we know nothing about:
+					var holes = [];
+					for (var i = known.length - 1; i > 0; i--) {
+						var diff = known[i] - known[i-1];
+						for (var j = 1; j < diff; j++) {
+							holes.push(known[i] - j);
+							if (N && (holes.length === N)) { // only get N holes if we were requested to limit ourselves
+								console.log("we don't know:", holes);
+								return holes;
+							}
+						}
+					}
+					console.log("we don't know:", holes);
+					return holes;
 				}
-			}
+			};
 		} else { /// return a fake for those without localStorage
 			return {
 				add: function () {},
@@ -125,7 +179,7 @@ $(document).ready(function () {
 				all: function () {
 					return log;
 				}
-			}
+			};
 		}
 	}
 
@@ -143,7 +197,7 @@ $(document).ready(function () {
 			if (document.hasFocus()) {
 
 			} else {
-				if (hasPermission == 0) { // allowed
+				if (hasPermission === 0) { // allowed
 					var notification = window.webkitNotifications.createNotification(
 						'http://i.stack.imgur.com/dmHl0.png',
 						user + " says:",
@@ -208,7 +262,7 @@ $(document).ready(function () {
 				
 				return name;
 			}
-		}
+		};
 	}
 
 	// object: a stack-like data structure supporting only:
@@ -242,6 +296,7 @@ $(document).ready(function () {
 		};
 	}
 
+	var timestamps = [];
 	var scrollback = new Scrollback();
 	var autocomplete = new Autocomplete();
 	var notifications = new Notifications();
@@ -371,6 +426,8 @@ $(document).ready(function () {
 			chat.find(".time").text("[" + moment(msg.timestamp).format('hh:mm:ss') + "]");
 			chat.attr("data-timestamp", msg.timestamp);
 
+
+
 			// special styling of nickname depending on who you are:
 			if (msg.type === "SYSTEM") {
 				chat.find(".nick").addClass("system");
@@ -379,8 +436,29 @@ $(document).ready(function () {
 				chat.find(".nick").addClass('me');
 				chat.addClass('me');
 			}
-			// add message to the chatlog
-			$("#chatlog .messages").append(chat);
+
+			// insert msg into the correct place in history
+			if (msg.timestamp) {
+				var cur = msg.timestamp, candidate = -1;
+				
+				chat.attr("rel", cur);
+				for (var i = timestamps.length - 1; i >= 0; i--) {
+					candidate = timestamps[i];
+					if (cur > timestamps[i]) break;
+				}
+				var $target = $("#chatlog .chatMessage[rel='"+ candidate +"']");
+
+				if ($target.length) {
+					console.log("target found");
+					$target.after(chat);
+				} else {
+					console.log("target not found", body);
+					$("#chatlog .messages").append(chat);
+				}
+				timestamps.push(msg.timestamp);
+			} else {
+				$("#chatlog .messages").append(chat);
+			}
 			scrollChat();
 		}
 
@@ -451,7 +529,6 @@ $(document).ready(function () {
 
 
 		socket.on('userlist', function (msg) {
-			// console.log(msg);
 			if (msg.users && msg.users.length) {
 				_.each(msg.users, function (user) {
 					clients.add({
@@ -479,7 +556,7 @@ $(document).ready(function () {
 		function applyChanges (editor, change) {
 			editor.replaceRange(change.text, change.from, change.to);
 			while (change.next !== undefined) { // apply all the changes we receive until there are no more
-				change = change.next
+				change = change.next;
 				editor.replaceRange(change.text, change.from, change.to);
 			}
 		}
@@ -489,25 +566,21 @@ $(document).ready(function () {
 			var namespace = obj.namespace.toString();
 
 			socket.on(namespace + ":code:change", function (change) {
-				// console.log("change");
 				applyChanges(editor, change);
 			});
 
 			socket.on(namespace + ":code:request", function () {
-				// console.log("request");
 				socket.emit("code:full_transcript", {
 					code: editor.getValue()
 				});
 			});
 			socket.on(namespace + ":code:sync", function (data) {
-				// console.log("sync");
 				if (editor.getValue() !== data.code) {
 					editor.setValue(data.code);
 				}
 			});
 
 			socket.on(namespace + ":code:authoritative_push", function (data) {
-				// console.log("push");
 				editor.setValue(data.start);
 				for (var i = 0; i < data.ops.length; i ++) {
 					applyChanges(editor, data.ops[i]);
@@ -516,7 +589,6 @@ $(document).ready(function () {
 
 			socket.on(namespace + ":code:cursorActivity", function (data) {
 				var pos = editor.charCoords(data.cursor);
-				// console.log(data, pos, clients.get(data.id));
 				var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']");
 				if (!$ghostCursor.length) {
 					$ghostCursor = ("<div class='ghost-cursor' rel=" + data.id +"></div>");
@@ -596,6 +668,17 @@ $(document).ready(function () {
 
 		});
 	});
+
+	socket.on('chat:currentID', function (data) {
+		log.latestIs(data.ID);
+		var missed = log.getMissingIDs(2);
+		if (missed.length) {
+			socket.emit("chat:history_request", {
+				requestRange: missed
+			});
+		}
+	});
+
 	socket.on('disconnect', function () {
 		setTimeout(function () { // for dev, cheap auto-reload
 			window.location = window.location;
@@ -605,7 +688,7 @@ $(document).ready(function () {
 		socket.removeAllListeners('userlist');
 		socket.removeAllListeners('code:change code:authoritative_push code:sync code:request');
 		$("#chatinput textarea").off();
-		handleChatMessage({body: "Unexpected d/c from server", log: false});
+		renderChatMessage({body: "Unexpected d/c from server", log: false});
 	});
 
 	$("#chatlog").on("hover", ".chatMessage", function (ev) {
@@ -648,6 +731,10 @@ $(document).ready(function () {
 		}
 	});
 
+	$("#deleteLocalStorage").on('click', function (ev) {
+		ev.preventDefault();
+		window.localStorage.setObj("log", null);
+	});
 
 
 
@@ -712,7 +799,6 @@ $(document).ready(function () {
 			} catch (e) {
 				result = e.toString();
 			}
-			// console.log(result);
 			$("#result_pane .output").text(result);
 		} else {
 			$("#result_pane .output").text("");

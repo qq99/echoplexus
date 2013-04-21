@@ -19,7 +19,7 @@ server: server/main.js
 	nodemon -e js --delay 5 server/main.js
 
 install_packages:
-	npm install $(NODE_PACKAGES) && gem install $(GEMS) && sudo npm install -g $(GLOBAL_NODE_PACKAGES)
+	npm install $(NODE_PACKAGES) && sudo gem install $(GEMS) && sudo npm install -g $(GLOBAL_NODE_PACKAGES)
 
 
 .libs: $(LIBS)
