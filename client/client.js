@@ -8,9 +8,9 @@
 
 		options = options || {};
 
-		_r = (options.r) ? options.r : parseInt(Math.random()*100+155,10);
-		_g = (options.g) ? options.g : parseInt(Math.random()*100+155,10);
-		_b = (options.b) ? options.b : parseInt(Math.random()*100+155,10);
+		_r = (options.r) ? options.r : parseInt(Math.random()*155+100,10);
+		_g = (options.g) ? options.g : parseInt(Math.random()*155+100,10);
+		_b = (options.b) ? options.b : parseInt(Math.random()*155+100,10);
 		_a = (options.a) ? options.a : Math.random();
 
 		return {
