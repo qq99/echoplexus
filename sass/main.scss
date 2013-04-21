@@ -331,6 +331,7 @@ body {
 .chatMessage {
 	transition:all 0.25s ease-in-out;
 	height:auto;
+	position:relative;
 	&.fromlog {
 		opacity:0.5;
 	}
@@ -361,13 +362,23 @@ body {
 			white-space: pre-wrap;
 			word-break:break-word;
 		}
+		width:100%;
+		padding-left:9em;
+		padding-right:8em;
 	}
 	.time {
 		color:#666;
-		float:right;
+		position:absolute;
+		top:0;
+		right:0;
+		width:8em;
+		text-align:right;
 	}
 
 	.nick {
+		position:absolute;
+		top:0;
+		left:0;
 		text-align: right;
 		color:#53D940;
 		width:8em;
