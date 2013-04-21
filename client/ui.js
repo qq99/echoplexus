@@ -297,7 +297,6 @@ $(document).ready(function () {
 		};
 	}
 
-	var timestamps = [];
 	var scrollback = new Scrollback();
 	var autocomplete = new Autocomplete();
 	var notifications = new Notifications();
@@ -440,6 +439,11 @@ $(document).ready(function () {
 
 			// insert msg into the correct place in history
 			if (msg.timestamp) {
+
+				var timestamps = _.map($("#chatarea .chatMessage"), function (ele) {
+					return $(ele).data("timestamp");
+				});
+
 				var cur = msg.timestamp,
 					candidate = -1;
 				
@@ -457,7 +461,6 @@ $(document).ready(function () {
 				} else { // it was the first message OR something went wrong
 					$("#chatlog .messages").append(chat);
 				}
-				timestamps.push(msg.timestamp); // keep internal state
 			} else { // if there was no timestamp, assume it's a diagnostic message of some sort that should be displayed at the most recent spot in history
 				$("#chatlog .messages").append(chat);
 			}
