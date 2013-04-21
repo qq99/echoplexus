@@ -153,6 +153,7 @@ $(document).ready(function () {
 					if (known[known.length-1] !== latestID) {
 						known.push(latestID);
 					}
+					known.unshift(-1); // a default element
 
 					console.log("we know:", known);
 
@@ -439,24 +440,25 @@ $(document).ready(function () {
 
 			// insert msg into the correct place in history
 			if (msg.timestamp) {
-				var cur = msg.timestamp, candidate = -1;
+				var cur = msg.timestamp,
+					candidate = -1;
 				
 				chat.attr("rel", cur);
+				// find the earliest message we know of that's before the message we're about to render
 				for (var i = timestamps.length - 1; i >= 0; i--) {
 					candidate = timestamps[i];
 					if (cur > timestamps[i]) break;
 				}
+				// attempt to select this early message:
 				var $target = $("#chatlog .chatMessage[rel='"+ candidate +"']");
 
-				if ($target.length) {
-					console.log("target found");
+				if ($target.length) { // it was in the DOM, so we can insert the current message after it
 					$target.after(chat);
-				} else {
-					console.log("target not found", body);
+				} else { // it was the first message OR something went wrong
 					$("#chatlog .messages").append(chat);
 				}
-				timestamps.push(msg.timestamp);
-			} else {
+				timestamps.push(msg.timestamp); // keep internal state
+			} else { // if there was no timestamp, assume it's a diagnostic message of some sort that should be displayed at the most recent spot in history
 				$("#chatlog .messages").append(chat);
 			}
 			scrollChat();
@@ -671,12 +673,6 @@ $(document).ready(function () {
 
 	socket.on('chat:currentID', function (data) {
 		log.latestIs(data.ID);
-		var missed = log.getMissingIDs(2);
-		if (missed.length) {
-			socket.emit("chat:history_request", {
-				requestRange: missed
-			});
-		}
 	});
 
 	socket.on('disconnect', function () {
@@ -727,6 +723,15 @@ $(document).ready(function () {
 			$("#chatting").fadeIn(function () {
 				scrollChat();
 				$(".ghost-cursor").hide();
+			});
+		}
+	});
+
+	$("#syncButton").on("click", function (ev) {
+		var missed = log.getMissingIDs(10);
+		if (missed.length) {
+			socket.emit("chat:history_request", {
+				requestRange: missed
 			});
 		}
 	});

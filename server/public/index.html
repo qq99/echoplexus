@@ -45,8 +45,17 @@
 										<input id="suppress_join" type="checkbox" />
 										<label for="suppress_join">Suppress Join/Part Messages</label>
 									</div>
-									<div class="tooltip-target option">
+									<div
+										data-tooltip-title="What's this?"
+										data-tooltip-body="This will delete your browser's local copy of the chat logs."
+										class="tooltip-target option">
 										<button id="deleteLocalStorage">Delete Logs</button>
+									</div>
+									<div
+										data-tooltip-title="What's this?"
+										data-tooltip-body="This will being syncing any chat logs that you've missed while you weren't connected."
+										class="tooltip-target option">
+										<button id="syncButton">Sync Logs</button>
 									</div>
 								</div>
 							</div>
