@@ -75,7 +75,7 @@
 				return {
 					id: id,
 					nick : nick,
-					color: color,
+					color: color.toRGB(),
 					identified: identified
 				};
 			},

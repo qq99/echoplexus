@@ -357,6 +357,7 @@ $(document).ready(function () {
 				return;
 			}
 		}
+		console.log(msg);
 
 		// put image links on the side:
 		var images;
@@ -426,6 +427,9 @@ $(document).ready(function () {
 			chat.find(".time").text("[" + moment(msg.timestamp).format('hh:mm:ss') + "]");
 			chat.attr("data-timestamp", msg.timestamp);
 
+			if (msg.color) {
+				chat.find(".nick").css("color", msg.color);
+			}
 
 
 			// special styling of nickname depending on who you are:
@@ -510,6 +514,7 @@ $(document).ready(function () {
 				renderChatMessage(entries[i]);
 			}
 		}
+		$("#chatarea .chatMessage").addClass("fromlog");
 
 
 		notifications.enable();
@@ -540,12 +545,14 @@ $(document).ready(function () {
 						client: user
 					});
 				});
+				console.log(clients.userlist());
 				autocomplete.setPool(_.map(msg.users, function (user) {
 					return user.nick;
 				}));
 				$("#userlist .body").html("");
 				for (var i = 0, l = msg.users.length; i < l; i++) {
 					var user = $("<div class='user'></div>").text(msg.users[i].	nick);
+					user.css("color", msg.users[i].color);
 
 					if (msg.users[i].identified) {
 						user.append(identYesTemplate);

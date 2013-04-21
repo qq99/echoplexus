@@ -307,6 +307,7 @@ sio.sockets.on('connection', function (socket) {
 
 	socket.on('chat', function (data) {
 		if (data.body) {
+			data.color = client.getColor().toRGB();
 			data.nickname = client.getNick();
 			data.timestamp = Number(new Date());
 
