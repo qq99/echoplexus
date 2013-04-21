@@ -54,11 +54,23 @@ $(document).ready(function () {
 				$option.attr("checked", "checked");
 				options[option] = true;
 			}
+
+			if (options[option]) {
+				$("body").addClass(option);
+			} else {
+				$("body").removeClass(option);
+			}
 		}
 		// bind events to the click of the element of the same ID as the option's key
 		$option.on("click", function () {
 			$.cookie(option, $(this).prop("checked"));
 			options[option] = !options[option];
+			if (options[option]) {
+				$("body").addClass(option);
+			} else {
+				$("body").removeClass(option);
+			}
+			scrollChat();
 		});
 	}
 
@@ -352,13 +364,6 @@ $(document).ready(function () {
 	function renderChatMessage(msg) {
 		var body = msg.body;
 
-		if (options["suppress_join"]) {
-			if (msg.class === "join" || msg.class === "part") {
-				return;
-			}
-		}
-		console.log(msg);
-
 		// put image links on the side:
 		var images;
 		if (options["autoload_media"] && (images = body.match(REGEXES.urls.image))) {
@@ -431,7 +436,6 @@ $(document).ready(function () {
 				chat.find(".nick").css("color", msg.color);
 			}
 
-
 			// special styling of nickname depending on who you are:
 			if (msg.type === "SYSTEM") {
 				chat.find(".nick").addClass("system");
@@ -439,6 +443,10 @@ $(document).ready(function () {
 			if (msg.nickname === session.getNick()) {
 				chat.find(".nick").addClass('me');
 				chat.addClass('me');
+			}
+
+			if (msg.class) {
+				chat.addClass(msg.class);
 			}
 
 			// insert msg into the correct place in history

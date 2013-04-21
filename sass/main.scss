@@ -316,7 +316,13 @@ $supportbar-width: 300px;
 		}
 	}
 }
+body.suppress_join {
+	.chatMessage.join, .chatMessage.part {
+		display:none;
+	}
+}
 .chatMessage {
+	height:auto;
 	&.fromlog {
 		opacity:0.5;
 	}
