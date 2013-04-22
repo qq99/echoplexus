@@ -1,5 +1,6 @@
 $(document).ready(function () {
 
+	var LOG_VERSION = "0.0.1";
 	var transitionEvents = "webkitTransitionEnd transitionend oTransitionEnd";
 
 	$("body").on("mouseenter", ".tooltip-target", function(ev) {
@@ -111,6 +112,11 @@ $(document).ready(function () {
 
 
 		if (window.Storage) {
+			var version = window.localStorage.getItem("logVersion");
+			if (typeof version === "undefined" || version === null || version !== LOG_VERSION) {
+				window.localStorage.setObj("log", null);
+				window.localStorage.setItem("logVersion", LOG_VERSION);
+			}
 			var prevLog = window.localStorage.getObj("log");
 			
 			if (log.length > logMax) { // kill the previous log, getting too big; TODO: make this smarter
@@ -168,7 +174,7 @@ $(document).ready(function () {
 					}
 					known.unshift(-1); // a default element
 
-					console.log("we know:", known);
+					// console.log("we know:", known);
 
 					// compile a list of message IDs we know nothing about:
 					var holes = [];
@@ -182,7 +188,7 @@ $(document).ready(function () {
 							}
 						}
 					}
-					console.log("we don't know:", holes);
+					// console.log("we don't know:", holes);
 					return holes;
 				}
 			};
@@ -364,7 +370,7 @@ $(document).ready(function () {
 
 	function renderChatMessage(msg) {
 		var body = msg.body;
-		console.log(msg.cID, session.id());
+		// console.log(msg.cID, session.id());
 
 		// put image links on the side:
 		var images;
@@ -549,7 +555,7 @@ $(document).ready(function () {
 
 
 		socket.on('userlist', function (msg) {
-			console.log(msg);
+			// console.log(msg);
 			if (msg.you) {
 				session.setID(msg.you);
 			}
@@ -559,7 +565,7 @@ $(document).ready(function () {
 						client: user
 					});
 				});
-				console.log(clients.userlist());
+				// console.log(clients.userlist());
 				autocomplete.setPool(_.map(msg.users, function (user) {
 					return user.nick;
 				}));
