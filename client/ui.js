@@ -523,6 +523,17 @@ $(document).ready(function () {
 			socketRef: socket,
 		});
 
+		$(window).on("blur", function () {
+			$("body").addClass("blurred");
+		}).on("focus", function () {
+			session.active();
+			$("body").removeClass("blurred");
+		});
+
+		$(window).on("keydown mousemove", function () {
+			session.active();
+		});
+
 		// if there's something in the persistent chatlog, render it:
 		if (!log.empty()) {
 			var entries = log.all();
@@ -535,6 +546,7 @@ $(document).ready(function () {
 
 		notifications.enable();
 
+		session.active();
 
 		socket.on('chat', function (msg) {
 			switch (msg.class) {
@@ -553,12 +565,25 @@ $(document).ready(function () {
 			scrollChat();
 		});
 
+		socket.on('chat:idle', function (msg) {
+			$(".user[rel='"+ msg.cID +"']").append("<span class='idle'>Idle</span>");
+			console.log(session.id(), msg.cID);
+			if (session.is(msg.cID)) {
+				session.setIdle();
+			}
+		});
+		socket.on('chat:unidle', function (msg) {
+			console.log(msg, $(".user[rel='"+ msg.cID +"'] .idle"), $(".user[rel='"+ msg.cID +"'] .idle").length);
+			$(".user[rel='"+ msg.cID +"'] .idle").remove();
+		})
+
+		socket.on('chat:your_cid', function (msg) {
+			session.setID(msg.cID);
+		});
+
 
 		socket.on('userlist', function (msg) {
-			// console.log(msg);
-			if (msg.you) {
-				session.setID(msg.you);
-			}
+
 			if (msg.users && msg.users.length) {
 				_.each(msg.users, function (user) {
 					clients.add({
@@ -571,13 +596,18 @@ $(document).ready(function () {
 				}));
 				$("#userlist .body").html("");
 				for (var i = 0, l = msg.users.length; i < l; i++) {
-					var user = $("<div class='user'></div>").text(msg.users[i].	nick);
+					var user = $("<div class='user'></div>").text(msg.users[i].	nick)
+															.attr("rel", msg.users[i].cID);
 					user.css("color", msg.users[i].color);
 
 					if (msg.users[i].identified) {
 						user.append(identYesTemplate);
 					} else {
 						user.append(identNoTemplate);
+					}
+
+					if (msg.users[i].idle) {
+						user.append("<span class='idle'>Idle</span>");
 					}
 					
 					$("#userlist .body").append(user);
@@ -773,11 +803,7 @@ $(document).ready(function () {
 
 
 
-	$(window).on("blur", function () {
-		$("body").addClass("blurred");
-	}).on("focus", function () {
-		$("body").removeClass("blurred");
-	});
+
 
 	_.each(editors, function (obj) {
 		var editor = obj.editor;

@@ -32,9 +32,21 @@
 			color = options.color ? new exports.Color(options.color) : new exports.Color(),
 			id = options.id || null,
 			identified = false,
+			idle = false,
+			idleTimer,
 			socket = options.socketRef,
 			isUser = (options.serverSide) ? false : true, // true iff this is a client with UI
 			lastActivity = new Date();
+
+		function announceIdle(reason) {
+			reason = reason || "User idle.";
+			socket.emit("chat:idle", {
+				reason: reason
+			});
+		}
+		function announceBack() {
+			socket.emit("chat:unidle");
+		}
 
 		return {
 			id: function () {
@@ -54,31 +66,46 @@
 					$.cookie("nickname", newNickname);
 				}
 			},
+			isIdle: function (setIdle) {
+				if (typeof setIdle !== "undefined") {
+
+				}
+			},
+			setIdle: function () {
+				idle = true;
+			},
+			is: function (cID) {
+				console.log(id);
+				return (id === cID);
+			},
 			getColor: function () {
 				return color;
 			},
 			getNick: function() {
 				return nick;
 			},
-			isIdle: function () {
-				if (((lastActivity - (new Date())) / (1000*60)) < 5) {
-					return false;
-				} else {
-					return true;
-				}
-			},
 			speak: function (msg) {
 				socket.emit('chat', msg);
 			},
 			active: function () {
-				lastActivity = new Date();
+				console.log("idle", idle);
+				if (idle === true) {
+					// declare that we're back
+					idle = false;
+					announceBack();
+				} else {
+					// attempt to set us to away
+					clearTimeout(idleTimer);
+					idleTimer = setTimeout(announceIdle, 30000);
+				}
 			},
 			setIdentified: function (isHe) {
 				identified = isHe;
 			},
 			serialize: function () {
 				return {
-					id: id,
+					cID: id,
+					idle: idle,
 					nick : nick,
 					color: color.toRGB(),
 					identified: identified

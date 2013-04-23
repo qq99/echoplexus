@@ -107,6 +107,12 @@ _.each(editors, function (obj) {
 	setInterval(codeCache.syncFromClient, 1000*30);
 });
 
+function publishUserList () {
+	sio.sockets.emit('userlist', {
+		users: clients.userlist()
+	});
+}
+
 sio.sockets.on('connection', function (socket) {
 
 	// let the newly connected client know the ID of the latest logged message
@@ -130,10 +136,11 @@ sio.sockets.on('connection', function (socket) {
 		socket.emit(obj.namespace + ':code:authoritative_push', obj.codeCache.syncToClient());
 	});
 
-	var userlist = clients.userlist();
-	sio.sockets.emit('userlist', {
-		users: userlist
+	socket.emit("chat:your_cid", {
+		cID: clientID
 	});
+
+	publishUserList();
 	socket.broadcast.emit('chat', serverSentMessage({
 		body: client.getNick() + ' has joined the chat.',
 		client: client.serialize(),
@@ -163,9 +170,7 @@ sio.sockets.on('connection', function (socket) {
 			body: "You are now known as " + newName,
 			log: false
 		}));
-		sio.sockets.emit('userlist', {
-			users: clients.userlist()
-		});
+		publishUserList();
 	});
 
 	socket.on('help', function (data) {
@@ -204,17 +209,13 @@ sio.sockets.on('connection', function (socket) {
 									socket.broadcast.emit('chat', serverSentMessage({
 										body: nick + " just failed to identify himself"
 									}));
-									sio.sockets.emit('userlist', {
-										users: clients.userlist()
-									});
+									publishUserList();
 								} else { // ident'd
 									client.setIdentified(true);
 									socket.emit('chat', serverSentMessage({
 										body: "You are now identified for " + nick
 									}));
-									sio.sockets.emit('userlist', {
-										users: clients.userlist()
-									});
+									publishUserList();
 								}
 							});
 						});
@@ -255,9 +256,7 @@ sio.sockets.on('connection', function (socket) {
 							socket.emit('chat', serverSentMessage({
 								body: "You have registered your nickname.  Please remember your password."
 							}));
-							sio.sockets.emit('userlist', {
-								users: clients.userlist()
-							});
+							publishUserList();
 						});
 					});
 				} catch (e) {
@@ -303,6 +302,16 @@ sio.sockets.on('connection', function (socket) {
 				if (chatMsg === null) return;
 				socket.emit('chat', JSON.parse(chatMsg));
 			});
+		});
+	});
+
+	socket.on('chat:idle', function (data) {
+		data.cID = client.id();
+		sio.sockets.emit('chat:idle', data);
+	})
+	socket.on('chat:unidle', function () {
+		sio.sockets.emit('chat:unidle', {
+			cID: client.id()
 		});
 	});
 
@@ -403,9 +412,7 @@ sio.sockets.on('connection', function (socket) {
 		})
 
 		clients.kill(clientID);
-		sio.sockets.emit('userlist', {
-			users: clients.userlist()
-		});
+		publishUserList();
 
 		sio.sockets.emit('chat', serverSentMessage({
 			body: client.getNick() + ' has left the chat.',
