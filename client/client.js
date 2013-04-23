@@ -99,7 +99,7 @@
 				} else {
 					// attempt to set us to away
 					clearTimeout(idleTimer);
-					idleTimer = setTimeout(announceIdle, 3000);
+					idleTimer = setTimeout(announceIdle, 30000);
 				}
 			},
 			setIdentified: function (isHe) {
