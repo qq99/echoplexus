@@ -306,10 +306,12 @@ sio.sockets.on('connection', function (socket) {
 	});
 
 	socket.on('chat:idle', function (data) {
+		client.setIdle();
 		data.cID = client.id();
 		sio.sockets.emit('chat:idle', data);
 	})
 	socket.on('chat:unidle', function () {
+		client.setActive();
 		sio.sockets.emit('chat:unidle', {
 			cID: client.id()
 		});

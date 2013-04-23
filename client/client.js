@@ -74,6 +74,9 @@
 			setIdle: function () {
 				idle = true;
 			},
+			setActive: function () {
+				idle = false;
+			},
 			is: function (cID) {
 				console.log(id);
 				return (id === cID);
@@ -96,7 +99,7 @@
 				} else {
 					// attempt to set us to away
 					clearTimeout(idleTimer);
-					idleTimer = setTimeout(announceIdle, 30000);
+					idleTimer = setTimeout(announceIdle, 3000);
 				}
 			},
 			setIdentified: function (isHe) {
