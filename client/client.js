@@ -78,7 +78,7 @@
 				idle = false;
 			},
 			is: function (cID) {
-				console.log(id);
+				// console.log(id);
 				return (id === cID);
 			},
 			getColor: function () {
@@ -88,10 +88,39 @@
 				return nick;
 			},
 			speak: function (msg) {
-				socket.emit('chat', msg);
+				var body = msg.body;
+
+				if (!body) return; // if there's no body, we probably don't want to do anything
+				if (body.match(REGEXES.commands.nick)) { // /nick [nickname]
+					body = body.replace(REGEXES.commands.nick, "").trim();
+					session.setNick(body);
+					return;
+				} else if (msg.body.match(REGEXES.commands.register)) {  // /register [password]
+					msg.body = msg.body.replace(REGEXES.commands.register, "").trim();
+					socket.emit('register_nick', {
+						password: msg.body
+					});
+					return;
+				} else if (msg.body.match(REGEXES.commands.identify)) { // /identify [password]
+					msg.body = msg.body.replace(REGEXES.commands.identify, "").trim();
+					socket.emit('identify', {
+						password: msg.body
+					});
+					return;
+				} else if (msg.body.match(REGEXES.commands.topic)) { // /topic [My channel topic]
+					msg.body = msg.body.replace(REGEXES.commands.topic, "").trim();
+					socket.emit('topic', {
+						topic: msg.body
+					});
+					return;
+				} else if (msg.body.match(REGEXES.commands.failed_command)) { // match all
+					return;
+				} else { // send it out to the world!
+					socket.emit('chat', msg);
+				}
 			},
 			active: function () {
-				console.log("idle", idle);
+				// console.log("idle", idle);
 				if (idle === true) {
 					// declare that we're back
 					idle = false;

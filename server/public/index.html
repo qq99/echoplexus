@@ -104,34 +104,45 @@
 		</section>
 	</section>
 	<div id="ghetto_templates">
-		<div id="chatMessage">
-			<div class="chatMessage">
-				<div class="time"></div>
-				<div class="nick"></div>
-				<div class="body"></div>
+		<script id="chatMessageTemplate" type="text/template" class="template">
+			<div class="chatMessage <%= classes %>" rel="<%= timestamp %>">
+				<div data-timestamp="<%= timestamp %>" class="time"><%- humanTime %></div>
+				<div class="nick <%= nickClasses %>" title="<%- nickname %>" style="color: <%= color %>"><%- nickname %></div>
+				<div class="body"><%= body %></div>
 			</div>
-		</div>
-		<div id="imageThumbnail">
+		</script>
+		<script id="linkedImageTemplate" type="text/template" class="template">
 			<div class="imageThumbnail">
-				<a href="" target="_blank">
-					<img src="" target="_blank" />
+				<a href="<%= url %>" target="_blank" title="Linked by <%- linker %>">
+					<img src="<%= url %>" target="_blank" />
 				</a>
 			</div>
-		</div>
-		<div id="identYes">
-			<span
-				data-tooltip-title="Identified"
-				data-tooltip-body="This user has confirmed his identity with the server."
-				data-tooltip-class="ident success"
-				class='tooltip-target ident yes'>✓</span>
-		</div>
-		<div id="identNo">
-			<span
-				data-tooltip-title="Not Identified"
-				data-tooltip-body="This user has not confirmed his identity with the server.  He could be anyone!"
-				data-tooltip-class="ident warn"
-				class='tooltip-target ident no'>✗</span>
-		</div>
+		</script>
+		<script id="userListUserTemplate" type="text/template" class="template">
+			<div class="user" rel="<%= cid %>">
+				<span class="nick" style="color: <%= color %>"><%- nick %></span>
+				<% if (identified) { %>
+					<span
+						data-tooltip-title="Identified"
+						data-tooltip-body="This user has confirmed his identity with the server."
+						data-tooltip-class="ident success"
+						class='tooltip-target ident yes'>
+							✓
+					</span>
+				<% } else { %>
+					<span
+						data-tooltip-title="Not Identified"
+						data-tooltip-body="This user has not confirmed his identity with the server.  He could be anyone!"
+						data-tooltip-class="ident warn"
+						class='tooltip-target ident no'>
+							✗
+					</span>
+				<% } %>
+				<% if (idle) { %>
+					<span class="idle">Idle</span>
+				<% } %>
+			</div>
+		</script>
 		<div id="tooltip">
 			<div class="tooltip">
 				<div class="title"></div>
