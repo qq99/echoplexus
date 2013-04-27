@@ -1,15 +1,48 @@
 function ChatClient (options) {
 
-	ChatClientView = Backbone.View.extend({
+	var ChatClientView = Backbone.View.extend({
+		template: _.template($("#chatpanelTemplate").html()),
 
 		initialize: function () {
-			_.bindAll(this);
-			this.socket = io.connect(window.location.origin);
-			
-			var socket = this.socket,
-				self = this;
+			var self = this;
 
-			this.channels = {};
+			_.bindAll(this);
+
+			this.socket = io.connect(window.location.origin);
+			this.channelName = window.location.pathname;
+			this.channel = new ChatChannel({
+				socket: this.socket,
+				room: this.channelName
+			});
+			this.autocomplete = new Autocomplete();
+			this.users = new Clients();
+			this.scrollback = new Scrollback();
+
+			var chatLogView = new ChatLog();
+			this.chatLog = new chatLogView({
+				room: this.channelName
+			});
+
+			this.listen();
+			this.render();
+			this.attachEvents();
+		},
+
+		render: function () {
+			this.$el.html(this.template());
+			$(".chatarea", this.$el).html(this.chatLog.$el);
+		},
+
+		listen: function () {
+			var self = this,
+				socket = this.socket;
+
+			function prefilter (msg) {
+				if (typeof msg.room === "undefined") {
+					console.warn("Message came in but had no channel designated", msg);
+				}
+				return (msg.room === self.channelName);
+			}
 
 			socket.on('connect', function () {
 				console.log("connected");
@@ -26,18 +59,16 @@ function ChatClient (options) {
 			});
 
 			socket.on('chat', function (msg) {
-				console.log(msg);
-				// dispatch to the correct channel:
-				var targetChannel = msg.room;
+				if (!prefilter(msg)) return;
 
 				switch (msg.class) {
 					case "join":
-						this.channels[targetChannel].userlist.add({
+						self.channel.userlist.add({
 							client: msg.client
 						});
 						break;
 					case "part":
-						this.channels[targetChannel].userlist.kill(msg.clientID);
+						self.channel.userlist.kill(msg.clientID);
 						break;
 				}
 
@@ -50,8 +81,7 @@ function ChatClient (options) {
 				// }
 
 				// log.add(msg); // TODO: log to a channel
-				// chat.renderChatMessage(msg);
-				// chat.scroll();
+				self.chatLog.renderChatMessage(msg);
 			});
 
 			// socket.on('chat:idle', function (msg) {
@@ -70,88 +100,71 @@ function ChatClient (options) {
 			// 	this.me.setID(msg.cID);
 			// });
 
-			// socket.on('userlist', function (msg) {
-			// 	// update the pool of possible autocompletes
-			// 	autocomplete.setPool(_.map(msg.users, function (user) {
-			// 		return user.nick;
-			// 	}));
+			socket.on('userlist', function (msg) {
+				if (!prefilter(msg)) return;
 
-			// 	chat.renderUserlist(msg.users);
-			// });
+				// update the pool of possible autocompletes
+				self.autocomplete.setPool(_.map(msg.users, function (user) {
+					return user.nick;
+				}));
+				self.chatLog.renderUserlist(msg.users);
+
+				_.each(msg.users, function (user) {
+					// add to our list of clients
+					self.users.add({
+						client: user
+					});
+				});
+			});
 
 			// socket.on('chat:currentID', function (data) {
 			// 	log.latestIs(data.ID);
 			// });
-
-			this.attachEvents();
-		},
-		joinChannel: function (channelName) {
-			var channel = new ChatChannel({
-				socket: this.socket,
-				room: channelName
-			});
-			this.channels[channelName] = channel;
-			console.log("my channels: ", this.channels);
 		},
 		attachEvents: function () {
 			var self = this;
-			$("#chatinput textarea").on("keydown", function (ev) {
+			$(this.$el).on("keydown", ".chatinput textarea", function (ev) {
 				$this = $(this);
 				switch (ev.keyCode) {
 					// enter:
 					case 13:
 						ev.preventDefault();
 						var userInput = $this.val();
-						// scrollback.add(userInput);
-						// userInput = userInput.split("\n");
-						// for (var i = 0, l = userInput.length; i < l; i++) {
-						// 	handleChatMessage({
-						// 		body: userInput[i]
-						// 	});
-						// }
-
+						self.scrollback.add(userInput);
 						self.me.speak({
 							body: userInput
 						}, window.location.pathname);
 						$this.val("");
-						scrollback.reset();
+						self.scrollback.reset();
 						break;
 					// up:
 					case 38:
-						// $this.val(scrollback.prev());
+						$this.val(self.scrollback.prev());
 						break;
 					// down
 					case 40:
-						// $this.val(scrollback.next());
+						$this.val(self.scrollback.next());
 						break;
 					// escape
 					case 27:
-						// scrollback.reset();
+						self.scrollback.reset();
 						$this.val("");
-						break;
-					// L
-					case 76:
-						// if (ev.ctrlKey) {
-						// 	ev.preventDefault();
-						// 	$("#chatlog .messages").html("");
-						// 	$("#linklog .body").html("");
-						// }
 						break;
 					 // tab key
 					case 9:
 						ev.preventDefault();
-						// var text = $(this).val().split(" ");
-						// var stub = text[text.length - 1];				
-						// var completion = autocomplete.next(stub);
+						var text = $(this).val().split(" ");
+						var stub = text[text.length - 1];				
+						var completion = self.autocomplete.next(stub);
 
-						// if (completion !== "") {
-						// 	text[text.length - 1] = completion;
-						// }
-						// if (text.length === 1) {
-						// 	text[0] = text[0] + ", ";
-						// }
+						if (completion !== "") {
+							text[text.length - 1] = completion;
+						}
+						if (text.length === 1) {
+							text[0] = text[0] + ", ";
+						}
 
-						// $(this).val(text.join(" "));
+						$(this).val(text.join(" "));
 						break;
 				}
 

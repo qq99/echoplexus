@@ -7,6 +7,15 @@ function Log() {
 		logMax = 512;
 
 
+	// utility: extend the local storage protoype if it exists
+	if (window.Storage) {
+		Storage.prototype.setObj = function(key, obj) {
+			return this.setItem(key, JSON.stringify(obj));
+		};
+		Storage.prototype.getObj = function(key) {
+			return JSON.parse(this.getItem(key));
+		};
+	}
 
 	if (window.Storage) {
 		var version = window.localStorage.getItem("logVersion");

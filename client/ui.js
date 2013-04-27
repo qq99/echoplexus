@@ -72,7 +72,7 @@ $(document).ready(function () {
 			} else {
 				$("body").removeClass(option);
 			}
-			chat.scroll();
+			// chat.scroll();
 		});
 	}
 
@@ -82,24 +82,7 @@ $(document).ready(function () {
 	// ghetto templates:
 	window.clients = new Clients();
 	var tooltipTemplate = $("#tooltip").html();
-	var identYesTemplate = $("#identYes").html();
-	var identNoTemplate = $("#identNo").html();
 
-
-
-	// utility: extend the local storage protoype if it exists
-	if (window.Storage) {
-		Storage.prototype.setObj = function(key, obj) {
-			return this.setItem(key, JSON.stringify(obj));
-		};
-		Storage.prototype.getObj = function(key) {
-			return JSON.parse(this.getItem(key));
-		};
-	}
-
-	var chat = new Chat();
-	window.scrollback = new Scrollback();
-	window.autocomplete = new Autocomplete();
 	window.notifications = new Notifications();
 	window.log = new Log();
 	window.uniqueImages = {};
@@ -128,20 +111,20 @@ $(document).ready(function () {
 	});
 
 	// if there's something in the persistent chatlog, render it:
-	if (!log.empty()) {
-		var entries = log.all();
-		var renderedEntries = [];
-		for (var i = 0, l = entries.length; i < l; i++) {
-			renderedEntries.push(
-				chat.renderChatMessage(entries[i], {
-					delayInsert: true
-				})
-			);
-		}
-		chat.insertBatch(renderedEntries);
-		$("#chatarea .chatMessage").addClass("fromlog");
-		chat.scroll();
-	}
+	// if (!log.empty()) {
+	// 	var entries = log.all();
+	// 	var renderedEntries = [];
+	// 	for (var i = 0, l = entries.length; i < l; i++) {
+	// 		renderedEntries.push(
+	// 			chat.renderChatMessage(entries[i], {
+	// 				delayInsert: true
+	// 			})
+	// 		);
+	// 	}
+	// 	chat.insertBatch(renderedEntries);
+	// 	$("#chatarea .chatMessage").addClass("fromlog");
+	// 	chat.scroll();
+	// }
 
 	// $(window).on("blur", function () {
 	// 	$("body").addClass("blurred");
@@ -156,12 +139,15 @@ $(document).ready(function () {
 
 	// var socket = io.connect(window.location.origin);
 
+
 	var chatView = new ChatClient({
 		namespace: "/chat"
 	});
 
 	var defaultChat = new chatView();
-	defaultChat.joinChannel(window.location.pathname);
+
+	$("#chatting").append(defaultChat.$el);
+
 
 	// socket.on('connect', function () {
 

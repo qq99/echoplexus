@@ -13,65 +13,7 @@
 	<section id="main">
 		<section id="panes">
 			<section id="chatting">
-				<section id="chatarea">
-					<div id="chatlog">
-						<div class="messages"></div>
-					</div>
-					<div id="supportbar">
-						<div id="userlist">
-							<div class="header">
-								<h2>Users</h2>
-							</div>
-							<div class="body">
 
-							</div>
-						</div>
-						<div id="linklog">
-							<div class="header">
-								<h2>Media & Links</h2>
-								<span id="linklog-options" class="options">options</span>
-								<div class="options">
-									<div 
-										data-tooltip-title="What's this?"
-										data-tooltip-body="This will prevent images and videos from auto-loading."
-										class="tooltip-target option">
-										<input checked id="autoload_media" type="checkbox" />
-										<label for="autoload_media">Autoload Media</label>
-									</div>
-									<div
-										data-tooltip-title="What's this?"
-										data-tooltip-body="This will prevent the display and logging of join/leave chat messages."
-										class="tooltip-target option">
-										<input id="suppress_join" type="checkbox" />
-										<label for="suppress_join">Suppress Join/Part Messages</label>
-									</div>
-									<div class="option">
-										<input id="highlight_mine" type="checkbox" />
-										<label for="highlight_mine">Highlight messages sent by me</label>
-									</div>
-									<div
-										data-tooltip-title="What's this?"
-										data-tooltip-body="This will delete your browser's local copy of the chat logs."
-										class="tooltip-target option">
-										<button id="deleteLocalStorage">Delete Logs</button>
-									</div>
-									<div
-										data-tooltip-title="What's this?"
-										data-tooltip-body="This will begin syncing any chat logs that you've missed while you weren't connected."
-										class="tooltip-target option">
-										<button id="syncButton">Sync Logs</button>
-									</div>
-								</div>
-							</div>
-							<div class="body">
-
-							</div>
-						</div>
-					</div>
-				</section>
-				<section id="chatinput">
-					<textarea placeholder="Say something..."></textarea>
-				</section>
 			</section>
 			<section id="coding">
 				<section id="codearea">
@@ -143,6 +85,73 @@
 				<% } %>
 			</div>
 		</script>
+		<script id="chatpanelTemplate" type="text/template" class="template">
+			<section class="chatarea">
+
+			</section>
+			<section class="chatinput">
+				<textarea placeholder="Say something..."></textarea>
+			</section>
+		</script>
+		<script id="chatareaTemplate" type="text/template" class="template">
+			<div class="room-specific">
+				Channel: <%- roomName %>
+			</div>
+			<div class="chatlog">
+				<div class="messages"></div>
+			</div>
+			<div class="supportbar">
+				<div class="userlist">
+					<div class="header">
+						<h2>Users</h2>
+					</div>
+					<div class="body">
+
+					</div>
+				</div>
+				<div class="linklog">
+					<div class="header">
+						<h2>Media & Links</h2>
+					</div>
+					<div class="body">
+
+					</div>
+				</div>
+			</div>
+		</script>
+		<span id="linklog-options" class="options">options</span>
+		<div class="options">
+			<div 
+				data-tooltip-title="What's this?"
+				data-tooltip-body="This will prevent images and videos from auto-loading."
+				class="tooltip-target option">
+				<input checked id="autoload_media" type="checkbox" />
+				<label for="autoload_media">Autoload Media</label>
+			</div>
+			<div
+				data-tooltip-title="What's this?"
+				data-tooltip-body="This will prevent the display and logging of join/leave chat messages."
+				class="tooltip-target option">
+				<input id="suppress_join" type="checkbox" />
+				<label for="suppress_join">Suppress Join/Part Messages</label>
+			</div>
+			<div class="option">
+				<input id="highlight_mine" type="checkbox" />
+				<label for="highlight_mine">Highlight messages sent by me</label>
+			</div>
+			<div
+				data-tooltip-title="What's this?"
+				data-tooltip-body="This will delete your browser's local copy of the chat logs."
+				class="tooltip-target option">
+				<button id="deleteLocalStorage">Delete Logs</button>
+			</div>
+			<div
+				data-tooltip-title="What's this?"
+				data-tooltip-body="This will begin syncing any chat logs that you've missed while you weren't connected."
+				class="tooltip-target option">
+				<button id="syncButton">Sync Logs</button>
+			</div>
+		</div>
 		<div id="tooltip">
 			<div class="tooltip">
 				<div class="title"></div>

@@ -183,7 +183,7 @@ $supportbar-width: 300px;
 
 #chatting {
 	$chatinput-height:5em;
-	#chatarea {
+	.chatarea {
 		position:relative;
 		height:100%;
 		padding-bottom:$chatinput-height;
@@ -192,7 +192,7 @@ $supportbar-width: 300px;
 			padding-bottom:0;
 		}
 	}
-	#chatinput {
+	.chatinput {
 		width:100%;
 		padding:1em;
 		position:absolute;
@@ -233,7 +233,7 @@ $supportbar-width: 300px;
 }
 
 
-#chatlog {
+.chatlog {
 	overflow:hidden;
 	max-height:100%;
 	width:100%;
@@ -246,7 +246,8 @@ $supportbar-width: 300px;
 		overflow-y:auto;
 	}
 }
-#supportbar {
+.supportbar {
+	height:100%;
 	width:$supportbar-width;
 	position:absolute;
 	top:0;
@@ -254,12 +255,12 @@ $supportbar-width: 300px;
 	padding:1em;
 	padding-top:0px;
 }
-#userlist {
+.userlist {
 	height:20%;
 	width:100%;
 	overflow-y:auto;
 }
-#linklog {
+.linklog {
 	height:80%;
 	width:100%;
 	z-index:4;
@@ -269,16 +270,16 @@ $supportbar-width: 300px;
 		padding-right:10px;
 		overflow-x:hidden;
 	}
-}
-#linklog object {
-	display:block;
-	margin-bottom:1em;
-	width:100%;
-	height:auto;
-}
-#linklog a {
-	display:block;
-	margin-bottom:1em;
+	object {
+		display:block;
+		margin-bottom:1em;
+		width:100%;
+		height:auto;
+	}
+	a {
+		display:block;
+		margin-bottom:1em;
+	}
 }
 .imageThumbnail {
 	width:100%;

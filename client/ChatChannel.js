@@ -24,6 +24,7 @@ function ChatChannel (options) {
 	socket.emit("subscribe", {
 		room: channelName
 	});
+
 }
 
 ChatChannel.prototype.leave = function () {

@@ -97,11 +97,12 @@ sio.enable('browser client minification');
 sio.enable('browser client gzip');
 sio.set('log level', 1);
 
-function serverSentMessage (msg) {
+function serverSentMessage (msg, room) {
 	return _.extend(msg, {
 		nickname: config.features.SERVER_NICK,
 		type: "SYSTEM",
-		timestamp: Number(new Date())
+		timestamp: Number(new Date()),
+		room: room
 	});
 }
 
@@ -112,186 +113,336 @@ _.each(editors, function (obj) {
 });
 
 function publishUserList (room) {
+	if (channels[room] === undefined) {
+		console.warn("Publishing userlist of a channel that doesn't exist...", room);
+		return;
+	}
 	sio.sockets.in(room).emit('userlist', {
-		users: clients.userlist()
+		users: channels[room].clients.userlist(),
+		room: room
 	});
 }
 
 function userJoined (client, room) {
+	console.log(room);
 	sio.sockets.in(room).emit('chat', serverSentMessage({
 		body: client.getNick() + ' has joined the chat.',
 		client: client.serialize(),
-		class: "join",
-		room: room
-	}));
+		class: "join"
+	}, room));
 }
 function userLeft (client, room) {
 	sio.sockets.in(room).emit('chat', serverSentMessage({
 		body: client.getNick() + ' has left the chat.',
-		clientID: clientID,
+		clientID: client.id(),
 		class: "part",
-		log: false,
-		room: room
-	}));
+		log: false
+	}, room));
 }
+
+function Channel (name) {
+	this.clients = new Clients();
+	return this;
+}
+var channels = {};
 
 sio.sockets.on('connection', function (socket) {
 	socket.leave("\"\"");
 	socket.on("subscribe", function (data) {
-		socket.join(data.room);
-		publishUserList(data.room);
-		userJoined(client, data.room);
-	})
-	// let the newly connected client know the ID of the latest logged message
-	redisC.hget("channels:currentMessageID", "default", function (err, reply) {
-		if (err) throw err;
-		socket.emit('chat:currentID', {
-			ID: reply
-		});
-	});
+		var room = data.room;
+		var channel = channels[room];
+		if (typeof channel === "undefined") { // start a new channel if it doesn't exist
+			channel = new Channel(room);
+			channels[room] = channel;
+		}
 
-	var clientID = clients.add({socketRef: socket}),
-		client = clients.get(clientID);
-	
-	// global topic:
-	redisC.get('topic', function (err, res){
-		socket.emit('chat', serverSentMessage({
-			body: "Topic: " + res,
-			log: false
-		}));
+		var clientID = channel.clients.add({socketRef: socket}),
+			client = channel.clients.get(clientID);
+
+		socket.join(room);
+		publishUserList(room);
+		userJoined(client, room);
+
+		// let the newly connected client know the ID of the latest logged message
+		redisC.hget("channels:currentMessageID", room, function (err, reply) {
+			if (err) throw err;
+			socket.emit('chat:currentID', {
+				ID: reply,
+				room: room
+			});
+		});
+
+		// global topic:
+		redisC.hget('topic', room, function (err, res){
+			socket.emit('chat', serverSentMessage({
+				body: "Topic: " + res,
+				log: false,
+			}, room));
+		});
+		
+
+
+		socket.emit("chat:your_cid", {
+			cID: clientID
+		});
+
+		socket.on('nickname', function (data) {
+			var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
+				prevName = client.getNick();
+			client.setIdentified(false);
+
+			if (newName === "") {
+				socket.emit('chat', serverSentMessage({
+					body: "You may not use the empty string as a nickname.",
+					log: false
+				}, room));
+				return;
+			}
+
+			client.setNick(newName);
+
+			socket.broadcast.emit('chat', serverSentMessage({
+				body: prevName + " is now known as " + newName,
+				log: false
+			}));
+			socket.emit('chat', serverSentMessage({
+				body: "You are now known as " + newName,
+				log: false
+			}));
+			publishUserList(room);
+		});
+
+		socket.on('help', function (data) {
+
+		});
+
+		socket.on('topic', function (data) {
+			redisC.hset('topic', room, data.topic);
+			socket.emit('chat', serverSentMessage({
+				body: "Topic: " + data.topic,
+				log: false
+			}, room));
+		});
+
+		socket.on('chat:history_request', function (data) {
+			console.log("requesting " + data.requestRange);
+			redisC.hmget("chatlog:" + room, data.requestRange, function (err, reply) {
+				if (err) throw err;
+				console.log(reply);
+				// emit the logged replies to the client requesting them
+				_.each(reply, function (chatMsg) {
+					if (chatMsg === null) return;
+					socket.emit('chat', JSON.parse(chatMsg));
+				});
+			});
+		});
+
+		socket.on('chat:idle', function (data) {
+			client.setIdle();
+			data.cID = client.id();
+			sio.sockets.emit('chat:idle', data);
+		})
+		socket.on('chat:unidle', function () {
+			client.setActive();
+			sio.sockets.emit('chat:unidle', {
+				cID: client.id()
+			});
+		});
+
+		socket.on('chat', function (data) {
+			if (data.body) {
+				data.cID = client.id();
+				data.color = client.getColor().toRGB();
+				data.nickname = client.getNick();
+				data.timestamp = Number(new Date());
+
+				// store in redis
+				redisC.hget("channels:currentMessageID", room, function (err, reply) {
+					if (err) throw err;
+
+					var mID = 0;
+					if (reply) {
+						mID = parseInt(reply, 10);
+					}
+					redisC.hset("channels:currentMessageID", room, mID+1);
+
+					data.ID = mID;
+
+					// store the chat message
+					redisC.hset("chatlog:default", mID, JSON.stringify(data), function (err, reply) {
+						if (err) throw err;
+					});
+
+					socket.in(room).broadcast.emit('chat', data);
+					socket.in(room).emit('chat', _.extend(data, {
+						you: true
+					}));
+
+					if (config.features.phantomjs_screenshot) {
+						// strip out other things the client is doing before we attempt to render the web page
+						var urls = data.body.replace(REGEXES.urls.image, "")
+											.replace(REGEXES.urls.youtube,"")
+											.match(REGEXES.urls.all_others);
+						if (urls) {
+							for (var i = 0; i < urls.length; i++) {
+								
+								var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg";
+								
+								(function (url, fileName) { // run our screenshotting routine in a self-executing closure so we can keep the current filename & url
+									var output = SANDBOXED_FOLDER + "/" + fileName,
+										pageData = {};
+									
+									console.log("Processing ", urls[i]);
+									// requires that the phantomjs-screenshot repo is a sibling repo of this one
+									var screenshotter = spawn('/opt/bin/phantomjs',
+										['../../phantomjs-screenshot/main.js', url, output],
+										{
+											cwd: __dirname
+										});
+
+									screenshotter.stdout.on('data', function (data) {
+										console.log('screenshotter stdout: ' + data);
+										data = data.toString(); // explicitly cast it, who knows what type it is having come from a process
+
+										// attempt to extract any parameters phantomjs might expose via stdout
+										var tmp = data.match(REGEXES.phantomjs.parameter);
+										if (tmp && tmp.length) {
+											var key = tmp[0].replace(REGEXES.phantomjs.delimiter, "").trim();
+											var value = data.replace(REGEXES.phantomjs.parameter, "").trim();
+											pageData[key] = value;
+										}
+									});
+									screenshotter.stderr.on('data', function (data) {
+										console.log('screenshotter stderr: ' + data);
+									});
+									screenshotter.on("exit", function (data) {
+										console.log('screenshotter exit: ' + data);
+										if (pageData.title && pageData.excerpt) {
+											sio.sockets.emit('chat', serverSentMessage({
+												body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
+											}, room));
+										} else if (pageData.title) {
+											sio.sockets.emit('chat', serverSentMessage({
+												body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
+											}, room));
+										} else {
+											sio.sockets.emit('chat', serverSentMessage({
+												body: urlRoot() + 'sandbox/' + fileName
+											}, room));
+										}
+									});
+								})(urls[i], randomFilename); // call our closure with our random filename
+							}
+						}
+					}
+				});
+			}
+		});
+
+		socket.on("identify", function (data) {
+			var nick = client.getNick();
+			try {
+				redisC.sismember("users", nick, function (err, reply) {
+					if (!reply) {
+						socket.emit('chat', serverSentMessage({
+							body: "There's no registration on file for " + nick
+						}, room));
+					} else {
+						redisC.hget("salts", nick, function (err, salt) {
+							if (err) throw err;
+							redisC.hget("passwords", nick, function (err, expectedHash) {
+								if (err) throw err;
+								crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
+									if (err) throw err;
+
+									if (derivedKey.toString() !== expectedHash) { // FAIL
+										client.setIdentified(false);
+										socket.emit('chat', serverSentMessage({
+											body: "Wrong password for " + nick
+										}, room));
+										socket.in(room).broadcast.emit('chat', serverSentMessage({
+											body: nick + " just failed to identify himself"
+										}, room));
+										publishUserList(room);
+									} else { // ident'd
+										client.setIdentified(true);
+										socket.emit('chat', serverSentMessage({
+											body: "You are now identified for " + nick
+										}, room));
+										publishUserList(data.room);
+									}
+								});
+							});
+						});
+					}
+				});
+			} catch (e) { // identification error
+				socket.emit('chat', serverSentMessage({
+					body: "Error identifying yourself: " + e
+				}, room));
+			}
+		});
+
+		socket.on('register_nick', function (data) {
+			var nick = client.getNick();
+			redisC.sismember("users", nick, function (err, reply) {
+				if (err) throw err;
+				if (!reply) { // nick is not in use
+					try { // try crypto & persistence
+						crypto.randomBytes(256, function (ex, buf) {
+							if (ex) throw ex;
+							var salt = buf.toString();
+							
+							crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
+								if (err) throw err;
+
+								redisC.sadd("users", nick, function (err, reply) {
+									if (err) throw err;
+								});
+								redisC.hset("salts", nick, salt, function (err, reply) {
+									if (err) throw err;
+								});
+								redisC.hset("passwords", nick, derivedKey.toString(), function (err, reply) {
+									if (err) throw err;
+								});
+
+								client.setIdentified(true);
+								socket.emit('chat', serverSentMessage({
+									body: "You have registered your nickname.  Please remember your password."
+								}, room));
+								publishUserList(room);
+							});
+						});
+					} catch (e) {
+						socket.emit('chat', serverSentMessage({
+							body: "Error in registering your nickname: " + e
+						}, room));
+					}
+				} else { // nick is already in use
+					socket.emit('chat', serverSentMessage({
+						body: "That nickname is already registered by somebody."
+					}, room));
+				}
+			});
+		});
+
+		socket.on('disconnect', function () {
+			console.log("killing ", clientID);
+
+			// _.each(editors, function (obj) {
+			// 	obj.codeCache.remove(client);
+			// })
+
+			userLeft(client, room);
+
+			channel.clients.kill(clientID);
+			publishUserList(room);
+
+		});
 	});
 
 	_.each(editors, function (obj) {
 		socket.emit(obj.namespace + ':code:authoritative_push', obj.codeCache.syncToClient());
-	});
-
-	socket.emit("chat:your_cid", {
-		cID: clientID
-	});
-
-	socket.on('nickname', function (data) {
-		var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
-			prevName = client.getNick();
-		client.setIdentified(false);
-
-		if (newName === "") {
-			socket.emit('chat', serverSentMessage({
-				body: "You may not use the empty string as a nickname.",
-				log: false
-			}));
-			return;
-		}
-
-		client.setNick(newName);
-
-		socket.broadcast.emit('chat', serverSentMessage({
-			body: prevName + " is now known as " + newName,
-			log: false
-		}));
-		socket.emit('chat', serverSentMessage({
-			body: "You are now known as " + newName,
-			log: false
-		}));
-		publishUserList();
-	});
-
-	socket.on('help', function (data) {
-
-	});
-
-	socket.on('topic', function (data) {
-		redisC.set('topic', data.topic);
-		socket.emit('chat', serverSentMessage({
-			body: "Topic: " + data.topic,
-			log: false
-		}));
-	});
-
-	socket.on("identify", function (data) {
-		var nick = client.getNick();
-		try {
-			redisC.sismember("users", nick, function (err, reply) {
-				if (!reply) {
-					socket.emit('chat', serverSentMessage({
-						body: "There's no registration on file for " + nick
-					}));
-				} else {
-					redisC.hget("salts", nick, function (err, salt) {
-						if (err) throw err;
-						redisC.hget("passwords", nick, function (err, expectedHash) {
-							if (err) throw err;
-							crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
-								if (err) throw err;
-
-								if (derivedKey.toString() !== expectedHash) { // FAIL
-									client.setIdentified(false);
-									socket.emit('chat', serverSentMessage({
-										body: "Wrong password for " + nick
-									}));
-									socket.broadcast.emit('chat', serverSentMessage({
-										body: nick + " just failed to identify himself"
-									}));
-									publishUserList();
-								} else { // ident'd
-									client.setIdentified(true);
-									socket.emit('chat', serverSentMessage({
-										body: "You are now identified for " + nick
-									}));
-									publishUserList();
-								}
-							});
-						});
-					});
-				}
-			});
-		} catch (e) { // identification error
-			socket.emit('chat', serverSentMessage({
-				body: "Error identifying yourself: " + e
-			}));
-		}
-	});
-
-	socket.on('register_nick', function (data) {
-		var nick = client.getNick();
-		redisC.sismember("users", nick, function (err, reply) {
-			if (err) throw err;
-			if (!reply) { // nick is not in use
-				try { // try crypto & persistence
-					crypto.randomBytes(256, function (ex, buf) {
-						if (ex) throw ex;
-						var salt = buf.toString();
-						
-						crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
-							if (err) throw err;
-
-							redisC.sadd("users", nick, function (err, reply) {
-								if (err) throw err;
-							});
-							redisC.hset("salts", nick, salt, function (err, reply) {
-								if (err) throw err;
-							});
-							redisC.hset("passwords", nick, derivedKey.toString(), function (err, reply) {
-								if (err) throw err;
-							});
-
-							client.setIdentified(true);
-							socket.emit('chat', serverSentMessage({
-								body: "You have registered your nickname.  Please remember your password."
-							}));
-							publishUserList();
-						});
-					});
-				} catch (e) {
-					socket.emit('chat', serverSentMessage({
-						body: "Error in registering your nickname: " + e
-					}));
-				}
-			} else { // nick is already in use
-				socket.emit('chat', serverSentMessage({
-					body: "That nickname is already registered by somebody."
-				}));
-			}
-		});
 	});
 
 	_.each(editors, function (obj) {
@@ -312,137 +463,6 @@ sio.sockets.on('connection', function (socket) {
 			codeCache.set(data.code);
 			socket.broadcast.emit(namespace + ':code:sync', data);
 		});
-	});
-
-	socket.on('chat:history_request', function (data) {
-		console.log("requesting " + data.requestRange);
-		redisC.hmget("chatlog:default", data.requestRange, function (err, reply) {
-			if (err) throw err;
-			console.log(reply);
-			// emit the logged replies to the client requesting them
-			_.each(reply, function (chatMsg) {
-				if (chatMsg === null) return;
-				socket.emit('chat', JSON.parse(chatMsg));
-			});
-		});
-	});
-
-	socket.on('chat:idle', function (data) {
-		client.setIdle();
-		data.cID = client.id();
-		sio.sockets.emit('chat:idle', data);
-	})
-	socket.on('chat:unidle', function () {
-		client.setActive();
-		sio.sockets.emit('chat:unidle', {
-			cID: client.id()
-		});
-	});
-
-	socket.on('chat', function (data) {
-		if (data.body) {
-			data.cID = client.id();
-			data.color = client.getColor().toRGB();
-			data.nickname = client.getNick();
-			data.timestamp = Number(new Date());
-
-			// store in redis
-			redisC.hget("channels:currentMessageID", "default", function (err, reply) {
-				if (err) throw err;
-
-				var mID = 0;
-				if (reply) {
-					mID = parseInt(reply, 10);
-				}
-				redisC.hset("channels:currentMessageID", "default", mID+1);
-
-				data.ID = mID;
-
-				// store the chat message
-				redisC.hset("chatlog:default", mID, JSON.stringify(data), function (err, reply) {
-					if (err) throw err;
-				});
-
-				console.log(data.room);
-				socket.in(data.room).broadcast.emit('chat', data);
-				socket.in(data.room).emit('chat', _.extend(data, {
-					you: true
-				}));
-
-				if (config.features.phantomjs_screenshot) {
-					// strip out other things the client is doing before we attempt to render the web page
-					var urls = data.body.replace(REGEXES.urls.image, "")
-										.replace(REGEXES.urls.youtube,"")
-										.match(REGEXES.urls.all_others);
-					if (urls) {
-						for (var i = 0; i < urls.length; i++) {
-							
-							var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg";
-							
-							(function (url, fileName) { // run our screenshotting routine in a self-executing closure so we can keep the current filename & url
-								var output = SANDBOXED_FOLDER + "/" + fileName,
-									pageData = {};
-								
-								console.log("Processing ", urls[i]);
-								// requires that the phantomjs-screenshot repo is a sibling repo of this one
-								var screenshotter = spawn('/opt/bin/phantomjs',
-									['../../phantomjs-screenshot/main.js', url, output],
-									{
-										cwd: __dirname
-									});
-
-								screenshotter.stdout.on('data', function (data) {
-									console.log('screenshotter stdout: ' + data);
-									data = data.toString(); // explicitly cast it, who knows what type it is having come from a process
-
-									// attempt to extract any parameters phantomjs might expose via stdout
-									var tmp = data.match(REGEXES.phantomjs.parameter);
-									if (tmp && tmp.length) {
-										var key = tmp[0].replace(REGEXES.phantomjs.delimiter, "").trim();
-										var value = data.replace(REGEXES.phantomjs.parameter, "").trim();
-										pageData[key] = value;
-									}
-								});
-								screenshotter.stderr.on('data', function (data) {
-									console.log('screenshotter stderr: ' + data);
-								});
-								screenshotter.on("exit", function (data) {
-									console.log('screenshotter exit: ' + data);
-									if (pageData.title && pageData.excerpt) {
-										sio.sockets.emit('chat', serverSentMessage({
-											body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
-										}));
-									} else if (pageData.title) {
-										sio.sockets.emit('chat', serverSentMessage({
-											body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
-										}));
-									} else {
-										sio.sockets.emit('chat', serverSentMessage({
-											body: urlRoot() + 'sandbox/' + fileName
-										}));
-									}
-								});
-							})(urls[i], randomFilename); // call our closure with our random filename
-						}
-					}
-				}
-			});
-		}
-	});
-	socket.on('disconnect', function () {
-		// console.log("killing ", clientID);
-
-		_.each(editors, function (obj) {
-			obj.codeCache.remove(client);
-		})
-
-		// loop through each room he's in:
-		// userLeft(client, room);
-
-		clients.kill(clientID);
-		// publishUserList();
-
-
 	});
 
 });
