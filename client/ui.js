@@ -143,209 +143,93 @@ $(document).ready(function () {
 		chat.scroll();
 	}
 
-	var socket = io.connect(window.location.href);
-	socket.on('connect', function () {
-		// socket.leave("");
-		session = new Client({ 
-			socketRef: socket
-		});
+	// $(window).on("blur", function () {
+	// 	$("body").addClass("blurred");
+	// }).on("focus", function () {
+	// 	chatClient.me.active();
+	// 	$("body").removeClass("blurred");
+	// });
 
-		$(window).on("blur", function () {
-			$("body").addClass("blurred");
-		}).on("focus", function () {
-			session.active();
-			$("body").removeClass("blurred");
-		});
+	// $(window).on("keydown mousemove", function () {
+	// 	chatClient.me.active();
+	// });
 
-		$(window).on("keydown mousemove", function () {
-			session.active();
-		});
+	// var socket = io.connect(window.location.origin);
 
-
-		notifications.enable();
-
-		session.active();
-
-		socket.on('chat', function (msg) {
-			switch (msg.class) {
-				case "join":
-					clients.add({
-						client: msg.client
-					});
-					break;
-				case "part":
-					clients.kill(msg.clientID);
-					break;
-			}
-
-			// scan through the message and determine if we need to notify somebody that was mentioned:
-			if (msg.body.toLowerCase().split(" ").indexOf(session.getNick().toLowerCase()) !== -1) {
-				notifications.notify(msg.nickname, msg.body.substring(0,50));
-				msg.directedAtMe = true;
-			}
-
-			log.add(msg);
-			chat.renderChatMessage(msg);
-			chat.scroll();
-		});
-
-		socket.on('chat:idle', function (msg) {
-			$(".user[rel='"+ msg.cID +"']").append("<span class='idle'>Idle</span>");
-			// console.log(session.id(), msg.cID);
-			if (session.is(msg.cID)) {
-				session.setIdle();
-			}
-		});
-		socket.on('chat:unidle', function (msg) {
-			// console.log(msg, $(".user[rel='"+ msg.cID +"'] .idle"), $(".user[rel='"+ msg.cID +"'] .idle").length);
-			$(".user[rel='"+ msg.cID +"'] .idle").remove();
-		});
-
-		socket.on('chat:your_cid', function (msg) {
-			session.setID(msg.cID);
-		});
-
-
-		socket.on('userlist', function (msg) {
-			// update the pool of possible autocompletes
-			autocomplete.setPool(_.map(msg.users, function (user) {
-				return user.nick;
-			}));
-
-			chat.renderUserlist(msg.users);
-		});
-
-		function applyChanges (editor, change) {
-			editor.replaceRange(change.text, change.from, change.to);
-			while (change.next !== undefined) { // apply all the changes we receive until there are no more
-				change = change.next;
-				editor.replaceRange(change.text, change.from, change.to);
-			}
-		}
-
-		_.each(editors, function (obj) {
-			var editor = obj.editor;
-			var namespace = obj.namespace.toString();
-
-			socket.on(namespace + ":code:change", function (change) {
-				applyChanges(editor, change);
-			});
-
-			socket.on(namespace + ":code:request", function () {
-				socket.emit("code:full_transcript", {
-					code: editor.getValue()
-				});
-			});
-			socket.on(namespace + ":code:sync", function (data) {
-				if (editor.getValue() !== data.code) {
-					editor.setValue(data.code);
-				}
-			});
-
-			socket.on(namespace + ":code:authoritative_push", function (data) {
-				editor.setValue(data.start);
-				for (var i = 0; i < data.ops.length; i ++) {
-					applyChanges(editor, data.ops[i]);
-				}
-			});
-
-			socket.on(namespace + ":code:cursorActivity", function (data) {
-				var pos = editor.charCoords(data.cursor);
-				var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']");
-				if (!$ghostCursor.length) {
-					$ghostCursor = ("<div class='ghost-cursor' rel=" + data.id +"></div>");
-					$("body").append($ghostCursor);
-				}
-				$ghostCursor.css({
-					background: clients.get(data.id).getColor().toRGB(),
-					top: pos.top,
-					left: pos.left
-				});
-			});
-		});
-
-		if ($.cookie("nickname")) {
-			session.setNick($.cookie("nickname"));
-		}
-
-
-		$("#chatinput textarea").on("keydown", function (ev) {
-			$this = $(this);
-			switch (ev.keyCode) {
-				// enter:
-				case 13:
-					ev.preventDefault();
-					var userInput = $this.val();
-					scrollback.add(userInput);
-					// userInput = userInput.split("\n");
-					// for (var i = 0, l = userInput.length; i < l; i++) {
-					// 	handleChatMessage({
-					// 		body: userInput[i]
-					// 	});
-					// }
-					session.speak({
-						body: userInput
-					});
-					$this.val("");
-					scrollback.reset();
-					break;
-				// up:
-				case 38:
-					$this.val(scrollback.prev());
-					break;
-				// down
-				case 40:
-					$this.val(scrollback.next());
-					break;
-				// escape
-				case 27:
-					scrollback.reset();
-					$this.val("");
-					break;
-				// L
-				case 76:
-					if (ev.ctrlKey) {
-						ev.preventDefault();
-						$("#chatlog .messages").html("");
-						$("#linklog .body").html("");
-					}
-					break;
-				 // tab key
-				case 9:
-					ev.preventDefault();
-					var text = $(this).val().split(" ");
-					var stub = text[text.length - 1];				
-					var completion = autocomplete.next(stub);
-
-					if (completion !== "") {
-						text[text.length - 1] = completion;
-					}
-					if (text.length === 1) {
-						text[0] = text[0] + ", ";
-					}
-
-					$(this).val(text.join(" "));
-					break;
-			}
-
-		});
+	var chatView = new ChatClient({
+		namespace: "/chat"
 	});
 
-	socket.on('chat:currentID', function (data) {
-		log.latestIs(data.ID);
-	});
+	var defaultChat = new chatView();
+	defaultChat.joinChannel(window.location.pathname);
 
-	socket.on('disconnect', function () {
-		setTimeout(function () { // for dev, cheap auto-reload
-			window.location = window.location;
-		}, 2000);
-		socket.removeAllListeners();
-		socket.removeAllListeners('chat'); 
-		socket.removeAllListeners('userlist');
-		socket.removeAllListeners('code:change code:authoritative_push code:sync code:request');
-		$("#chatinput textarea").off();
-		chat.renderChatMessage({body: "Unexpected d/c from server", log: false});
-	});
+	// socket.on('connect', function () {
+
+		// notifications.enable();
+
+		// function applyChanges (editor, change) {
+		// 	editor.replaceRange(change.text, change.from, change.to);
+		// 	while (change.next !== undefined) { // apply all the changes we receive until there are no more
+		// 		change = change.next;
+		// 		editor.replaceRange(change.text, change.from, change.to);
+		// 	}
+		// }
+
+		// _.each(editors, function (obj) {
+		// 	var editor = obj.editor;
+		// 	var namespace = obj.namespace.toString();
+
+		// 	socket.on(namespace + ":code:change", function (change) {
+		// 		applyChanges(editor, change);
+		// 	});
+
+		// 	socket.on(namespace + ":code:request", function () {
+		// 		socket.emit("code:full_transcript", {
+		// 			code: editor.getValue()
+		// 		});
+		// 	});
+		// 	socket.on(namespace + ":code:sync", function (data) {
+		// 		if (editor.getValue() !== data.code) {
+		// 			editor.setValue(data.code);
+		// 		}
+		// 	});
+
+		// 	socket.on(namespace + ":code:authoritative_push", function (data) {
+		// 		editor.setValue(data.start);
+		// 		for (var i = 0; i < data.ops.length; i ++) {
+		// 			applyChanges(editor, data.ops[i]);
+		// 		}
+		// 	});
+
+		// 	socket.on(namespace + ":code:cursorActivity", function (data) {
+		// 		var pos = editor.charCoords(data.cursor);
+		// 		var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']");
+		// 		if (!$ghostCursor.length) {
+		// 			$ghostCursor = ("<div class='ghost-cursor' rel=" + data.id +"></div>");
+		// 			$("body").append($ghostCursor);
+		// 		}
+		// 		$ghostCursor.css({
+		// 			background: clients.get(data.id).getColor().toRGB(),
+		// 			top: pos.top,
+		// 			left: pos.left
+		// 		});
+		// 	});
+		// });
+
+
+
+
+	// socket.on('disconnect', function () {
+	// 	setTimeout(function () { // for dev, cheap auto-reload
+	// 		window.location = window.location;
+	// 	}, 2000);
+	// 	socket.removeAllListeners();
+	// 	socket.removeAllListeners('chat'); 
+	// 	socket.removeAllListeners('userlist');
+	// 	socket.removeAllListeners('code:change code:authoritative_push code:sync code:request');
+	// 	$("#chatinput textarea").off();
+	// 	chat.renderChatMessage({body: "Unexpected d/c from server", log: false});
+	// });
 
 	$("#chatlog").on("hover", ".chatMessage", function (ev) {
 		$(this).attr("title", "sent " + moment($(".time", this).data("timestamp")).fromNow());
@@ -433,13 +317,13 @@ $(document).ready(function () {
 		var html = values["html"];
 		var script = values["js"];
 		var wrapped_script = "(function(){ "; // execute in a closure
-		wrapped_script+= "return (function(window,$,_,alert,undefined) {" // don't allow user to override things
+		wrapped_script+= "return (function(window,$,_,alert,undefined) {"; // don't allow user to override things
 		wrapped_script+= script;
-		wrapped_script+= "})(window,$,_, function () { return arguments; });"
+		wrapped_script+= "})(window,$,_, function () { return arguments; });";
 		wrapped_script +="})();";
 
 		// first update the iframe from the HTML:
-		var iframe = document.getElementById("repl-frame").contentDocument
+		var iframe = document.getElementById("repl-frame").contentDocument;
 		iframe.open();
 		iframe.write(html);
 		iframe.close();

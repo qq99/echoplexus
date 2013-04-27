@@ -23,6 +23,10 @@ var Client = require('../client/client.js').Client,
 // Standard App:
 app.use(express.static(PUBLIC_FOLDER));
 
+app.get("/*", function (req, res) {
+	res.sendfile("server/public/index.html");
+});
+
 server.listen(config.host.PORT);
 
 if (config.features.phantomjs_screenshot) {
@@ -107,14 +111,37 @@ _.each(editors, function (obj) {
 	setInterval(codeCache.syncFromClient, 1000*30);
 });
 
-function publishUserList () {
-	sio.sockets.emit('userlist', {
+function publishUserList (room) {
+	sio.sockets.in(room).emit('userlist', {
 		users: clients.userlist()
 	});
 }
 
-sio.sockets.on('connection', function (socket) {
+function userJoined (client, room) {
+	sio.sockets.in(room).emit('chat', serverSentMessage({
+		body: client.getNick() + ' has joined the chat.',
+		client: client.serialize(),
+		class: "join",
+		room: room
+	}));
+}
+function userLeft (client, room) {
+	sio.sockets.in(room).emit('chat', serverSentMessage({
+		body: client.getNick() + ' has left the chat.',
+		clientID: clientID,
+		class: "part",
+		log: false,
+		room: room
+	}));
+}
 
+sio.sockets.on('connection', function (socket) {
+	socket.leave("\"\"");
+	socket.on("subscribe", function (data) {
+		socket.join(data.room);
+		publishUserList(data.room);
+		userJoined(client, data.room);
+	})
 	// let the newly connected client know the ID of the latest logged message
 	redisC.hget("channels:currentMessageID", "default", function (err, reply) {
 		if (err) throw err;
@@ -125,6 +152,8 @@ sio.sockets.on('connection', function (socket) {
 
 	var clientID = clients.add({socketRef: socket}),
 		client = clients.get(clientID);
+	
+	// global topic:
 	redisC.get('topic', function (err, res){
 		socket.emit('chat', serverSentMessage({
 			body: "Topic: " + res,
@@ -139,13 +168,6 @@ sio.sockets.on('connection', function (socket) {
 	socket.emit("chat:your_cid", {
 		cID: clientID
 	});
-
-	publishUserList();
-	socket.broadcast.emit('chat', serverSentMessage({
-		body: client.getNick() + ' has joined the chat.',
-		client: client.serialize(),
-		class: "join",
-	}));
 
 	socket.on('nickname', function (data) {
 		var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
@@ -341,8 +363,9 @@ sio.sockets.on('connection', function (socket) {
 					if (err) throw err;
 				});
 
-				socket.broadcast.emit('chat', data);
-				socket.emit('chat', _.extend(data, {
+				console.log(data.room);
+				socket.in(data.room).broadcast.emit('chat', data);
+				socket.in(data.room).emit('chat', _.extend(data, {
 					you: true
 				}));
 
@@ -413,15 +436,13 @@ sio.sockets.on('connection', function (socket) {
 			obj.codeCache.remove(client);
 		})
 
-		clients.kill(clientID);
-		publishUserList();
+		// loop through each room he's in:
+		// userLeft(client, room);
 
-		sio.sockets.emit('chat', serverSentMessage({
-			body: client.getNick() + ' has left the chat.',
-			clientID: clientID,
-			class: "part",
-			log: false
-		}));
+		clients.kill(clientID);
+		// publishUserList();
+
+
 	});
 
 });

@@ -87,8 +87,9 @@
 			getNick: function() {
 				return nick;
 			},
-			speak: function (msg) {
+			speak: function (msg, channel) {
 				var body = msg.body;
+				msg.room = channel;
 
 				if (!body) return; // if there's no body, we probably don't want to do anything
 				if (body.match(REGEXES.commands.nick)) { // /nick [nickname]
