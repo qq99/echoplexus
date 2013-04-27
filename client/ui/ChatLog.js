@@ -41,7 +41,7 @@ function ChatLog (options) {
         },
 
         scrollToLatest: function () {
-			this.$el.scrollTop(this.$el[0].scrollHeight);
+			$(".messages", this.$el).scrollTop($(".messages", this.$el)[0].scrollHeight);
 		},
 
 		renderChatMessage: function (msg, opts) {
@@ -154,7 +154,8 @@ function ChatLog (options) {
 			}
 		},
 		insertBatch: function (htmls) {
-			this.$el.append(htmls.join(""));
+			$(".messages", this.$el).append(htmls.join(""));
+			$(".chatMessage", this.$el).addClass("fromlog");
 		},
 
 		insertChatMessage: function (opts) {
@@ -204,6 +205,8 @@ function ChatLog (options) {
 				// clear out the userlist
 				$userlist.html("");
 				var userHTML = "";
+				var nActive = 0;
+				var total = 0;
 				_.each(users, function (user) {
 					// add him to the visual display
 					var userItem = self.userTemplate({
@@ -213,12 +216,24 @@ function ChatLog (options) {
 						identified: user.identified,
 						idle: user.idle
 					});
+					if (!user.idle) {
+						nActive += 1;
+					}
+					total += 1;
 					userHTML += userItem;
 				});
 				$userlist.append(userHTML);
+
+				$(".userlist .count .active", this.$el).html(nActive);
+				$(".userlist .count .total", this.$el).html(nActive);
 			} else {
 				// there's always gonna be someone...
 			}
+		},
+
+		setTopic: function (msg) {
+			console.log(msg);
+			$(".channel-topic", this.$el).html(msg.body);
 		}
 	});
 

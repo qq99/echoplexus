@@ -110,21 +110,7 @@ $(document).ready(function () {
 		editor: htmlEditor
 	});
 
-	// if there's something in the persistent chatlog, render it:
-	// if (!log.empty()) {
-	// 	var entries = log.all();
-	// 	var renderedEntries = [];
-	// 	for (var i = 0, l = entries.length; i < l; i++) {
-	// 		renderedEntries.push(
-	// 			chat.renderChatMessage(entries[i], {
-	// 				delayInsert: true
-	// 			})
-	// 		);
-	// 	}
-	// 	chat.insertBatch(renderedEntries);
-	// 	$("#chatarea .chatMessage").addClass("fromlog");
-	// 	chat.scroll();
-	// }
+
 
 	// $(window).on("blur", function () {
 	// 	$("body").addClass("blurred");

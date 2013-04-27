@@ -17,6 +17,9 @@ function ChatClient (options) {
 			this.autocomplete = new Autocomplete();
 			this.users = new Clients();
 			this.scrollback = new Scrollback();
+			this.persistentLog = new Log({
+				namespace: this.channelName
+			});
 
 			var chatLogView = new ChatLog();
 			this.chatLog = new chatLogView({
@@ -26,6 +29,20 @@ function ChatClient (options) {
 			this.listen();
 			this.render();
 			this.attachEvents();
+
+			// if there's something in the persistent chatlog, render it:
+			if (!this.persistentLog.empty()) {
+				var entries = this.persistentLog.all();
+				console.log(entries);
+				var renderedEntries = [];
+				for (var i = 0, l = entries.length; i < l; i++) {
+					var entry = this.chatLog.renderChatMessage(entries[i], {
+						delayInsert: true
+					});
+					renderedEntries.push(entry);
+				}
+				this.chatLog.insertBatch(renderedEntries);
+			}
 		},
 
 		render: function () {
@@ -38,88 +55,99 @@ function ChatClient (options) {
 				socket = this.socket;
 
 			function prefilter (msg) {
+				if (typeof msg === "undefined") {
+					return true;
+				}
 				if (typeof msg.room === "undefined") {
 					console.warn("Message came in but had no channel designated", msg);
 				}
 				return (msg.room === self.channelName);
 			}
 
-			socket.on('connect', function () {
-				console.log("connected");
-				self.me = new Client({ 
-					socketRef: socket
-				});
-				if ($.cookie("nickname")) {
-					self.me.setNick($.cookie("nickname"));
-				}
-				
-				// this.me.active(); // fix up
-
-				// notifications.enable();
-			});
-
-			socket.on('chat', function (msg) {
-				if (!prefilter(msg)) return;
-
-				switch (msg.class) {
-					case "join":
-						self.channel.userlist.add({
-							client: msg.client
-						});
-						break;
-					case "part":
-						self.channel.userlist.kill(msg.clientID);
-						break;
-				}
-
-				console.log(msg);
-
-				// // scan through the message and determine if we need to notify somebody that was mentioned:
-				// if (msg.body.toLowerCase().split(" ").indexOf(this.me.getNick().toLowerCase()) !== -1) {
-				// 	notifications.notify(msg.nickname, msg.body.substring(0,50));
-				// 	msg.directedAtMe = true;
-				// }
-
-				// log.add(msg); // TODO: log to a channel
-				self.chatLog.renderChatMessage(msg);
-			});
-
-			// socket.on('chat:idle', function (msg) {
-			// 	$(".user[rel='"+ msg.cID +"']").append("<span class='idle'>Idle</span>");
-			// 	// console.log(this.me.id(), msg.cID);
-			// 	if (this.me.is(msg.cID)) {
-			// 		this.me.setIdle();
-			// 	}
-			// });
-			// socket.on('chat:unidle', function (msg) {
-			// 	// console.log(msg, $(".user[rel='"+ msg.cID +"'] .idle"), $(".user[rel='"+ msg.cID +"'] .idle").length);
-			// 	$(".user[rel='"+ msg.cID +"'] .idle").remove();
-			// });
-
-			// socket.on('chat:your_cid', function (msg) {
-			// 	this.me.setID(msg.cID);
-			// });
-
-			socket.on('userlist', function (msg) {
-				if (!prefilter(msg)) return;
-
-				// update the pool of possible autocompletes
-				self.autocomplete.setPool(_.map(msg.users, function (user) {
-					return user.nick;
-				}));
-				self.chatLog.renderUserlist(msg.users);
-
-				_.each(msg.users, function (user) {
-					// add to our list of clients
-					self.users.add({
-						client: user
+			var events = {
+				"connect": function () {
+					console.log("Connected");
+					self.me = new Client({ 
+						socketRef: socket
 					});
+					if ($.cookie("nickname")) {
+						self.me.setNick($.cookie("nickname"));
+					}
+					// this.me.active(); // fix up
+
+					// notifications.enable();
+				},
+				"chat": function (msg) {
+					switch (msg.class) {
+						case "join":
+							self.channel.userlist.add({
+								client: msg.client
+							});
+							break;
+						case "part":
+							self.channel.userlist.kill(msg.clientID);
+							break;
+					}
+
+					console.log(msg);
+
+					// // scan through the message and determine if we need to notify somebody that was mentioned:
+					// if (msg.body.toLowerCase().split(" ").indexOf(this.me.getNick().toLowerCase()) !== -1) {
+					// 	notifications.notify(msg.nickname, msg.body.substring(0,50));
+					// 	msg.directedAtMe = true;
+					// }
+
+					self.persistentLog.add(msg); // TODO: log to a channel
+					self.chatLog.renderChatMessage(msg);
+				},
+				"chat:idle": function (msg) {
+					$(".user[rel='"+ msg.cID +"']", self.$el).append("<span class='idle'>Idle</span>");
+					if (self.me.is(msg.cID)) {
+						self.me.setIdle();
+					}
+				},
+				"chat:unidle": function (msg) {
+					$(".user[rel='"+ msg.cID +"'] .idle", self.$el).remove();
+				},
+				"chat:your_cid": function (msg) {
+					self.me.setID(msg.cID);	
+				},
+				"userlist": function (msg) {
+					// update the pool of possible autocompletes
+					self.autocomplete.setPool(_.map(msg.users, function (user) {
+						return user.nick;
+					}));
+					self.chatLog.renderUserlist(msg.users);
+
+					_.each(msg.users, function (user) {
+						// add to our list of clients
+						self.users.add({
+							client: user
+						});
+					});					
+				},
+				"chat:currentID": function (msg) {
+					self.persistentLog.latestIs(msg.ID);
+				},
+				"topic": function (msg) {
+					self.chatLog.setTopic(msg);
+				}
+			};
+
+			_.each(_.pairs(events), function (pair) {
+				var eventName = pair[0];
+				var eventAction = pair[1];
+
+				// wrap each event with a simple pre-filter to listen to only those that apply to this object's channel
+				var filteredEventAction = _.wrap(eventAction, function (fn) {
+					var msg = arguments[1];
+					if (!prefilter(msg)) return;
+					fn(msg);
 				});
+
+				socket.on(eventName, filteredEventAction);
 			});
 
-			// socket.on('chat:currentID', function (data) {
-			// 	log.latestIs(data.ID);
-			// });
 		},
 		attachEvents: function () {
 			var self = this;

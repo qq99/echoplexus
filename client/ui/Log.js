@@ -1,11 +1,16 @@
 // object: a persistent log if local storage is available ELSE noops
-function Log() {
+function Log(opts) {
 	"use strict";
 	var latestID = -Infinity,
 		LOG_VERSION = "0.0.1", // update if the server-side changes
 		log = [], // should always be sorted by timestamp
-		logMax = 512;
+		options = {
+			namespace: "default",
+			logMax: 512
+		};
 
+	// extend defaults with any custom paramters
+	_.extend(options, opts);
 
 	// utility: extend the local storage protoype if it exists
 	if (window.Storage) {
@@ -18,15 +23,15 @@ function Log() {
 	}
 
 	if (window.Storage) {
-		var version = window.localStorage.getItem("logVersion");
+		var version = window.localStorage.getItem("logVersion:" + options.namespace);
 		if (typeof version === "undefined" || version === null || version !== LOG_VERSION) {
-			window.localStorage.setObj("log", null);
-			window.localStorage.setItem("logVersion", LOG_VERSION);
+			window.localStorage.setObj("log:" + options.namespace, null);
+			window.localStorage.setItem("logVersion:" + options.namespace, LOG_VERSION);
 		}
-		var prevLog = window.localStorage.getObj("log");
+		var prevLog = window.localStorage.getObj("log:" + options.namespace);
 		
-		if (log.length > logMax) { // kill the previous log, getting too big; TODO: make this smarter
-			window.localStorage.setObj("log", null);
+		if (log.length > options.logMax) { // kill the previous log, getting too big; TODO: make this smarter
+			window.localStorage.setObj("log:" + options.namespace, null);
 		} else if (prevLog) {
 			log = prevLog;
 		}
@@ -47,12 +52,12 @@ function Log() {
 				log = _.sortBy(log, "timestamp");
 
 				// cull the older log entries
-				if (log.length > logMax) {
+				if (log.length > options.logMax) {
 					log.unshift();
 				}
 
 				// presist to localStorage:
-				window.localStorage.setObj("log", log);
+				window.localStorage.setObj("log:" + options.namespace, log);
 			},
 			empty: function () {
 				return (log.length === 0);

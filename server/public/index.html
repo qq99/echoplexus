@@ -95,7 +95,12 @@
 		</script>
 		<script id="chatareaTemplate" type="text/template" class="template">
 			<div class="room-specific">
-				Channel: <%- roomName %>
+				<span class="channel-name">
+					Channel: <%- roomName %>
+				<span>
+				<span class="channel-topic">
+
+				</span>
 			</div>
 			<div class="chatlog">
 				<div class="messages"></div>
@@ -104,6 +109,14 @@
 				<div class="userlist">
 					<div class="header">
 						<h2>Users</h2>
+						<div class="count">
+							<div class="active">
+
+							</div>
+							<div class="total">
+
+							</div>
+						</div>
 					</div>
 					<div class="body">
 
@@ -172,7 +185,7 @@
 	<script src='client/ui/Notifications.js' type='text/javascript'></script>
 	<script src='client/ui/Log.js' type='text/javascript'></script>
 	<script src='client/ui/Scrollback.js' type='text/javascript'></script>
-	<script src='client/ui/Chat.js' type='text/javascript'></script>
+	<script src='client/ui/ChatLog.js' type='text/javascript'></script>
 	<script src='client/ChatChannel.js' type='text/javascript'></script>
 	<script src='client/ChatClient.js' type='text/javascript'></script>
 	<script src='client/ui.js' type='text/javascript'></script>
