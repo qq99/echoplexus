@@ -145,7 +145,7 @@ $(document).ready(function () {
 
 	var socket = io.connect(window.location.href);
 	socket.on('connect', function () {
-		socket.leave("");
+		// socket.leave("");
 		session = new Client({ 
 			socketRef: socket
 		});
