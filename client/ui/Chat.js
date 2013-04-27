@@ -145,9 +145,9 @@ function Chat () {
 	function insertChatMessage (opts) {
 		// insert msg into the correct place in history
 		var $chatMessage = $(opts.html);
-		console.log(opts);
+		// console.log(opts);
 		if (opts.timestamp) {
-			console.log("inserting !");
+			// console.log("inserting !");
 			var timestamps = _.map($("#chatarea .chatMessage .time"), function (ele) {
 				return $(ele).data("timestamp");
 			});
@@ -164,17 +164,17 @@ function Chat () {
 			// attempt to select this early message:
 			var $target = $("#chatlog .chatMessage[rel='"+ candidate +"']");
 
-			console.log(timestamps, candidate);
+			// console.log(timestamps, candidate);
 
 			if ($target.length) { // it was in the DOM, so we can insert the current message after it
-				console.log('no target found');
+				// console.log('no target found');
 				$target.after($chatMessage);
 			} else { // it was the first message OR something went wrong
-				console.log('something went wrong');
+				// console.log('something went wrong');
 				$chatlog.append($chatMessage);
 			}
 		} else { // if there was no timestamp, assume it's a diagnostic message of some sort that should be displayed at the most recent spot in history
-			console.log("not timestamp");
+			// console.log("not timestamp");
 			$chatlog.append($chatMessage);
 		}
 		scroll();

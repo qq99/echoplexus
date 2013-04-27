@@ -67,7 +67,7 @@ $(document).ready(function () {
 		$option.on("click", function () {
 			$.cookie(option, $(this).prop("checked"));
 			OPTIONS[option] = !OPTIONS[option];
-			if (options[option]) {
+			if (OPTIONS[option]) {
 				$("body").addClass(option);
 			} else {
 				$("body").removeClass(option);
@@ -145,6 +145,7 @@ $(document).ready(function () {
 
 	var socket = io.connect(window.location.href);
 	socket.on('connect', function () {
+		socket.leave("");
 		session = new Client({ 
 			socketRef: socket
 		});
