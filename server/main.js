@@ -124,7 +124,6 @@ function publishUserList (room) {
 }
 
 function userJoined (client, room) {
-	console.log(room);
 	sio.sockets.in(room).emit('chat', serverSentMessage({
 		body: client.getNick() + ' has joined the chat.',
 		client: client.serialize(),
@@ -147,8 +146,10 @@ function Channel (name) {
 var channels = {};
 
 sio.sockets.on('connection', function (socket) {
+	console.log("connection");
 	socket.leave("\"\"");
 	socket.on("subscribe", function (data) {
+		console.log("subscribed", data.room);
 		var room = data.room;
 		var channel = channels[room];
 		if (typeof channel === "undefined") { // start a new channel if it doesn't exist
@@ -174,6 +175,7 @@ sio.sockets.on('connection', function (socket) {
 
 		// global topic:
 		redisC.hget('topic', room, function (err, res){
+			if (data.room !== room) return;
 			socket.emit('topic', serverSentMessage({
 				body: res,
 				log: false,
@@ -186,6 +188,8 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('nickname', function (data) {
+			if (data.room !== room) return;
+
 			var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
 				prevName = client.getNick();
 			client.setIdentified(false);
@@ -216,6 +220,7 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('topic', function (data) {
+			if (data.room !== room) return;
 			redisC.hset('topic', room, data.topic);
 			socket.emit('chat', serverSentMessage({
 				body: "Topic: " + data.topic,
@@ -224,6 +229,8 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('chat:history_request', function (data) {
+			if (data.room !== room) return;
+
 			console.log("requesting " + data.requestRange);
 			redisC.hmget("chatlog:" + room, data.requestRange, function (err, reply) {
 				if (err) throw err;
@@ -237,11 +244,15 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('chat:idle', function (data) {
+			if (data.room !== room) return;
+
 			client.setIdle();
 			data.cID = client.id();
 			sio.sockets.emit('chat:idle', data);
 		})
-		socket.on('chat:unidle', function () {
+		socket.on('chat:unidle', function (data) {
+			if (data.room !== room) return;
+
 			client.setActive();
 			sio.sockets.emit('chat:unidle', {
 				cID: client.id()
@@ -249,6 +260,9 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('chat', function (data) {
+			if (data.room !== room) return;
+
+			console.log("data", data);
 			if (data.body) {
 				data.cID = client.id();
 				data.color = client.getColor().toRGB();
@@ -339,6 +353,7 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on("identify", function (data) {
+			if (data.room !== room) return;
 			var nick = client.getNick();
 			try {
 				redisC.sismember("users", nick, function (err, reply) {
@@ -383,6 +398,7 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('register_nick', function (data) {
+			if (data.room !== room) return;
 			var nick = client.getNick();
 			redisC.sismember("users", nick, function (err, reply) {
 				if (err) throw err;
@@ -426,6 +442,7 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('disconnect', function () {
+			if (data.room !== room) return;
 			console.log("killing ", clientID);
 
 			// _.each(editors, function (obj) {

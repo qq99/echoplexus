@@ -83,7 +83,7 @@ function ChatLog (options) {
 					if (uniqueImages[src] === undefined) {
 						yt.find("embed").attr("src", src)
 							.find("param[name='movie']").attr("src", src);
-						$(".linklog .body").prepend(yt);
+						$(".linklog .body", this.$el).prepend(yt);
 						uniqueImages[src] = true;
 					}
 				}
@@ -94,7 +94,7 @@ function ChatLog (options) {
 			if (links = body.match(REGEXES.urls.all_others)) {
 				for (var i = 0, l = links.length; i < l; i++) {
 					if (uniqueImages[links[i]] === undefined) {
-						$(".linklog .body").prepend("<a href='" + links[i] + "' target='_blank'>" + links[i] + "</a>");
+						$(".linklog .body", this.$el).prepend("<a href='" + links[i] + "' target='_blank'>" + links[i] + "</a>");
 						uniqueImages[links[i]] = true;
 					}
 				}

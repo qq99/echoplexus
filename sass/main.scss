@@ -135,6 +135,7 @@ header {
 			.channelBtn {
 				text-transform:none;
 				font-style:italic;
+				margin-right:0.5em;
 			}
 		}
 		.channelBtn {
@@ -204,6 +205,7 @@ header {
 	& > section {
 		height:100%;
 		width:100%;
+		overflow: hidden;
 	}
 	#coding {
 		display:none;
@@ -306,6 +308,11 @@ $supportbar-width: 300px;
 		& > div {
 			height:100%;
 			padding-bottom:0;
+		}
+	}
+	.chatChannel {
+		&.inactive {
+			display:none;
 		}
 	}
 	.chatinput {

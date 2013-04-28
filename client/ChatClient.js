@@ -1,6 +1,7 @@
 function ChatClient (options) {
 
 	var ChatClientView = Backbone.View.extend({
+		className: "chatChannel",
 		template: _.template($("#chatpanelTemplate").html()),
 
 		initialize: function (opts) {
@@ -47,6 +48,7 @@ function ChatClient (options) {
 		render: function () {
 			this.$el.html(this.template());
 			$(".chatarea", this.$el).html(this.chatLog.$el);
+			this.$el.attr("data-channel", this.channelName);
 		},
 
 		listen: function () {

@@ -99,19 +99,22 @@
 				} else if (msg.body.match(REGEXES.commands.register)) {  // /register [password]
 					msg.body = msg.body.replace(REGEXES.commands.register, "").trim();
 					socket.emit('register_nick', {
-						password: msg.body
+						password: msg.body,
+						room: channel
 					});
 					return;
 				} else if (msg.body.match(REGEXES.commands.identify)) { // /identify [password]
 					msg.body = msg.body.replace(REGEXES.commands.identify, "").trim();
 					socket.emit('identify', {
-						password: msg.body
+						password: msg.body,
+						room: channel
 					});
 					return;
 				} else if (msg.body.match(REGEXES.commands.topic)) { // /topic [My channel topic]
 					msg.body = msg.body.replace(REGEXES.commands.topic, "").trim();
 					socket.emit('topic', {
-						topic: msg.body
+						topic: msg.body,
+						room: channel
 					});
 					return;
 				} else if (msg.body.match(REGEXES.commands.failed_command)) { // match all

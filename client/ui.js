@@ -137,11 +137,15 @@ $(document).ready(function () {
 		room: window.location.pathname
 	});
 	var testPane = new chatView({
-		room: "test"
+		room: "/testing"
 	});
 
 	$("#chatting").append(defaultChat.$el);
-	$("#chatting").append(testPane.$el);
+	$("#chatting").append(testPane.$el.addClass("inactive"));
+
+	$("header .channel-selector .channels")
+		.append("<buttton data-channel='/' class='active channelBtn closable'>" + window.location.pathname + "</button>")
+		.append("<buttton data-channel='/testing' class='channelBtn closable'>" + "/testing" + "</button>");
 
 
 	chatPanes.add(window.location.pathname, defaultChat);
@@ -162,9 +166,6 @@ $(document).ready(function () {
 		}
 	}
 
-
-	$("header .channel-selector .channels").append("<buttton class='active channelBtn closable'>" + window.location.pathname + "</button>");
-
 	$("#joinChannel").click(function () {
 		var $input = $(this).siblings("input");
 		if ($input.is(":visible")) {
@@ -178,6 +179,15 @@ $(document).ready(function () {
 		if (ev.keyCode === 13) { // enter key
 			//chatPanes.add()
 		}
+	});
+
+	$(".channel-selector").on("click", ".channels .channelBtn", function () {
+		var channel = $(this).data("channel");
+		$(this).siblings().removeClass("active");
+		$(this).addClass("active");
+		$(".chatChannel").fadeOut(function () {
+			$(".chatChannel[data-channel='"+ channel +"']").fadeIn();
+		});
 	});
 
 	// socket.on('connect', function () {
