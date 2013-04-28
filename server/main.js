@@ -222,8 +222,8 @@ sio.sockets.on('connection', function (socket) {
 		socket.on('topic', function (data) {
 			if (data.room !== room) return;
 			redisC.hset('topic', room, data.topic);
-			socket.emit('chat', serverSentMessage({
-				body: "Topic: " + data.topic,
+			socket.emit('topic', serverSentMessage({
+				body: data.topic,
 				log: false
 			}, room));
 		});
