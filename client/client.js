@@ -28,15 +28,16 @@
 		};
 	};
 
-	function randomColorValue() {
-		return parseInt(Math.random()*155+100,10);
-	}
-
 	exports.ColorModel = Backbone.Model.extend({
 		defaults: {
-			r: randomColorValue(),
-			g: randomColorValue(),
-			b: randomColorValue()
+			r: 0,
+			g: 0,
+			b: 0
+		},
+		initialize: function () {
+			this.set("r", parseInt(Math.random()*155+100,10));
+			this.set("g", parseInt(Math.random()*155+100,10));
+			this.set("b", parseInt(Math.random()*155+100,10));
 		},
 		toRGB: function () {
 			return "rgb(" + this.attributes.r + "," + this.attributes.g + "," + this.attributes.b + ")";
@@ -52,9 +53,11 @@
 			nick: "Anonymous",
 			identified: false,
 			idle: false,
-			color: new exports.ColorModel(),
 			isServer: false,
 			room: "/"
+		},
+		initialize: function () {
+			this.set("color", new exports.ColorModel());
 		},
 		announceIdle: function (reason) {
 			reason = reason || "User idle.";
