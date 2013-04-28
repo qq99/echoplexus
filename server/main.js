@@ -1,5 +1,6 @@
 var express = require('express'),
 	_ = require('underscore'),
+	Backbone = require('backbone'),
 	crypto = require('crypto'),
 	fs = require('fs'),
 	redis = require('redis'),
@@ -16,8 +17,8 @@ var config = require('./config.js').Configuration;
 
 // Custom objects:
 // shared with the client:
-var Client = require('../client/client.js').Client,
-	Clients = require('../client/client.js').Clients,
+var Client = require('../client/client.js').ClientModel,
+	Clients = require('../client/client.js').ClientsCollection,
 	REGEXES = require('../client/regex.js').REGEXES;
 
 // Standard App:
@@ -118,22 +119,23 @@ function publishUserList (room) {
 		return;
 	}
 	sio.sockets.in(room).emit('userlist', {
-		users: channels[room].clients.userlist(),
+		users: channels[room].clients.toJSON(),
 		room: room
 	});
 }
 
 function userJoined (client, room) {
 	sio.sockets.in(room).emit('chat', serverSentMessage({
-		body: client.getNick() + ' has joined the chat.',
-		client: client.serialize(),
+		body: client.get("nick") + ' has joined the chat.',
+		client: client.toJSON(),
+		cid: client.cid,
 		class: "join"
 	}, room));
 }
 function userLeft (client, room) {
 	sio.sockets.in(room).emit('chat', serverSentMessage({
-		body: client.getNick() + ' has left the chat.',
-		clientID: client.id(),
+		body: client.get("nick") + ' has left the chat.',
+		clientID: client.cid,
 		class: "part",
 		log: false
 	}, room));
@@ -157,8 +159,9 @@ sio.sockets.on('connection', function (socket) {
 			channels[room] = channel;
 		}
 
-		var clientID = channel.clients.add({socketRef: socket}),
-			client = channel.clients.get(clientID);
+		var client = new Client();
+		var clientID = client.cid;
+		channel.clients.push(client);
 
 		socket.join(room);
 		publishUserList(room);
@@ -184,15 +187,15 @@ sio.sockets.on('connection', function (socket) {
 		
 		socket.emit("chat:your_cid", {
 			room: room,
-			cID: clientID
+			cid: clientID
 		});
 
 		socket.on('nickname', function (data) {
 			if (data.room !== room) return;
 
 			var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
-				prevName = client.getNick();
-			client.setIdentified(false);
+				prevName = client.get("nick");
+			client.set("identified", false);
 
 			if (newName === "") {
 				socket.emit('chat', serverSentMessage({
@@ -202,7 +205,7 @@ sio.sockets.on('connection', function (socket) {
 				return;
 			}
 
-			client.setNick(newName);
+			client.set("nick", newName);
 
 			socket.broadcast.emit('chat', serverSentMessage({
 				body: prevName + " is now known as " + newName,
@@ -246,16 +249,16 @@ sio.sockets.on('connection', function (socket) {
 		socket.on('chat:idle', function (data) {
 			if (data.room !== room) return;
 
-			client.setIdle();
-			data.cID = client.id();
+			client.set("idle", true);
+			data.cID = clientID;
 			sio.sockets.emit('chat:idle', data);
 		})
 		socket.on('chat:unidle', function (data) {
 			if (data.room !== room) return;
 
-			client.setActive();
+			client.set("idle", false);
 			sio.sockets.emit('chat:unidle', {
-				cID: client.id()
+				cID: clientID
 			});
 		});
 
@@ -264,9 +267,9 @@ sio.sockets.on('connection', function (socket) {
 
 			console.log("data", data);
 			if (data.body) {
-				data.cID = client.id();
-				data.color = client.getColor().toRGB();
-				data.nickname = client.getNick();
+				data.cID = clientID;
+				data.color = client.get("color").toRGB();
+				data.nickname = client.get("nick");
 				data.timestamp = Number(new Date());
 
 				// store in redis
@@ -354,23 +357,23 @@ sio.sockets.on('connection', function (socket) {
 
 		socket.on("identify", function (data) {
 			if (data.room !== room) return;
-			var nick = client.getNick();
+			var nick = client.get("nick");
 			try {
-				redisC.sismember("users", nick, function (err, reply) {
+				redisC.sismember("users:" + room, nick, function (err, reply) {
 					if (!reply) {
 						socket.emit('chat', serverSentMessage({
 							body: "There's no registration on file for " + nick
 						}, room));
 					} else {
-						redisC.hget("salts", nick, function (err, salt) {
+						redisC.hget("salts:" + room, nick, function (err, salt) {
 							if (err) throw err;
-							redisC.hget("passwords", nick, function (err, expectedHash) {
+							redisC.hget("passwords:" + room, nick, function (err, expectedHash) {
 								if (err) throw err;
 								crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
 									if (err) throw err;
 
 									if (derivedKey.toString() !== expectedHash) { // FAIL
-										client.setIdentified(false);
+										client.set("identified", false);
 										socket.emit('chat', serverSentMessage({
 											body: "Wrong password for " + nick
 										}, room));
@@ -379,11 +382,11 @@ sio.sockets.on('connection', function (socket) {
 										}, room));
 										publishUserList(room);
 									} else { // ident'd
-										client.setIdentified(true);
+										client.set("identified", true);
 										socket.emit('chat', serverSentMessage({
 											body: "You are now identified for " + nick
 										}, room));
-										publishUserList(data.room);
+										publishUserList(room);
 									}
 								});
 							});
@@ -399,8 +402,8 @@ sio.sockets.on('connection', function (socket) {
 
 		socket.on('register_nick', function (data) {
 			if (data.room !== room) return;
-			var nick = client.getNick();
-			redisC.sismember("users", nick, function (err, reply) {
+			var nick = client.get("nick");
+			redisC.sismember("users:" + room, nick, function (err, reply) {
 				if (err) throw err;
 				if (!reply) { // nick is not in use
 					try { // try crypto & persistence
@@ -411,17 +414,17 @@ sio.sockets.on('connection', function (socket) {
 							crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
 								if (err) throw err;
 
-								redisC.sadd("users", nick, function (err, reply) {
+								redisC.sadd("users:" + room, nick, function (err, reply) {
 									if (err) throw err;
 								});
-								redisC.hset("salts", nick, salt, function (err, reply) {
+								redisC.hset("salts:" + room, nick, salt, function (err, reply) {
 									if (err) throw err;
 								});
-								redisC.hset("passwords", nick, derivedKey.toString(), function (err, reply) {
+								redisC.hset("passwords:" + room, nick, derivedKey.toString(), function (err, reply) {
 									if (err) throw err;
 								});
 
-								client.setIdentified(true);
+								client.set("identified", true);
 								socket.emit('chat', serverSentMessage({
 									body: "You have registered your nickname.  Please remember your password."
 								}, room));
@@ -451,7 +454,7 @@ sio.sockets.on('connection', function (socket) {
 
 			userLeft(client, room);
 
-			channel.clients.kill(clientID);
+			channel.clients.remove(client);
 			publishUserList(room);
 
 		});
@@ -467,7 +470,7 @@ sio.sockets.on('connection', function (socket) {
 		socket.on(namespace + ':code:cursorActivity', function (data) {
 			socket.broadcast.emit(namespace + ':code:cursorActivity', {
 				cursor: data.cursor,
-				id: client.id
+				id: client.cid
 			});
 		});
 		socket.on(namespace + ':code:change', function (data) {

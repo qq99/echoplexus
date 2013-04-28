@@ -82,11 +82,9 @@ $(document).ready(function () {
 
 
 	// ghetto templates:
-	window.clients = new Clients();
 	var tooltipTemplate = $("#tooltip").html();
 
 	window.notifications = new Notifications();
-	window.log = new Log();
 	window.uniqueImages = {};
 
 	var editors = [];

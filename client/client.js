@@ -1,6 +1,7 @@
 (function( exports ) {
 	if (typeof require !== "undefined") { // factor out node stuff
 		_ = require('underscore');
+		Backbone = require('backbone');
 	}
 
 	exports.Color = function (options) {
@@ -26,6 +27,88 @@
 			}
 		};
 	};
+
+	function randomColorValue() {
+		return parseInt(Math.random()*155+100,10);
+	}
+
+	exports.ColorModel = Backbone.Model.extend({
+		defaults: {
+			r: randomColorValue(),
+			g: randomColorValue(),
+			b: randomColorValue()
+		},
+		toRGB: function () {
+			return "rgb(" + this.attributes.r + "," + this.attributes.g + "," + this.attributes.b + ")";
+		}
+	});
+
+	exports.ClientsCollection = Backbone.Collection.extend({
+		model: exports.ClientModel
+	});
+
+	exports.ClientModel = Backbone.Model.extend({
+		defaults: {
+			nick: "Anonymous",
+			identified: false,
+			idle: false,
+			color: new exports.ColorModel(),
+			isServer: false,
+			room: "/"
+		},
+		announceIdle: function (reason) {
+			reason = reason || "User idle.";
+			this.socket.emit("chat:idle", {
+				reason: reason,
+				room: this.room
+			});
+		},
+		announceBack: function () {
+			this.socket.emit("chat:unidle", {
+				room: this.room
+			});
+		},
+		speak: function (msg, socket) {
+			var body = msg.body,
+				room = msg.room;
+
+			if (!body) return; // if there's no body, we probably don't want to do anything
+			if (body.match(REGEXES.commands.nick)) { // /nick [nickname]
+				body = body.replace(REGEXES.commands.nick, "").trim();
+				this.set("nick", body);
+				socket.emit('nickname', {
+					nickname: body,
+					room: room
+				});
+				return;
+			} else if (msg.body.match(REGEXES.commands.register)) {  // /register [password]
+				msg.body = msg.body.replace(REGEXES.commands.register, "").trim();
+				socket.emit('register_nick', {
+					password: msg.body,
+					room: room
+				});
+				return;
+			} else if (msg.body.match(REGEXES.commands.identify)) { // /identify [password]
+				msg.body = msg.body.replace(REGEXES.commands.identify, "").trim();
+				socket.emit('identify', {
+					password: msg.body,
+					room: room
+				});
+				return;
+			} else if (msg.body.match(REGEXES.commands.topic)) { // /topic [My channel topic]
+				msg.body = msg.body.replace(REGEXES.commands.topic, "").trim();
+				socket.emit('topic', {
+					topic: msg.body,
+					room: room
+				});
+				return;
+			} else if (msg.body.match(REGEXES.commands.failed_command)) { // match all
+				return;
+			} else { // send it out to the world!
+				socket.emit('chat', msg);
+			}
+		}
+	});
 
 	exports.Client = function (options) {
 		var nick = "Anonymous" || options.nick,

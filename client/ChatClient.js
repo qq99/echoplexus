@@ -11,12 +11,8 @@ function ChatClient (options) {
 
 			this.socket = io.connect(window.location.origin);
 			this.channelName = opts.room;
-			this.channel = new ChatChannel({
-				socket: this.socket,
-				room: this.channelName
-			});
 			this.autocomplete = new Autocomplete();
-			this.users = new Clients();
+			this.users = new ClientsCollection();
 			this.scrollback = new Scrollback();
 			this.persistentLog = new Log({
 				namespace: this.channelName
@@ -75,6 +71,11 @@ function ChatClient (options) {
 					if ($.cookie("nickname")) {
 						self.me.setNick($.cookie("nickname"));
 					}
+					// initialize the channel
+					socket.emit("subscribe", {
+						room: self.channelName
+					});
+					
 					// this.me.active(); // fix up
 
 					// notifications.enable();
@@ -83,12 +84,13 @@ function ChatClient (options) {
 					console.log(self.channelName, msg);
 					switch (msg.class) {
 						case "join":
-							self.channel.userlist.add({
-								client: msg.client
-							});
+							var newClient = new ClientModel(msg.client);
+							newClient.cid = msg.cid;
+							self.users.add(newClient);
+							console.log("users now contains", self.users);
 							break;
 						case "part":
-							self.channel.userlist.kill(msg.clientID);
+							// self.users.remove(msg.clientID);
 							break;
 					}
 
@@ -111,7 +113,8 @@ function ChatClient (options) {
 					$(".user[rel='"+ msg.cID +"'] .idle", self.$el).remove();
 				},
 				"chat:your_cid": function (msg) {
-					self.me.setID(msg.cID);	
+					console.log(msg.cid, self.users);
+					self.me = self.users.get(msg.cid);
 				},
 				"userlist": function (msg) {
 					// update the pool of possible autocompletes
@@ -122,9 +125,9 @@ function ChatClient (options) {
 
 					_.each(msg.users, function (user) {
 						// add to our list of clients
-						self.users.add({
-							client: user
-						});
+						// self.users.add({
+						// 	client: user
+						// });
 					});					
 				},
 				"chat:currentID": function (msg) {
@@ -143,7 +146,6 @@ function ChatClient (options) {
 				var filteredEventAction = _.wrap(eventAction, function (fn) {
 					var msg = arguments[1];
 					if (!prefilter(msg)) return;
-					console.log("executed for ", self.channelName);
 					fn(msg);
 				});
 
@@ -162,8 +164,9 @@ function ChatClient (options) {
 						var userInput = $this.val();
 						self.scrollback.add(userInput);
 						self.me.speak({
-							body: userInput
-						}, self.channelName);
+							body: userInput,
+							room: self.channelName
+						}, self.socket);
 						$this.val("");
 						self.scrollback.reset();
 						break;
