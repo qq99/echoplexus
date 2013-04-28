@@ -9,6 +9,41 @@
 	<header>
 		<h1 class="button" id="chatButton">Chat</h1>
 		<h1 class="button" id="codeButton">JavaScript</h1>
+		<div class="options-list">
+			<div class="header">options</div>
+			<div class="options">
+				<div 
+					data-tooltip-title="What's this?"
+					data-tooltip-body="This will prevent images and videos from auto-loading."
+					class="tooltip-target option">
+					<input checked id="autoload_media" type="checkbox" />
+					<label for="autoload_media">Autoload Media</label>
+				</div>
+				<div
+					data-tooltip-title="What's this?"
+					data-tooltip-body="This will prevent the display and logging of join/leave chat messages."
+					class="tooltip-target option">
+					<input id="suppress_join" type="checkbox" />
+					<label for="suppress_join">Suppress Join/Part Messages</label>
+				</div>
+				<div class="option">
+					<input id="highlight_mine" type="checkbox" />
+					<label for="highlight_mine">Highlight messages sent by me</label>
+				</div>
+				<div
+					data-tooltip-title="What's this?"
+					data-tooltip-body="This will delete your browser's local copy of the chat logs."
+					class="tooltip-target option">
+					<button id="deleteLocalStorage">Delete Logs</button>
+				</div>
+				<div
+					data-tooltip-title="What's this?"
+					data-tooltip-body="This will begin syncing any chat logs that you've missed while you weren't connected."
+					class="tooltip-target option">
+					<button id="syncButton">Sync Logs</button>
+				</div>
+			</div>
+		</div>
 	</header>
 	<section id="main">
 		<section id="panes">
@@ -96,7 +131,7 @@
 		<script id="chatareaTemplate" type="text/template" class="template">
 			<div class="room-specific">
 				<span class="channel-name">
-					Channel: <%- roomName %>
+					Channel <span class="room-name"><%- roomName %></span>
 				<span>
 				<span class="channel-topic">
 
@@ -111,10 +146,10 @@
 						<h2>Users</h2>
 						<div class="count">
 							<div class="active">
-
+								<span class="value"></span> active
 							</div>
 							<div class="total">
-
+								<span class="value"></span> total
 							</div>
 						</div>
 					</div>
@@ -133,38 +168,6 @@
 			</div>
 		</script>
 		<span id="linklog-options" class="options">options</span>
-		<div class="options">
-			<div 
-				data-tooltip-title="What's this?"
-				data-tooltip-body="This will prevent images and videos from auto-loading."
-				class="tooltip-target option">
-				<input checked id="autoload_media" type="checkbox" />
-				<label for="autoload_media">Autoload Media</label>
-			</div>
-			<div
-				data-tooltip-title="What's this?"
-				data-tooltip-body="This will prevent the display and logging of join/leave chat messages."
-				class="tooltip-target option">
-				<input id="suppress_join" type="checkbox" />
-				<label for="suppress_join">Suppress Join/Part Messages</label>
-			</div>
-			<div class="option">
-				<input id="highlight_mine" type="checkbox" />
-				<label for="highlight_mine">Highlight messages sent by me</label>
-			</div>
-			<div
-				data-tooltip-title="What's this?"
-				data-tooltip-body="This will delete your browser's local copy of the chat logs."
-				class="tooltip-target option">
-				<button id="deleteLocalStorage">Delete Logs</button>
-			</div>
-			<div
-				data-tooltip-title="What's this?"
-				data-tooltip-body="This will begin syncing any chat logs that you've missed while you weren't connected."
-				class="tooltip-target option">
-				<button id="syncButton">Sync Logs</button>
-			</div>
-		</div>
 		<div id="tooltip">
 			<div class="tooltip">
 				<div class="title"></div>

@@ -11,6 +11,7 @@ function ChatLog (options) {
 	}
 
 	var ChatLogView = Backbone.View.extend({
+		className: "channel",
 		// templates:
 		template: _.template($("#chatareaTemplate").html()),
 		chatMessageTemplate: _.template($("#chatMessageTemplate").html()),
@@ -224,8 +225,8 @@ function ChatLog (options) {
 				});
 				$userlist.append(userHTML);
 
-				$(".userlist .count .active", this.$el).html(nActive);
-				$(".userlist .count .total", this.$el).html(nActive);
+				$(".userlist .count .active .value", this.$el).html(nActive);
+				$(".userlist .count .total .value", this.$el).html(nActive);
 			} else {
 				// there's always gonna be someone...
 			}

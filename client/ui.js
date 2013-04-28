@@ -1,8 +1,5 @@
 $(document).ready(function () {
 	
-
-	var transitionEvents = "webkitTransitionEnd transitionend oTransitionEnd";
-
 	$("body").on("mouseenter", ".tooltip-target", function(ev) {
 		var title = $(this).data("tooltip-title");
 		var body = $(this).data("tooltip-body");
@@ -22,19 +19,15 @@ $(document).ready(function () {
 		.end()
 			.find(".body").text(body);
 
-		$("body").append($tooltip);
-
-		setTimeout(function () {
+		this.tooltip_timer = setTimeout(function () {
+			$("body").append($tooltip);
 			$tooltip.fadeIn();
-		},10);
+		},350);
 	}).on("mouseleave", ".tooltip-target", function (ev) {
-		$("body .tooltip").fadeOut();
-	});
-
-	$("body").on(transitionEvents, ".tooltip", function () {
-		if (!$(this).hasClass("showing")) {
+		clearTimeout(this.tooltip_timer);
+		$("body .tooltip").fadeOut(function () {
 			$(this).remove();
-		}
+		});
 	});
 
 	// consider these persistent options
@@ -77,6 +70,15 @@ $(document).ready(function () {
 	}
 
 	_.each(_.keys(OPTIONS), updateOption); // update all options we know about
+
+	$(".options-list .header").on("click", function () {
+		var panel = $(this).siblings(".options");
+		if (panel.is(":visible")) {
+			panel.slideUp();
+		} else {
+			panel.slideDown();
+		}
+	});
 
 
 	// ghetto templates:

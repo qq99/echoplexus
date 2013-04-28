@@ -77,10 +77,48 @@ header {
 			text-shadow:2px 2px 2px #252525;
 		}
 	}
+	.options-list {
+		float:right;
+		font-size:0.9em;
+		position:relative;
+		.options {
+			display:none;
+			position:absolute;
+			top:1.25em;
+			right:0;
+			width:300px;
+			background:black;
+			padding:1em;
+			.option {
+				margin:0.25em 0;
+			}
+		}
+	}
 }
 
 .header {
-	font-family:sans-serif;
+	font-family:'Noto Sans', sans-serif;
+	position: relative;
+	.count {
+		position: absolute;
+		top: 0;
+		right: 0;
+		font-size: 0.75em;
+		div	{
+			display:inline-block;
+			margin-left: 0.5em;
+			&.active {
+				.value {
+					color:green;
+				}
+			}
+			&.total {
+				.value {
+					color:yellow;
+				}
+			}
+		}
+	}
 }
 #panes {
 	position:relative;
@@ -232,7 +270,24 @@ $supportbar-width: 300px;
 
 }
 
+$room-specific-height: 30px;
+.channel {
+	height:100%;
+	width:100%;
+	padding-top: $room-specific-height;
 
+}
+
+.room-specific {
+	height: $room-specific-height;
+	padding:0 1em;
+	position: absolute;
+	top: 0;
+	.room-name {
+		font-style: italic;
+		color:#888;
+	}
+}
 .chatlog {
 	overflow:hidden;
 	max-height:100%;
@@ -292,29 +347,6 @@ $supportbar-width: 300px;
 		width:100%;
 		height:auto;
 		border-radius:5px;
-	}
-}
-.header {
-	position:relative;
-}
-.header {
-	span.options {
-		position: absolute;
-		top: 0;
-		right: 0;
-		padding-right: 1em;
-		font-style: italic;
-		cursor:pointer;
-		font-size:0.78em;
-	}
-	div.options {
-		font-size:0.7em;
-		display:none;
-		margin-top:-1em;
-		margin-bottom:1em;
-		.option {
-			display:inline-block;
-		}
 	}
 }
 body {
