@@ -175,14 +175,13 @@ sio.sockets.on('connection', function (socket) {
 		// global topic:
 		redisC.hget('topic', room, function (err, res){
 			socket.emit('topic', serverSentMessage({
-				body: "Topic: " + res,
+				body: res,
 				log: false,
 			}, room));
 		});
 		
-
-
 		socket.emit("chat:your_cid", {
+			room: room,
 			cID: clientID
 		});
 

@@ -233,8 +233,7 @@ function ChatLog (options) {
 		},
 
 		setTopic: function (msg) {
-			console.log(msg);
-			$(".channel-topic", this.$el).html(msg.body);
+			$(".channel-topic .value", this.$el).html(msg.body);
 		}
 	});
 

@@ -44,6 +44,13 @@
 				</div>
 			</div>
 		</div>
+		<div class="channel-selector">
+			<div class="channels"></div>
+			<div class="join-channel">
+				<button id="joinChannel" class="channelBtn">+ join channel</button>
+				<input id="channelName" placeholder="Type your channel name" />
+			</div>
+		</div>
 	</header>
 	<section id="main">
 		<section id="panes">
@@ -131,10 +138,10 @@
 		<script id="chatareaTemplate" type="text/template" class="template">
 			<div class="room-specific">
 				<span class="channel-name">
-					Channel <span class="room-name"><%- roomName %></span>
-				<span>
+					<span class="room-name"><%- roomName %></span>
+				</span>
 				<span class="channel-topic">
-
+					Topic: <span class="value">...</span>
 				</span>
 			</div>
 			<div class="chatlog">

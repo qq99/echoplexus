@@ -125,17 +125,60 @@ $(document).ready(function () {
 	// 	chatClient.me.active();
 	// });
 
-	// var socket = io.connect(window.location.origin);
-
+	io.connect(window.location.origin);
 
 	var chatView = new ChatClient({
 		namespace: "/chat"
 	});
 
-	var defaultChat = new chatView();
+	var chatPanes = new ChatPanes();
+
+	var defaultChat = new chatView({
+		room: window.location.pathname
+	});
+	var testPane = new chatView({
+		room: "test"
+	});
 
 	$("#chatting").append(defaultChat.$el);
+	$("#chatting").append(testPane.$el);
 
+
+	chatPanes.add(window.location.pathname, defaultChat);
+
+	function ChatPanes () {
+		var panes = {};
+		return {
+			add: function (name, view) {
+				if (typeof panes[name] === undefined) {
+					panes[name] = view;
+				} else {
+					// let user know he's already in that channel
+				}
+			},
+			delete: function (name) {
+
+			}
+		}
+	}
+
+
+	$("header .channel-selector .channels").append("<buttton class='active channelBtn closable'>" + window.location.pathname + "</button>");
+
+	$("#joinChannel").click(function () {
+		var $input = $(this).siblings("input");
+		if ($input.is(":visible")) {
+			$input.fadeOut();
+		} else {
+			$input.fadeIn();
+		}
+	});
+
+	$("input#channelName").on("keydown", function (ev) {
+		if (ev.keyCode === 13) { // enter key
+			//chatPanes.add()
+		}
+	});
 
 	// socket.on('connect', function () {
 

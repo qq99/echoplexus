@@ -3,6 +3,31 @@
 	-moz-box-sizing:border-box;
 	-webkit-box-sizing:border-box;
 }
+@mixin cool-button {
+	resize: none;
+	background:rgba(0,0,0,0.5);
+	outline:none;
+	width:100%;
+	height:100%;
+	max-width:100%;
+	max-height:100%;
+	min-width:100%;
+	min-height:100%;
+	padding:0.25em 2em;
+	border-radius:10em;
+	border:none;
+	box-shadow:inset 2px 2px 1px rgba(0,0,0,0.55),inset -2px -2px 1px -1px rgba(0,0,0,0.3);
+	position:relative;
+	transition:background 0.25s ease-out, color 0.75s ease-out;
+	&:focus {
+		background:rgba(0,0,0,0.30);
+		color:#efefef;
+	}
+	&::-webkit-input-placeholder { color:silver; }
+	&::-moz-placeholder { color:silver; } /* firefox 19+ */
+	&:-ms-input-placeholder { color:silver; } /* ie */
+	&:-moz-placeholder { color:silver; }
+}
 pre {
 	margin:0px;
 	padding:0px;
@@ -19,6 +44,7 @@ html, body {
 	padding:0;
 	text-rendering:optimize-legibility;
 	position:relative;
+	font-size:13px;
 }
 h1 {
 	font-size:1.7em;
@@ -62,6 +88,8 @@ header {
 	height:65px;
 	padding:1em;
 	h1 {
+		font-size:1.3em;
+		vertical-align: top;
 		margin:0px;
 		padding:0px;
 		display:inline-block;
@@ -92,6 +120,56 @@ header {
 			.option {
 				margin:0.25em 0;
 			}
+		}
+	}
+	.channel-selector {
+		> div {
+			display:inline-block;
+		}
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		padding:0 0 0.5em 1em;
+		font-size:0.8em;
+		.channels {
+			.channelBtn {
+				text-transform:none;
+				font-style:italic;
+			}
+		}
+		.channelBtn {
+			transition:all 0.25s ease-in-out;
+			cursor:pointer;
+			border:0;
+			margin:0;
+			padding:0.25em 0.75em;
+			background:#111;
+			text-transform: uppercase;
+			color:#777;
+			border:1px solid #333;
+			font-size:1em;
+			&:hover {
+				background:#111911;
+				color:gold;
+				border:1px solid #444;
+			}
+			&:active {
+				background:#222;
+			}
+			&.active {
+				background:#222;
+				color:#AAA;
+				border:1px solid #444;
+			}
+		}
+		input {
+			display:none;
+			@include cool-button;
+			padding:0.25em 1em;
+			font-size:1em;
+			width:15em;
+			min-width:15em;
+			border: 1px solid transparent;
 		}
 	}
 }
@@ -283,6 +361,9 @@ $room-specific-height: 30px;
 	padding:0 1em;
 	position: absolute;
 	top: 0;
+	.channel-name {
+		display:none;
+	}
 	.room-name {
 		font-style: italic;
 		color:#888;

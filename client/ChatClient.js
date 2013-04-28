@@ -3,13 +3,13 @@ function ChatClient (options) {
 	var ChatClientView = Backbone.View.extend({
 		template: _.template($("#chatpanelTemplate").html()),
 
-		initialize: function () {
+		initialize: function (opts) {
 			var self = this;
 
 			_.bindAll(this);
 
 			this.socket = io.connect(window.location.origin);
-			this.channelName = window.location.pathname;
+			this.channelName = opts.room;
 			this.channel = new ChatChannel({
 				socket: this.socket,
 				room: this.channelName
@@ -33,7 +33,6 @@ function ChatClient (options) {
 			// if there's something in the persistent chatlog, render it:
 			if (!this.persistentLog.empty()) {
 				var entries = this.persistentLog.all();
-				console.log(entries);
 				var renderedEntries = [];
 				for (var i = 0, l = entries.length; i < l; i++) {
 					var entry = this.chatLog.renderChatMessage(entries[i], {
@@ -53,6 +52,7 @@ function ChatClient (options) {
 		listen: function () {
 			var self = this,
 				socket = this.socket;
+			console.log(self.channelName, "listening");
 
 			function prefilter (msg) {
 				if (typeof msg === "undefined") {
@@ -66,7 +66,7 @@ function ChatClient (options) {
 
 			var events = {
 				"connect": function () {
-					console.log("Connected");
+					console.log("Connected", self.channelName);
 					self.me = new Client({ 
 						socketRef: socket
 					});
@@ -78,6 +78,7 @@ function ChatClient (options) {
 					// notifications.enable();
 				},
 				"chat": function (msg) {
+					console.log(self.channelName, msg);
 					switch (msg.class) {
 						case "join":
 							self.channel.userlist.add({
@@ -88,8 +89,6 @@ function ChatClient (options) {
 							self.channel.userlist.kill(msg.clientID);
 							break;
 					}
-
-					console.log(msg);
 
 					// // scan through the message and determine if we need to notify somebody that was mentioned:
 					// if (msg.body.toLowerCase().split(" ").indexOf(this.me.getNick().toLowerCase()) !== -1) {
@@ -142,6 +141,7 @@ function ChatClient (options) {
 				var filteredEventAction = _.wrap(eventAction, function (fn) {
 					var msg = arguments[1];
 					if (!prefilter(msg)) return;
+					console.log("executed for ", self.channelName);
 					fn(msg);
 				});
 
@@ -161,7 +161,7 @@ function ChatClient (options) {
 						self.scrollback.add(userInput);
 						self.me.speak({
 							body: userInput
-						}, window.location.pathname);
+						}, self.channelName);
 						$this.val("");
 						self.scrollback.reset();
 						break;
