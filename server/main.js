@@ -220,6 +220,34 @@ sio.sockets.on('connection', function (socket) {
 			}
 		});
 
+		socket.on('make_public', function (data) {
+			if (prefilter(client,data)) return;
+
+			redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
+				if (err) throw err;
+				if (reply === "true") { // channel is not currently private
+					async.parallel([
+						function (callback) {
+							redisC.hdel("channels:" + room, "isPrivate", callback);
+						}, function (callback) {
+							redisC.hdel("channels:" + room, "salt", callback);
+						}, function (callback) {
+							redisC.hdel("channels:" + room, "password", callback);
+						}
+					], function (err, reply) {
+						if (err) throw err;
+						socket.emit('chat', serverSentMessage({
+							body: "This channel is now public."
+						}, room));
+					});
+				} else {
+					socket.emit('chat', serverSentMessage({
+						body: "This channel is already public."
+					}, room));
+				}
+			});
+		});
+
 		socket.on('make_private', function (data) {
 			if (prefilter(client,data)) return;
 
@@ -291,6 +319,7 @@ sio.sockets.on('connection', function (socket) {
 									body: client.get("nick") + " just failed to join the room."
 								}, room));
 							} else { // ident'd
+								client.set("room", room);
 								channel.clients.push(client);
 								// officially join the room on the server:
 								socket.join(room);

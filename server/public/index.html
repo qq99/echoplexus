@@ -44,13 +44,6 @@
 				</div>
 			</div>
 		</div>
-		<div class="channel-selector">
-			<div class="channels"></div>
-			<div class="join-channel">
-				<button id="joinChannel" class="channelBtn">+ join channel</button>
-				<input id="channelName" placeholder="Type your channel name" />
-			</div>
-		</div>
 	</header>
 	<section id="main">
 		<section id="panes">
@@ -174,6 +167,21 @@
 				</div>
 			</div>
 		</script>
+		<script id="channelSelectorTemplate" type="text/template" class="template">
+			<div class="channel-selector">
+				<div class="channels">
+				<% _.each(channels, function (name) { %>
+					<button data-channel='<%- name %>' class='channelBtn closable'>
+						<%- name %>
+					</button>
+				<% }); %>
+				</div>
+				<div class="join-channel">
+					<button class="channelBtn join">+ join channel</button>
+					<input class="channelName" placeholder="Type your channel name" />
+				</div>
+			</div>
+		</script>
 		<span id="linklog-options" class="options">options</span>
 		<div id="tooltip">
 			<div class="tooltip">
@@ -197,6 +205,7 @@
 	<script src='client/ui/Scrollback.js' type='text/javascript'></script>
 	<script src='client/ui/ChatLog.js' type='text/javascript'></script>
 	<script src='client/ChatClient.js' type='text/javascript'></script>
+	<script src='client/ui/ChannelSwitcher.js' type='text/javascript'></script>
 	<script src='client/ui.js' type='text/javascript'></script>
 	<!--<script type="text/javascript" src="/yasioc.min.js"></script>-->
 	</div>

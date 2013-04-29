@@ -53,8 +53,7 @@
 			nick: "Anonymous",
 			identified: false,
 			idle: false,
-			isServer: false,
-			room: "/"
+			isServer: false
 		},
 		initialize: function () {
 			this.set("color", new exports.ColorModel());
@@ -90,6 +89,12 @@
 				msg.body = msg.body.replace(REGEXES.commands.private, "").trim();
 				socket.emit('make_private', {
 					password: msg.body,
+					room: room
+				});
+				return;
+			} else if (msg.body.match(REGEXES.commands.public)) {  // /public
+				msg.body = msg.body.replace(REGEXES.commands.public, "").trim();
+				socket.emit('make_public', {
 					room: room
 				});
 				return;

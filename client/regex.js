@@ -13,6 +13,7 @@
 			topic: /^\/topic/,
 			failed_command: /^\//,
 			private: /^\/private/,
+			public: /^\/public/,
 			password: /^\/password/
 		},
 		phantomjs: {

@@ -125,68 +125,19 @@ $(document).ready(function () {
 
 	io.connect(window.location.origin);
 
-	var chatView = new ChatClient({
-		namespace: "/chat"
-	});
+	var channelSwitcherView = new ChannelSwitcher();
+	var channelSwitcher = new channelSwitcherView();
+	$("header").append(channelSwitcher.$el);
 
-	var chatPanes = new ChatPanes();
+	// var chatView = new ChatChannel({
+	// 	namespace: "/chat"
+	// });
 
-	var defaultChat = new chatView({
-		room: window.location.pathname
-	});
-	var testPane = new chatView({
-		room: "/testing"
-	});
+	// var defaultChat = new chatView({
+	// 	room: window.location.pathname
+	// });
 
-	$("#chatting").append(defaultChat.$el);
-	$("#chatting").append(testPane.$el.addClass("inactive"));
-
-	$("header .channel-selector .channels")
-		.append("<buttton data-channel='/' class='active channelBtn closable'>" + window.location.pathname + "</button>")
-		.append("<buttton data-channel='/testing' class='channelBtn closable'>" + "/testing" + "</button>");
-
-
-	chatPanes.add(window.location.pathname, defaultChat);
-
-	function ChatPanes () {
-		var panes = {};
-		return {
-			add: function (name, view) {
-				if (typeof panes[name] === undefined) {
-					panes[name] = view;
-				} else {
-					// let user know he's already in that channel
-				}
-			},
-			delete: function (name) {
-
-			}
-		}
-	}
-
-	$("#joinChannel").click(function () {
-		var $input = $(this).siblings("input");
-		if ($input.is(":visible")) {
-			$input.fadeOut();
-		} else {
-			$input.fadeIn();
-		}
-	});
-
-	$("input#channelName").on("keydown", function (ev) {
-		if (ev.keyCode === 13) { // enter key
-			//chatPanes.add()
-		}
-	});
-
-	$(".channel-selector").on("click", ".channels .channelBtn", function () {
-		var channel = $(this).data("channel");
-		$(this).siblings().removeClass("active");
-		$(this).addClass("active");
-		$(".chatChannel").fadeOut(function () {
-			$(".chatChannel[data-channel='"+ channel +"']").fadeIn();
-		});
-	});
+	// $("#chatting").append(defaultChat.$el);
 
 	// socket.on('connect', function () {
 

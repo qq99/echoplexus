@@ -1,6 +1,6 @@
-function ChatClient (options) {
+function ChatChannel (options) {
 
-	var ChatClientView = Backbone.View.extend({
+	var ChatChannelView = Backbone.View.extend({
 		className: "chatChannel",
 		template: _.template($("#chatpanelTemplate").html()),
 
@@ -26,6 +26,11 @@ function ChatClient (options) {
 			this.listen();
 			this.render();
 			this.attachEvents();
+
+			// initialize the channel
+			this.socket.emit("subscribe", {
+				room: self.channelName
+			});
 
 			// if there's something in the persistent chatlog, render it:
 			if (!this.persistentLog.empty()) {
@@ -71,10 +76,6 @@ function ChatClient (options) {
 					if ($.cookie("nickname")) {
 						self.me.setNick($.cookie("nickname"));
 					}
-					// initialize the channel
-					socket.emit("subscribe", {
-						room: self.channelName
-					});
 					
 					// this.me.active(); // fix up
 
@@ -205,5 +206,5 @@ function ChatClient (options) {
 		}
 	});
 
-	return ChatClientView;
+	return ChatChannelView;
 }
