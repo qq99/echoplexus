@@ -297,11 +297,13 @@ $(document).ready(function () {
 	});
 
 	$("#syncButton").on("click", function (ev) {
-		var missed = log.getMissingIDs(10);
+		// var missed = log.getMissingIDs(10);
+		// var missed = [0,1,2];
 		if (missed.length) {
-			socket.emit("chat:history_request", {
-				requestRange: missed
-			});
+			// defaultChat.socket.emit("chat:history_request", {
+			// 	requestRange: missed,
+			// 	room: "/"
+			// });
 		}
 	});
 

@@ -9,6 +9,7 @@ var express = require('express'),
 	redisC = redis.createClient(),
 	server = require('http').createServer(app),
 	spawn = require('child_process').spawn,
+	async = require('async'),
 	PUBLIC_FOLDER = __dirname + '/public',
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox';
 
@@ -131,6 +132,7 @@ function userJoined (client, room) {
 		cid: client.cid,
 		class: "join"
 	}, room));
+	publishUserList(room);
 }
 function userLeft (client, room) {
 	sio.sockets.in(room).emit('chat', serverSentMessage({
@@ -147,51 +149,81 @@ function Channel (name) {
 }
 var channels = {};
 
+function subscribeSuccess (socket, client, room) {
+	// let the newly connected client know the ID of the latest logged message
+	redisC.hget("channels:currentMessageID", room, function (err, reply) {
+		if (err) throw err;
+		socket.emit('chat:currentID', {
+			ID: reply,
+			room: room
+		});
+	});
+	// global topic:
+	redisC.hget('topic', room, function (err, reply){
+		if (client.get("room") !== room) return;
+		socket.emit('topic', serverSentMessage({
+			body: reply,
+			log: false,
+		}, room));
+	});
+	// tell everyone about the new client in the room
+	userJoined(client, room);
+	// let them know their cid
+	socket.emit("chat:your_cid", {
+		room: room,
+		cid: client.cid
+	});
+}
+
 sio.sockets.on('connection', function (socket) {
 	console.log("connection");
 	socket.leave("\"\"");
 	socket.on("subscribe", function (data) {
-		console.log("subscribed", data.room);
-		var room = data.room;
-		var channel = channels[room];
-		if (typeof channel === "undefined") { // start a new channel if it doesn't exist
-			channel = new Channel(room);
-			channels[room] = channel;
+		var room = data.room,
+			client;
+
+		function prefilter (client, data) {
+			return ((client.get("room") !== room) ||
+				(data.room !== room));
 		}
 
-		var client = new Client();
-		var clientID = client.cid;
-		channel.clients.push(client);
-
-		socket.join(room);
-		publishUserList(room);
-		userJoined(client, room);
-
-		// let the newly connected client know the ID of the latest logged message
-		redisC.hget("channels:currentMessageID", room, function (err, reply) {
+		// check to see if the room is private:
+		redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
 			if (err) throw err;
-			socket.emit('chat:currentID', {
-				ID: reply,
-				room: room
-			});
+			if (reply === true) { // if it's private
+				console.log("user attempted to join private room");
+				socket.emit('chat', serverSentMessage({
+					body: "This room is private.  Type /password [room password] to join."
+				}, room));
+			} else { // it's public:
+				console.log("subscribed to public room", data.room);
+
+				// get the channel
+				var channel = channels[room];
+				if (typeof channel === "undefined") { // start a new channel if it doesn't exist
+					channel = new Channel(room);
+					channels[room] = channel;
+				}
+
+				// add the new client to our internal list
+				client = new Client({
+					room: room
+				});
+				channel.clients.push(client);
+				// officially join the room on the server:
+				socket.join(room);
+
+				// do the typical post-join stuff
+				subscribeSuccess(socket, client, room);
+			}
 		});
 
-		// global topic:
-		redisC.hget('topic', room, function (err, res){
+		socket.on('join_private', function (data) {
 			if (data.room !== room) return;
-			socket.emit('topic', serverSentMessage({
-				body: res,
-				log: false,
-			}, room));
-		});
-		
-		socket.emit("chat:your_cid", {
-			room: room,
-			cid: clientID
 		});
 
 		socket.on('nickname', function (data) {
-			if (data.room !== room) return;
+			if (prefilter(client, data)) return;
 
 			var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
 				prevName = client.get("nick");
@@ -210,20 +242,20 @@ sio.sockets.on('connection', function (socket) {
 			socket.broadcast.emit('chat', serverSentMessage({
 				body: prevName + " is now known as " + newName,
 				log: false
-			}));
+			}, room));
 			socket.emit('chat', serverSentMessage({
 				body: "You are now known as " + newName,
 				log: false
-			}));
+			}, room));
 			publishUserList(room);
 		});
 
 		socket.on('help', function (data) {
-
+			if (prefilter(client, data)) return;
 		});
 
 		socket.on('topic', function (data) {
-			if (data.room !== room) return;
+			if (prefilter(client, data)) return;
 			redisC.hset('topic', room, data.topic);
 			socket.emit('topic', serverSentMessage({
 				body: data.topic,
@@ -232,7 +264,7 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('chat:history_request', function (data) {
-			if (data.room !== room) return;
+			if (prefilter(client, data)) return;
 
 			console.log("requesting " + data.requestRange);
 			redisC.hmget("chatlog:" + room, data.requestRange, function (err, reply) {
@@ -247,27 +279,27 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('chat:idle', function (data) {
-			if (data.room !== room) return;
+			if (prefilter(client, data)) return;
 
 			client.set("idle", true);
-			data.cID = clientID;
+			data.cID = client.cid;
 			sio.sockets.emit('chat:idle', data);
 		})
 		socket.on('chat:unidle', function (data) {
-			if (data.room !== room) return;
+			if (prefilter(client, data)) return;
 
 			client.set("idle", false);
 			sio.sockets.emit('chat:unidle', {
-				cID: clientID
+				cID: client.cid
 			});
 		});
 
 		socket.on('chat', function (data) {
-			if (data.room !== room) return;
+			if (prefilter(client, data)) return;
 
 			console.log("data", data);
 			if (data.body) {
-				data.cID = clientID;
+				data.cID = client.cid;
 				data.color = client.get("color").toRGB();
 				data.nickname = client.get("nick");
 				data.timestamp = Number(new Date());
@@ -356,7 +388,7 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on("identify", function (data) {
-			if (data.room !== room) return;
+			if (prefilter(client, data)) return;
 			var nick = client.get("nick");
 			try {
 				redisC.sismember("users:" + room, nick, function (err, reply) {
@@ -401,7 +433,7 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('register_nick', function (data) {
-			if (data.room !== room) return;
+			if (prefilter(client, data)) return;
 			var nick = client.get("nick");
 			redisC.sismember("users:" + room, nick, function (err, reply) {
 				if (err) throw err;
@@ -445,8 +477,8 @@ sio.sockets.on('connection', function (socket) {
 		});
 
 		socket.on('disconnect', function () {
-			if (data.room !== room) return;
-			console.log("killing ", clientID);
+			if (prefilter(client, data)) return;
+			console.log("killing ", client.cid);
 
 			// _.each(editors, function (obj) {
 			// 	obj.codeCache.remove(client);
@@ -454,6 +486,7 @@ sio.sockets.on('connection', function (socket) {
 
 			userLeft(client, room);
 
+			var channel = channels[room];
 			channel.clients.remove(client);
 			publishUserList(room);
 
