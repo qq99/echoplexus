@@ -12,6 +12,8 @@
 			identify: /^\/identify/,
 			topic: /^\/topic/,
 			failed_command: /^\//,
+			private: /^\/private/,
+			password: /^\/password/
 		},
 		phantomjs: {
 			delimiter: /!!!/g,

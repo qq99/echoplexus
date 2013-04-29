@@ -187,23 +187,25 @@ sio.sockets.on('connection', function (socket) {
 				(data.room !== room));
 		}
 
+		// get the channel
+		var channel = channels[room];
+		if (typeof channel === "undefined") { // start a new channel if it doesn't exist
+			channel = new Channel(room);
+			channels[room] = channel;
+		}
+
 		// check to see if the room is private:
 		redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
 			if (err) throw err;
-			if (reply === true) { // if it's private
+			if (reply === "true") { // if it's private
 				console.log("user attempted to join private room");
 				socket.emit('chat', serverSentMessage({
-					body: "This room is private.  Type /password [room password] to join."
+					body: "This room is private.  Type /password [room password] to join.",
+					log: false
 				}, room));
+				client = new Client();
 			} else { // it's public:
 				console.log("subscribed to public room", data.room);
-
-				// get the channel
-				var channel = channels[room];
-				if (typeof channel === "undefined") { // start a new channel if it doesn't exist
-					channel = new Channel(room);
-					channels[room] = channel;
-				}
 
 				// add the new client to our internal list
 				client = new Client({
@@ -218,8 +220,92 @@ sio.sockets.on('connection', function (socket) {
 			}
 		});
 
+		socket.on('make_private', function (data) {
+			if (prefilter(client,data)) return;
+
+			redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
+				if (err) throw err;
+				if (!reply) { // channel is not currently private
+					try { // try crypto & persistence
+						crypto.randomBytes(256, function (ex, buf) {
+							if (ex) throw ex;
+							var salt = buf.toString();
+							
+							crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
+								if (err) throw err;
+
+								async.parallel([
+									function (callback) {
+										redisC.hset("channels:" + room, "isPrivate", true, callback);
+									}, function (callback) {
+										redisC.hset("channels:" + room, "salt", salt, callback);
+									}, function (callback) {
+										redisC.hset("channels:" + room, "password", derivedKey.toString(), callback);
+									}
+								], function (err, reply) {
+									if (err) throw err;
+									socket.emit('chat', serverSentMessage({
+										body: "This channel is now private.  Please remember your password."
+									}, room));
+								});
+
+							});
+						});
+					} catch (e) {
+						socket.emit('chat', serverSentMessage({
+							body: "Error in setting the channel to private: " + e
+						}, room));
+					}
+				} else {
+					socket.emit('chat', serverSentMessage({
+						body: "This channel is already private."
+					}, room));
+				}
+			});
+		});
 		socket.on('join_private', function (data) {
 			if (data.room !== room) return;
+			console.log(data);
+
+			redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
+				if (err) throw err;
+				if (reply === "true") { // channel is not currently private
+					console.log(client.get("nick"), "attempting to auth to private room");
+					async.parallel({
+						salt: function (callback) {
+							redisC.hget("channels:" + room, "salt", callback);
+						},
+						password: function (callback) {
+							redisC.hget("channels:" + room, "password", callback);
+						}
+					}, function (err, stored) {
+						if (err) throw err;
+						crypto.pbkdf2(data.password, stored.salt, 4096, 256, function (err, derivedKey) {
+							if (err) throw err;
+
+							if (derivedKey.toString() !== stored.password) { // FAIL
+								socket.emit('chat', serverSentMessage({
+									body: "Wrong password for room"
+								}, room));
+								socket.in(room).broadcast.emit('chat', serverSentMessage({
+									body: client.get("nick") + " just failed to join the room."
+								}, room));
+							} else { // ident'd
+								channel.clients.push(client);
+								// officially join the room on the server:
+								socket.join(room);
+
+								// do the typical post-join stuff
+								subscribeSuccess(socket, client, room);
+							}
+						});
+					});
+				} else {
+					socket.emit('chat', serverSentMessage({
+						body: "This channel isn't private."
+					}, room));
+				}
+			});
 		});
 
 		socket.on('nickname', function (data) {
@@ -397,30 +483,34 @@ sio.sockets.on('connection', function (socket) {
 							body: "There's no registration on file for " + nick
 						}, room));
 					} else {
-						redisC.hget("salts:" + room, nick, function (err, salt) {
+						async.parallel({
+							salt: function (callback) {
+								redisC.hget("salts:" + room, nick, callback);
+							},
+							password: function (callback) {
+								redisC.hget("passwords:" + room, nick, callback);
+							}
+						}, function (err, stored) {
 							if (err) throw err;
-							redisC.hget("passwords:" + room, nick, function (err, expectedHash) {
+							crypto.pbkdf2(data.password, stored.salt, 4096, 256, function (err, derivedKey) {
 								if (err) throw err;
-								crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
-									if (err) throw err;
 
-									if (derivedKey.toString() !== expectedHash) { // FAIL
-										client.set("identified", false);
-										socket.emit('chat', serverSentMessage({
-											body: "Wrong password for " + nick
-										}, room));
-										socket.in(room).broadcast.emit('chat', serverSentMessage({
-											body: nick + " just failed to identify himself"
-										}, room));
-										publishUserList(room);
-									} else { // ident'd
-										client.set("identified", true);
-										socket.emit('chat', serverSentMessage({
-											body: "You are now identified for " + nick
-										}, room));
-										publishUserList(room);
-									}
-								});
+								if (derivedKey.toString() !== stored.password) { // FAIL
+									client.set("identified", false);
+									socket.emit('chat', serverSentMessage({
+										body: "Wrong password for " + nick
+									}, room));
+									socket.in(room).broadcast.emit('chat', serverSentMessage({
+										body: nick + " just failed to identify himself"
+									}, room));
+									publishUserList(room);
+								} else { // ident'd
+									client.set("identified", true);
+									socket.emit('chat', serverSentMessage({
+										body: "You are now identified for " + nick
+									}, room));
+									publishUserList(room);
+								}
 							});
 						});
 					}

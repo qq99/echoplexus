@@ -65,7 +65,7 @@ function ChatClient (options) {
 			var events = {
 				"connect": function () {
 					console.log("Connected", self.channelName);
-					self.me = new Client({ 
+					self.me = new ClientModel({ 
 						socketRef: socket
 					});
 					if ($.cookie("nickname")) {
