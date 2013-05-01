@@ -1,5 +1,5 @@
 GEMS=sass
-GLOBAL_NODE_PACKAGES=nodemon uglify-js
+GLOBAL_NODE_PACKAGES=nodemon uglify-js backbone async
 NODE_PACKAGES=express socket.io underscore crypto redis
 SASS_FILES=sass/combined.scss sass/main.scss sass/monokai.scss
 PUBLIC_DIR=server/public
