@@ -11,13 +11,12 @@ function ChannelSwitcher (options) {
 
 			_.bindAll(this);
 
-			var defaultChat = new this.channelView({
-				room: window.location.pathname
-			});
 			this.channels = {};
-			this.channels[window.location.pathname] = defaultChat;
+			
+			var defaultChannel = window.location.pathname;
 
-			this.render();
+			this.joinChannel(defaultChannel);
+			this.showChannel(defaultChannel);
 
 			this.attachEvents();
 		},
@@ -35,18 +34,16 @@ function ChannelSwitcher (options) {
 
 			this.$el.on("keydown", "input.channelName", function (ev) {
 				if (ev.keyCode === 13) { // enter key
+					var channelName = $(this).val();
 					ev.preventDefault();
-					self.joinChannel($(this).val());
+					self.joinChannel(channelName);
+					self.showChannel(channelName);
 				}
 			});
 
 			this.$el.on("click", ".channels .channelBtn", function (ev) {
 				var channel = $(this).data("channel");
-				$(this).siblings().removeClass("active");
-				$(this).addClass("active");
-				$(".chatChannel").hide()
-				$(".chatChannel[data-channel='"+ channel +"']").show();
-				self.channels[channel].chatLog.scrollToLatest();
+				self.showChannel(channel);
 			});
 
 			this.$el.on("click", ".close", function (ev) {
@@ -61,6 +58,15 @@ function ChannelSwitcher (options) {
 				$chatButton.remove();
 			});
 		},
+
+		showChannel: function (channelName) {
+			$(".channels .channelBtn", this.$el).removeClass("active");
+			$(".channels .channelBtn[data-channel='"+ channelName + "']", this.$el).addClass("active");
+			$(".chatChannel").hide();
+			$(".chatChannel[data-channel='"+ channelName +"']").show();
+			this.channels[channelName].chatLog.scrollToLatest();
+		},
+
 		joinChannel: function (channelName) {
 			var channel = this.channels[channelName];
 			console.log("creating view for", channelName);
@@ -70,7 +76,7 @@ function ChannelSwitcher (options) {
 				});
 				this.channels[channelName].$el.hide(); // don't show by default
 			}
-			this.render();
+			this.render(); // re-render the channel switcher
 		},
 		render: function () {
 			var channelNames = _.sortBy(_.keys(this.channels), function (key) {
