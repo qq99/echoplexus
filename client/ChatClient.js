@@ -46,6 +46,17 @@ function ChatChannel (options) {
 			}
 		},
 
+		kill: function () {
+			var self = this;
+
+			_.each(this.socketEvents, function (method, key) {
+				self.socket.removeListener(key, method);
+			});
+			this.socket.emit("unsubscribe", {
+				room: this.channelName
+			});
+		},
+
 		render: function () {
 			this.$el.html(this.template());
 			$(".chatarea", this.$el).html(this.chatLog.$el);
@@ -67,7 +78,7 @@ function ChatChannel (options) {
 				return (msg.room === self.channelName);
 			}
 
-			var events = {
+			this.socketEvents = {
 				"connect": function () {
 					console.log("Connected", self.channelName);
 					self.me = new ClientModel({ 
@@ -139,7 +150,7 @@ function ChatChannel (options) {
 				}
 			};
 
-			_.each(_.pairs(events), function (pair) {
+			_.each(_.pairs(this.socketEvents), function (pair) {
 				var eventName = pair[0];
 				var eventAction = pair[1];
 

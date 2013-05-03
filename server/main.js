@@ -176,7 +176,7 @@ function subscribeSuccess (socket, client, room) {
 }
 
 sio.sockets.on('connection', function (socket) {
-	console.log("connection");
+	console.log("client connected");
 	socket.leave("\"\"");
 	socket.on("subscribe", function (data) {
 		var room = data.room,
@@ -293,7 +293,6 @@ sio.sockets.on('connection', function (socket) {
 		});
 		socket.on('join_private', function (data) {
 			if (data.room !== room) return;
-			console.log(data);
 
 			redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
 				if (err) throw err;
@@ -412,7 +411,6 @@ sio.sockets.on('connection', function (socket) {
 		socket.on('chat', function (data) {
 			if (prefilter(client, data)) return;
 
-			console.log("data", data);
 			if (data.body) {
 				data.cID = client.cid;
 				data.color = client.get("color").toRGB();
@@ -595,6 +593,21 @@ sio.sockets.on('connection', function (socket) {
 			});
 		});
 
+		socket.on('unsubscribe', function () {
+			if (prefilter(client, data)) return;
+			console.log("unsub'ing ", client.cid);
+
+			// _.each(editors, function (obj) {
+			// 	obj.codeCache.remove(client);
+			// })
+			socket.leave(room);
+			userLeft(client, room);
+
+			var channel = channels[room];
+			channel.clients.remove(client);
+			publishUserList(room);
+		});
+
 		socket.on('disconnect', function () {
 			if (prefilter(client, data)) return;
 			console.log("killing ", client.cid);
@@ -607,6 +620,7 @@ sio.sockets.on('connection', function (socket) {
 
 			var channel = channels[room];
 			channel.clients.remove(client);
+
 			publishUserList(room);
 
 		});

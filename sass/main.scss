@@ -149,6 +149,8 @@ header {
 			color:#777;
 			border:1px solid #333;
 			font-size:1em;
+			padding-right:3em;
+			position:relative;
 			&:hover {
 				background:#111911;
 				color:gold;
@@ -161,6 +163,29 @@ header {
 				background:#222;
 				color:#AAA;
 				border:1px solid #444;
+			}
+			.close {
+				transition:all 0.25s ease-in-out;
+				height:100%;
+				width:2em;
+				font-size:0.8em;
+				font-style:normal;
+				background:rgba(0,0,0,0.55);
+				display:block;
+				position: absolute;
+				top: 0;
+				right: 0;
+				vertical-align: middle;
+				font-family: sans-serif;
+				color:white;
+				line-height: 225%;
+				border-left:1px solid #222;
+				&:hover {
+					background:rgba(255,255,255,0.15);
+				}
+			}
+			&.join {
+				padding:0.25em 0.75em;
 			}
 		}
 		input {

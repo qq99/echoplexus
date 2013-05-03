@@ -35,16 +35,30 @@ function ChannelSwitcher (options) {
 
 			this.$el.on("keydown", "input.channelName", function (ev) {
 				if (ev.keyCode === 13) { // enter key
+					ev.preventDefault();
 					self.joinChannel($(this).val());
 				}
 			});
 
-			this.$el.on("click", ".channels .channelBtn", function () {
+			this.$el.on("click", ".channels .channelBtn", function (ev) {
 				var channel = $(this).data("channel");
 				$(this).siblings().removeClass("active");
 				$(this).addClass("active");
 				$(".chatChannel").hide()
 				$(".chatChannel[data-channel='"+ channel +"']").show();
+				self.channels[channel].chatLog.scrollToLatest();
+			});
+
+			this.$el.on("click", ".close", function (ev) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				var $chatButton = $(this).parents(".channelBtn");
+				var channel = $chatButton.data("channel");
+				var channelView = self.channels[channel];
+				channelView.kill();
+				channelView.$el.remove();
+				delete self.channels[channel];
+				$chatButton.remove();
 			});
 		},
 		joinChannel: function (channelName) {
@@ -54,20 +68,25 @@ function ChannelSwitcher (options) {
 				this.channels[channelName] = new this.channelView({
 					room: channelName
 				});
+				this.channels[channelName].$el.hide(); // don't show by default
 			}
 			this.render();
 		},
 		render: function () {
-			var channelNames = _.keys(this.channels);
+			var channelNames = _.sortBy(_.keys(this.channels), function (key) {
+				return key;
+			});
 
 			this.$el.html(this.template({
 				channels: channelNames
 			}));
 
 			// clear out old pane:
-			$("#chatting").html("");
 			_.each(this.channels, function (channelView) {
-				$("#chatting").append(channelView.$el);
+				var channelName = channelView.channelName;
+				if (!$(".chatChannel[data-channel='"+ channelName +"']").length) {
+					$("#chatting").append(channelView.$el);
+				}
 			});
 		}
 	});
