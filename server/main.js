@@ -85,13 +85,7 @@ function CodeCache (namespace) {
 var clients = new Clients();
 // var codeCache = new CodeCache();
 
-var editorNamespaces = ["js", "html"];
-var editors = _.map(editorNamespaces, function (n) {
-	return {
-		namespace: n,
-		codeCache: new CodeCache(n)
-	};
-});
+
 
 // SocketIO:
 sio = sio.listen(server);
@@ -108,11 +102,7 @@ function serverSentMessage (msg, room) {
 	});
 }
 
-_.each(editors, function (obj) {
-	var codeCache = obj.codeCache;
-	// do once!!
-	setInterval(codeCache.syncFromClient, 1000*30);
-});
+
 
 function publishUserList (room) {
 	if (channels[room] === undefined) {
@@ -624,6 +614,20 @@ sio.sockets.on('connection', function (socket) {
 			publishUserList(room);
 
 		});
+	});
+
+	var editorNamespaces = ["js", "html"];
+	var editors = _.map(editorNamespaces, function (n) {
+		return {
+			namespace: n,
+			codeCache: new CodeCache(n)
+		};
+	});
+
+	_.each(editors, function (obj) {
+		var codeCache = obj.codeCache;
+		// do once!!
+		setInterval(codeCache.syncFromClient, 1000*30);
 	});
 
 	_.each(editors, function (obj) {

@@ -183,6 +183,32 @@
 				</div>
 			</div>
 		</script>
+		<script id="jsCodeReplTemplate" type="text/template" class="template">
+			<div class="codelog">
+				<div class="editor">
+					<div class="explanation">HTML/CSS</div>
+					<div class="textarea_container">
+						<textarea class="htmlEditor" name="html"></textarea>
+					</div>
+				</div>
+				<div class="editor">
+					<div class="explanation">JavaScript</div>
+					<div class="textarea_container">
+						<textarea class="jsEditor" name="code"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="replPANE">
+				<div class="htmlREPL">
+					<h2>HTML</h2>
+					<iframe class="jsIframe" src="/codeframe.html" sandbox="allow-forms allow-scripts allow-same-origin"></iframe>
+				</div>
+				<div class="jsREPL">
+					<h2>Result</h2>
+					<div class="output"></div>
+				</div>
+			</div>
+		</script>
 		<span id="linklog-options" class="options">options</span>
 		<div id="tooltip">
 			<div class="tooltip">
@@ -203,6 +229,8 @@
 	<script src='client/ui/Autocomplete.js' type='text/javascript'></script>
 	<script src='client/ui/Notifications.js' type='text/javascript'></script>
 	<script src='client/ui/Log.js' type='text/javascript'></script>
+	<script src='client/ui/SyncedEditor.js' type='text/javascript'></script>
+	<script src='client/CodeClient.js' type='text/javascript'></script>
 	<script src='client/ui/Scrollback.js' type='text/javascript'></script>
 	<script src='client/ui/ChatLog.js' type='text/javascript'></script>
 	<script src='client/ChatClient.js' type='text/javascript'></script>

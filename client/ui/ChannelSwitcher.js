@@ -65,6 +65,8 @@ function ChannelSwitcher (options) {
 			$(".chatChannel").hide();
 			$(".chatChannel[data-channel='"+ channelName +"']").show();
 			this.channels[channelName].chatLog.scrollToLatest();
+
+			$("textarea", this.$el).focus();
 		},
 
 		joinChannel: function (channelName) {

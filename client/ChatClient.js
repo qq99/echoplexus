@@ -78,7 +78,7 @@ function ChatChannel (options) {
 				return (msg.room === self.channelName);
 			}
 
-			this.socketEvents = {
+			var socketEvents = {
 				"connect": function () {
 					console.log("Connected", self.channelName);
 					self.me = new ClientModel({ 
@@ -150,7 +150,9 @@ function ChatChannel (options) {
 				}
 			};
 
-			_.each(_.pairs(this.socketEvents), function (pair) {
+			this.socketEvents = {};
+
+			_.each(_.pairs(socketEvents), function (pair) {
 				var eventName = pair[0];
 				var eventAction = pair[1];
 
@@ -162,6 +164,7 @@ function ChatChannel (options) {
 				});
 
 				socket.on(eventName, filteredEventAction);
+				self.socketEvents[eventName] = filteredEventAction;
 			});
 
 		},

@@ -1,5 +1,6 @@
 $(document).ready(function () {
 	
+	// tooltip stuff:s
 	$("body").on("mouseenter", ".tooltip-target", function(ev) {
 		var title = $(this).data("tooltip-title");
 		var body = $(this).data("tooltip-body");
@@ -87,31 +88,6 @@ $(document).ready(function () {
 	window.notifications = new Notifications();
 	window.uniqueImages = {};
 
-	var editors = [];
-	var jsEditor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
-		lineNumbers: true,
-		mode: "text/javascript",
-		theme: "monokai",
-		matchBrackets: true,
-		highlightActiveLine: true,
-		continueComments: "Enter"
-	});
-	var htmlEditor = CodeMirror.fromTextArea(document.getElementById("htmlEditor"), {
-		lineNumbers: true,
-		mode: "text/html",
-		theme: "monokai"
-	});
-
-	editors.push({
-		namespace: "js",
-		editor: jsEditor
-	}, {
-		namespace: "html",
-		editor: htmlEditor
-	});
-
-
-
 	// $(window).on("blur", function () {
 	// 	$("body").addClass("blurred");
 	// }).on("focus", function () {
@@ -129,14 +105,6 @@ $(document).ready(function () {
 	var channelSwitcher = new channelSwitcherView();
 	$("header").append(channelSwitcher.$el);
 
-	// var chatView = new ChatChannel({
-	// 	namespace: "/chat"
-	// });
-
-	// var defaultChat = new chatView({
-	// 	room: window.location.pathname
-	// });
-
 	// $("#chatting").append(defaultChat.$el);
 
 	// socket.on('connect', function () {
@@ -151,46 +119,7 @@ $(document).ready(function () {
 		// 	}
 		// }
 
-		// _.each(editors, function (obj) {
-		// 	var editor = obj.editor;
-		// 	var namespace = obj.namespace.toString();
 
-		// 	socket.on(namespace + ":code:change", function (change) {
-		// 		applyChanges(editor, change);
-		// 	});
-
-		// 	socket.on(namespace + ":code:request", function () {
-		// 		socket.emit("code:full_transcript", {
-		// 			code: editor.getValue()
-		// 		});
-		// 	});
-		// 	socket.on(namespace + ":code:sync", function (data) {
-		// 		if (editor.getValue() !== data.code) {
-		// 			editor.setValue(data.code);
-		// 		}
-		// 	});
-
-		// 	socket.on(namespace + ":code:authoritative_push", function (data) {
-		// 		editor.setValue(data.start);
-		// 		for (var i = 0; i < data.ops.length; i ++) {
-		// 			applyChanges(editor, data.ops[i]);
-		// 		}
-		// 	});
-
-		// 	socket.on(namespace + ":code:cursorActivity", function (data) {
-		// 		var pos = editor.charCoords(data.cursor);
-		// 		var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']");
-		// 		if (!$ghostCursor.length) {
-		// 			$ghostCursor = ("<div class='ghost-cursor' rel=" + data.id +"></div>");
-		// 			$("body").append($ghostCursor);
-		// 		}
-		// 		$ghostCursor.css({
-		// 			background: clients.get(data.id).getColor().toRGB(),
-		// 			top: pos.top,
-		// 			left: pos.left
-		// 		});
-		// 	});
-		// });
 
 
 
@@ -215,24 +144,15 @@ $(document).ready(function () {
 		$(this).siblings("div.options").toggle();
 	});
 
-	$("#chatinput textarea").focus();
-
 	$(window).on("click", function () {
 		notifications.request();
 	});
-
-
 
 	$("#codeButton").on("click", function (ev) {
 		ev.preventDefault();
 		if ($("#coding:visible").length === 0) {
 			$("#chatting").fadeOut();
-			$("#coding").fadeIn(function () {
-				_.each(editors, function (obj) {
-					obj.editor.refresh();
-				});
-				$(".ghost-cursor").show();
-			});
+			$("#coding").fadeIn();
 		}
 	});
 
@@ -240,10 +160,7 @@ $(document).ready(function () {
 		ev.preventDefault();
 		if ($("#chatting:visible").length === 0) {
 			$("#coding").fadeOut();
-			$("#chatting").fadeIn(function () {
-				chat.scroll();
-				$(".ghost-cursor").hide();
-			});
+			$("#chatting").fadeIn();
 		}
 	});
 
@@ -264,68 +181,5 @@ $(document).ready(function () {
 	});
 
 
-
-
-
-	_.each(editors, function (obj) {
-		var editor = obj.editor;
-		var namespace = obj.namespace;
-		
-		editor.on("change", function (instance, change) {
-			if (change.origin !== undefined && change.origin !== "setValue") {
-				socket.emit(namespace + ":code:change", change);
-			}
-			updateJsEval();
-		});
-		editor.on("cursorActivity", function (instance) {
-			socket.emit(namespace + ":code:cursorActivity", {
-				cursor: instance.getCursor()
-			});
-		});
-	});
-	
-
-	var iframe = document.getElementById("repl-frame").contentWindow;
-
-	var updateJsEval = _.debounce(function () {
-		values = {};
-		_.each(editors, function (obj) {
-			values[obj.namespace] = obj.editor.getValue();
-		});
-		var html = values["html"];
-		var script = values["js"];
-		var wrapped_script = "(function(){ "; // execute in a closure
-		wrapped_script+= "return (function(window,$,_,alert,undefined) {"; // don't allow user to override things
-		wrapped_script+= script;
-		wrapped_script+= "})(window,$,_, function () { return arguments; });";
-		wrapped_script +="})();";
-
-		// first update the iframe from the HTML:
-		var iframe = document.getElementById("repl-frame").contentDocument;
-		iframe.open();
-		iframe.write(html);
-		iframe.close();
-		// then execute the JS:
-		if (script !== "") {
-			var result;
-			try {
-				result = document.getElementById("repl-frame").contentWindow.eval(wrapped_script);
-				if (_.isObject(result)) {
-					result = JSON.stringify(result);
-				} 
-				else if (result === undefined) {
-					result = "undefined";
-				}
-				else {
-					result = result.toString();
-				}
-			} catch (e) {
-				result = e.toString();
-			}
-			$("#result_pane .output").text(result);
-		} else {
-			$("#result_pane .output").text("");
-		}
-	}, 500);
 
 });

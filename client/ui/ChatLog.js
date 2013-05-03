@@ -33,12 +33,19 @@ function ChatLog (options) {
         	this.room = options.room;
 
         	this.render();
+        	this.attachEvents();
         },
 
         render: function () {
         	this.$el.html(this.template({
         		roomName: this.room
         	}));
+        },
+
+        attachEvents: function () {
+			this.$el.on("hover", ".chatMessage", function (ev) {
+				$(this).attr("title", "sent " + moment($(".time", this).data("timestamp")).fromNow());
+			});
         },
 
         scrollToLatest: function () {
