@@ -7,8 +7,8 @@ BUILD_DIR=build
 SANDBOX_USERNAME=sandbox
 
 #  !! order is important in the client libs !!
-LIBS=client/lib/underscore-min.js client/lib/jquery.min.js client/lib/jquery.cookie.js client/lib/moment.min.js
-CLIENT_JS=client/lib/codemirror-3.11/lib/codemirror.js client/lib/codemirror-3.11/mode/javascript/javascript.js client/lib/codemirror-3.11/mode/xml/xml.js client/lib/codemirror-3.11/mode/css/css.js client/lib/codemirror-3.11/mode/htmlmixed/htmlmixed.js client/client.js client/regex.js client/ui/Autocomplete.js client/ui/Notifications.js client/ui/Log.js client/ui/Scrollback.js client/ui/Chat.js client/ChatChannel.js client/ChatClient.js client/ui.js
+LIBS=client/lib/underscore-min.js client/lib/jquery.min.js client/lib/jquery.cookie.js client/lib/moment.min.js client/lib/backbone/backbone.js
+CLIENT_JS=client/lib/codemirror-3.11/lib/codemirror.js client/lib/codemirror-3.11/mode/javascript/javascript.js client/lib/codemirror-3.11/mode/xml/xml.js client/lib/codemirror-3.11/mode/css/css.js client/lib/codemirror-3.11/mode/htmlmixed/htmlmixed.js client/client.js client/regex.js client/ui/Autocomplete.js client/ui/Notifications.js client/ui/Log.js client/ui/Scrollback.js client/ui/SyncedEditor.js client/ui/ChatLog.js client/ChatClient.js client/CodeClient.js client/ui/ChannelSwitcher.js client/ui.js
 
 
 .PHONY: server install_packages assets clean
@@ -32,7 +32,7 @@ install_packages:
 .js: $(CLIENT_JS)
 	mkdir -p $(BUILD_DIR)
 	cat $(CLIENT_JS) > $(BUILD_DIR)/yasioc.js
-	uglifyjs $(BUILD_DIR)/yasioc.js > $(BUILD_DIR)/yasioc.min.js
+	uglifyjs --compress --define DEBUG=false $(BUILD_DIR)/yasioc.js > $(BUILD_DIR)/yasioc.min.js
 	cp $(BUILD_DIR)/yasioc.min.js $(PUBLIC_DIR)/yasioc.min.js
 	touch .js
 
