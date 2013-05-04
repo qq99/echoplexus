@@ -6,17 +6,24 @@ function ChannelSwitcher (options) {
 		channelView: new ChatChannel({
 			namespace: "/chat"
 		}),
+		codeView: new CodeClient({
+			namespace: "/code",
+			type: "htmljs"
+		}),
 		initialize: function () {
 			var self = this;
 
 			_.bindAll(this);
 
 			this.channels = {};
+			this.codeChannels = {};
 			
 			var defaultChannel = window.location.pathname;
 
 			this.joinChannel(defaultChannel);
+			// this.joinCodeChannel(defaultChannel);
 			this.showChannel(defaultChannel);
+			// this.showCodeChannel(defaultChannel);
 
 			this.attachEvents();
 		},
@@ -67,8 +74,25 @@ function ChannelSwitcher (options) {
 			this.channels[channelName].chatLog.scrollToLatest();
 
 			$("textarea", this.$el).focus();
+
+			// also show the code portion
+			this.showCodeChannel(channelName);
+		},
+		showCodeChannel: function (channelName) {
+			$(".codeClient").hide();
+			$(".codeClient[data-channel='"+ channelName +"']").show();
 		},
 
+		joinCodeChannel: function (channelName) {
+			var channel = this.codeChannels[channelName];
+			console.log("creating code view for", channelName);
+			if (typeof channel === "undefined") {
+				this.codeChannels[channelName] = new this.codeView({
+					room: channelName
+				});
+				this.codeChannels[channelName].$el.hide(); // don't show by default
+			}
+		},
 		joinChannel: function (channelName) {
 			var channel = this.channels[channelName];
 			console.log("creating view for", channelName);
@@ -78,6 +102,9 @@ function ChannelSwitcher (options) {
 				});
 				this.channels[channelName].$el.hide(); // don't show by default
 			}
+
+			// also join the code portion
+			this.joinCodeChannel(channelName);
 			this.render(); // re-render the channel switcher
 		},
 		render: function () {
@@ -94,6 +121,12 @@ function ChannelSwitcher (options) {
 				var channelName = channelView.channelName;
 				if (!$(".chatChannel[data-channel='"+ channelName +"']").length) {
 					$("#chatting").append(channelView.$el);
+				}
+			});
+			_.each(this.codeChannels, function (channelView) {
+				var channelName = channelView.channelName;
+				if (!$(".codeClient[data-channel='"+ channelName +"']").length) {
+					$("#coding").append(channelView.$el);
 				}
 			});
 		}

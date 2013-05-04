@@ -13,62 +13,70 @@ function SyncedEditor () {
 
 			this.editor = opts.editor;
 			this.channelName = opts.room;
-			this.socket = io.connect(window.location.origin);
+			this.subchannelName = opts.subchannel;
+			this.channelKey = this.channelName + ":" + this.subchannelName;
+			this.socket = io.connect("/code");
 
 			this.listen();
 			this.attachEvents();
+
+			// initialize the channel
+			this.socket.emit("subscribe", {
+				room: this.channelName,
+				subchannel: this.subchannelName
+			});
 		},
 
 		attachEvents: function () {
-			_.each(editors, function (obj) {
-				var editor = obj.editor;
-				var namespace = obj.namespace;
+			var self = this,
+				socket = this.socket;
 				
-				editor.on("change", function (instance, change) {
-					if (change.origin !== undefined && change.origin !== "setValue") {
-						socket.emit(namespace + ":code:change", change);
-					}
-					updateJsEval();
-				});
-				editor.on("cursorActivity", function (instance) {
-					socket.emit(namespace + ":code:cursorActivity", {
-						cursor: instance.getCursor()
-					});
+			this.editor.on("change", function (instance, change) {
+				if (change.origin !== undefined && change.origin !== "setValue") {
+					socket.emit("code:change:" + self.channelKey, change);
+				}
+				self.trigger("eval");
+			});
+			this.editor.on("cursorActivity", function (instance) {
+				socket.emit("code:cursorActivity:" + self.channelKey, {
+					cursor: instance.getCursor()
 				});
 			});
 		},
 
 		listen: function () {
-			var self = this;
+			var self = this,
+				editor = this.editor,
+				socket = this.socket;
 
 			this.socketEvents = {
 				"code:change": function (change) {
 					// received a change from another client, update our view
-					applyChanges(change);
+					self.applyChanges(change);
 				},
 				"code:request": function () {
 					// received a transcript request from server, it thinks we're authority
 					// send a copy of the entirety of our code
-					self.socket.emit("code:full_transcript", {
+					socket.emit("code:full_transcript:" + self.channelKey, {
 						code: editor.getValue()
 					});
 				},
 				"code:sync": function (data) {
 					// hard reset / overwrite our code with the value from the server
-					if (self.editor.getValue() !== data.code) {
-						self.editor.setValue(data.code);
+					if (editor.getValue() !== data.code) {
+						editor.setValue(data.code);
 					}
 				},
 				"code:authoritative_push": function (data) {
 					// received a batch of changes and a starting value to apply those changes to
-					self.editor.setValue(data.start);
+					editor.setValue(data.start);
 					for (var i = 0; i < data.ops.length; i ++) {
-						applyChanges(data.ops[i]);
+						self.applyChanges(data.ops[i]);
 					}
 				},
 				"code:cursorActivity": function (data) {
 					// show the other users' cursors in our view
-					var pos = self.editor.charCoords(data.cursor); // their position
+					var pos = editor.charCoords(data.cursor); // their position
 
 					// try to find an existing ghost cursor:
 					var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']", this.$el);
@@ -82,18 +90,20 @@ function SyncedEditor () {
 					// if view.is.active { show cursor } else { hide }
 
 					$ghostCursor.css({
-						background: clients.get(data.id).getColor().toRGB(),
+						background: Color().toRGB(),
 						top: pos.top,
 						left: pos.left
 					});
 				}
 			};
 
-			// todo: bind on channel
+			_.each(this.socketEvents, function (value, key) {
+				socket.on(key + ":" + self.channelKey, value);
+			});
 		},
 
 		applyChanges: function (change) {
-			var editor = self.editor;
+			var editor = this.editor;
 			
 			editor.replaceRange(change.text, change.from, change.to);
 			while (change.next !== undefined) { // apply all the changes we receive until there are no more

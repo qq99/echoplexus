@@ -10,30 +10,30 @@ function CodeClient (options) {
 
 			_.bindAll(this);
 
-			this.socket = io.connect(window.location.origin);
 			this.channelName = opts.room;
 
 			this.listen();
 			this.render();
-			this.attachEvents();
 
 			// debounce a function for repling
-			this.repl = _.debounce(this._repl, 500);
+			this.doREPL = _.debounce(this._repl, 500);
 
 			this.editors = {
-				"js": this.editorTemplates.SimpleJS($(".jsEditor", this.$el)),
-				"html": this.editorTemplates.SimpleHTML($(".htmlEditor", this.$el))
+				"js": this.editorTemplates.SimpleJS($(".jsEditor", this.$el)[0]),
+				"html": this.editorTemplates.SimpleHTML($(".htmlEditor", this.$el)[0])
 			};
 
 			var syncedEditor = new SyncedEditor();
 			
 
-			var syncedJs = new syncedEditor({
+			this.syncedJs = new syncedEditor({
 				room: this.channelName,
+				subchannel: "js",
 				editor: this.editors["js"]
 			});
-			var syncedHtml = new syncedEditor({
+			this.syncedHtml = new syncedEditor({
 				room: this.channelName,
+				subchannel: "html",
 				editor: this.editors["html"]
 			});
 
@@ -41,7 +41,9 @@ function CodeClient (options) {
 		},
 
 		attachEvents: function () {
-
+			var self = this;
+			this.listenTo(this.syncedJs, "eval", this.doREPL);
+			this.listenTo(this.syncedHtml, "eval", this.doREPL);
 		},
 
 		show: function () {
@@ -60,7 +62,7 @@ function CodeClient (options) {
 				wrapped_script+= "})(window,$,_, function () { return arguments; });";
 				wrapped_script+= "})();";
 
-			if (js !== "") {
+			if (userJs !== "") {
 				var result;
 				try {
 					result = iframe.contentWindow.eval(wrapped_script);
@@ -76,9 +78,9 @@ function CodeClient (options) {
 				} catch (e) {
 					result = e.toString();
 				}
-				$("#result_pane .output").text(result);
+				$(".jsREPL .output", this.$el).text(result);
 			} else {
-				$("#result_pane .output").text("");
+				$(".jsREPL .output", this.$el).text("");
 			}
 
 		},
@@ -98,7 +100,7 @@ function CodeClient (options) {
 
 			var html = this.editors["html"].getValue();
 			var js = this.editors["js"].getValue();
-			
+
 			// do HTML first so it's available to the user JS:
 			this.evaluateHTML(html);
 			this.evaluateJS(js);
