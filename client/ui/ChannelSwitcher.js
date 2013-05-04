@@ -1,3 +1,5 @@
+if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
+
 function ChannelSwitcher (options) {
 	var ChannelSwitcherView = Backbone.View.extend({
 		className: "channelSwitcher",
@@ -57,6 +59,9 @@ function ChannelSwitcher (options) {
 				ev.preventDefault();
 				ev.stopPropagation();
 				var $chatButton = $(this).parents(".channelBtn");
+				var $prevChatButton = $chatButton.prev();
+				$prevChatButton.click(); // toggle the button before it
+
 				var channel = $chatButton.data("channel");
 				var channelView = self.channels[channel];
 				channelView.kill();
@@ -85,7 +90,7 @@ function ChannelSwitcher (options) {
 
 		joinCodeChannel: function (channelName) {
 			var channel = this.codeChannels[channelName];
-			console.log("creating code view for", channelName);
+			DEBUG && console.log("creating code view for", channelName);
 			if (typeof channel === "undefined") {
 				this.codeChannels[channelName] = new this.codeView({
 					room: channelName
@@ -95,7 +100,7 @@ function ChannelSwitcher (options) {
 		},
 		joinChannel: function (channelName) {
 			var channel = this.channels[channelName];
-			console.log("creating view for", channelName);
+			DEBUG && console.log("creating view for", channelName);
 			if (typeof channel === "undefined") {
 				this.channels[channelName] = new this.channelView({
 					room: channelName

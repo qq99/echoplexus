@@ -1,8 +1,10 @@
+if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
+
 // object: a persistent log if local storage is available ELSE noops
 function Log(opts) {
 	"use strict";
 	var latestID = -Infinity,
-		LOG_VERSION = "0.0.1", // update if the server-side changes
+		LOG_VERSION = "0.0.2", // update if the server-side changes
 		log = [], // should always be sorted by timestamp
 		options = {
 			namespace: "default",
@@ -85,7 +87,7 @@ function Log(opts) {
 				}
 				known.unshift(-1); // a default element
 
-				// console.log("we know:", known);
+				DEBUG && console.log("we know:", known);
 
 				// compile a list of message IDs we know nothing about:
 				var holes = [];
@@ -94,12 +96,12 @@ function Log(opts) {
 					for (var j = 1; j < diff; j++) {
 						holes.push(known[i] - j);
 						if (N && (holes.length === N)) { // only get N holes if we were requested to limit ourselves
-							console.log("we don't know:", holes);
+							DEBUG && console.log("we don't know:", holes);
 							return holes;
 						}
 					}
 				}
-				// console.log("we don't know:", holes);
+				DEBUG && console.log("we don't know:", holes);
 				return holes;
 			}
 		};

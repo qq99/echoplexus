@@ -2,6 +2,12 @@ exports.ChatServer = function (sio, redisC) {
 
 	var config = require('./config.js').Configuration,
 		CHATSPACE = "/chat",
+		async = require('async'),
+		spawn = require('child_process').spawn,
+		fs = require('fs'),
+		crypto = require('crypto'),
+		PUBLIC_FOLDER = __dirname + '/public',
+		SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
 		Client = require('../client/client.js').ClientModel,
 		Clients = require('../client/client.js').ClientsCollection,
 		REGEXES = require('../client/regex.js').REGEXES;
@@ -87,7 +93,7 @@ exports.ChatServer = function (sio, redisC) {
 
 
 	var CHAT = sio.of(CHATSPACE).on('connection', function (socket) {
-		socket.on("subscribe", function (data) {
+		socket.on("subscribe", function (data, subscribeAck) {
 			console.log("client connected, leaving default room");
 			socket.leave("\"\"");
 			var room = data.room,
@@ -253,6 +259,7 @@ exports.ChatServer = function (sio, redisC) {
 					});
 				},
 				"chat:idle": function (data) {
+					console.log("found guy idle");
 					client.set("idle", true);
 					data.cID = client.cid;
 					sio.of(CHATSPACE).emit('chat:idle:' + room, data);
@@ -474,6 +481,9 @@ exports.ChatServer = function (sio, redisC) {
 						log: false
 					}, room));
 					client = new Client();
+					subscribeAck({
+						cid: client.cid
+					});
 				} else { // it's public:
 					console.log("subscribed to public room", data.room);
 
@@ -487,6 +497,9 @@ exports.ChatServer = function (sio, redisC) {
 
 					// do the typical post-join stuff
 					subscribeSuccess(socket, client, room);
+					subscribeAck({
+						cid: client.cid
+					});
 				}
 			});
 

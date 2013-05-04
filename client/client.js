@@ -1,3 +1,5 @@
+if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
+
 (function( exports ) {
 	if (typeof require !== "undefined") { // factor out node stuff
 		_ = require('underscore');
@@ -55,35 +57,45 @@
 			idle: false,
 			isServer: false
 		},
-		initialize: function () {
+		toJSON: function() {
+			var json = Backbone.Model.prototype.toJSON.apply(this, arguments);
+  			json.cid = this.cid;
+			return json;
+		},
+		initialize: function (opts) {
 			this.set("color", new exports.ColorModel());
+			if (opts.socket) {
+				this.socket = opts.socket;
+			}
 		},
-		announceIdle: function (reason) {
+		inactive: function (reason, room, socket) {
 			reason = reason || "User idle.";
-			this.socket.emit("chat:idle", {
+			DEBUG && console.log("sending inactive msg", room);
+			socket.emit("chat:idle:" + room, {
 				reason: reason,
-				room: this.room
+				room: room
 			});
+			this.isInactive = true;
 		},
-		announceBack: function () {
-			this.socket.emit("chat:unidle", {
-				room: this.room
-			});
+		active: function (room, socket) {
+			if (this.isInactive) { // only send over wire if we're inactive
+				DEBUG && console.log("sending active msg");
+				socket.emit("chat:unidle:" + room);
+				this.isInactive = false;
+			}
+		},
+		is: function (cid) {
+			return (this.cid === cid);
 		},
 		speak: function (msg, socket) {
 			var body = msg.body,
 				room = msg.room;
 
-			console.log(msg);
-
 			if (!body) return; // if there's no body, we probably don't want to do anything
 			if (body.match(REGEXES.commands.nick)) { // /nick [nickname]
 				body = body.replace(REGEXES.commands.nick, "").trim();
 				this.set("nick", body);
-				socket.emit('nickname:' + room, {
-					nickname: body,
-					room: room
-				});
+				$.cookie("nickname:" + room, body);
 				return;
 			} else if (msg.body.match(REGEXES.commands.private)) {  // /private [password]
 				msg.body = msg.body.replace(REGEXES.commands.private, "").trim();
@@ -133,175 +145,6 @@
 			}
 		}
 	});
-
-	// exports.Client = function (options) {
-	// 	var nick = "Anonymous" || options.nick,
-	// 		color = options.color ? new exports.Color(options.color) : new exports.Color(),
-	// 		id = options.id || null,
-	// 		identified = false,
-	// 		idle = false,
-	// 		idleTimer,
-	// 		socket = options.socketRef,
-	// 		isUser = (options.serverSide) ? false : true, // true iff this is a client with UI
-	// 		lastActivity = new Date();
-
-	// 	function announceIdle(reason) {
-	// 		reason = reason || "User idle.";
-	// 		socket.emit("chat:idle", {
-	// 			reason: reason
-	// 		});
-	// 	}
-	// 	function announceBack() {
-	// 		socket.emit("chat:unidle");
-	// 	}
-
-	// 	return {
-	// 		id: function () {
-	// 			return id;
-	// 		},
-	// 		socket: socket,
-	// 		setID: function(newId) {
-	// 			id = newId;
-	// 		},
-	// 		setNick: function(newNickname) {
-	// 			nick = newNickname;
-
-	// 			if (isUser) {
-	// 				socket.emit("nickname", {
-	// 					nickname: newNickname
-	// 				});
-	// 				$.cookie("nickname", newNickname);
-	// 			}
-	// 		},
-	// 		isIdle: function (setIdle) {
-	// 			if (typeof setIdle !== "undefined") {
-
-	// 			}
-	// 		},
-	// 		setIdle: function () {
-	// 			idle = true;
-	// 		},
-	// 		setActive: function () {
-	// 			idle = false;
-	// 		},
-	// 		is: function (cID) {
-	// 			// console.log(id);
-	// 			return (id === cID);
-	// 		},
-	// 		getColor: function () {
-	// 			return color;
-	// 		},
-	// 		getNick: function() {
-	// 			return nick;
-	// 		},
-	// 		speak: function (msg, channel) {
-	// 			var body = msg.body;
-	// 			msg.room = channel;
-
-	// 			if (!body) return; // if there's no body, we probably don't want to do anything
-	// 			if (body.match(REGEXES.commands.nick)) { // /nick [nickname]
-	// 				body = body.replace(REGEXES.commands.nick, "").trim();
-	// 				session.setNick(body);
-	// 				return;
-	// 			} else if (msg.body.match(REGEXES.commands.register)) {  // /register [password]
-	// 				msg.body = msg.body.replace(REGEXES.commands.register, "").trim();
-	// 				socket.emit('register_nick', {
-	// 					password: msg.body,
-	// 					room: channel
-	// 				});
-	// 				return;
-	// 			} else if (msg.body.match(REGEXES.commands.identify)) { // /identify [password]
-	// 				msg.body = msg.body.replace(REGEXES.commands.identify, "").trim();
-	// 				socket.emit('identify', {
-	// 					password: msg.body,
-	// 					room: channel
-	// 				});
-	// 				return;
-	// 			} else if (msg.body.match(REGEXES.commands.topic)) { // /topic [My channel topic]
-	// 				msg.body = msg.body.replace(REGEXES.commands.topic, "").trim();
-	// 				socket.emit('topic', {
-	// 					topic: msg.body,
-	// 					room: channel
-	// 				});
-	// 				return;
-	// 			} else if (msg.body.match(REGEXES.commands.failed_command)) { // match all
-	// 				return;
-	// 			} else { // send it out to the world!
-	// 				socket.emit('chat', msg);
-	// 			}
-	// 		},
-	// 		active: function () {
-	// 			// console.log("idle", idle);
-	// 			if (idle === true) {
-	// 				// declare that we're back
-	// 				idle = false;
-	// 				announceBack();
-	// 			} else {
-	// 				// attempt to set us to away
-	// 				clearTimeout(idleTimer);
-	// 				idleTimer = setTimeout(announceIdle, 30000);
-	// 			}
-	// 		},
-	// 		setIdentified: function (isHe) {
-	// 			identified = isHe;
-	// 		},
-	// 		serialize: function () {
-	// 			return {
-	// 				cID: id,
-	// 				idle: idle,
-	// 				nick : nick,
-	// 				color: color.toRGB(),
-	// 				identified: identified
-	// 			};
-	// 		},
-	// 		sendCursor: function (cursorActivity) {
-	// 			socket.emit('code:cursorActivity', {
-	// 				color: color
-	// 			});
-	// 		}
-	// 	};
-	// };
-
-	// function ID () {
-	// 	var cur = 0;
-	// 	return {
-	// 		next: function () {
-	// 			return cur += 1;
-	// 		}
-	// 	}
-	// }
-
-	// exports.Clients = function () {	
-	// 	var id = new ID(); // keep the IDs unique
-	// 	var clients = {};
-	// 	return {
-	// 		add: function (options) {
-	// 			if (options.client) {
-	// 				if (clients[options.client.id]) return; // don't add twice
-	// 				clients[options.client.id] = new exports.Client(options.client);
-	// 			} else {
-	// 				var ref = id.next();
-	// 				clients[ref] = new exports.Client({
-	// 					socketRef: options.socketRef,
-	// 					id: ref,
-	// 					serverSide: true
-	// 				});
-	// 				return ref;
-	// 			}
-	// 		},
-	// 		get: function (id) {
-	// 			return clients[id];
-	// 		},
-	// 		userlist: function () {
-	// 			return _.map(clients, function (value, key, list) {
-	// 				return value.serialize();
-	// 			});
-	// 		},
-	// 		kill: function (id) {
-	// 			delete clients[id];
-	// 		}
-	// 	};
-	// };
 
 })(
   typeof exports === 'object' ? exports : this

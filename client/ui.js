@@ -1,3 +1,5 @@
+if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
+
 $(document).ready(function () {
 	
 	// tooltip stuff:s
@@ -88,12 +90,11 @@ $(document).ready(function () {
 	window.notifications = new Notifications();
 	window.uniqueImages = {};
 
-	// $(window).on("blur", function () {
-	// 	$("body").addClass("blurred");
-	// }).on("focus", function () {
-	// 	chatClient.me.active();
-	// 	$("body").removeClass("blurred");
-	// });
+	$(window).on("blur", function () {
+		$("body").addClass("blurred");
+	}).on("focus", function () {
+		$("body").removeClass("blurred");
+	});
 
 	// $(window).on("keydown mousemove", function () {
 	// 	chatClient.me.active();
@@ -136,8 +137,14 @@ $(document).ready(function () {
 	// 	chat.renderChatMessage({body: "Unexpected d/c from server", log: false});
 	// });
 
-	$("#chatlog").on("hover", ".chatMessage", function (ev) {
+	$("#chatting").on("hover", ".chatMessage", function (ev) {
 		$(this).attr("title", "sent " + moment($(".time", this).data("timestamp")).fromNow());
+	});
+	$("#chatting").on("hover", ".user", function (ev) {
+		var $idle = $(this).find(".idle");
+		if ($idle.length) {
+			$(this).attr("title", "Idle since " + moment($(".time", this).data("timestamp")).fromNow());
+		}
 	});
 
 	$("span.options").on("click", function (ev) {
@@ -152,7 +159,9 @@ $(document).ready(function () {
 		ev.preventDefault();
 		if ($("#coding:visible").length === 0) {
 			$("#chatting").fadeOut();
-			$("#coding").fadeIn();
+			$("#coding").fadeIn(function () {
+				$("body").trigger("codeSectionActive");
+			});
 		}
 	});
 

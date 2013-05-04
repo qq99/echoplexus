@@ -44,10 +44,13 @@ function CodeClient (options) {
 			var self = this;
 			this.listenTo(this.syncedJs, "eval", this.doREPL);
 			this.listenTo(this.syncedHtml, "eval", this.doREPL);
+			$("body").on("codeSectionActive", function () {
+				self.refresh();
+			});
 		},
 
-		show: function () {
-			_.each(editors, function (editor) {
+		refresh: function () {
+			_.each(this.editors, function (editor) {
 				editor.refresh();
 			});
 		},

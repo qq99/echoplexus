@@ -87,7 +87,8 @@ exports.CodeServer = function (sio, redisC) {
 
 			// add the new client to our internal list
 			client = new Client({
-				room: room
+				room: room,
+				socket: socket
 			});
 			channel.clients.push(client);
 

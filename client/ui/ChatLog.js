@@ -1,3 +1,5 @@
+if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
+
 function ChatLog (options) {
 	"use strict";
 
@@ -59,8 +61,7 @@ function ChatLog (options) {
 			if (typeof opts === "undefined") {
 				opts = {};
 			}
-			// console.log(msg.cID, session.id());
-
+			
 			// put image links on the side:
 			var images;
 			if (OPTIONS["autoload_media"] && (images = body.match(REGEXES.urls.image))) {
@@ -170,9 +171,7 @@ function ChatLog (options) {
 			// insert msg into the correct place in history
 			var $chatMessage = $(opts.html);
 			var $chatlog = $(".messages", this.$el);
-			// console.log(opts);
 			if (opts.timestamp) {
-				// console.log("inserting !");
 				var timestamps = _.map($(".chatarea .chatMessage .time", this.$el), function (ele) {
 					return $(ele).data("timestamp");
 				});
@@ -189,17 +188,17 @@ function ChatLog (options) {
 				// attempt to select this early message:
 				var $target = $(".chatlog .chatMessage[rel='"+ candidate +"']");
 
-				// console.log(timestamps, candidate);
+				// DEBUG && console.log(timestamps, candidate);
 
 				if ($target.length) { // it was in the DOM, so we can insert the current message after it
-					// console.log('no target found');
+					// DEBUG && console.log('no target found');
 					$target.after($chatMessage);
 				} else { // it was the first message OR something went wrong
-					// console.log('something went wrong');
+					// DEBUG && console.log('something went wrong');
 					$chatlog.append($chatMessage);
 				}
 			} else { // if there was no timestamp, assume it's a diagnostic message of some sort that should be displayed at the most recent spot in history
-				// console.log("not timestamp");
+				// DEBUG && console.log("not timestamp");
 				$chatlog.append($chatMessage);
 			}
 			this.scrollToLatest();
@@ -219,8 +218,8 @@ function ChatLog (options) {
 					// add him to the visual display
 					var userItem = self.userTemplate({
 						nick: user.nick,
-						cid: user.cID,
-						color: user.color,
+						cid: user.cid,
+						color: Color(user.color).toRGB(),
 						identified: user.identified,
 						idle: user.idle
 					});

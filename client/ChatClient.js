@@ -1,3 +1,5 @@
+if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
+
 function ChatChannel (options) {
 
 	var ChatChannelView = Backbone.View.extend({
@@ -30,7 +32,7 @@ function ChatChannel (options) {
 			// initialize the channel
 			this.socket.emit("subscribe", {
 				room: self.channelName
-			});
+			}, this.postSubscribe);
 
 			// if there's something in the persistent chatlog, render it:
 			if (!this.persistentLog.empty()) {
@@ -57,6 +59,26 @@ function ChatChannel (options) {
 			});
 		},
 
+		postSubscribe: function (data) {
+			var self = this;
+			
+			DEBUG && console.log("Subscribed", self.channelName);
+			self.me = new ClientModel({}, {
+				socket: self.socket
+			});
+			self.me.cid = data.cid;
+
+			self.me.bind("change:nick", function (attr) {
+				self.socket.emit('nickname:' + self.channelName, {
+					nickname: attr.changed.nick
+				});
+			});
+
+			if ($.cookie("nickname:" + self.channelName)) {
+				self.me.set("nick", $.cookie("nickname:" + self.channelName));
+			}
+		},
+
 		render: function () {
 			this.$el.html(this.template());
 			$(".chatarea", this.$el).html(this.chatLog.$el);
@@ -66,30 +88,17 @@ function ChatChannel (options) {
 		listen: function () {
 			var self = this,
 				socket = this.socket;
-			console.log(self.channelName, "listening");
+			DEBUG && console.log(self.channelName, "listening");
 
 			this.socketEvents = {
-				"connect": function () {
-					console.log("Connected", self.channelName);
-					self.me = new ClientModel({ 
-						socketRef: socket
-					});
-					if ($.cookie("nickname")) {
-						self.me.setNick($.cookie("nickname"));
-					}
-					
-					// this.me.active(); // fix up
-
-					// notifications.enable();
-				},
 				"chat": function (msg) {
-					console.log(self.channelName, msg);
+					DEBUG && console.log(self.channelName, msg);
 					switch (msg.class) {
 						case "join":
 							var newClient = new ClientModel(msg.client);
 							newClient.cid = msg.cid;
 							self.users.add(newClient);
-							console.log("users now contains", self.users);
+							DEBUG && console.log("users now contains", self.users);
 							break;
 						case "part":
 							// self.users.remove(msg.clientID);
@@ -106,20 +115,18 @@ function ChatChannel (options) {
 					self.chatLog.renderChatMessage(msg);
 				},
 				"chat:idle": function (msg) {
-					$(".user[rel='"+ msg.cID +"']", self.$el).append("<span class='idle'>Idle</span>");
-					if (self.me.is(msg.cID)) {
-						self.me.setIdle();
-					}
+					DEBUG && console.log(msg);
+					$(".user[rel='"+ msg.cID +"']", self.$el).append("<span class='idle' data-timestamp='" + Number(new Date()) +"'>Idle</span>");
 				},
 				"chat:unidle": function (msg) {
 					$(".user[rel='"+ msg.cID +"'] .idle", self.$el).remove();
 				},
 				"chat:your_cid": function (msg) {
-					console.log("my_cid:", msg.cid, "users I know about:", self.users);
+					DEBUG && console.log("my_cid:", msg.cid, "users I know about:", self.users);
 					self.me = self.users.get(msg.cid);
 				},
 				"userlist": function (msg) {
-					console.log("userlist",msg);
+					DEBUG && console.log("userlist",msg);
 					// update the pool of possible autocompletes
 					self.autocomplete.setPool(_.map(msg.users, function (user) {
 						return user.nick;
@@ -154,7 +161,6 @@ function ChatChannel (options) {
 				switch (ev.keyCode) {
 					// enter:
 					case 13:
-						console.log("sending");
 						ev.preventDefault();
 						var userInput = $this.val();
 						self.scrollback.add(userInput);
@@ -197,6 +203,28 @@ function ChatChannel (options) {
 				}
 
 			});
+
+			$(window).on("keydown mousemove", function () {
+				if (self.$el.is(":visible")) {
+					if (self.me) {
+						self.me.active(self.channelName, self.socket);
+						clearTimeout(self.idleTimer);
+						self.startIdleTimer();						
+					}
+				}
+			});
+
+			this.startIdleTimer();
+		},
+
+		startIdleTimer: function () {
+			var self = this;
+			this.idleTimer = setTimeout(function () {
+				DEBUG && console.log("setting inactive");
+				if (self.me) {
+					self.me.inactive("", self.channelName, self.socket);
+				}
+			}, 1000*30);
 		}
 	});
 

@@ -81,7 +81,7 @@ function SyncedEditor () {
 					// try to find an existing ghost cursor:
 					var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']", this.$el);
 					if (!$ghostCursor.length) { // if non-existent, create one
-						$ghostCursor = ("<div class='ghost-cursor' rel=" + data.id +"></div>");
+						$ghostCursor = $("<div class='ghost-cursor' rel=" + data.id +"></div>");
 						$("body").append($ghostCursor); // it's absolutely positioned wrt body
 					}
 
