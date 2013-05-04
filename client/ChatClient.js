@@ -9,7 +9,7 @@ function ChatChannel (options) {
 
 			_.bindAll(this);
 
-			this.socket = io.connect(window.location.origin);
+			this.socket = io.connect("/chat");
 			this.channelName = opts.room;
 			this.autocomplete = new Autocomplete();
 			this.users = new ClientsCollection();
@@ -50,9 +50,9 @@ function ChatChannel (options) {
 			var self = this;
 
 			_.each(this.socketEvents, function (method, key) {
-				self.socket.removeListener(key, method);
+				self.socket.removeAllListeners(key + ":" + self.channelName);
 			});
-			this.socket.emit("unsubscribe", {
+			this.socket.emit("unsubscribe:" + this.channelName, {
 				room: this.channelName
 			});
 		},
@@ -68,17 +68,7 @@ function ChatChannel (options) {
 				socket = this.socket;
 			console.log(self.channelName, "listening");
 
-			function prefilter (msg) {
-				if (typeof msg === "undefined") {
-					return true;
-				}
-				if (typeof msg.room === "undefined") {
-					console.warn("Message came in but had no channel designated", msg);
-				}
-				return (msg.room === self.channelName);
-			}
-
-			var socketEvents = {
+			this.socketEvents = {
 				"connect": function () {
 					console.log("Connected", self.channelName);
 					self.me = new ClientModel({ 
@@ -125,10 +115,11 @@ function ChatChannel (options) {
 					$(".user[rel='"+ msg.cID +"'] .idle", self.$el).remove();
 				},
 				"chat:your_cid": function (msg) {
-					console.log(msg.cid, self.users);
+					console.log("my_cid:", msg.cid, "users I know about:", self.users);
 					self.me = self.users.get(msg.cid);
 				},
 				"userlist": function (msg) {
+					console.log("userlist",msg);
 					// update the pool of possible autocompletes
 					self.autocomplete.setPool(_.map(msg.users, function (user) {
 						return user.nick;
@@ -150,31 +141,20 @@ function ChatChannel (options) {
 				}
 			};
 
-			this.socketEvents = {};
-
-			_.each(_.pairs(socketEvents), function (pair) {
-				var eventName = pair[0];
-				var eventAction = pair[1];
-
-				// wrap each event with a simple pre-filter to listen to only those that apply to this object's channel
-				var filteredEventAction = _.wrap(eventAction, function (fn) {
-					var msg = arguments[1];
-					if (!prefilter(msg)) return;
-					fn(msg);
-				});
-
-				socket.on(eventName, filteredEventAction);
-				self.socketEvents[eventName] = filteredEventAction;
+			_.each(this.socketEvents, function (value, key) {
+				// listen to a subset of event
+				socket.on(key + ":" + self.channelName, value);
 			});
 
 		},
 		attachEvents: function () {
 			var self = this;
-			$(this.$el).on("keydown", ".chatinput textarea", function (ev) {
+			this.$el.on("keydown", ".chatinput textarea", function (ev) {
 				$this = $(this);
 				switch (ev.keyCode) {
 					// enter:
 					case 13:
+						console.log("sending");
 						ev.preventDefault();
 						var userInput = $this.val();
 						self.scrollback.add(userInput);

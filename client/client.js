@@ -80,48 +80,48 @@
 			if (body.match(REGEXES.commands.nick)) { // /nick [nickname]
 				body = body.replace(REGEXES.commands.nick, "").trim();
 				this.set("nick", body);
-				socket.emit('nickname', {
+				socket.emit('nickname:' + room, {
 					nickname: body,
 					room: room
 				});
 				return;
 			} else if (msg.body.match(REGEXES.commands.private)) {  // /private [password]
 				msg.body = msg.body.replace(REGEXES.commands.private, "").trim();
-				socket.emit('make_private', {
+				socket.emit('make_private:' + room, {
 					password: msg.body,
 					room: room
 				});
 				return;
 			} else if (msg.body.match(REGEXES.commands.public)) {  // /public
 				msg.body = msg.body.replace(REGEXES.commands.public, "").trim();
-				socket.emit('make_public', {
+				socket.emit('make_public:' + room, {
 					room: room
 				});
 				return;
 			} else if (msg.body.match(REGEXES.commands.password)) {  // /password [password]
 				msg.body = msg.body.replace(REGEXES.commands.password, "").trim();
-				socket.emit('join_private', {
+				socket.emit('join_private:' + room, {
 					password: msg.body,
 					room: room
 				});
 				return;
 			} else if (msg.body.match(REGEXES.commands.register)) {  // /register [password]
 				msg.body = msg.body.replace(REGEXES.commands.register, "").trim();
-				socket.emit('register_nick', {
+				socket.emit('register_nick:' + room, {
 					password: msg.body,
 					room: room
 				});
 				return;
 			} else if (msg.body.match(REGEXES.commands.identify)) { // /identify [password]
 				msg.body = msg.body.replace(REGEXES.commands.identify, "").trim();
-				socket.emit('identify', {
+				socket.emit('identify:' + room, {
 					password: msg.body,
 					room: room
 				});
 				return;
 			} else if (msg.body.match(REGEXES.commands.topic)) { // /topic [My channel topic]
 				msg.body = msg.body.replace(REGEXES.commands.topic, "").trim();
-				socket.emit('topic', {
+				socket.emit('topic:' + room, {
 					topic: msg.body,
 					room: room
 				});
@@ -129,7 +129,7 @@
 			} else if (msg.body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!
-				socket.emit('chat', msg);
+				socket.emit('chat:' + room, msg);
 			}
 		}
 	});
