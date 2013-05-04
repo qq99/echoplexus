@@ -64,7 +64,7 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 		},
 		initialize: function (opts) {
 			this.set("color", new exports.ColorModel());
-			if (opts.socket) {
+			if (opts && opts.socket) {
 				this.socket = opts.socket;
 			}
 		},

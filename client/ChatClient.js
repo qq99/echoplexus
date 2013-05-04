@@ -66,7 +66,9 @@ function ChatChannel (options) {
 			self.me = new ClientModel({}, {
 				socket: self.socket
 			});
-			self.me.cid = data.cid;
+			if (data) {
+				self.me.cid = data.cid;				
+			}
 
 			self.me.bind("change:nick", function (attr) {
 				self.socket.emit('nickname:' + self.channelName, {
@@ -114,6 +116,9 @@ function ChatChannel (options) {
 					self.persistentLog.add(msg); // TODO: log to a channel
 					self.chatLog.renderChatMessage(msg);
 				},
+				"subscribed": function () {
+					self.postSubscribe();
+				},
 				"chat:idle": function (msg) {
 					DEBUG && console.log(msg);
 					$(".user[rel='"+ msg.cID +"']", self.$el).append("<span class='idle' data-timestamp='" + Number(new Date()) +"'>Idle</span>");
@@ -138,7 +143,7 @@ function ChatChannel (options) {
 						// self.users.add({
 						// 	client: user
 						// });
-					});					
+					});
 				},
 				"chat:currentID": function (msg) {
 					self.persistentLog.latestIs(msg.ID);

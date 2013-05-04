@@ -203,6 +203,8 @@ exports.ChatServer = function (sio, redisC) {
 
 										// do the typical post-join stuff
 										subscribeSuccess(socket, client, room);
+
+										socket.emit("subscribed:" + room);
 									}
 								});
 							});
@@ -503,9 +505,22 @@ exports.ChatServer = function (sio, redisC) {
 				}
 			});
 
+			// unauthenticated events:
+			var unauthenticatedEvents = ["join_private"];
+
 			// bind all chat events:
-			_.each(chatEvents, function (value, key) {
-				socket.on(key + ":" + room, value);
+			_.each(chatEvents, function (method, eventName) {
+				var authFiltered = _.wrap(method, function (meth) {
+					console.log(arguments);
+					console.log(eventName, client.get("room"), !_.contains(unauthenticatedEvents, eventName));
+					if (client.get("room") !== room &&
+						!_.contains(unauthenticatedEvents, eventName)) {
+						return;
+					}
+					var args = Array.prototype.slice.call(arguments).splice(1); // first arg is the function itself
+					meth.apply(socket, args); // not even once.
+				});
+				socket.on(eventName + ":" + room, authFiltered);
 			});
 
 			socket.on('disconnect', function () {
