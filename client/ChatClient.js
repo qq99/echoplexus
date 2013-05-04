@@ -108,10 +108,13 @@ function ChatChannel (options) {
 					}
 
 					// // scan through the message and determine if we need to notify somebody that was mentioned:
-					// if (msg.body.toLowerCase().split(" ").indexOf(this.me.getNick().toLowerCase()) !== -1) {
-					// 	notifications.notify(msg.nickname, msg.body.substring(0,50));
-					// 	msg.directedAtMe = true;
-					// }
+					if (typeof self.me !== "undefined") {
+						if (msg.body.toLowerCase().indexOf(self.me.get("nick").toLowerCase()) !== -1) {
+							console.log("@me", msg.body);
+							notifications.notify(msg.nickname, msg.body.substring(0,50));
+							msg.directedAtMe = true;
+						}
+					}
 
 					self.persistentLog.add(msg); // TODO: log to a channel
 					self.chatLog.renderChatMessage(msg);

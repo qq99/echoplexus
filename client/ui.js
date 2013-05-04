@@ -87,7 +87,7 @@ $(document).ready(function () {
 	// ghetto templates:
 	var tooltipTemplate = $("#tooltip").html();
 
-	window.notifications = new Notifications();
+	window.notifications = new UserNotifications();
 	window.uniqueImages = {};
 
 	$(window).on("blur", function () {
@@ -96,46 +96,15 @@ $(document).ready(function () {
 		$("body").removeClass("blurred");
 	});
 
-	// $(window).on("keydown mousemove", function () {
-	// 	chatClient.me.active();
-	// });
-
 	io.connect(window.location.origin);
 
 	var channelSwitcherView = new ChannelSwitcher();
 	var channelSwitcher = new channelSwitcherView();
 	$("header").append(channelSwitcher.$el);
 
-	// $("#chatting").append(defaultChat.$el);
-
 	// socket.on('connect', function () {
 
-		// notifications.enable();
-
-		// function applyChanges (editor, change) {
-		// 	editor.replaceRange(change.text, change.from, change.to);
-		// 	while (change.next !== undefined) { // apply all the changes we receive until there are no more
-		// 		change = change.next;
-		// 		editor.replaceRange(change.text, change.from, change.to);
-		// 	}
-		// }
-
-
-
-
-
-
-	// socket.on('disconnect', function () {
-	// 	setTimeout(function () { // for dev, cheap auto-reload
-	// 		window.location = window.location;
-	// 	}, 2000);
-	// 	socket.removeAllListeners();
-	// 	socket.removeAllListeners('chat'); 
-	// 	socket.removeAllListeners('userlist');
-	// 	socket.removeAllListeners('code:change code:authoritative_push code:sync code:request');
-	// 	$("#chatinput textarea").off();
-	// 	chat.renderChatMessage({body: "Unexpected d/c from server", log: false});
-	// });
+	notifications.enable();
 
 	$("#chatting").on("hover", ".chatMessage", function (ev) {
 		$(this).attr("title", "sent " + moment($(".time", this).data("timestamp")).fromNow());

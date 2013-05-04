@@ -1,11 +1,16 @@
 // object: a wrapper around Chrome OS-level notifications
-function Notifications () {
+function UserNotifications () {
 	"use strict";
 	var hasPermission = 1,
-		enabled = false;
+		enabled = false,
+		_notificationProvider = null;
 
 	if (window.webkitNotifications) {
-			hasPermission = window.webkitNotifications.checkPermission();
+		_notificationProvider = window.webkitNotifications;
+		hasPermission = _notificationProvider.checkPermission();
+	} else if (window.Notifications) {
+		_notificationProvider = window.Notifications;
+		hasPermission = _notificationProvider.checkPermission();
 	}
 	function notify(user,body) {
 		if (!enabled) return;
@@ -14,12 +19,11 @@ function Notifications () {
 
 		} else {
 			if (hasPermission === 0) { // allowed
-				var notification = window.webkitNotifications.createNotification(
+				var notification = _notificationProvider.createNotification(
 					'http://i.stack.imgur.com/dmHl0.png',
 					user + " says:",
 					body
 				);
-
 
 				notification.show();
 				setTimeout(function () {
@@ -31,8 +35,8 @@ function Notifications () {
 		}
 	}
 	function requestNotificationPermission() {
-		if (window.webkitNotifications) {
-			window.webkitNotifications.requestPermission();
+		if (_notificationProvider) {
+			_notificationProvider.requestPermission();
 		}
 	}
 
