@@ -223,6 +223,21 @@ function ChatChannel (options) {
 			});
 
 			this.startIdleTimer();
+
+			this.$el.on("click", "button.syncLogs", function (ev) {
+				ev.preventDefault();
+				var missed = self.persistentLog.getMissingIDs(10);
+				if (missed.length) {
+					self.socket.emit("chat:history_request:" + self.channelName, {
+					 	requestRange: missed
+					});
+				}
+			});
+
+			this.$el.on("click", "button.deleteLocalStorage", function (ev) {
+				ev.preventDefault();
+				self.persistentLog.destroy();
+			});
 		},
 
 		startIdleTimer: function () {

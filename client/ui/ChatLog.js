@@ -172,7 +172,7 @@ function ChatLog (options) {
 			var $chatMessage = $(opts.html);
 			var $chatlog = $(".messages", this.$el);
 			if (opts.timestamp) {
-				var timestamps = _.map($(".chatarea .chatMessage .time", this.$el), function (ele) {
+				var timestamps = _.map($(".messages .time", this.$el), function (ele) {
 					return $(ele).data("timestamp");
 				});
 
@@ -188,17 +188,17 @@ function ChatLog (options) {
 				// attempt to select this early message:
 				var $target = $(".chatlog .chatMessage[rel='"+ candidate +"']");
 
-				// DEBUG && console.log(timestamps, candidate);
+				DEBUG && console.log(timestamps, candidate);
 
 				if ($target.length) { // it was in the DOM, so we can insert the current message after it
-					// DEBUG && console.log('no target found');
+					DEBUG && console.log('no target found');
 					$target.after($chatMessage);
 				} else { // it was the first message OR something went wrong
-					// DEBUG && console.log('something went wrong');
+					DEBUG && console.log('something went wrong');
 					$chatlog.append($chatMessage);
 				}
 			} else { // if there was no timestamp, assume it's a diagnostic message of some sort that should be displayed at the most recent spot in history
-				// DEBUG && console.log("not timestamp");
+				DEBUG && console.log("not timestamp");
 				$chatlog.append($chatMessage);
 			}
 			this.scrollToLatest();

@@ -142,22 +142,4 @@ $(document).ready(function () {
 		}
 	});
 
-	$("#syncButton").on("click", function (ev) {
-		// var missed = log.getMissingIDs(10);
-		// var missed = [0,1,2];
-		if (missed.length) {
-			// defaultChat.socket.emit("chat:history_request", {
-			// 	requestRange: missed,
-			// 	room: "/"
-			// });
-		}
-	});
-
-	$("#deleteLocalStorage").on('click', function (ev) {
-		ev.preventDefault();
-		window.localStorage.setObj("log", null);
-	});
-
-
-
 });

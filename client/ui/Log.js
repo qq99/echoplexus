@@ -61,6 +61,9 @@ function Log(opts) {
 				// presist to localStorage:
 				window.localStorage.setObj("log:" + options.namespace, log);
 			},
+			destroy: function () {
+				window.localStorage.setObj("log:" + options.namespace, null);
+			},
 			empty: function () {
 				return (log.length === 0);
 			},

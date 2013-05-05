@@ -82,6 +82,37 @@ a {
 	padding-top:65px;
 	box-sizing:border-box;
 }
+
+@mixin fancyButton {
+	transition:all 0.25s ease-in-out;
+	cursor:pointer;
+	border:0;
+	margin:0;
+	padding:0.25em 0.75em;
+	background:#111;
+	text-transform: uppercase;
+	color:#777;
+	border:1px solid #333;
+	font-size:1em;
+	position:relative;
+	&:hover {
+		background:#111911;
+		color:gold;
+		border:1px solid #444;
+	}
+	&.active, &:active {
+		background:#222;
+		color:#AAA;
+		border:1px solid #444;
+	}
+}
+
+button {
+	@include fancyButton;
+}
+
+
+
 header {
 	position:relative;
 	z-index:100;
@@ -139,30 +170,9 @@ header {
 			}
 		}
 		.channelBtn {
-			transition:all 0.25s ease-in-out;
-			cursor:pointer;
-			border:0;
-			margin:0;
-			padding:0.25em 0.75em;
-			background:#111;
-			text-transform: uppercase;
-			color:#777;
-			border:1px solid #333;
-			font-size:1em;
-			padding-right:3em;
-			position:relative;
-			&:hover {
-				background:#111911;
-				color:gold;
-				border:1px solid #444;
-			}
-			&:active {
-				background:#222;
-			}
-			&.active {
-				background:#222;
-				color:#AAA;
-				border:1px solid #444;
+			@include fancyButton;
+			&.closable {
+				padding-right:3em;
 			}
 			.close {
 				transition:all 0.25s ease-in-out;
@@ -383,14 +393,43 @@ $room-specific-height: 30px;
 	height:100%;
 	width:100%;
 	padding-top: $room-specific-height;
-
+}
+.button-group {
+	div {
+		float:left;
+		button {
+			border-right:0px;
+		}
+	}
+	div:first-child {
+		button {
+			border-top-left-radius:3px;
+			border-bottom-left-radius:3px;
+		}
+	}
+	div:last-child {
+		button {
+			border-right:1px solid #333;
+			border-top-right-radius:3px;
+			border-bottom-right-radius:3px;
+		}
+	}
+	
 }
 
 .room-specific {
 	height: $room-specific-height;
+	width:100%;
 	padding:0 1em;
+	padding-right:300px;
 	position: absolute;
 	top: 0;
+	button {
+		font-size: 0.8em;
+	}
+	.channel-options  {
+		float:right;
+	}
 	.channel-name {
 		display:none;
 	}

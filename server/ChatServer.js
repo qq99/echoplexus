@@ -292,7 +292,7 @@ exports.ChatServer = function (sio, redisC) {
 							data.ID = mID;
 
 							// store the chat message
-							redisC.hset("chatlog:default", mID, JSON.stringify(data), function (err, reply) {
+							redisC.hset("chatlog:" + room, mID, JSON.stringify(data), function (err, reply) {
 								if (err) throw err;
 							});
 
