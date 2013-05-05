@@ -263,11 +263,13 @@ exports.ChatServer = function (sio, redisC) {
 				"chat:idle": function (data) {
 					console.log("found guy idle");
 					client.set("idle", true);
+					client.set("idleSince", Number(new Date()));
 					data.cID = client.cid;
 					sio.of(CHATSPACE).emit('chat:idle:' + room, data);
 				},
 				"chat:unidle": function (data) {
 					client.set("idle", false);
+					client.unset("idleSince");
 					sio.of(CHATSPACE).emit('chat:unidle:' + room, {
 						cID: client.cid
 					});

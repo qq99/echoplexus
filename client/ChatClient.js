@@ -247,7 +247,7 @@ function ChatChannel (options) {
 				if (self.me) {
 					self.me.inactive("", self.channelName, self.socket);
 				}
-			}, 1000*30);
+			}, 1000*3);
 		}
 	});
 

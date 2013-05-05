@@ -64,9 +64,13 @@ function ChannelSwitcher (options) {
 
 				var channel = $chatButton.data("channel");
 				var channelView = self.channels[channel];
+				var codeView = self.codeChannels[channel];
 				channelView.kill();
 				channelView.$el.remove();
+				codeView.kill();
+				codeView.$el.remove();
 				delete self.channels[channel];
+				delete self.codeChannels[channel];
 				$chatButton.remove();
 			});
 		},

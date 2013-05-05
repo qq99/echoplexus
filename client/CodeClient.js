@@ -40,6 +40,15 @@ function CodeClient (options) {
 			this.attachEvents();
 		},
 
+		kill: function () {
+			var self = this;
+
+			console.log("killing CodeClientView", self.channelName);
+
+			this.syncedJs.kill();
+			this.syncedHtml.kill();
+		},
+
 		attachEvents: function () {
 			var self = this;
 			this.listenTo(this.syncedJs, "eval", this.doREPL);

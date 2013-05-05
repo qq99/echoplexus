@@ -221,7 +221,8 @@ function ChatLog (options) {
 						cid: user.cid,
 						color: Color(user.color).toRGB(),
 						identified: user.identified,
-						idle: user.idle
+						idle: user.idle,
+						idleSince: user.idleSince
 					});
 					if (!user.idle) {
 						nActive += 1;

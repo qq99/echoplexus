@@ -1,3 +1,5 @@
+if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
+
 function SyncedEditor () {
 	var SyncedEditorView = Backbone.View.extend({
 		class: "syncedEditor",
@@ -24,6 +26,19 @@ function SyncedEditor () {
 			this.socket.emit("subscribe", {
 				room: this.channelName,
 				subchannel: this.subchannelName
+			});
+		},
+
+		kill: function () {
+			var self = this;
+
+			DEBUG && console.log("killing SyncedEditorView");
+
+			_.each(this.socketEvents, function (method, key) {
+				self.socket.removeAllListeners(key + ":" + self.channelKey);
+			});
+			this.socket.emit("unsubscribe:" + this.channelKey, {
+				room: this.channelName
 			});
 		},
 
