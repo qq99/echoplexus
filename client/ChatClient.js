@@ -110,7 +110,7 @@ function ChatChannel (options) {
 					// // scan through the message and determine if we need to notify somebody that was mentioned:
 					if (typeof self.me !== "undefined") {
 						if (msg.body.toLowerCase().indexOf(self.me.get("nick").toLowerCase()) !== -1) {
-							console.log("@me", msg.body);
+							DEBUG && console.log("@me", msg.body);
 							notifications.notify(msg.nickname, msg.body.substring(0,50));
 							msg.directedAtMe = true;
 						}

@@ -48,5 +48,8 @@ sio.enable('browser client minification');
 sio.enable('browser client gzip');
 sio.set('log level', 1);
 
-chatServer(sio, redisC); // start up the chat server
-codeServer(sio, redisC); // start up the code server
+// use db 15:
+redisC.select(15, function (err, reply) {
+	chatServer(sio, redisC); // start up the chat server
+	codeServer(sio, redisC); // start up the code server
+});
