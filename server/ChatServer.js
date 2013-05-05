@@ -266,6 +266,7 @@ exports.ChatServer = function (sio, redisC) {
 					client.set("idleSince", Number(new Date()));
 					data.cID = client.cid;
 					sio.of(CHATSPACE).emit('chat:idle:' + room, data);
+					publishUserList(room);
 				},
 				"chat:unidle": function (data) {
 					client.set("idle", false);
@@ -273,6 +274,7 @@ exports.ChatServer = function (sio, redisC) {
 					sio.of(CHATSPACE).emit('chat:unidle:' + room, {
 						cID: client.cid
 					});
+					publishUserList(room);
 				},
 				"chat": function (data) {
 					if (data.body) {

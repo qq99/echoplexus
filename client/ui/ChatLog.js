@@ -233,7 +233,7 @@ function ChatLog (options) {
 				$userlist.append(userHTML);
 
 				$(".userlist .count .active .value", this.$el).html(nActive);
-				$(".userlist .count .total .value", this.$el).html(nActive);
+				$(".userlist .count .total .value", this.$el).html(total);
 			} else {
 				// there's always gonna be someone...
 			}
