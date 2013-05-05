@@ -149,6 +149,7 @@ header {
 			background:black;
 			padding:1em;
 			.option {
+				display:inline-block;
 				margin:0.25em 0;
 			}
 		}
@@ -627,7 +628,7 @@ body {
 	background: #111;
 	margin-top:10px;
 	width: 16em;
-	font-size: 0.8em;
+	font-size: 1em;
 	border-radius: 1em;
 	margin-left: -8em;
 	text-align: center;
