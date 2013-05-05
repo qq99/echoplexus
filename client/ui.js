@@ -107,12 +107,13 @@ $(document).ready(function () {
 	notifications.enable();
 
 	$("#chatting").on("hover", ".chatMessage", function (ev) {
-		$(this).attr("title", "sent " + moment($(".time", this).data("timestamp")).fromNow());
+		var $time = $(".time", this);
+		$(this).attr("title", "sent " + moment($time.data("timestamp")).fromNow());
 	});
 	$("#chatting").on("hover", ".user", function (ev) {
 		var $idle = $(this).find(".idle");
 		if ($idle.length) {
-			$(this).attr("title", "Idle since " + moment($(".time", this).data("timestamp")).fromNow());
+			$(this).attr("title", "Idle since " + moment($idle.data("timestamp")).fromNow());
 		}
 	});
 
