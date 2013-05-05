@@ -74,8 +74,8 @@ $(document).ready(function () {
 
 	_.each(_.keys(OPTIONS), updateOption); // update all options we know about
 
-	$(".options-list .header").on("click", function () {
-		var panel = $(this).siblings(".options");
+	$(".options-list .header button").on("click", function () {
+		var panel = $(this).parent().siblings(".options");
 		if (panel.is(":visible")) {
 			panel.slideUp();
 		} else {

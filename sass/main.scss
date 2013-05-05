@@ -136,17 +136,19 @@ header {
 			text-shadow:2px 2px 2px #252525;
 		}
 	}
+	button {
+		font-size:0.8em;
+	}
 	.options-list {
 		float:right;
-		font-size:0.9em;
 		position:relative;
 		.options {
 			display:none;
 			position:absolute;
-			top:1.25em;
+			top:1.5em;
 			right:0;
 			width:300px;
-			background:black;
+			background:rgba(0,0,0,0.85);
 			padding:1em;
 			.option {
 				display:inline-block;
