@@ -38,6 +38,20 @@ function CodeClient (options) {
 			});
 
 			this.attachEvents();
+
+			this.on("show", function () {
+				DEBUG && console.log("code_client:show");
+				self.$el.show();
+				self.syncedJs.trigger("show");
+				self.syncedHtml.trigger("show");
+			});
+
+			this.on("hide", function () {
+				DEBUG && console.log("code_client:hide");
+				self.$el.hide();
+				self.syncedJs.trigger("hide");
+				self.syncedHtml.trigger("hide");
+			});
 		},
 
 		kill: function () {

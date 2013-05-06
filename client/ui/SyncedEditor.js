@@ -19,6 +19,7 @@ function SyncedEditor () {
 			this.channelKey = this.channelName + ":" + this.subchannelName;
 			this.socket = io.connect("/code");
 
+			this.active = false;
 			this.listen();
 			this.attachEvents();
 
@@ -26,6 +27,20 @@ function SyncedEditor () {
 			this.socket.emit("subscribe", {
 				room: this.channelName,
 				subchannel: this.subchannelName
+			});
+
+			this.on("show", function () {
+				DEBUG && console.log("synced_editor:show");
+				self.active = true;
+				if (self.editor) {
+					self.editor.refresh();
+				}
+			});
+
+			this.on("hide", function () {
+				DEBUG && console.log("synced_editor:hide");
+				self.active = false;
+				$(".ghost-cursor").remove();
 			});
 		},
 

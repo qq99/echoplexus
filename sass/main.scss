@@ -112,40 +112,54 @@ button {
 }
 
 
-
-header {
-	position:relative;
-	z-index:100;
-	height:65px;
-	padding:1em;
+nav {
+	box-shadow:inset 0px -1px 10px rgba(0,0,0,0.3);
+	position: absolute;
+	height:30px;
+	z-index: 120;
+	top:0;
+	left:0;
+	width:100%;
+	background:rgba(0,0,0,0.4);
 	h1 {
+		transition:all 0.25s ease-in-out;
 		font-size:1.3em;
 		vertical-align: top;
 		margin:0px;
 		padding:0px;
 		display:inline-block;
-		margin-right:1em;
 		border-bottom:0px;
-		color:#efefef;
+		color:#bbb;
 	}
 	h1.button {
+		max-height:100%;
+		height:100%;
+		float:left;
 		cursor:pointer;
 		transition:all 0.25s ease-in-out;
 		&:hover {
-			color:#999;
+			color:#efefef;
 			text-shadow:2px 2px 2px #252525;
 		}
+		padding:0.25em 1em;
 	}
-	button {
-		font-size:0.8em;
+	h1.active {
+		color:#efefef;
+		background:#333;
+		text-shadow:2px 2px 1px black;
+		box-shadow:inset 0px 0px 5px -3px rgba(0,0,0,0.9),inset 0px -1px 10px rgba(0,0,0,0.3);
 	}
 	.options-list {
 		float:right;
 		position:relative;
+		h1 {
+			font-size:1em;
+			line-height:1.95em;
+		}
 		.options {
 			display:none;
 			position:absolute;
-			top:1.5em;
+			top:30px;
 			right:0;
 			width:300px;
 			background:rgba(0,0,0,0.85);
@@ -156,6 +170,19 @@ header {
 			}
 		}
 	}
+}
+
+
+header {
+	position:relative;
+	z-index:100;
+	height:65px;
+	padding:1em;
+
+	button {
+		font-size:0.8em;
+	}
+
 	.channel-selector {
 		> div {
 			display:inline-block;
@@ -424,7 +451,7 @@ $room-specific-height: 30px;
 	height: $room-specific-height;
 	width:100%;
 	padding:0 1em;
-	padding-right:300px;
+	padding-right:$supportbar-width + 22px;
 	position: absolute;
 	top: 0;
 	button {

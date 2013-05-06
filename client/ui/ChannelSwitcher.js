@@ -23,9 +23,7 @@ function ChannelSwitcher (options) {
 			var defaultChannel = window.location.pathname;
 
 			this.joinChannel(defaultChannel);
-			// this.joinCodeChannel(defaultChannel);
 			this.showChannel(defaultChannel);
-			// this.showCodeChannel(defaultChannel);
 
 			this.attachEvents();
 		},
@@ -76,34 +74,27 @@ function ChannelSwitcher (options) {
 		},
 
 		showChannel: function (channelName) {
+			var self = this;
+			var channelsToDeactivate = _.without(_.keys(this.channels), channelName);
+
+			// tell the views to deactivate
+			_.each(channelsToDeactivate, function (channelName) {
+				self.channels[channelName].trigger("hide");
+				self.codeChannels[channelName].trigger("hide");
+			});
+
+			// style the buttons depending on which view is active
 			$(".channels .channelBtn", this.$el).removeClass("active");
 			$(".channels .channelBtn[data-channel='"+ channelName + "']", this.$el).addClass("active");
-			$(".chatChannel").hide();
-			$(".chatChannel[data-channel='"+ channelName +"']").show();
-			this.channels[channelName].chatLog.scrollToLatest();
 
-			$("textarea", this.$el).focus();
-
-			// also show the code portion
-			this.showCodeChannel(channelName);
-		},
-		showCodeChannel: function (channelName) {
-			$(".codeClient").hide();
-			$(".codeClient[data-channel='"+ channelName +"']").show();
+			// send events to the view we're showing:
+			this.channels[channelName].trigger("show");
+			this.codeChannels[channelName].trigger("show");
 		},
 
-		joinCodeChannel: function (channelName) {
-			var channel = this.codeChannels[channelName];
-			DEBUG && console.log("creating code view for", channelName);
-			if (typeof channel === "undefined") {
-				this.codeChannels[channelName] = new this.codeView({
-					room: channelName
-				});
-				this.codeChannels[channelName].$el.hide(); // don't show by default
-			}
-		},
 		joinChannel: function (channelName) {
 			var channel = this.channels[channelName];
+			// join the chat portion
 			DEBUG && console.log("creating view for", channelName);
 			if (typeof channel === "undefined") {
 				this.channels[channelName] = new this.channelView({
@@ -113,9 +104,17 @@ function ChannelSwitcher (options) {
 			}
 
 			// also join the code portion
-			this.joinCodeChannel(channelName);
+			DEBUG && console.log("creating code view for", channelName);
+			if (typeof channel === "undefined") {
+				this.codeChannels[channelName] = new this.codeView({
+					room: channelName
+				});
+				this.codeChannels[channelName].$el.hide(); // don't show by default
+			}
+
 			this.render(); // re-render the channel switcher
 		},
+
 		render: function () {
 			var channelNames = _.sortBy(_.keys(this.channels), function (key) {
 				return key;

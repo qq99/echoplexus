@@ -46,6 +46,16 @@ function ChatChannel (options) {
 				}
 				this.chatLog.insertBatch(renderedEntries);
 			}
+
+			this.on("show", function () {
+				self.$el.show();
+				self.chatLog.scrollToLatest();
+				$("textarea", self.$el).focus();
+			});
+
+			this.on("hide", function () {
+				self.$el.hide();
+			});
 		},
 
 		kill: function () {

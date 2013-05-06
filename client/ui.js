@@ -74,7 +74,7 @@ $(document).ready(function () {
 
 	_.each(_.keys(OPTIONS), updateOption); // update all options we know about
 
-	$(".options-list .header button").on("click", function () {
+	$(".options-list .header button, .options-list .header .button").on("click", function () {
 		var panel = $(this).parent().siblings(".options");
 		if (panel.is(":visible")) {
 			panel.slideUp();
@@ -128,6 +128,7 @@ $(document).ready(function () {
 	$("#codeButton").on("click", function (ev) {
 		ev.preventDefault();
 		if ($("#coding:visible").length === 0) {
+			$(this).addClass("active").siblings().removeClass("active");
 			$("#chatting").fadeOut();
 			$("#coding").fadeIn(function () {
 				$("body").trigger("codeSectionActive");
@@ -138,8 +139,10 @@ $(document).ready(function () {
 	$("#chatButton").on("click", function (ev) {
 		ev.preventDefault();
 		if ($("#chatting:visible").length === 0) {
+			$(this).addClass("active").siblings().removeClass("active");
 			$("#coding").fadeOut();
 			$("#chatting").fadeIn();
+			$(".ghost-cursor").remove();
 		}
 	});
 
