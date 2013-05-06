@@ -87,7 +87,7 @@ function ChatLog (options) {
 			if (OPTIONS["autoload_media"] && (youtubes = body.match(REGEXES.urls.youtube))) {
 				for (var i = 0, l = youtubes.length; i < l; i++) {
 					var src = makeYoutubeURL(youtubes[i]),
-						yt = $(fl_obj_template);
+						yt = $(this.fl_obj_template);
 					if (uniqueImages[src] === undefined) {
 						yt.find("embed").attr("src", src)
 							.find("param[name='movie']").attr("src", src);
