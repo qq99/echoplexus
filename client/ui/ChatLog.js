@@ -186,7 +186,7 @@ function ChatLog (options) {
 					if (cur > timestamps[i]) break;
 				}
 				// attempt to select this early message:
-				var $target = $(".chatlog .chatMessage[rel='"+ candidate +"']");
+				var $target = $(".chatlog .chatMessage[rel='"+ candidate +"']", this.$el);
 
 				DEBUG && console.log(timestamps, candidate);
 
