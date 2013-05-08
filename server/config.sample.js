@@ -11,7 +11,8 @@
 		features: {
 			SERVER_NICK: 'Server',
 			phantomjs_screenshot: true, // http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
-		}
+		},
+		DEBUG: false
 	};
 
 })(

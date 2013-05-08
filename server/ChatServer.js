@@ -12,6 +12,8 @@ exports.ChatServer = function (sio, redisC) {
 		Clients = require('../client/client.js').ClientsCollection,
 		REGEXES = require('../client/regex.js').REGEXES;
 
+	var DEBUG = config.DEBUG;
+
 	function urlRoot(){
 		if (config.host.USE_PORT_IN_URL) {
 			return config.host.SCHEME + "://" + config.host.FQDN + ":" + config.host.PORT + "/";
@@ -88,18 +90,22 @@ exports.ChatServer = function (sio, redisC) {
 			room: room,
 			cid: client.cid
 		});
+		socket.emit("chat:" + room, serverSentMessage({
+			body: "Talking in channel '" + room + "'",
+			log: false
+		}, room));
 	}
 
 
 
 	var CHAT = sio.of(CHATSPACE).on('connection', function (socket) {
 		socket.on("subscribe", function (data, subscribeAck) {
-			console.log("client connected, leaving default room");
+			DEBUG && console.log("client connected, leaving default room");
 			socket.leave("\"\"");
 			var room = data.room,
 				client;
 
-			// console.log(socket);
+			// DEBUG && console.log(socket);
 
 			var chatEvents = {
 				"make_public": function (data) {
@@ -175,7 +181,7 @@ exports.ChatServer = function (sio, redisC) {
 					redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
 						if (err) throw err;
 						if (reply === "true") { // channel is not currently private
-							console.log(client.get("nick"), "attempting to auth to private room");
+							DEBUG && console.log(client.get("nick"), "attempting to auth to private room");
 							async.parallel({
 								salt: function (callback) {
 									redisC.hget("channels:" + room, "salt", callback);
@@ -195,7 +201,7 @@ exports.ChatServer = function (sio, redisC) {
 										socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
 											body: client.get("nick") + " just failed to join the room."
 										}, room));
-									} else { // ident'd
+									} else { // auth'd
 										client.set("room", room);
 										channel.clients.push(client);
 										// officially join the room on the server:
@@ -215,7 +221,7 @@ exports.ChatServer = function (sio, redisC) {
 						}
 					});
 				},
-				"nickname": function (data) {
+				"nickname": function (data, ack) {
 
 					var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
 						prevName = client.get("nick");
@@ -240,6 +246,7 @@ exports.ChatServer = function (sio, redisC) {
 						log: false
 					}, room));
 					publishUserList(room);
+					ack();
 				},
 				"topic": function (data) {
 					redisC.hset('topic', room, data.topic);
@@ -249,10 +256,10 @@ exports.ChatServer = function (sio, redisC) {
 					}, room));
 				},
 				"chat:history_request": function (data) {
-					console.log("requesting " + data.requestRange);
+					DEBUG && console.log("requesting " + data.requestRange);
 					redisC.hmget("chatlog:" + room, data.requestRange, function (err, reply) {
 						if (err) throw err;
-						console.log(reply);
+						DEBUG && console.log(reply);
 						// emit the logged replies to the client requesting them
 						_.each(reply, function (chatMsg) {
 							if (chatMsg === null) return;
@@ -261,7 +268,7 @@ exports.ChatServer = function (sio, redisC) {
 					});
 				},
 				"chat:idle": function (data) {
-					console.log("found guy idle");
+					DEBUG && console.log("found guy idle");
 					client.set("idle", true);
 					client.set("idleSince", Number(new Date()));
 					data.cID = client.cid;
@@ -319,7 +326,7 @@ exports.ChatServer = function (sio, redisC) {
 											var output = SANDBOXED_FOLDER + "/" + fileName,
 												pageData = {};
 											
-											console.log("Processing ", urls[i]);
+											DEBUG && console.log("Processing ", urls[i]);
 											// requires that the phantomjs-screenshot repo is a sibling repo of this one
 											var screenshotter = spawn('/opt/bin/phantomjs',
 												['../../phantomjs-screenshot/main.js', url, output],
@@ -328,7 +335,7 @@ exports.ChatServer = function (sio, redisC) {
 												});
 
 											screenshotter.stdout.on('data', function (data) {
-												console.log('screenshotter stdout: ' + data);
+												DEBUG && console.log('screenshotter stdout: ' + data);
 												data = data.toString(); // explicitly cast it, who knows what type it is having come from a process
 
 												// attempt to extract any parameters phantomjs might expose via stdout
@@ -340,10 +347,10 @@ exports.ChatServer = function (sio, redisC) {
 												}
 											});
 											screenshotter.stderr.on('data', function (data) {
-												console.log('screenshotter stderr: ' + data);
+												DEBUG && console.log('screenshotter stderr: ' + data);
 											});
 											screenshotter.on("exit", function (data) {
-												console.log('screenshotter exit: ' + data);
+												DEBUG && console.log('screenshotter exit: ' + data);
 												if (pageData.title && pageData.excerpt) {
 													sio.of(CHATSPACE).emit('chat:' + room, serverSentMessage({
 														body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
@@ -455,7 +462,7 @@ exports.ChatServer = function (sio, redisC) {
 					});
 				},
 				"unsubscribe": function () {
-					console.log("unsub'ing ", client.cid, "from", room);
+					DEBUG && console.log("unsub'ing ", client.cid, "from", room);
 
 					socket.leave(room);
 					// unbind all events
@@ -481,17 +488,18 @@ exports.ChatServer = function (sio, redisC) {
 			redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
 				if (err) throw err;
 				if (reply === "true") { // if it's private
-					console.log("user attempted to join private room");
+					DEBUG && console.log("user attempted to join private room");
 					socket.emit('chat:' + room, serverSentMessage({
 						body: "This room is private.  Type /password [room password] to join.",
 						log: false
 					}, room));
+					socket.emit('private:' + room);
 					client = new Client();
 					subscribeAck({
 						cid: client.cid
 					});
 				} else { // it's public:
-					console.log("subscribed to public room", data.room);
+					DEBUG && console.log("subscribed to public room", data.room);
 
 					// add the new client to our internal list
 					client = new Client({
@@ -515,8 +523,8 @@ exports.ChatServer = function (sio, redisC) {
 			// bind all chat events:
 			_.each(chatEvents, function (method, eventName) {
 				var authFiltered = _.wrap(method, function (meth) {
-					console.log(arguments);
-					console.log(eventName, client.get("room"), !_.contains(unauthenticatedEvents, eventName));
+					DEBUG && console.log(arguments);
+					DEBUG && console.log(eventName, client.get("room"), !_.contains(unauthenticatedEvents, eventName));
 					if (client.get("room") !== room &&
 						!_.contains(unauthenticatedEvents, eventName)) {
 						return;
@@ -528,7 +536,7 @@ exports.ChatServer = function (sio, redisC) {
 			});
 
 			socket.on('disconnect', function () {
-				console.log("killing ", client.cid);
+				DEBUG && console.log("killing ", client.cid);
 
 				userLeft(client, room);
 

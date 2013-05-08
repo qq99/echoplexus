@@ -63,10 +63,22 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 			return json;
 		},
 		initialize: function (opts) {
+			DEBUG && console.log(this, opts);
+			_.bindAll(this);
+
 			this.set("color", new exports.ColorModel());
 			if (opts && opts.socket) {
 				this.socket = opts.socket;
 			}
+		},
+		channelAuth: function (pw, room) {
+			$.cookie("channel_pw:" + room, pw);
+			DEBUG && console.log("sending channel pw", pw, room);
+
+			this.socket.emit('join_private:' + room, {
+				password: pw,
+				room: room
+			});
 		},
 		inactive: function (reason, room, socket) {
 			reason = reason || "User idle.";
@@ -84,6 +96,26 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 				this.isInactive = false;
 			}
 		},
+		setNick: function (nick, room, ack) {
+			$.cookie("nickname:" + room, nick);
+			DEBUG && console.log("sending new nick", nick, room);
+			this.socket.emit('nickname:' + room, {
+				nickname: nick
+			}, function () {
+				if (ack) {
+					ack.resolve();
+				}
+			});
+		},
+		identify: function (pw, room, ack) {
+			$.cookie("ident_pw:" + room, pw);
+			this.socket.emit('identify:' + room, {
+				password: pw,
+				room: room
+			}, function () {
+				ack.resolve();
+			});
+		},
 		is: function (cid) {
 			return (this.cid === cid);
 		},
@@ -94,51 +126,48 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 			if (!body) return; // if there's no body, we probably don't want to do anything
 			if (body.match(REGEXES.commands.nick)) { // /nick [nickname]
 				body = body.replace(REGEXES.commands.nick, "").trim();
-				this.set("nick", body);
+				this.setNick(body, room);
 				$.cookie("nickname:" + room, body);
+				$.cookie("ident_pw:" + room, ""); // clear out the old saved nick
 				return;
-			} else if (msg.body.match(REGEXES.commands.private)) {  // /private [password]
-				msg.body = msg.body.replace(REGEXES.commands.private, "").trim();
+			} else if (body.match(REGEXES.commands.private)) {  // /private [password]
+				body = body.replace(REGEXES.commands.private, "").trim();
 				socket.emit('make_private:' + room, {
-					password: msg.body,
+					password: body,
 					room: room
 				});
+				$.cookie("channel_pw:" + room, body);
 				return;
-			} else if (msg.body.match(REGEXES.commands.public)) {  // /public
-				msg.body = msg.body.replace(REGEXES.commands.public, "").trim();
+			} else if (body.match(REGEXES.commands.public)) {  // /public
+				body = body.replace(REGEXES.commands.public, "").trim();
 				socket.emit('make_public:' + room, {
 					room: room
 				});
 				return;
-			} else if (msg.body.match(REGEXES.commands.password)) {  // /password [password]
-				msg.body = msg.body.replace(REGEXES.commands.password, "").trim();
-				socket.emit('join_private:' + room, {
-					password: msg.body,
-					room: room
-				});
+			} else if (body.match(REGEXES.commands.password)) {  // /password [password]
+				body = body.replace(REGEXES.commands.password, "").trim();
+				this.channelAuth(body, room);
 				return;
-			} else if (msg.body.match(REGEXES.commands.register)) {  // /register [password]
-				msg.body = msg.body.replace(REGEXES.commands.register, "").trim();
+			} else if (body.match(REGEXES.commands.register)) {  // /register [password]
+				body = body.replace(REGEXES.commands.register, "").trim();
 				socket.emit('register_nick:' + room, {
-					password: msg.body,
+					password: body,
 					room: room
 				});
+				$.cookie("ident_pw:" + room, body);
 				return;
-			} else if (msg.body.match(REGEXES.commands.identify)) { // /identify [password]
-				msg.body = msg.body.replace(REGEXES.commands.identify, "").trim();
-				socket.emit('identify:' + room, {
-					password: msg.body,
-					room: room
-				});
+			} else if (body.match(REGEXES.commands.identify)) { // /identify [password]
+				body = body.replace(REGEXES.commands.identify, "").trim();
+				this.identify(body, room);
 				return;
-			} else if (msg.body.match(REGEXES.commands.topic)) { // /topic [My channel topic]
-				msg.body = msg.body.replace(REGEXES.commands.topic, "").trim();
+			} else if (body.match(REGEXES.commands.topic)) { // /topic [My channel topic]
+				body = body.replace(REGEXES.commands.topic, "").trim();
 				socket.emit('topic:' + room, {
-					topic: msg.body,
+					topic: body,
 					room: room
 				});
 				return;
-			} else if (msg.body.match(REGEXES.commands.failed_command)) { // match all
+			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!
 				socket.emit('chat:' + room, msg);

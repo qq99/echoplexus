@@ -25,6 +25,10 @@ function ChatChannel (options) {
 				room: this.channelName
 			});
 
+			this.me = new ClientModel({
+				socket: this.socket
+			});
+
 			this.listen();
 			this.render();
 			this.attachEvents();
@@ -73,21 +77,48 @@ function ChatChannel (options) {
 			var self = this;
 			
 			DEBUG && console.log("Subscribed", self.channelName);
-			self.me = new ClientModel({}, {
-				socket: self.socket
-			});
+
 			if (data) {
-				self.me.cid = data.cid;				
+				self.me.cid = data.cid;
 			}
 
-			self.me.bind("change:nick", function (attr) {
-				self.socket.emit('nickname:' + self.channelName, {
-					nickname: attr.changed.nick
-				});
+			// attempt to automatically /nick and /ident
+			$.when(this.autoNick()).done(function () {
+				self.autoIdent();
 			});
+		},
 
-			if ($.cookie("nickname:" + self.channelName)) {
-				self.me.set("nick", $.cookie("nickname:" + self.channelName));
+		autoNick: function () {
+			var acked = $.Deferred();
+			var storedNick = $.cookie("nickname:" + this.channelName);
+			if (storedNick) {
+				DEBUG && console.log("Auto-nicking", this.channelName, storedNick);
+				this.me.setNick(storedNick, this.channelName, acked);
+			} else {
+				acked.reject();
+			}
+
+			return acked.promise();
+		},
+
+		autoIdent: function () {
+			var acked = $.Deferred();
+			var storedIdent = $.cookie("ident_pw:" + this.channelName);
+			if (storedIdent) {
+				this.me.identify(storedIdent, this.channelName, acked);
+			} else {
+				acked.reject();
+			}
+			return acked.promise();
+		},
+
+		autoAuth: function () {
+			// we only care about the success of this event, but the server already responds
+			// explicitly with a success event if it is so
+			var storedAuth = $.cookie("channel_pw:" + this.channelName);
+			if (storedAuth) {
+				DEBUG && console.log("Auto-authing", this.channelName, storedAuth);
+				this.me.channelAuth(storedAuth, this.channelName);
 			}
 		},
 
@@ -100,11 +131,11 @@ function ChatChannel (options) {
 		listen: function () {
 			var self = this,
 				socket = this.socket;
-			DEBUG && console.log(self.channelName, "listening");
+			DEBUG && console.log(self.channelName, "binding socket listeners");
 
 			this.socketEvents = {
 				"chat": function (msg) {
-					DEBUG && console.log(self.channelName, msg);
+					DEBUG && console.log("onChat:", self.channelName, msg);
 					switch (msg.class) {
 						case "join":
 							var newClient = new ClientModel(msg.client);
@@ -129,6 +160,9 @@ function ChatChannel (options) {
 					self.persistentLog.add(msg); // TODO: log to a channel
 					self.chatLog.renderChatMessage(msg);
 				},
+				"private": function () {
+					self.autoAuth();
+				},
 				"subscribed": function () {
 					self.postSubscribe();
 				},
@@ -141,7 +175,8 @@ function ChatChannel (options) {
 				},
 				"chat:your_cid": function (msg) {
 					DEBUG && console.log("my_cid:", msg.cid, "users I know about:", self.users);
-					self.me = self.users.get(msg.cid);
+					// self.me = self.users.get(msg.cid);
+					self.me.cid = msg.cid;
 				},
 				"userlist": function (msg) {
 					DEBUG && console.log("userlist",msg);
