@@ -52,6 +52,8 @@ function CodeClient (options) {
 				self.syncedJs.trigger("hide");
 				self.syncedHtml.trigger("hide");
 			});
+
+
 		},
 
 		kill: function () {

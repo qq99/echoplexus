@@ -629,6 +629,15 @@ body {
 	width:1px;
 	height:1em;
 	box-shadow: 1px 1px 1px black;
+	.user {
+		position:absolute;
+		top:-10px;
+		z-index:20;
+		left:0;
+		font-size:0.7em;
+		color:inherit;
+		background:black;
+	}
 }
 
 .tooltip-target {

@@ -169,7 +169,7 @@ function ChatLog (options) {
 
 		insertChatMessage: function (opts) {
 			// insert msg into the correct place in history
-			console.log("WTF", opts);
+			DEBUG && console.log("Inserting chat message", opts);
 			var $chatMessage = $(opts.html);
 			var $chatlog = $(".messages", this.$el);
 			if (opts.timestamp) {
@@ -215,15 +215,15 @@ function ChatLog (options) {
 				var userHTML = "";
 				var nActive = 0;
 				var total = 0;
-				_.each(users, function (user) {
+				_.each(users.models, function (user) {
 					// add him to the visual display
 					var userItem = self.userTemplate({
-						nick: user.nick,
+						nick: user.get("nick"),
 						cid: user.cid,
-						color: Color(user.color).toRGB(),
-						identified: user.identified,
-						idle: user.idle,
-						idleSince: user.idleSince
+						color: user.get("color").toRGB(),
+						identified: user.get("identified"),
+						idle: user.get("idle"),
+						idleSince: user.get("idleSince")
 					});
 					if (!user.idle) {
 						nActive += 1;

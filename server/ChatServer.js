@@ -1,4 +1,4 @@
-exports.ChatServer = function (sio, redisC) {
+exports.ChatServer = function (sio, redisC, EventBus) {
 
 	var config = require('./config.js').Configuration,
 		CHATSPACE = "/chat",
@@ -203,7 +203,7 @@ exports.ChatServer = function (sio, redisC) {
 										}, room));
 									} else { // auth'd
 										client.set("room", room);
-										channel.clients.push(client);
+										channel.clients.add(client);
 										// officially join the room on the server:
 										socket.join(room);
 
@@ -236,6 +236,10 @@ exports.ChatServer = function (sio, redisC) {
 					}
 
 					client.set("nick", newName);
+					EventBus && EventBus.trigger("nickset." + socket.id, {
+						nick: newName,
+						color: client.get("color")
+					});
 
 					socket.broadcast.emit('chat:' + room, serverSentMessage({
 						body: prevName + " is now known as " + newName,
@@ -505,7 +509,7 @@ exports.ChatServer = function (sio, redisC) {
 					client = new Client({
 						room: room
 					});
-					channel.clients.push(client);
+					channel.clients.add(client);
 					// officially join the room on the server:
 					socket.join(room);
 

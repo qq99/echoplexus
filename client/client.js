@@ -6,40 +6,22 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 		Backbone = require('backbone');
 	}
 
-	exports.Color = function (options) {
-		var _r, _g, _b, _a;
-
-		options = options || {};
-
-		_r = (options.r) ? options.r : parseInt(Math.random()*155+100,10);
-		_g = (options.g) ? options.g : parseInt(Math.random()*155+100,10);
-		_b = (options.b) ? options.b : parseInt(Math.random()*155+100,10);
-		_a = (options.a) ? options.a : Math.random();
-
-		return {
-			r: _r,
-			g: _g,
-			b: _b,
-			a: _a,
-			toRGB: function () {
-				return "rgb(" + _r + "," + _g + "," + _b + ")";
-			},
-			toRGBA: function () {
-				return "rgb(" + _r + "," + _g + "," + _b + "," + _a + ")";
-			}
-		};
-	};
-
 	exports.ColorModel = Backbone.Model.extend({
 		defaults: {
 			r: 0,
 			g: 0,
 			b: 0
 		},
-		initialize: function () {
-			this.set("r", parseInt(Math.random()*155+100,10));
-			this.set("g", parseInt(Math.random()*155+100,10));
-			this.set("b", parseInt(Math.random()*155+100,10));
+		initialize: function (opts) {
+			if (opts) {
+				this.set("r", opts.r);
+				this.set("g", opts.g);
+				this.set("b", opts.b);
+			} else {
+				this.set("r", parseInt(Math.random()*155+100,10));
+				this.set("g", parseInt(Math.random()*155+100,10));	
+				this.set("b", parseInt(Math.random()*155+100,10));
+			}
 		},
 		toRGB: function () {
 			return "rgb(" + this.attributes.r + "," + this.attributes.g + "," + this.attributes.b + ")";
@@ -66,7 +48,11 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 			DEBUG && console.log(this, opts);
 			_.bindAll(this);
 
-			this.set("color", new exports.ColorModel());
+			if (typeof opts.color === "undefined") {
+				this.set("color", new exports.ColorModel());
+			} else {
+				this.set("color", new exports.ColorModel(opts.color));
+			}
 			if (opts && opts.socket) {
 				this.socket = opts.socket;
 			}
@@ -99,6 +85,8 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 		setNick: function (nick, room, ack) {
 			$.cookie("nickname:" + room, nick);
 			DEBUG && console.log("sending new nick", nick, room);
+
+			this.set("nick", nick);
 			this.socket.emit('nickname:' + room, {
 				nickname: nick
 			}, function () {
@@ -176,5 +164,5 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 	});
 
 })(
-  typeof exports === 'object' ? exports : this
+  typeof exports === 'object' ? exports : window
 );

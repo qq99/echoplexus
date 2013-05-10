@@ -1,9 +1,11 @@
-exports.CodeServer = function (sio, redisC) {
+exports.CodeServer = function (sio, redisC, EventBus) {
 	
 	var CODESPACE = "/code",
 		config = require('./config.js').Configuration,
 		Client = require('../client/client.js').ClientModel,
 		Clients = require('../client/client.js').ClientsCollection;
+
+	var DEBUG = config.DEBUG;
 
 	function CodeCache (namespace) {
 		var currentState = "",
@@ -44,7 +46,19 @@ exports.CodeServer = function (sio, redisC) {
 		this.codeCache = new CodeCache(name);
 		return this;
 	}
+
 	var channels = {};
+
+	function publishUserList (room) {
+		if (channels[room] === undefined) {
+			console.warn("Publishing userlist of a channel that doesn't exist...", room);
+			return;
+		}
+		sio.of(CODESPACE).in(room).emit('userlist:' + room, {
+			users: channels[room].clients.toJSON(),
+			room: room
+		});
+	}
 
 	var CODE = sio.of(CODESPACE).on('connection', function (socket) {
 		socket.on("subscribe", function (data) {
@@ -55,26 +69,26 @@ exports.CodeServer = function (sio, redisC) {
 
 			var codeEvents = {
 				"code:cursorActivity": function (data) {
-					console.log("code:cursorActivity", data);
+					DEBUG && console.log("code:cursorActivity", data);
 					socket.in(channelKey).broadcast.emit('code:cursorActivity:' + channelKey, {
 						cursor: data.cursor,
-						id: client.cid
+						cid: client.cid
 					});
 				},
 				"code:change": function (data) {
-					console.log("code:change", data);
+					DEBUG && console.log("code:change", data);
 					data.timestamp = Number(new Date());
 					channel.codeCache.add(data, client);
 					socket.in(channelKey).broadcast.emit('code:change:' + channelKey, data);
 				},
 				"code:full_transcript": function (data) {
-					console.log("code:full_transcript", data);
+					DEBUG && console.log("code:full_transcript", data);
 					channel.codeCache.set(data.code);
 					socket.in(channelKey).broadcast.emit('code:sync:' + channelKey, data);
 				}
 			};
 
-			console.log("codeclient connected on", channelKey);
+			DEBUG && console.log("codeclient connected on", channelKey);
 			socket.leave("\"\"");
 			socket.join(channelKey);
 
@@ -87,10 +101,16 @@ exports.CodeServer = function (sio, redisC) {
 
 			// add the new client to our internal list
 			client = new Client({
-				room: room,
-				socket: socket
+				room: room
 			});
-			channel.clients.push(client);
+			client.socket = socket;
+			channel.clients.add(client);
+
+			EventBus.on("nickset." + socket.id, function (data) {
+				client.set("nick", data.nick);
+				client.set("color", data.color);
+				publishUserList(channelKey);
+			});
 
 			// bind all chat events:
 			_.each(codeEvents, function (value, key) {
@@ -100,6 +120,18 @@ exports.CodeServer = function (sio, redisC) {
 			setInterval(channel.codeCache.syncFromClient, 1000*30);
 
 			socket.in(channelKey).emit('code:authoritative_push:' + channelKey, channel.codeCache.syncToClient());
+
+			socket.on("unsubscribe", function () {
+				channel.clients.remove(client);
+
+				publishUserList(channelKey);
+			});
+
+			socket.on("disconnect", function () {
+				channel.clients.remove(client);
+
+				publishUserList(channelKey);
+			});
 		});
 
 	});

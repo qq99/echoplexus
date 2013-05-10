@@ -42,6 +42,8 @@ server.listen(config.host.PORT);
 
 console.log('Listening on port', config.host.PORT);
 
+var EventBus = new Backbone.Model();
+
 // SocketIO init:
 sio = sio.listen(server);
 sio.enable('browser client minification');
@@ -50,6 +52,6 @@ sio.set('log level', 1);
 
 // use db 15:
 redisC.select(15, function (err, reply) {
-	chatServer(sio, redisC); // start up the chat server
-	codeServer(sio, redisC); // start up the code server
+	chatServer(sio, redisC, EventBus); // start up the chat server
+	codeServer(sio, redisC, EventBus); // start up the code server
 });

@@ -5,6 +5,8 @@ function SyncedEditor () {
 		class: "syncedEditor",
 
 		initialize: function (opts) {
+			var self = this;
+
 			_.bindAll(this);
 			if (!opts.hasOwnProperty("editor")) {
 				throw "There was no editor supplied to SyncedEditor";
@@ -22,6 +24,9 @@ function SyncedEditor () {
 			this.active = false;
 			this.listen();
 			this.attachEvents();
+
+			this.users = new ClientsCollection();
+			this.users.model = ClientModel;
 
 			// initialize the channel
 			this.socket.emit("subscribe", {
@@ -68,6 +73,7 @@ function SyncedEditor () {
 				self.trigger("eval");
 			});
 			this.editor.on("cursorActivity", function (instance) {
+				if (!self.active) { return; } // don't report cursor events if we aren't looking at the document
 				socket.emit("code:cursorActivity:" + self.channelKey, {
 					cursor: instance.getCursor()
 				});
@@ -106,24 +112,39 @@ function SyncedEditor () {
 				},
 				"code:cursorActivity": function (data) {
 					// show the other users' cursors in our view
+					if (!self.active) {
+						$(".ghost-cursor").remove()
+						return;
+					}
 					var pos = editor.charCoords(data.cursor); // their position
-
-					// try to find an existing ghost cursor:
-					var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']", this.$el);
-					if (!$ghostCursor.length) { // if non-existent, create one
-						$ghostCursor = $("<div class='ghost-cursor' rel=" + data.id +"></div>");
-						$("body").append($ghostCursor); // it's absolutely positioned wrt body
+					var fromClient = self.users.where({cid: data.cid}); // this might seem liek some crazy shit, but we're using the server's cid as our ID, and ignoring our local cid
+					if (fromClient.length > 0) {
+						fromClient = fromClient[0];
+					} else {
+						return;
 					}
 
-					// position it:
-					// TODO:
-					// if view.is.active { show cursor } else { hide }
+					// try to find an existing ghost cursor:
+					var $ghostCursor = $(".ghost-cursor[rel='" + data.cid + "']"); // NOT SCOPED: it's appended and positioned absolutely in the body!
+					if (!$ghostCursor.length) { // if non-existent, create one
+						$ghostCursor = $("<div class='ghost-cursor' rel=" + data.cid +"></div>");
+						$("body").append($ghostCursor); // it's absolutely positioned wrt body
+
+						$ghostCursor.append("<div class='user'>"+ fromClient.get("nick") +"</div>");
+					}
+
+					var clientColor = fromClient.get("color").toRGB();
 
 					$ghostCursor.css({
-						background: Color().toRGB(),
+						background: clientColor,
+						color: clientColor,
 						top: pos.top,
 						left: pos.left
 					});
+				},
+				"userlist": function (data) {
+					self.users.set(data.users);
+					DEBUG && console.log("USERS", self.users);
 				}
 			};
 

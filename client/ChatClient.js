@@ -15,6 +15,7 @@ function ChatChannel (options) {
 			this.channelName = opts.room;
 			this.autocomplete = new Autocomplete();
 			this.users = new ClientsCollection();
+			this.users.model = ClientModel;
 			this.scrollback = new Scrollback();
 			this.persistentLog = new Log({
 				namespace: this.channelName
@@ -128,6 +129,18 @@ function ChatChannel (options) {
 			this.$el.attr("data-channel", this.channelName);
 		},
 
+		checkToNotify: function (msg) {
+			// // scan through the message and determine if we need to notify somebody that was mentioned:
+			if (this.me !== "undefined") {
+				if (msg.body.toLowerCase().indexOf(this.me.get("nick").toLowerCase()) !== -1) {
+					DEBUG && console.log("@me", msg.body);
+					notifications.notify(msg.nickname, msg.body.substring(0,50));
+					msg.directedAtMe = true;
+				}
+			}
+			return msg;
+		},
+
 		listen: function () {
 			var self = this,
 				socket = this.socket;
@@ -144,18 +157,10 @@ function ChatChannel (options) {
 							DEBUG && console.log("users now contains", self.users);
 							break;
 						case "part":
-							// self.users.remove(msg.clientID);
 							break;
 					}
 
-					// // scan through the message and determine if we need to notify somebody that was mentioned:
-					if (typeof self.me !== "undefined") {
-						if (msg.body.toLowerCase().indexOf(self.me.get("nick").toLowerCase()) !== -1) {
-							DEBUG && console.log("@me", msg.body);
-							notifications.notify(msg.nickname, msg.body.substring(0,50));
-							msg.directedAtMe = true;
-						}
-					}
+					msg = self.checkToNotify(msg);
 
 					self.persistentLog.add(msg); // TODO: log to a channel
 					self.chatLog.renderChatMessage(msg);
@@ -184,14 +189,11 @@ function ChatChannel (options) {
 					self.autocomplete.setPool(_.map(msg.users, function (user) {
 						return user.nick;
 					}));
-					self.chatLog.renderUserlist(msg.users);
+					self.users.set(msg.users);
 
-					_.each(msg.users, function (user) {
-						// add to our list of clients
-						// self.users.add({
-						// 	client: user
-						// });
-					});
+					self.chatLog.renderUserlist(self.users);
+
+					console.log("and stored users are", self.users);
 				},
 				"chat:currentID": function (msg) {
 					self.persistentLog.latestIs(msg.ID);
