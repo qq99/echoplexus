@@ -71,6 +71,42 @@ a {
 		color:#999;
 	}
 }
+
+@keyframes activity {
+  100% {
+    background:transparent;
+  }
+ 
+  50% {
+    background:rgba(40,40,111,0.9);
+  }
+
+  0% {
+  	background:transparent;
+  }
+}
+
+@keyframes wiggle {
+	100% {
+		transform: rotate(0deg);
+	}
+	6% {
+		transform: rotate(0deg);
+	}
+	4.5% {
+		transform: rotate(-6deg);
+	}
+	3% {
+		transform: rotate(6deg);
+	}
+	1.5% {
+		transform: rotate(-6deg);
+	}
+	0% {
+		transform: rotate(6deg);
+	}
+}
+
 #main {
 	position:absolute;
 	top:0;
@@ -137,11 +173,26 @@ nav {
 		float:left;
 		cursor:pointer;
 		transition:all 0.25s ease-in-out;
+		padding:0.25em 1em;
+		span {
+			display:block;
+		}
+		&.activity {
+			animation-name: activity;
+			animation-iteration-count: infinite;
+			animation-duration: 2.5s;
+			span {
+				display:block;
+				animation-name: wiggle;
+				animation-iteration-count: infinite;
+				animation-duration: 5s;
+			}
+		}
 		&:hover {
 			color:#efefef;
 			text-shadow:2px 2px 2px #252525;
+			animation-name: none;
 		}
-		padding:0.25em 1em;
 	}
 	h1.active {
 		color:#efefef;

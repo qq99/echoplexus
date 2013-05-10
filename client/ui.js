@@ -1,5 +1,12 @@
 if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 
+function codingModeActive () { // sloppy, forgive me
+	return $("#coding").is(":visible");
+}
+function chatModeActive () {
+	return $("#chatting").is(":visible");
+}
+
 $(document).ready(function () {
 	
 	// tooltip stuff:s
@@ -131,13 +138,14 @@ $(document).ready(function () {
 			$(this).addClass("active").siblings().removeClass("active");
 			$("#chatting").fadeOut();
 			$("#coding").fadeIn(function () {
-				$("body").trigger("codeSectionActive");
+				$("body").trigger("codeSectionActive"); // sloppy, forgive me
 			});
 		}
 	});
 
 	$("#chatButton").on("click", function (ev) {
 		ev.preventDefault();
+		$(this).removeClass("activity");
 		if ($("#chatting:visible").length === 0) {
 			$(this).addClass("active").siblings().removeClass("active");
 			$("#coding").fadeOut();

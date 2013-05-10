@@ -138,6 +138,11 @@ function ChatChannel (options) {
 					msg.directedAtMe = true;
 				}
 			}
+			// also ping the chat button if they're on the other pane:
+			if (!chatModeActive()) {
+				$("#chatButton").addClass("activity");
+			}
+
 			return msg;
 		},
 

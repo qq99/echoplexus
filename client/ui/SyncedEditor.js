@@ -47,6 +47,10 @@ function SyncedEditor () {
 				self.active = false;
 				$(".ghost-cursor").remove();
 			});
+
+			$("body").on("codeSectionActive", function () { // sloppy, forgive me
+				self.trigger("eval");
+			});
 		},
 
 		kill: function () {
@@ -70,10 +74,16 @@ function SyncedEditor () {
 				if (change.origin !== undefined && change.origin !== "setValue") {
 					socket.emit("code:change:" + self.channelKey, change);
 				}
-				self.trigger("eval");
+				if (codingModeActive()) {
+					self.trigger("eval");
+				}
 			});
 			this.editor.on("cursorActivity", function (instance) {
-				if (!self.active) { return; } // don't report cursor events if we aren't looking at the document
+				if (!self.active ||
+					!codingModeActive() ) {
+
+					return;	 // don't report cursor events if we aren't looking at the document
+				}
 				socket.emit("code:cursorActivity:" + self.channelKey, {
 					cursor: instance.getCursor()
 				});
@@ -112,8 +122,7 @@ function SyncedEditor () {
 				},
 				"code:cursorActivity": function (data) {
 					// show the other users' cursors in our view
-					if (!self.active) {
-						$(".ghost-cursor").remove()
+					if (!self.active || !codingModeActive()) {
 						return;
 					}
 					var pos = editor.charCoords(data.cursor); // their position
