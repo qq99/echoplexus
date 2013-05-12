@@ -80,6 +80,7 @@ a {
  
   50% {
     background:rgba(40,40,111,0.9);
+    box-shadow:inset 0px 0px 7px rgba(255,255,255,0.05);
   }
 
   0% {
@@ -578,6 +579,29 @@ $room-specific-height: 30px;
 	height:20%;
 	width:100%;
 	overflow-y:auto;
+	font-family: 'Noto Sans', sans-serif;
+	.body {
+		font-size:1em;
+		i {
+			margin-left:0.25em;
+			font-size:1.3em;
+		}
+	}
+	.idle > .zzz {
+		bottom:0;
+		opacity:1;
+		font-size:1em;
+		opacity:1;
+		color:#bbb;
+	}
+	.zzz {
+		color:inherit;
+		font-size:0.75em;
+		letter-spacing:-0.15em;
+		position:relative;
+		bottom:0.5em;
+		opacity:0.75;
+	}
 }
 .linklog {
 	height:80%;
@@ -706,7 +730,7 @@ body {
 	color:green;
 }
 .ident.no {
-	color:red;
+	color:orange;
 }
 .ghost-cursor {
 	position:absolute;
@@ -797,6 +821,12 @@ body {
 		z-index:10;
 		font-size:20px;
 		text-align: center;
+		.tool {
+			margin-bottom:0.5em;
+			&:hover {
+				background:rgba(255,255,255,0.3);
+			}
+		}
 		i {
 			width:100%;
 			display:block;
@@ -806,6 +836,9 @@ body {
 		}
 		.icon-eraser {
 			color:pink;
+		}
+		.icon-tint {
+			color:red;
 		}
 	}
 	.drawarea {
@@ -832,6 +865,15 @@ body {
 			&.real {
 				z-index:1;
 			}
+		}
+		.paper {
+			border-top-right-radius:10px;
+			box-shadow: inset 0px 0px 100px rgba(0,0,0,0.55);
+			position:absolute;
+			width:1000px;
+			height:1000px;
+			z-index:0;
+			background:url(/noisy_grid.png) repeat;
 		}
 	}
 }

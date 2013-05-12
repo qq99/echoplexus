@@ -198,7 +198,7 @@ function ChatChannel (options) {
 
 					self.chatLog.renderUserlist(self.users);
 
-					console.log("and stored users are", self.users);
+					DEBUG && console.log("and stored users are", self.users);
 				},
 				"chat:currentID": function (msg) {
 					self.persistentLog.latestIs(msg.ID);

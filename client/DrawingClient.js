@@ -31,7 +31,7 @@ function DrawingClient (options) {
 			this.fctx = this.$el.find('canvas.feedback')[0].getContext('2d');
 			this.ctx = this.$el.find('canvas.real')[0].getContext('2d');
 			this.ctx.lineWidth = 2;
-			this.ctx.strokeStyle = 'white';
+			this.ctx.strokeStyle = 'black';
 			var ctx = this.ctx;
 		},
 
