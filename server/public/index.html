@@ -7,11 +7,24 @@
 </head>
 <body>
 	<nav>
-		<h1 class="button active" id="chatButton"><span>Chat</span></h1>
-		<h1 class="button" id="codeButton"><span>JavaScript</span></h1>
+		<h1 class="button active" id="chatButton">
+			<i class="icon-group"></i>
+			<span class="button-description">Chat</span>
+		</h1>
+		<h1 class="button" id="codeButton">
+			<i class="icon-code"></i>
+			<span class="button-description">Code</span>
+		</h1>
+		<h1 class="button" id="drawButton">
+			<i class="icon-pencil"></i>
+			<span class="button-description">Draw</span>
+		</h1>
 		<div class="options-list">
 			<div class="header">
-				<h1 class="button global-options">Global Options</h1>
+				<h1 class="button global-options">
+					<i class="icon-cogs"></i>
+					<span class="button-description long">Global Options</span>
+				</h1>
 			</div>
 			<div class="options">
 				<div 
@@ -43,6 +56,9 @@
 			</section>
 			<section id="coding">
 				
+			</section>
+			<section id="drawing">
+
 			</section>
 		</section>
 	</section>
@@ -82,7 +98,7 @@
 					</span>
 				<% } %>
 				<% if (idle === true) { %>
-					<span class="idle" data-timestamp="<%= idleSince %>">Idle</span>
+					<span class="idle" data-timestamp="<%= idleSince %>"><i class="icon-eye-close"></i></span>
 				<% } %>
 			</div>
 		</script>
@@ -191,6 +207,23 @@
 				</div>
 			</div>
 		</script>
+		<script id="drawingTemplate" type="text/template" class="template">
+			<div class="tools">
+				<div class="tool pen"><i class="icon-pencil"></i></div>
+				<div class="tool eraser"><i class="icon-eraser"></i></div>
+				<div class="tool clear"></div>
+			</div>
+			<div class="drawarea">
+				<div class="canvas-area">
+					<canvas class="feedback" width="1000" height="1000">
+
+					</canvas>
+					<canvas class="real" width="1000" height="1000">
+
+					</canvas>
+				</div>
+			</div>
+		</script>
 		<span id="linklog-options" class="options">options</span>
 		<div id="tooltip">
 			<div class="tooltip">
@@ -215,6 +248,7 @@
 	<script src='client/ui/Log.js' type='text/javascript'></script>
 	<script src='client/ui/SyncedEditor.js' type='text/javascript'></script>
 	<script src='client/CodeClient.js' type='text/javascript'></script>
+	<script src='client/DrawingClient.js' type='text/javascript'></script>
 	<script src='client/ui/Scrollback.js' type='text/javascript'></script>
 	<script src='client/ui/ChatLog.js' type='text/javascript'></script>
 	<script src='client/ChatClient.js' type='text/javascript'></script>
@@ -223,6 +257,7 @@
 <!--
 	<script type="text/javascript" src="/yasioc.min.js"></script>
 -->
+	<link href="//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css" rel="stylesheet">
 	</div>
 </body>
 </html>

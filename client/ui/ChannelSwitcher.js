@@ -12,6 +12,9 @@ function ChannelSwitcher (options) {
 			namespace: "/code",
 			type: "htmljs"
 		}),
+		drawingView: new DrawingClient({
+			namespace: "/draw"
+		}),
 		initialize: function () {
 			var self = this;
 
@@ -19,6 +22,7 @@ function ChannelSwitcher (options) {
 
 			this.channels = {};
 			this.codeChannels = {};
+			this.drawingChannels = {};
 			
 			var defaultChannel = window.location.pathname;
 
@@ -90,6 +94,7 @@ function ChannelSwitcher (options) {
 			// send events to the view we're showing:
 			this.channels[channelName].trigger("show");
 			this.codeChannels[channelName].trigger("show");
+			this.drawingChannels[channelName].trigger("show");
 		},
 
 		joinChannel: function (channelName) {
@@ -105,11 +110,22 @@ function ChannelSwitcher (options) {
 
 			// also join the code portion
 			DEBUG && console.log("creating code view for", channelName);
+			channel = this.codeChannels[channelName];
 			if (typeof channel === "undefined") {
 				this.codeChannels[channelName] = new this.codeView({
 					room: channelName
 				});
 				this.codeChannels[channelName].$el.hide(); // don't show by default
+			}
+
+			// also join the drawing portion
+			DEBUG && console.log("creating drawing view for", channelName);
+			channel = this.drawingChannels[channelName];
+			if (typeof channel === "undefined") {
+				this.drawingChannels[channelName] = new this.drawingView({
+					room: channelName
+				});
+				this.drawingChannels[channelName].$el.hide(); // don't show by default
 			}
 
 			this.render(); // re-render the channel switcher
@@ -135,6 +151,12 @@ function ChannelSwitcher (options) {
 				var channelName = channelView.channelName;
 				if (!$(".codeClient[data-channel='"+ channelName +"']").length) {
 					$("#coding").append(channelView.$el);
+				}
+			});
+			_.each(this.drawingChannels, function (channelView) {
+				var channelName = channelView.channelName;
+				if (!$(".drawingClient[data-channel='"+ channelName +"']").length) {
+					$("#drawing").append(channelView.$el);
 				}
 			});
 		}

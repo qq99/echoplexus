@@ -45,6 +45,7 @@ html, body {
 	text-rendering:optimize-legibility;
 	position:relative;
 	font-size:13px;
+	overflow:hidden;
 }
 h1 {
 	font-size:1.7em;
@@ -174,15 +175,51 @@ nav {
 		cursor:pointer;
 		transition:all 0.25s ease-in-out;
 		padding:0.25em 1em;
-		span {
-			display:block;
+		border-bottom:0px solid transparent;
+		.button-description {
+			display: inline-block;
+			vertical-align: top;
+			height:100%;
+
+			transition:all 0.25s ease-in-out;
+			display:inline-block;
+			width:0px;
+			opacity:0;
+			overflow:hidden;
+			margin-left:0;
 		}
+		i {
+			transition:all 0.25s ease-in-out;
+			display:inline-block;
+			vertical-align: top;
+			height:100%;
+			line-height:1.4em;
+		}
+		&:hover {
+			border-bottom:1px solid rgba(71,178,250,0.7);
+			.button-description {
+				width:75px;
+				opacity:1;
+				margin-left:1em;
+			}
+			.button-description.long {
+				width:120px;
+				opacity:1;
+				margin-left:1em;
+			}
+		}
+		&.active {
+			border-bottom:0px;
+			i {
+				color:gold;
+			}
+		}
+
 		&.activity {
 			animation-name: activity;
 			animation-iteration-count: infinite;
 			animation-duration: 2.5s;
-			span {
-				display:block;
+			i {
 				animation-name: wiggle;
 				animation-iteration-count: infinite;
 				animation-duration: 5s;
@@ -203,10 +240,6 @@ nav {
 	.options-list {
 		float:right;
 		position:relative;
-		h1 {
-			font-size:1em;
-			line-height:1.95em;
-		}
 		.options {
 			display:none;
 			position:absolute;
@@ -323,7 +356,7 @@ header {
 		width:100%;
 		overflow: hidden;
 	}
-	#coding {
+	#coding, #drawing {
 		display:none;
 	}
 }
@@ -748,5 +781,57 @@ body {
 		top: -$arrow-height;
 		left: 50%;
 		margin-left: -$arrow-width;
+	}
+}
+
+
+.drawingClient {
+	display:none;
+	width:100%;
+	height:100%;
+	.tools {
+		position:absolute;
+		height:100%;
+		width:25px;
+		background:rgba(0,0,0,0.25);
+		z-index:10;
+		font-size:20px;
+		text-align: center;
+		i {
+			width:100%;
+			display:block;
+		}
+		.icon-pencil {
+			color:gold;
+		}
+		.icon-eraser {
+			color:pink;
+		}
+	}
+	.drawarea {
+		position:absolute;
+		width:100%;
+		padding-left:25px;
+		height:100%;
+		.canvas-area {
+			width:100%;
+			height:100%;
+			position:relative;
+		}
+		canvas {
+			cursor:crosshair;
+			&:focsus, &:active {
+				cursor:crosshair;
+			}
+			position:absolute;
+			top:0;
+			left:0;
+			&.feedback {
+				z-index:2;
+			}
+			&.real {
+				z-index:1;
+			}
+		}
 	}
 }

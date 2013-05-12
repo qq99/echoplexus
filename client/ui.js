@@ -136,7 +136,7 @@ $(document).ready(function () {
 		ev.preventDefault();
 		if ($("#coding:visible").length === 0) {
 			$(this).addClass("active").siblings().removeClass("active");
-			$("#chatting").fadeOut();
+			$("#panes > section").not('#coding').fadeOut();
 			$("#coding").fadeIn(function () {
 				$("body").trigger("codeSectionActive"); // sloppy, forgive me
 			});
@@ -148,8 +148,19 @@ $(document).ready(function () {
 		$(this).removeClass("activity");
 		if ($("#chatting:visible").length === 0) {
 			$(this).addClass("active").siblings().removeClass("active");
-			$("#coding").fadeOut();
+			$("#panes > section").not('#chatting').fadeOut();
 			$("#chatting").fadeIn();
+			$(".ghost-cursor").remove();
+		}
+	});
+
+	$("#drawButton").on("click", function (ev) {
+		ev.preventDefault();
+		$(this).removeClass("activity");
+		if ($("#drawing:visible").length === 0) {
+			$(this).addClass("active").siblings().removeClass("active");
+			$("#panes > section").not('#drawing').fadeOut();
+			$("#drawing").fadeIn();
 			$(".ghost-cursor").remove();
 		}
 	});
