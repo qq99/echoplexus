@@ -48,10 +48,10 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 			DEBUG && console.log(this, opts);
 			_.bindAll(this);
 
-			if (typeof opts.color === "undefined") {
-				this.set("color", new exports.ColorModel());
-			} else {
+			if (opts && opts.color) {
 				this.set("color", new exports.ColorModel(opts.color));
+			} else {
+				this.set("color", new exports.ColorModel());
 			}
 			if (opts && opts.socket) {
 				this.socket = opts.socket;
