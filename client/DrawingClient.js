@@ -240,7 +240,6 @@ function DrawingClient (options) {
 
 			this.socketEvents = {
 				"draw:line": function (msg) {
-					console.log(msg);
 					var line = new BezierLine(msg.fromX, msg.fromY, self.ctx, msg.ctxState, msg.bezier);
 					self.drawQ.add(line);
 				}
