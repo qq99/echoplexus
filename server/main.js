@@ -12,6 +12,7 @@ var express = require('express'),
 	async = require('async'),
 	chatServer = require('./ChatServer.js').ChatServer,
 	codeServer = require('./CodeServer.js').CodeServer,
+	drawServer = require('./DrawingServer.js').DrawingServer,
 	PUBLIC_FOLDER = __dirname + '/public',
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox';
 
@@ -54,4 +55,5 @@ sio.set('log level', 1);
 redisC.select(15, function (err, reply) {
 	chatServer(sio, redisC, EventBus); // start up the chat server
 	codeServer(sio, redisC, EventBus); // start up the code server
+	drawServer(sio, redisC, EventBus); // start up the code server
 });

@@ -3,6 +3,13 @@
 	-moz-box-sizing:border-box;
 	-webkit-box-sizing:border-box;
 }
+@mixin unselectable {
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
 @mixin cool-button {
 	resize: none;
 	background:rgba(0,0,0,0.5);
@@ -151,6 +158,7 @@ button {
 
 
 nav {
+	@include unselectable;
 	box-shadow:inset 0px -1px 10px rgba(0,0,0,0.3);
 	position: absolute;
 	height:30px;
@@ -184,8 +192,8 @@ nav {
 
 			transition:all 0.25s ease-in-out;
 			display:inline-block;
-			width:0px;
-			opacity:0;
+/*			width:0px;
+			opacity:0;*/
 			overflow:hidden;
 			margin-left:0;
 		}
@@ -198,7 +206,7 @@ nav {
 		}
 		&:hover {
 			border-bottom:1px solid rgba(71,178,250,0.7);
-			.button-description {
+/*			.button-description {
 				width:75px;
 				opacity:1;
 				margin-left:1em;
@@ -207,7 +215,7 @@ nav {
 				width:120px;
 				opacity:1;
 				margin-left:1em;
-			}
+			}*/
 		}
 		&.active {
 			border-bottom:0px;
@@ -259,6 +267,7 @@ nav {
 
 
 header {
+	@include unselectable;
 	position:relative;
 	z-index:100;
 	height:65px;
@@ -810,6 +819,7 @@ body {
 
 
 .drawingClient {
+	@include unselectable;
 	display:none;
 	width:100%;
 	height:100%;
@@ -853,7 +863,7 @@ body {
 		}
 		canvas {
 			cursor:crosshair;
-			&:focsus, &:active {
+			&:focus, &:active {
 				cursor:crosshair;
 			}
 			position:absolute;

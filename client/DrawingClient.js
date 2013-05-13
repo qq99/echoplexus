@@ -1,4 +1,47 @@
 function DrawingClient (options) {
+
+	function DrawQueue () {
+		var fifo = [],
+		executing = false;
+
+		var exequeute = function () {
+			if (!executing) { // simple lock
+				executing = true;
+			} else { // don't try to process same queue twice
+				return;
+			}
+
+			while (fifo.length > 0) {
+				var task = fifo.shift();
+
+				task();				
+			}
+			executing = false;
+		};
+
+		return {
+			add: function (dfrdFnc) {
+				fifo.push(dfrdFnc);
+				exequeute();
+			},
+			run: function (dfrdFnc) {
+				exequeute();
+			}
+		}
+	}
+
+	function BezierLine (fromX, fromY, ctx, opts, bezier) {
+		var x = fromX,
+			y = fromY;
+		return function () {
+			_.extend(ctx, opts); // set lineWidth, strokeStyle, etc
+			ctx.beginPath();
+			ctx.moveTo(x,y);
+			ctx.bezierCurveTo.apply(ctx, bezier);
+			ctx.stroke();
+		}
+	}
+
 	// this is really the JSHTML code client:
 	var DrawingClientView = Backbone.View.extend({
 		className: "drawingClient",
@@ -10,10 +53,18 @@ function DrawingClient (options) {
 
 			_.bindAll(this);
 
+			this.socket = io.connect("/draw");
 			this.channelName = opts.room;
 
-			// this.listen();
+			this.drawQ = new DrawQueue();
+
+			this.listen();
 			this.render();
+
+			// initialize the channel
+			this.socket.emit("subscribe", {
+				room: self.channelName
+			});
 
 			// debounce a function for repling
 			this.attachEvents();
@@ -41,71 +92,77 @@ function DrawingClient (options) {
 			DEBUG && console.log("killing DrawingClientView", self.channelName);
 		},
 
-		draw: function () {
-			var smooth_value = 1;
-			function calculateControlPoints (p0, p1, p2, p3) {
-				// http://www.antigrain.com/research/bezier_interpolation/
-				var x0 = p0.x, 
-					y0 = p0.y,
-					x1 = p1.x,
-					y1 = p1.y,
-					x2 = p2.x,
-					y2 = p2.y,
-					x3 = p3.x,
-					y3 = p3.y;
+		calculateControlPoints: function (p0, p1, p2, p3) {
+			var smooth_value = 1.0;
+			// http://www.antigrain.com/research/bezier_interpolation/
+			var x0 = p0.x, 
+				y0 = p0.y,
+				x1 = p1.x,
+				y1 = p1.y,
+				x2 = p2.x,
+				y2 = p2.y,
+				x3 = p3.x,
+				y3 = p3.y;
 
-			    var xc1 = (x0 + x1) / 2.0;
-			    var yc1 = (y0 + y1) / 2.0;
-			    var xc2 = (x1 + x2) / 2.0;
-			    var yc2 = (y1 + y2) / 2.0;
-			    var xc3 = (x2 + x3) / 2.0;
-			    var yc3 = (y2 + y3) / 2.0;
+		    var xc1 = (x0 + x1) / 2.0;
+		    var yc1 = (y0 + y1) / 2.0;
+		    var xc2 = (x1 + x2) / 2.0;
+		    var yc2 = (y1 + y2) / 2.0;
+		    var xc3 = (x2 + x3) / 2.0;
+		    var yc3 = (y2 + y3) / 2.0;
 
-			    var len1 = Math.sqrt((x1-x0) * (x1-x0) + (y1-y0) * (y1-y0));
-			    var len2 = Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
-			    var len3 = Math.sqrt((x3-x2) * (x3-x2) + (y3-y2) * (y3-y2));
+		    var len1 = Math.sqrt((x1-x0) * (x1-x0) + (y1-y0) * (y1-y0));
+		    var len2 = Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
+		    var len3 = Math.sqrt((x3-x2) * (x3-x2) + (y3-y2) * (y3-y2));
 
-			    var k1 = len1 / (len1 + len2);
-			    var k2 = len2 / (len2 + len3);
+		    var k1 = len1 / (len1 + len2);
+		    var k2 = len2 / (len2 + len3);
 
-			    var xm1 = xc1 + (xc2 - xc1) * k1;
-			    var ym1 = yc1 + (yc2 - yc1) * k1;
+		    var xm1 = xc1 + (xc2 - xc1) * k1;
+		    var ym1 = yc1 + (yc2 - yc1) * k1;
 
-			    var xm2 = xc2 + (xc3 - xc2) * k2;
-			    var ym2 = yc2 + (yc3 - yc2) * k2;
+		    var xm2 = xc2 + (xc3 - xc2) * k2;
+		    var ym2 = yc2 + (yc3 - yc2) * k2;
 
-			    // Resulting control points. Here smooth_value is mentioned
-			    // above coefficient K whose value should be in range [0...1].
-			    ctrl1_x = xm1 + (xc2 - xm1) * smooth_value + x1 - xm1;
-			    ctrl1_y = ym1 + (yc2 - ym1) * smooth_value + y1 - ym1;
+		    // Resulting control points. Here smooth_value is mentioned
+		    // above coefficient K whose value should be in range [0...1].
+		    ctrl1_x = xm1 + (xc2 - xm1) * smooth_value + x1 - xm1;
+		    ctrl1_y = ym1 + (yc2 - ym1) * smooth_value + y1 - ym1;
 
-			    ctrl2_x = xm2 + (xc2 - xm2) * smooth_value + x2 - xm2;
-			    ctrl2_y = ym2 + (yc2 - ym2) * smooth_value + y2 - ym2;
-			    return [ctrl1_x, ctrl1_y, ctrl2_x, ctrl2_y];
-			}
+		    ctrl2_x = xm2 + (xc2 - xm2) * smooth_value + x2 - xm2;
+		    ctrl2_y = ym2 + (yc2 - ym2) * smooth_value + y2 - ym2;
+		    return [ctrl1_x, ctrl1_y, ctrl2_x, ctrl2_y];
+		},
 
-			// first and last element in buffer are duplicates of the start and end of our true path
-			var ctx = this.ctx,
-				buffer = this.buffer;
-			
-			ctx.beginPath();
-			ctx.moveTo(buffer[0].x, buffer[0].y);
+		streamBezier: function () {
+			var buffer = this.buffer,
+				ctx = this.ctx,
+				i = 1;
 
-			for (var i = 1; i < buffer.length - 2; i++) {
-				var p0 = buffer[i-1],
-					p1 = buffer[i],
-					p2 = buffer[i+1],
-					p3 = buffer[i+2];
+			if (buffer.length < 4) { return; }
 
-				var to = p2;
+			var p0 = buffer[i-1],
+				p1 = buffer[i],
+				p2 = buffer[i+1],
+				p3 = buffer[i+2];
 
-				var bezier = calculateControlPoints(p0,p1,p2,p3);
-				bezier.push(to.x, to.y);
+			var to = p2;
 
-				ctx.bezierCurveTo.apply(ctx, bezier);
-			}
-			ctx.stroke();
+			var bezier = this.calculateControlPoints(p0,p1,p2,p3);
+			bezier.push(to.x, to.y);
 
+
+			var line = new BezierLine(buffer[i].x, buffer[i].y, ctx, {}, bezier);
+			this.drawQ.add(line);
+
+			this.socket.emit("draw:line:" + this.channelName, {
+				fromX: buffer[i].x,
+				fromY: buffer[i].y,
+				ctxState: {},
+				bezier: bezier
+			});
+
+			this.buffer.shift();
 		},
 
 		getCoords: function (ev) {
@@ -125,8 +182,8 @@ function DrawingClient (options) {
 
 		startPath: function (pt) {
 			// user feedback:
-			this.fctx.beginPath();
-			this.fctx.moveTo(pt.x, pt.y);
+			// this.fctx.beginPath();
+			// this.fctx.moveTo(pt.x, pt.y);
 
 			// store points for curve interp
 			this.buffer = [];
@@ -134,25 +191,25 @@ function DrawingClient (options) {
 		},
 		movePath: function (pt) {
 			if (!this.cursorDown) { return; }
-			this.fctx.lineTo(pt.x, pt.y);
-			this.fctx.stroke();
+			// this.fctx.lineTo(pt.x, pt.y);
+			// this.fctx.stroke();
 
 			// store points for curve interp
 			this.buffer.push(pt);
+			this.streamBezier();
 		},
 		stopPath: function (pt) {
-			this.fctx.clearRect(0,0,1000,1000);
+			// this.fctx.clearRect(0,0,1000,1000);
 
 			this.buffer.push(pt);
 			this.buffer.push(pt);
 
-			this.draw();
 		},
 
 		attachEvents: function () {
 			var self = this;
 
-			this.samplePoints = _.throttle(this.movePath, 100);
+			this.samplePoints = _.throttle(this.movePath, 40);
 
 			this.$el.on("mousedown", ".canvas-area", function (ev) {
 				self.cursorDown = true;
@@ -178,7 +235,21 @@ function DrawingClient (options) {
 		},
 
 		listen: function () {
+			var self = this,
+			socket = this.socket;
 
+			this.socketEvents = {
+				"draw:line": function (msg) {
+					console.log(msg);
+					var line = new BezierLine(msg.fromX, msg.fromY, self.ctx, msg.ctxState, msg.bezier);
+					self.drawQ.add(line);
+				}
+			}
+
+			_.each(this.socketEvents, function (value, key) {
+				// listen to a subset of event
+				socket.on(key + ":" + self.channelName, value);
+			});
 		},
 
 		render: function () {

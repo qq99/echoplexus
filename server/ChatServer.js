@@ -527,8 +527,8 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 			// bind all chat events:
 			_.each(chatEvents, function (method, eventName) {
 				var authFiltered = _.wrap(method, function (meth) {
-					DEBUG && console.log(arguments);
-					DEBUG && console.log(eventName, client.get("room"), !_.contains(unauthenticatedEvents, eventName));
+					// DEBUG && console.log(arguments);
+					// DEBUG && console.log(eventName, client.get("room"), !_.contains(unauthenticatedEvents, eventName));
 					if (client.get("room") !== room &&
 						!_.contains(unauthenticatedEvents, eventName)) {
 						return;
