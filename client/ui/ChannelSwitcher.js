@@ -85,6 +85,7 @@ function ChannelSwitcher (options) {
 			_.each(channelsToDeactivate, function (channelName) {
 				self.channels[channelName].trigger("hide");
 				self.codeChannels[channelName].trigger("hide");
+				self.drawingChannels[channelName].trigger("hide");
 			});
 
 			// style the buttons depending on which view is active
