@@ -9,6 +9,7 @@ exports.DrawingServer = function (sio, redisC, EventBus) {
 
 	function Channel (name) {
 		this.clients = new Clients();
+		this.replay = [];
 		return this;
 	}
 
@@ -23,7 +24,15 @@ exports.DrawingServer = function (sio, redisC, EventBus) {
 			var drawEvents = {
 				"draw:line": function (data) {
 					// DEBUG && console.log("draw:line", data);
+					channel.replay.push({
+						type: "draw:line",
+						data: data
+					});
 					socket.in(channelKey).broadcast.emit('draw:line:' + channelKey, data);
+				},
+				"trash": function (data) {
+					channel.replay = [];
+					socket.in(channelKey).broadcast.emit('trash:' + channelKey, data);	
 				}
 			};
 
@@ -44,6 +53,11 @@ exports.DrawingServer = function (sio, redisC, EventBus) {
 			});
 			client.socket = socket;
 			channel.clients.add(client);
+
+			// play back what has happened
+			_.each(channel.replay, function (datum) {
+				socket.emit(datum.type + ":" + channelKey, datum.data);
+			});
 
 			// bind all draw events:
 			_.each(drawEvents, function (value, key) {

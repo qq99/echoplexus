@@ -42,6 +42,13 @@ function DrawingClient (options) {
 		}
 	}
 
+	function Brush (color, stroke) {
+		return {
+			strokeStyle: color,
+			lineWidth: stroke
+		};
+	}
+
 	// this is really the JSHTML code client:
 	var DrawingClientView = Backbone.View.extend({
 		className: "drawingClient",
@@ -61,10 +68,7 @@ function DrawingClient (options) {
 			this.listen();
 			this.render();
 
-			// initialize the channel
-			this.socket.emit("subscribe", {
-				room: self.channelName
-			});
+			this.brush = new Brush((new ColorModel()).toRGB(), 2.0);
 
 			// debounce a function for repling
 			this.attachEvents();
@@ -151,14 +155,13 @@ function DrawingClient (options) {
 			var bezier = this.calculateControlPoints(p0,p1,p2,p3);
 			bezier.push(to.x, to.y);
 
-
-			var line = new BezierLine(buffer[i].x, buffer[i].y, ctx, {}, bezier);
+			var line = new BezierLine(buffer[i].x, buffer[i].y, ctx, this.brush, bezier);
 			this.drawQ.add(line);
 
 			this.socket.emit("draw:line:" + this.channelName, {
 				fromX: buffer[i].x,
 				fromY: buffer[i].y,
-				ctxState: {},
+				ctxState: this.brush,
 				bezier: bezier
 			});
 
@@ -206,6 +209,10 @@ function DrawingClient (options) {
 
 		},
 
+		trash: function () {
+			this.ctx.clearRect(0,0,1000,1000);
+		},
+
 		attachEvents: function () {
 			var self = this;
 
@@ -225,9 +232,40 @@ function DrawingClient (options) {
 			});
 
 
-			this.$el.on("click", ".tool", function () {
-				self.ctx.clearRect(0,0,1000,1000);
+			this.$el.on("click", ".tool.trash", function () {
+				DEBUG && console.log("emitting trash event");
+				self.trash();
+				self.socket.emit("trash:" + self.channelName, {});
 			});
+
+			this.$el.on("click", ".swatch", function (ev) {
+				self.brush.strokeStyle = $(this).data("color");
+			});
+
+			this.$el.on("click", ".tool.pen", function () {
+				
+				$(this).find(".tool-options .swatch").each(function (index, ele) {
+					var randomColor = (new ColorModel()).toRGB();
+					$(ele).css("background", randomColor)
+						.data("color", randomColor);
+				});
+
+				$(this).find(".tool-options").toggleClass("active");
+			});
+
+			$(window).on("keydown", function (ev) {
+				if (self.$el.is(":visible")) {
+					if (ev.keyCode === 221) { // } key
+						self.brush.lineWidth += 0.25;
+					} else if (ev.keyCode === 219) { // { key
+						self.brush.lineWidth -= 0.25;
+					}
+				}
+			});
+		},
+
+		showPenOptions: function () {
+
 		},
 
 		refresh: function () {
@@ -242,6 +280,9 @@ function DrawingClient (options) {
 				"draw:line": function (msg) {
 					var line = new BezierLine(msg.fromX, msg.fromY, self.ctx, msg.ctxState, msg.bezier);
 					self.drawQ.add(line);
+				},
+				"trash": function () {
+					self.trash();
 				}
 			}
 
@@ -249,6 +290,12 @@ function DrawingClient (options) {
 				// listen to a subset of event
 				socket.on(key + ":" + self.channelName, value);
 			});
+
+			// initialize the channel
+			socket.emit("subscribe", {
+				room: self.channelName
+			});
+
 		},
 
 		render: function () {

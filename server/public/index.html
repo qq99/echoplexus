@@ -216,11 +216,44 @@
 		</script>
 		<script id="drawingTemplate" type="text/template" class="template">
 			<div class="tools">
-				<div class="tool pen"><i class="icon-pencil"></i></div>
+				<div class="tool pen">
+					<i class="icon-pencil"></i>
+					<div class="tool-options">
+						<div class="tool-options-contents">
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="swatch"></div>
+							<div class="explanation">"{" increases brush size.  "}" decreases brush size.  Better color picker hopefully coming soon!</div>
+						</div>
+					</div>
+				</div>
+				<!--
 				<div class="tool eraser"><i class="icon-eraser"></i></div>
 				<div class="tool color"><i class="icon-tint"></i></div>
 				<div class="tool textarea"><i class="icon-quote-left"></i></div>
-				<div class="tool clear"><i class="icon-trash"></i></div>
+				-->
+				<div class="tool trash"><i class="icon-trash"></i></div>
 			</div>
 			<div class="drawarea">
 				<div class="canvas-area">
@@ -246,6 +279,7 @@
 
 	<script src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="/libs.min.js"></script>
+
 <!--
 	<script src='client/lib/backbone/backbone.js' type='text/javascript'></script>
 	<script src='client/lib/codemirror-3.11/lib/codemirror.js' type='text/javascript'></script>
@@ -267,6 +301,10 @@
 	<script src='client/ui/ChannelSwitcher.js' type='text/javascript'></script>
 	<script src='client/ui.js' type='text/javascript'></script>
 -->
+
+
+
+
 	<script type="text/javascript" src="/yasioc.min.js"></script>
 
 	<link href="//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css" rel="stylesheet">

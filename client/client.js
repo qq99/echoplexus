@@ -18,9 +18,9 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 				this.set("g", opts.g);
 				this.set("b", opts.b);
 			} else {
-				this.set("r", parseInt(Math.random()*155+100,10));
-				this.set("g", parseInt(Math.random()*155+100,10));	
-				this.set("b", parseInt(Math.random()*155+100,10));
+				this.set("r", parseInt(Math.random()*255,10));
+				this.set("g", parseInt(Math.random()*255,10));	
+				this.set("b", parseInt(Math.random()*255,10));
 			}
 		},
 		toRGB: function () {
