@@ -67,8 +67,11 @@ Dependencies:
 - *node.js*: for server, tested on 0.9.4-pre
 
 > git pull https://github.com/joyent/node.git
+
 > ./configure
+
 > make
+
 > make install
 
 - *phantomjs* (optional): for taking screenshots of websites to embed in the chat
@@ -83,11 +86,15 @@ This step also requires cloning the phantomjs_screenshot repository beside this 
 
 - *ruby*: for sass
 I'm using 2.0.0 installed via RVM, but it shouldn't matter much.  You should be able to use any Ruby with the sass gem.
+
 > sudo apt-get install ruby
+
 > sudo gem install sass
 
 - *node packages and ruby gems*: in the top level of the repo, specified in the Makefile.
+
 > make install_packages
+
 This step could use some improvement.
 
 Building:
