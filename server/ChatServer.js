@@ -488,6 +488,25 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 				channels[room] = channel;
 			}
 
+
+			function bindChatEvents () {
+				// client must exist!
+				// bind all chat events:
+				_.each(chatEvents, function (method, eventName) {
+					var authFiltered = _.wrap(method, function (meth) {
+						// DEBUG && console.log(arguments);
+						// DEBUG && console.log(eventName, client.get("room"), !_.contains(unauthenticatedEvents, eventName));
+						if (client.get("room") !== room &&
+							!_.contains(unauthenticatedEvents, eventName)) {
+							return;
+						}
+						var args = Array.prototype.slice.call(arguments).splice(1); // first arg is the function itself
+						meth.apply(socket, args); // not even once.
+					});
+					socket.on(eventName + ":" + room, authFiltered);
+				});
+			}
+
 			// check to see if the room is private:
 			redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
 				if (err) throw err;
@@ -502,6 +521,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 					subscribeAck({
 						cid: client.cid
 					});
+					bindChatEvents();
 				} else { // it's public:
 					DEBUG && console.log("subscribed to public room", data.room);
 
@@ -518,26 +538,12 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 					subscribeAck({
 						cid: client.cid
 					});
+					bindChatEvents();
 				}
 			});
 
 			// unauthenticated events:
 			var unauthenticatedEvents = ["join_private"];
-
-			// bind all chat events:
-			_.each(chatEvents, function (method, eventName) {
-				var authFiltered = _.wrap(method, function (meth) {
-					// DEBUG && console.log(arguments);
-					// DEBUG && console.log(eventName, client.get("room"), !_.contains(unauthenticatedEvents, eventName));
-					if (client.get("room") !== room &&
-						!_.contains(unauthenticatedEvents, eventName)) {
-						return;
-					}
-					var args = Array.prototype.slice.call(arguments).splice(1); // first arg is the function itself
-					meth.apply(socket, args); // not even once.
-				});
-				socket.on(eventName + ":" + room, authFiltered);
-			});
 
 			socket.on('disconnect', function () {
 				DEBUG && console.log("killing ", client.cid);
