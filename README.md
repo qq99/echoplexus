@@ -1,6 +1,8 @@
 echoplexus (v0.10)
 ==================
 
+Demo: [chat.echoplex.us](http://chat.echoplex.us/github "chat.echoplex.us /github channel")
+
 What is it?
 -----------
 
