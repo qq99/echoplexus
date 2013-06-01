@@ -31,9 +31,9 @@ install_packages:
 
 .js: $(CLIENT_JS)
 	mkdir -p $(BUILD_DIR)
-	cat $(CLIENT_JS) > $(BUILD_DIR)/yasioc.js
-	uglifyjs --compress --define DEBUG=false $(BUILD_DIR)/yasioc.js > $(BUILD_DIR)/yasioc.min.js
-	cp $(BUILD_DIR)/yasioc.min.js $(PUBLIC_DIR)/yasioc.min.js
+	cat $(CLIENT_JS) > $(BUILD_DIR)/echoplexus.js
+	uglifyjs --compress --define DEBUG=false $(BUILD_DIR)/echoplexus.js > $(BUILD_DIR)/echoplexus.min.js
+	cp $(BUILD_DIR)/echoplexus.min.js $(PUBLIC_DIR)/echoplexus.min.js
 	touch .js
 
 .css: $(SASS_FILES)
@@ -52,7 +52,7 @@ dangerzone_dir:
 	echo 'Allowing $(SANDBOX_USERNAME) user access to ' $(PUBLIC_DIR)/sandbox
 	chown -R :sandbox $(PUBLIC_DIR)/sandbox
 	chmod -R g+rw $(PUBLIC_DIR)/sandbox
-	echo 'If you want to run phantomjs-screenshotter, you must now run sudo make server.'
+	echo 'If you want to run phantomjs-screenshotter, you must now enable it in config.js, install phantomjs, and install the phantomjs_screenshot sister repository beside the echoplexus repository.'
 
 clean:
 	rm .libs

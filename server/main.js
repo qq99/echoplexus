@@ -18,7 +18,6 @@ var express = require('express'),
 
 var config = require('./config.js').Configuration;
 
-
 // Custom objects:
 // shared with the client:
 var Client = require('../client/client.js').ClientModel,
