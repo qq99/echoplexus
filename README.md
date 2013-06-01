@@ -1,6 +1,8 @@
 echoplexus (v0.10)
 ==================
 
+Demo: [chat.echoplex.us](http://chat.echoplex.us/github "chat.echoplex.us /github channel")
+
 What is it?
 -----------
 
@@ -65,8 +67,11 @@ Dependencies:
 - *node.js*: for server, tested on 0.9.4-pre
 
 > git pull https://github.com/joyent/node.git
+
 > ./configure
+
 > make
+
 > make install
 
 - *phantomjs* (optional): for taking screenshots of websites to embed in the chat
@@ -74,18 +79,22 @@ Download from http://phantomjs.org/
 Install the binary to /opt/bin/phantomjs
 
 If you don't want to do this step, set "phantomjs_screenshot" to false in server/config.js
-This step also requires cloning the phantomjs_screenshot repository beside this repo.
+This step also requires cloning the [phantomjs-screenshot](https://github.com/qq99/phantomjs-screenshot) repository beside this repo.
 
 - *redis*: for persistence
 > sudo apt-get install redis-server
 
 - *ruby*: for sass
 I'm using 2.0.0 installed via RVM, but it shouldn't matter much.  You should be able to use any Ruby with the sass gem.
+
 > sudo apt-get install ruby
+
 > sudo gem install sass
 
 - *node packages and ruby gems*: in the top level of the repo, specified in the Makefile.
+
 > make install_packages
+
 This step could use some improvement.
 
 Building:
