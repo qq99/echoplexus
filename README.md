@@ -64,7 +64,7 @@ So you like the idea of this and want to give it a go.  Here's how:
 
 Dependencies:
 -------------
-- *node.js*: for server, tested on 0.9.4-pre
+- *node.js*: for server, tested on 0.10+
 
 > git pull https://github.com/joyent/node.git
 
