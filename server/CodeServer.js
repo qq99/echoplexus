@@ -122,13 +122,17 @@ exports.CodeServer = function (sio, redisC, EventBus) {
 			socket.in(channelKey).emit('code:authoritative_push:' + channelKey, channel.codeCache.syncToClient());
 
 			socket.on("unsubscribe", function () {
-				channel.clients.remove(client);
+				if (typeof client !== "undefined") {
+					channel.clients.remove(client);
+				}
 
 				publishUserList(channelKey);
 			});
 
 			socket.on("disconnect", function () {
-				channel.clients.remove(client);
+				if (typeof client !== "undefined") {
+					channel.clients.remove(client);
+				}
 
 				publishUserList(channelKey);
 			});

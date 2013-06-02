@@ -65,11 +65,15 @@ exports.DrawingServer = function (sio, redisC, EventBus) {
 			});
 
 			socket.on("unsubscribe", function () {
-				channel.clients.remove(client);
+				if (typeof client !== "undefined") {
+					channel.clients.remove(client);
+				}
 			});
 
 			socket.on("disconnect", function () {
-				channel.clients.remove(client);
+				if (typeof client !== "undefined") {
+					channel.clients.remove(client);
+				}
 			});
 		});
 

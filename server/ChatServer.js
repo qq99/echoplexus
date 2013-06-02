@@ -466,18 +466,20 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 					});
 				},
 				"unsubscribe": function () {
-					DEBUG && console.log("unsub'ing ", client.cid, "from", room);
+					var channel = channels[room];
 
-					socket.leave(room);
+					if (typeof client !== "undefined") {
+						DEBUG && console.log("unsub'ing ", client.cid, "from", room);
+						userLeft(client, room);
+						channel.clients.remove(client);
+					}
 					// unbind all events
 					_.each(chatEvents, function (value, key) {
 						socket.removeAllListeners(key + ":" + room);
 					});
 
-					userLeft(client, room);
+					socket.leave(room);
 
-					var channel = channels[room];
-					channel.clients.remove(client);
 					publishUserList(room);
 				}
 			};
@@ -546,12 +548,14 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 			var unauthenticatedEvents = ["join_private"];
 
 			socket.on('disconnect', function () {
-				DEBUG && console.log("killing ", client.cid);
-
-				userLeft(client, room);
-
 				var channel = channels[room];
-				channel.clients.remove(client);
+
+				if (typeof client !== "undefined") { // sometimes client is undefined; TODO: find out why
+					DEBUG && console.log("killing ", client.cid);
+					userLeft(client, room);
+					channel.clients.remove(client);
+				}
+			
 				_.each(chatEvents, function (value, key) {
 					socket.removeAllListeners(key + ":" + room);
 				});
