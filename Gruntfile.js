@@ -73,7 +73,6 @@ module.exports = function(grunt) {
           "<%= public_dir %>libs.js",
           "<%= public_dir %>echoplexus.js",
           "<%= public_dir %>libs.min.js",
-          "<%= public_dir %>libs.min.js",
           "<%= public_dir %>echoplexus.min.js",
           "<%= public_dir %>css/main.css",
           "<%= public_dir %>css/main.min.css",
