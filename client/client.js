@@ -18,9 +18,21 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 				this.set("g", opts.g);
 				this.set("b", opts.b);
 			} else {
-				this.set("r", parseInt(Math.random()*255,10));
-				this.set("g", parseInt(Math.random()*255,10));	
-				this.set("b", parseInt(Math.random()*255,10));
+				var r = parseInt(Math.random()*255,10),
+					g = parseInt(Math.random()*255,10),
+					b = parseInt(Math.random()*255,10),
+					threshold = 50, color = 35;
+				//Calculate the manhattan distance to the colors
+				//If the colors are within the threshold, invert them
+				if (Math.abs(r - color) + Math.abs(g - color) + Math.abs(b - color) <= threshold)
+				{
+					r = 255 - r;
+					g = 255 - g;
+					b = 255 - b;
+				}
+				this.set("r", r);
+				this.set("g", g);
+				this.set("b", b);
 			}
 		},
 		toRGB: function () {
