@@ -62,48 +62,50 @@ function ChatLog (options) {
 				opts = {};
 			}
 			
-			// put image links on the side:
-			var images;
-			if (OPTIONS["autoload_media"] && (images = body.match(REGEXES.urls.image))) {
-				for (var i = 0, l = images.length; i < l; i++) {
-					var href = images[i];
+			if (msg.class !== "identity") { // setting nick to a image URL or youtube URL should not update media bar
+				// put image links on the side:
+				var images;
+				if (OPTIONS["autoload_media"] && (images = body.match(REGEXES.urls.image))) {
+					for (var i = 0, l = images.length; i < l; i++) {
+						var href = images[i];
 
-					// only do it if it's an image we haven't seen before
-					if (uniqueImages[href] === undefined) {
-						var img = self.linkedImageTemplate({
-							url: href,
-							linker: msg.nickname
-						});
-						$(".linklog .body", this.$el).prepend(img);
-						uniqueImages[href] = true;
+						// only do it if it's an image we haven't seen before
+						if (uniqueImages[href] === undefined) {
+							var img = self.linkedImageTemplate({
+								url: href,
+								linker: msg.nickname
+							});
+							$(".linklog .body", this.$el).prepend(img);
+							uniqueImages[href] = true;
+						}
+					}
+
+					body = body.replace(REGEXES.urls.image, "").trim(); // remove the URLs
+				}
+
+				// put youtube linsk on the side:
+				var youtubes;
+				if (OPTIONS["autoload_media"] && (youtubes = body.match(REGEXES.urls.youtube))) {
+					for (var i = 0, l = youtubes.length; i < l; i++) {
+						var src = makeYoutubeURL(youtubes[i]),
+							yt = $(this.fl_obj_template);
+						if (uniqueImages[src] === undefined) {
+							yt.find("embed").attr("src", src)
+								.find("param[name='movie']").attr("src", src);
+							$(".linklog .body", this.$el).prepend(yt);
+							uniqueImages[src] = true;
+						}
 					}
 				}
 
-				body = body.replace(REGEXES.urls.image, "").trim(); // remove the URLs
-			}
-
-			// put youtube linsk on the side:
-			var youtubes;
-			if (OPTIONS["autoload_media"] && (youtubes = body.match(REGEXES.urls.youtube))) {
-				for (var i = 0, l = youtubes.length; i < l; i++) {
-					var src = makeYoutubeURL(youtubes[i]),
-						yt = $(this.fl_obj_template);
-					if (uniqueImages[src] === undefined) {
-						yt.find("embed").attr("src", src)
-							.find("param[name='movie']").attr("src", src);
-						$(".linklog .body", this.$el).prepend(yt);
-						uniqueImages[src] = true;
-					}
-				}
-			}
-
-			// put hyperlinks on the side:
-			var links;
-			if (links = body.match(REGEXES.urls.all_others)) {
-				for (var i = 0, l = links.length; i < l; i++) {
-					if (uniqueImages[links[i]] === undefined) {
-						$(".linklog .body", this.$el).prepend("<a href='" + links[i] + "' target='_blank'>" + links[i] + "</a>");
-						uniqueImages[links[i]] = true;
+				// put hyperlinks on the side:
+				var links;
+				if (links = body.match(REGEXES.urls.all_others)) {
+					for (var i = 0, l = links.length; i < l; i++) {
+						if (uniqueImages[links[i]] === undefined) {
+							$(".linklog .body", this.$el).prepend("<a href='" + links[i] + "' target='_blank'>" + links[i] + "</a>");
+							uniqueImages[links[i]] = true;
+						}
 					}
 				}
 			}

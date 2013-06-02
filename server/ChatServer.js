@@ -242,10 +242,12 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 					});
 
 					socket.broadcast.emit('chat:' + room, serverSentMessage({
+						class: "identity",
 						body: prevName + " is now known as " + newName,
 						log: false
 					}, room));
 					socket.emit('chat:' + room, serverSentMessage({
+						class: "identity",
 						body: "You are now known as " + newName,
 						log: false
 					}, room));
@@ -382,6 +384,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 						redisC.sismember("users:" + room, nick, function (err, reply) {
 							if (!reply) {
 								socket.emit('chat:' + room, serverSentMessage({
+									class: "identity",
 									body: "There's no registration on file for " + nick
 								}, room));
 							} else {
@@ -403,12 +406,14 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 												body: "Wrong password for " + nick
 											}, room));
 											socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
+												class: "identity",
 												body: nick + " just failed to identify himself"
 											}, room));
 											publishUserList(room);
 										} else { // ident'd
 											client.set("identified", true);
 											socket.emit('chat:' + room, serverSentMessage({
+												class: "identity",
 												body: "You are now identified for " + nick
 											}, room));
 											publishUserList(room);
