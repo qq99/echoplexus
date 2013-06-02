@@ -27,6 +27,7 @@ The most important part of echoplexus is the support for anonymity.  Users hate 
 echoplexus will attempt to embed any image URLs directly into the Media bar on the right side.  This is a user configurable setting that is on by default.  Similarly, it will attempt to parse YouTube URLs and embed an object directly in the chat.  If the server settings are enabled to do so, echoplexus will also attempt to take a screenshot and a short excerpt of any non-media URL linked in the chat to provide a quick preview/overview to chat participants.
 
 Currently Supported Commands:
+- /join [channel_name]: Join a channel
 - /nick [your_nickname]: Changes your name from Anonymous; this preference is stored in a cookie on a per channel basis
 - /register [some_password]: Facilitates linkable anonymity; people talking to you yesterday can rest assured you're the same person today (and not an impersonator trying to steal your nickname) by registering and identifying.
 - /identify [your_password]: Assume command of your nickname, and get a green checkmark beside it notifying others that you are identified.
