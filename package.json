@@ -1,0 +1,43 @@
+{
+  "name": "echoplexus",
+  "version": "0.1.0",
+  "description": "A modular, anonymous, real-time chatting system.",
+  "scripts": {
+    "start": "supervisor server/main.js",
+    "build": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qq99/echoplexus.git"
+  },
+  "author": "Anthony Cameron",
+  "licenses": [
+    {
+      "type": "LICENSE",
+      "url": "http://github.com/qq99/echoplexus/LICENSE"
+    }
+  ],
+  "readmeFilename": "README.md",
+  "gitHead": "37e712794c0fcc718bb478859cd8d6ebb144d4d1",
+  "bugs": {
+    "url": "https://github.com/qq99/echoplexus/issues"
+  },
+  "dependencies": {
+    "express": "~3.2.5",
+    "socket.io": "~0.9.14",
+    "underscore": "~1.4.4",
+    "crypto": "~0.0.3",
+    "redis": "~0.8.3",
+    "backbone": "~1.0.0",
+    "async": "~0.2.9"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.2.2",
+    "grunt-sass": "~0.6.0",
+    "grunt-css": "~0.5.4",
+    "grunt-contrib-clean": "~0.4.1",
+    "supervisor": "~0.5.2"
+  }
+}
