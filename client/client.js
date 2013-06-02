@@ -18,9 +18,9 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 				this.set("g", opts.g);
 				this.set("b", opts.b);
 			} else {
-				var r = parseInt(Math.random()*255,10),
-					g = parseInt(Math.random()*255,10),
-					b = parseInt(Math.random()*255,10),
+				var r = parseInt(Math.random()*200+55,10), // push the baseline away from black
+					g = parseInt(Math.random()*200+55,10),
+					b = parseInt(Math.random()*200+55,10),
 					threshold = 50, color = 35;
 				//Calculate the manhattan distance to the colors
 				//If the colors are within the threshold, invert them
