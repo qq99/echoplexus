@@ -383,11 +383,34 @@ header {
 		width:50%;
 		float:right;
 		word-break:break-word;
-		& > div {
+		position:relative;
+
+		.repl-options {
+			font-size:0.9em;
+			height:1em;
+			position: relative;
+			z-index:2;
+			padding:0 1em;
+			button {
+				color:greenyellow;
+			}
+		}
+
+		.jsREPL, .htmlREPL {
 			height: 50%;
+			width:100%;
 			padding:1em;
+			position: absolute;
+		}
+		.jsREPL {
+			bottom:0;
+		}
+		.htmlREPL {
+			top:0;
+			padding-top:2em;
 		}
 		iframe {
+			background: white;
 			height:90%;
 			width:100%;
 		}

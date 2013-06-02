@@ -205,11 +205,15 @@
 				</div>
 			</div>
 			<div class="replPANE">
-				<div class="htmlREPL">
+				<div class="repl-options">
+					<button class="btn evaluate">Evaluate</button>
+					<input type="checkbox" class="livereload" /> <label>LiveReload?</label>
+				</div>
+				<div class="htmlREPL repl-result">
 					<h2>HTML</h2>
 					<iframe class="jsIframe" src="/codeframe.html" sandbox="allow-forms allow-scripts allow-same-origin"></iframe>
 				</div>
-				<div class="jsREPL">
+				<div class="jsREPL repl-result">
 					<h2>Result</h2>
 					<div class="output"></div>
 				</div>

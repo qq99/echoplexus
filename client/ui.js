@@ -132,6 +132,11 @@ $(document).ready(function () {
 		notifications.request();
 	});
 
+	// messy, hacky, but make it safer for now
+	function turnOffLiveReload () {
+		$(".livereload").attr("checked", false);
+	}
+
 	$("#codeButton").on("click", function (ev) {
 		ev.preventDefault();
 		if ($("#coding:visible").length === 0) {
@@ -151,6 +156,7 @@ $(document).ready(function () {
 			$("#panes > section").not('#chatting').fadeOut();
 			$("#chatting").fadeIn();
 			$(".ghost-cursor").remove();
+			turnOffLiveReload();
 		}
 	});
 
@@ -162,6 +168,7 @@ $(document).ready(function () {
 			$("#panes > section").not('#drawing').fadeOut();
 			$("#drawing").fadeIn();
 			$(".ghost-cursor").remove();
+			turnOffLiveReload();
 		}
 	});
 

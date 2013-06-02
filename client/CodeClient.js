@@ -15,7 +15,7 @@ function CodeClient (options) {
 			this.listen();
 			this.render();
 
-			// debounce a function for repling
+			// debounce a function for auto-repling
 			this.doREPL = _.debounce(this._repl, 500);
 
 			this.editors = {
@@ -39,21 +39,30 @@ function CodeClient (options) {
 
 			this.attachEvents();
 
-			this.on("show", function () {
-				DEBUG && console.log("code_client:show");
-				self.$el.show();
-				self.syncedJs.trigger("show");
-				self.syncedHtml.trigger("show");
-			});
+			// currently triggered when user selects another channel:
+			// perhaps should also be triggered when a user chooses a different tab
+			this.on("show", this.show);
+			this.on("hide", this.hide);
+		},
 
-			this.on("hide", function () {
-				DEBUG && console.log("code_client:hide");
-				self.$el.hide();
-				self.syncedJs.trigger("hide");
-				self.syncedHtml.trigger("hide");
-			});
+		hide: function () {
+			DEBUG && console.log("code_client:hide");
+			this.$el.hide();
+			this.syncedJs.trigger("hide");
+			this.syncedHtml.trigger("hide");
+			// turn off live-reloading if we hide this view
+			// don't want to execute potential DoS code that was inserted while we were away
+			if (this.$livereload_checkbox &&
+				this.$livereload_checkbox.is(":checked")) {
+				this.$livereload_checkbox.attr("checked", false);
+			}
+		},
 
-
+		show: function () {
+			DEBUG && console.log("code_client:show");
+			this.$el.show();
+			this.syncedJs.trigger("show");
+			this.syncedHtml.trigger("show");
 		},
 
 		kill: function () {
@@ -65,12 +74,25 @@ function CodeClient (options) {
 			this.syncedHtml.kill();
 		},
 
+		livereload: function () {
+			// only automatically evaluate the REPL if the user has opted in
+			if (this.$livereload_checkbox && 
+				this.$livereload_checkbox.is(":checked")) {
+				this.doREPL();
+			}
+		},
+
 		attachEvents: function () {
 			var self = this;
-			this.listenTo(this.syncedJs, "eval", this.doREPL);
-			this.listenTo(this.syncedHtml, "eval", this.doREPL);
+			this.listenTo(this.syncedJs, "eval", this.livereload);
+			this.listenTo(this.syncedHtml, "eval", this.livereload);
 			$("body").on("codeSectionActive", function () {
 				self.refresh();
+			});
+			this.$el.on("click", ".evaluate", function (ev) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				self._repl(); // doesn't need to be the debounced version since the user is triggering it purposefully
 			});
 		},
 
@@ -161,6 +183,8 @@ function CodeClient (options) {
 		render: function () {
 			this.$el.html(this.htmlEditorTemplate());
 			this.$el.attr("data-channel", this.channelName);
+
+			this.$livereload_checkbox = this.$el.find("input.livereload");
 		},
 
 	});
