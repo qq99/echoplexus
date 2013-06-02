@@ -232,7 +232,7 @@ function ChatLog (options) {
 						idle: user.get("idle"),
 						idleSince: user.get("idleSince")
 					});
-					if (!user.idle) {
+					if (!user.get('idle')) {
 						nActive += 1;
 					}
 					total += 1;
