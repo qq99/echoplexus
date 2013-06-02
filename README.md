@@ -64,7 +64,7 @@ So you like the idea of this and want to give it a go.  Here's how:
 
 Dependencies:
 -------------
-- *node.js*: for server, tested on 0.10+
+- *node.js*: for server, confirmed working v.10.9, and should be OK with v.10.* -- node-sass has troubles with v.11.*-pre
 
 > git pull https://github.com/joyent/node.git
 
