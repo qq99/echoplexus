@@ -225,7 +225,7 @@ function ChatChannel (options) {
 						var userInput = $this.val();
 						self.scrollback.add(userInput);
 
-						if (userInput.match(REGEXES.commands.join)) { // /nick [nickname]
+						if (userInput.match(REGEXES.commands.join)) { // /join [channel_name]
 							channelName = userInput.replace(REGEXES.commands.join, "").trim();
 							self.trigger('joinChannel', channelName);
 						} else {
