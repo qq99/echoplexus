@@ -84,23 +84,13 @@ This step also requires cloning the [phantomjs-screenshot](https://github.com/qq
 - *redis*: for persistence
 > sudo apt-get install redis-server
 
-- *ruby*: for sass
-I'm using 2.0.0 installed via RVM, but it shouldn't matter much.  You should be able to use any Ruby with the sass gem.
-
-> sudo apt-get install ruby
-
-> sudo gem install sass
-
-- *node packages and ruby gems*: in the top level of the repo, specified in the Makefile.
-
-> make install_packages
-
-This step could use some improvement.
+- *node packages*
+> npm install
 
 Building:
 ---------
 
-`make client`
+`npm run-script build`
 
 
 Running the server:
@@ -109,6 +99,6 @@ Running the server:
 Create a copy of the sample config file for the server, and change any relevant options:
 > cp server/config.sample.js server/config.js
 
-Run `make server` or `nodemon server/main.js` or `node server/main.js`.  It will become available on http://localhost:8080/ under the default configuration.
+Run `npm start` or `nodemon server/main.js` or `node server/main.js`.  It will become available on http://localhost:8080/ under the default configuration.
 
 If you want to host with nginx, you're going to have to get a build with WebSockets enabled.

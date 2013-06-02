@@ -4,6 +4,7 @@
   "description": "A modular, anonymous, real-time chatting system.",
   "scripts": {
     "start": "supervisor server/main.js",
+    "build": "grunt"
   },
   "repository": {
     "type": "git",
