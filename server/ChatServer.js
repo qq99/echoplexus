@@ -199,6 +199,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 											body: "Wrong password for room"
 										}, room));
 										socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
+											class: "identity",
 											body: client.get("nick") + " just failed to join the room."
 										}, room));
 									} else { // auth'd
@@ -403,6 +404,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 										if (derivedKey.toString() !== stored.password) { // FAIL
 											client.set("identified", false);
 											socket.emit('chat:' + room, serverSentMessage({
+												class: "identity",
 												body: "Wrong password for " + nick
 											}, room));
 											socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
