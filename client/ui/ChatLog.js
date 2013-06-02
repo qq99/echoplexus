@@ -45,8 +45,13 @@ function ChatLog (options) {
         },
 
         attachEvents: function () {
+        	// show "Sent ___ ago" when hovering all chat messages:
 			this.$el.on("hover", ".chatMessage", function (ev) {
 				$(this).attr("title", "sent " + moment($(".time", this).data("timestamp")).fromNow());
+			});
+			// remove the image from the media bar when the user clicks the close button:
+			this.$el.on("click", ".imageThumbnail .close-button", function () {
+				$(this).parent(".imageThumbnail").remove();
 			});
         },
 
