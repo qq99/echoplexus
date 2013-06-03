@@ -1,6 +1,6 @@
 #!/bin/sh
 SANDBOX_USERNAME='sandbox'
-PUBLIC_DIR='server/public'
+PUBLIC_DIR='public'
 echo "Creating a new user account with disabled login named $SANDBOX_USERNAME"
 adduser --disabled-login --gecos 'Sandbox' $SANDBOX_USERNAME
 mkdir -p $PUBLIC_DIR/sandbox

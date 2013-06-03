@@ -10,7 +10,7 @@ module.exports = function(grunt) {
       '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' +
       '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author%>;' +
       ' Licensed under <%= pkg.licenses.type %> */\n',
-    public_dir: 'server/public/',
+    public_dir: 'public/',
     // Task configuration.
     // Concatenation
     concat: {

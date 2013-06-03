@@ -1,12 +1,12 @@
 node_modules
 .sass-cache
-server/public/css
-server/public/*.js
+public/css
+public/*.js
 *.swp
 build
 .libs
 .css
 .js
-server/public/sandbox
+public/sandbox
 .npm-debug.log
 server/config.js

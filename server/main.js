@@ -13,8 +13,8 @@ var express = require('express'),
 	chatServer = require('./ChatServer.js').ChatServer,
 	codeServer = require('./CodeServer.js').CodeServer,
 	drawServer = require('./DrawingServer.js').DrawingServer,
-	PUBLIC_FOLDER = __dirname + '/public',
-	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox';
+	PUBLIC_FOLDER = __dirname + '/../public',
+	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/../sandbox';
 
 var config = require('./config.js').Configuration;
 
@@ -36,7 +36,7 @@ if (config.features.phantomjs_screenshot) { // change the user of the current pr
 app.use(express.static(PUBLIC_FOLDER));
 // always server up the index.html
 app.get("/*", function (req, res) {
-	res.sendfile("server/public/index.html");
+	res.sendfile("public/index.html");
 });
 server.listen(config.host.PORT);
 
