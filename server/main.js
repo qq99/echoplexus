@@ -14,7 +14,7 @@ var express = require('express'),
 	codeServer = require('./CodeServer.js').CodeServer,
 	drawServer = require('./DrawingServer.js').DrawingServer,
 	PUBLIC_FOLDER = __dirname + '/../public',
-	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/../sandbox';
+	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox';
 
 var config = require('./config.js').Configuration;
 
