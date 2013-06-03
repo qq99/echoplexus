@@ -23,7 +23,7 @@ function ChannelSwitcher (options) {
 			this.channels = {};
 			this.codeChannels = {};
 			this.drawingChannels = {};
-			
+
 			var defaultChannel = window.location.pathname;
 
 			this.joinChannel(defaultChannel);
@@ -47,8 +47,7 @@ function ChannelSwitcher (options) {
 				if (ev.keyCode === 13) { // enter key
 					var channelName = $(this).val();
 					ev.preventDefault();
-					self.joinChannel(channelName);
-					self.showChannel(channelName);
+					self.joinAndShowChannel(channelName);
 				}
 			});
 
@@ -106,7 +105,9 @@ function ChannelSwitcher (options) {
 				this.channels[channelName] = new this.channelView({
 					room: channelName
 				});
-				this.channels[channelName].$el.hide(); // don't show by default
+				this.channels[channelName]
+					.on('joinChannel', this.joinAndShowChannel, this)
+					.$el.hide(); // don't show by default
 			}
 
 			// also join the code portion
@@ -160,6 +161,11 @@ function ChannelSwitcher (options) {
 					$("#drawing").append(channelView.$el);
 				}
 			});
+		},
+
+		joinAndShowChannel: function(channelName) {
+			this.joinChannel(channelName);
+			this.showChannel(channelName);
 		}
 	});
 
