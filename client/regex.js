@@ -14,7 +14,7 @@
 			failed_command: /^\//,
 			private: /^\/private/,
 			public: /^\/public/,
-			password: /^\/password/,
+			password: /^\/[password|pw]/,
 			join: /^\/join/
 		},
 		phantomjs: {
