@@ -253,10 +253,17 @@ function ChatChannel (options) {
 						ev.preventDefault();
 						var userInput = $this.val();
 						self.scrollback.add(userInput);
-						self.me.speak({
-							body: userInput,
-							room: self.channelName
-						}, self.socket);
+
+						if (userInput.match(REGEXES.commands.join)) { // /join [channel_name]
+							channelName = userInput.replace(REGEXES.commands.join, "").trim();
+							self.trigger('joinChannel', channelName);
+						} else {
+							self.me.speak({
+								body: userInput,
+								room: self.channelName
+							}, self.socket);
+						}
+
 						$this.val("");
 						self.scrollback.reset();
 						break;
