@@ -164,7 +164,8 @@ function SyncedEditor () {
 			socket.on("reconnect",function(){
 				//Resend the subscribe event
 				socket.emit("subscribe", {
-					room: self.channelName
+					room: self.channelName,
+					subchannel: self.subchannelName
 				});
 			});
 		},
