@@ -691,6 +691,11 @@ body {
 			background:rgba(120,120,220,0.1)
 		}
 	}
+	&.suppress_client {
+		.chatMessage.client{
+			display:none;
+		}
+	}
 }
 .chatMessage {
 	transition:all 0.25s ease-in-out;

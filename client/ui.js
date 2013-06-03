@@ -45,26 +45,22 @@ $(document).ready(function () {
     window.OPTIONS = {
         "autoload_media": true,
         "suppress_join": false,
-        "highlight_mine": true
+        "highlight_mine": true,
+        "suppress_client": false
     };
 
-    function updateOption (option) {
-        // update the options hash based upon the cookie
-        var $option = $("#" + option);
-        if ($.cookie(option) !== null) {
-            if ($.cookie(option) === "false") {
-                $option.removeAttr("checked");
-                OPTIONS[option] = false;
-            } else {
-                $option.attr("checked", "checked");
-                OPTIONS[option] = true;
-            }
 
-            if (OPTIONS[option]) {
-                $("body").addClass(option);
-            } else {
-                $("body").removeClass(option);
-            }
+    function updateOption (value, option) {
+        var $option = $("#" + option);
+        //Check if the options are in the cookie, if so update the value
+        if (typeof $.cookie(option) !== "undefined") value = !($.cookie(option) === "false");
+        window.OPTIONS[option] = value;
+        if (value) {
+            $("body").addClass(option);
+            $option.attr("checked", "checked");
+        } else {
+            $("body").removeClass(option);
+            $option.removeAttr("checked");
         }
         // bind events to the click of the element of the same ID as the option's key
         $option.on("click", function () {
@@ -79,7 +75,7 @@ $(document).ready(function () {
         });
     }
 
-    _.each(_.keys(OPTIONS), updateOption); // update all options we know about
+    _.each(window.OPTIONS, updateOption); // update all options we know about
 
     $(".options-list .header button, .options-list .header .button").on("click", function () {
         var panel = $(this).parent().siblings(".options");
