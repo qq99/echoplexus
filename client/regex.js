@@ -15,7 +15,7 @@
 			private: /^\/private/,
 			public: /^\/public/,
 			password: /^\/[password|pw]/,
-			join: /^\/join/,
+			join: /^\/join/
 		},
 		phantomjs: {
 			delimiter: /!!!/g,
