@@ -7,15 +7,15 @@
 			all_others: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi
 		},
 		commands: {
-			nick: /^\/nick/,
+			nick: /^\/(nick|n)/,
 			register: /^\/register/,
-			identify: /^\/identify/,
-			topic: /^\/topic/,
+			identify: /^\/(identify|id)/,
+			topic: /^\/(topic|t)/,
 			failed_command: /^\//,
 			private: /^\/private/,
 			public: /^\/public/,
-			password: /^\/[password|pw]/,
-			join: /^\/join/
+			password: /^\/(password|pw)/,
+			join: /^\/(join|j)/
 		},
 		phantomjs: {
 			delimiter: /!!!/g,
