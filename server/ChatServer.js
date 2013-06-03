@@ -439,7 +439,6 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 								crypto.randomBytes(256, function (ex, buf) {
 									if (ex) throw ex;
 									var salt = buf.toString();
-									
 									crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
 										if (err) throw err;
 

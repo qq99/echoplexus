@@ -160,6 +160,13 @@ function SyncedEditor () {
 			_.each(this.socketEvents, function (value, key) {
 				socket.on(key + ":" + self.channelKey, value);
 			});
+			//On successful reconnect, attempt to rejoin the room
+			socket.on("reconnect",function(){
+				//Resend the subscribe event
+				socket.emit("subscribe", {
+					room: self.channelName
+				});
+			});
 		},
 
 		applyChanges: function (change) {

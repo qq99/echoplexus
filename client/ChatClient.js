@@ -33,6 +33,7 @@ function ChatChannel (options) {
 			this.listen();
 			this.render();
 			this.attachEvents();
+			this.bindReconnections(); // Sets up the client for Disconnect messages and Reconnect messages
 
 			// initialize the channel
 			this.socket.emit("subscribe", {
@@ -60,6 +61,35 @@ function ChatChannel (options) {
 
 			this.on("hide", function () {
 				self.$el.hide();
+			});
+		},
+
+		bindReconnections: function(){
+			var self = this;
+			//Bind the disconnnections, send message on disconnect
+			self.socket.on("disconnect",function(){
+				self.chatLog.renderChatMessage({
+					body: 'Disconnected from the server',
+					type: 'SYSTEM',
+					timestamp: new Date().getTime(),
+					nickname: ''
+				});
+			});
+			//On reconnection attempts, print out the retries
+			self.socket.on("reconnecting",function(nextRetry){
+				self.chatLog.renderChatMessage({
+					body: 'Connection lost, retrying in ' + nextRetry/1000.0 + ' seconds',
+					type: 'SYSTEM',
+					timestamp: new Date().getTime(),
+					nickname: ''
+				});
+			});
+			//On successful reconnection, render the chatmessage, and emit a subscribe event
+			self.socket.on("reconnect",function(){
+				//Resend the subscribe event
+				self.socket.emit("subscribe", {
+					room: self.channelName
+				}, self.postSubscribe);
 			});
 		},
 
@@ -119,7 +149,7 @@ function ChatChannel (options) {
 			var storedAuth = $.cookie("channel_pw:" + this.channelName);
 			if (storedAuth) {
 				DEBUG && console.log("Auto-authing", this.channelName, storedAuth);
-				this.me.channelAuth(storedAuth, this.channelName);
+				io.this.me.channelAuth(storedAuth, this.channelName);
 			}
 		},
 
@@ -212,7 +242,6 @@ function ChatChannel (options) {
 				// listen to a subset of event
 				socket.on(key + ":" + self.channelName, value);
 			});
-
 		},
 		attachEvents: function () {
 			var self = this;
