@@ -72,7 +72,8 @@ function ChatChannel (options) {
 					body: 'Disconnected from the server',
 					type: 'SYSTEM',
 					timestamp: new Date().getTime(),
-					nickname: ''
+					nickname: '',
+					class: 'client'
 				});
 			});
 			//On reconnection attempts, print out the retries
@@ -81,7 +82,8 @@ function ChatChannel (options) {
 					body: 'Connection lost, retrying in ' + nextRetry/1000.0 + ' seconds',
 					type: 'SYSTEM',
 					timestamp: new Date().getTime(),
-					nickname: ''
+					nickname: '',
+					class: 'client'
 				});
 			});
 			//On successful reconnection, render the chatmessage, and emit a subscribe event
