@@ -10,3 +10,4 @@ build
 public/sandbox
 .npm-debug.log
 server/config.js
+*.sublime-*

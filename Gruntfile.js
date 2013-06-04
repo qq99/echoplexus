@@ -30,7 +30,8 @@ module.exports = function(grunt) {
           'client/lib/codemirror-3.11/mode/javascript/javascript.js',
           'client/lib/codemirror-3.11/mode/xml/xml.js',
           'client/lib/codemirror-3.11/mode/css/css.js',
-          'client/lib/codemirror-3.11/mode/htmlmixed/htmlmixed.js'
+          'client/lib/codemirror-3.11/mode/htmlmixed/htmlmixed.js',
+          'client/lib/keymaster.js'
         ],
         dest: '<%= public_dir %>libs.js'
       },

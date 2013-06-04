@@ -20,6 +20,7 @@ function ChannelSwitcher (options) {
 
 			_.bindAll(this);
 
+			this.sortedChannelNames = [];
 			this.channels = {};
 			this.codeChannels = {};
 			this.drawingChannels = {};
@@ -34,6 +35,7 @@ function ChannelSwitcher (options) {
 		attachEvents: function () {
 			var self = this;
 
+			// show an input after clicking "+ Join Channel"
 			this.$el.on("click", ".join", function () {
 				var $input = $(this).siblings("input");
 				if ($input.is(":visible")) {
@@ -43,6 +45,7 @@ function ChannelSwitcher (options) {
 				}
 			});
 
+			// join a channel by typing in the name after clicking the "+ Join Channel" button and clicking enter
 			this.$el.on("keydown", "input.channelName", function (ev) {
 				if (ev.keyCode === 13) { // enter key
 					var channelName = $(this).val();
@@ -51,29 +54,101 @@ function ChannelSwitcher (options) {
 				}
 			});
 
+			// make the channel corresponding to the clicked channel button active:
 			this.$el.on("click", ".channels .channelBtn", function (ev) {
 				var channel = $(this).data("channel");
 				self.showChannel(channel);
 			});
 
+			// kill the channel when clicking the channel button's close icon
 			this.$el.on("click", ".close", function (ev) {
 				ev.preventDefault();
 				ev.stopPropagation();
-				var $chatButton = $(this).parents(".channelBtn");
-				var $prevChatButton = $chatButton.prev();
-				$prevChatButton.click(); // toggle the button before it
-
-				var channel = $chatButton.data("channel");
-				var channelView = self.channels[channel];
-				var codeView = self.codeChannels[channel];
-				channelView.kill();
-				channelView.$el.remove();
-				codeView.kill();
-				codeView.$el.remove();
-				delete self.channels[channel];
-				delete self.codeChannels[channel];
-				$chatButton.remove();
+				var $chatButton = $(this).parents(".channelBtn"),
+					channel = $chatButton.data("channel");
 			});
+
+			this.on("nextChannel", this.showNextChannel);
+			this.on("previousChannel", this.showPreviousChannel);
+			this.on("leaveChannel", function () {
+				self.leaveChannel(self.activeChannel);
+			});
+		},
+
+		leaveChannel: function (channelName) {
+			// don't leave an undefined channel or the last channel
+			if ((typeof channelName === "undefined") ||
+				(this.sortedChannelNames.length === 1)) {
+				
+				return;
+			}
+
+
+
+			var channelView = this.channels[channelName],
+				codeView = this.codeChannels[channelName],
+				drawView = this.drawingChannels[channelName],
+				$channelButton = this.$el.find(".channelBtn[data-channel='"+ channelName +"']");
+
+			// remove the views, then their $els
+			channelView.kill();
+			channelView.$el.remove();
+			codeView.kill();
+			codeView.$el.remove();
+			drawView.kill();
+			drawView.$el.remove();
+
+			// update / delete references:
+			this.sortedChannelNames = _.without(this.sortedChannelNames, channelName);
+			console.log(this.sortedChannelNames);
+			delete this.activeChannel;
+			delete this.channels[channelName];
+			delete this.codeChannels[channelName];
+			delete this.drawingChannels[channelName];
+
+			// click on the button closest to this channel's button and activate it before we delete this one:
+			if ($channelButton.prev().length) {
+				$channelButton.prev().click();
+			} else {
+				$channelButton.next().click();
+			}
+
+			// remove the button in the channel switcher too:
+			$channelButton.remove();
+		},
+
+		showNextChannel: function () {
+			if (!this.hasActiveChannel()) {
+				return;
+			}
+
+			var activeChannelIndex = _.indexOf(this.sortedChannelNames, this.activeChannel),
+				targetChannelIndex = activeChannelIndex + 1;
+
+			// prevent array OOB
+			targetChannelIndex = targetChannelIndex % this.sortedChannelNames.length;
+
+			this.showChannel(this.sortedChannelNames[targetChannelIndex]);
+		},
+
+		showPreviousChannel: function () {
+			if (!this.hasActiveChannel()) {
+				return;
+			}
+
+			var activeChannelIndex = _.indexOf(this.sortedChannelNames, this.activeChannel),
+				targetChannelIndex = activeChannelIndex - 1;
+
+			// prevent array OOB
+			if (targetChannelIndex < 0) {
+				targetChannelIndex = this.sortedChannelNames.length - 1;
+			}
+
+			this.showChannel(this.sortedChannelNames[targetChannelIndex]);
+		},
+
+		hasActiveChannel: function () {
+			return (typeof this.activeChannel !== "undefined");
 		},
 
 		showChannel: function (channelName) {
@@ -95,6 +170,9 @@ function ChannelSwitcher (options) {
 			this.channels[channelName].trigger("show");
 			this.codeChannels[channelName].trigger("show");
 			this.drawingChannels[channelName].trigger("show");
+
+			// keep track of which one is currently active
+			this.activeChannel = channelName;
 		},
 
 		joinChannel: function (channelName) {
@@ -129,6 +207,11 @@ function ChannelSwitcher (options) {
 				});
 				this.drawingChannels[channelName].$el.hide(); // don't show by default
 			}
+
+			this.sortedChannelNames.push(channelName);
+			this.sortedChannelNames = _.sortBy(this.sortedChannelNames, function (key) {
+				return key;
+			});
 
 			this.render(); // re-render the channel switcher
 		},
