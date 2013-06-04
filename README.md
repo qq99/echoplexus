@@ -103,3 +103,7 @@ Create a copy of the sample config file for the server, and change any relevant 
 Run `npm start` or `nodemon server/main.js` or `node server/main.js`.  It will become available on http://localhost:8080/ under the default configuration.
 
 If you want to host with nginx, you're going to have to get a build with WebSockets enabled.
+
+License:
+-------
+GPLv3 and MIT
