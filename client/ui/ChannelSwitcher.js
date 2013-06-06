@@ -16,7 +16,8 @@ function ChannelSwitcher (options) {
 			namespace: "/draw"
 		}),
 		initialize: function () {
-			var self = this;
+			var self = this,
+				channelsFromLastVisit = window.localStorage.getObj("joined_channels");
 
 			_.bindAll(this);
 
@@ -25,10 +26,24 @@ function ChannelSwitcher (options) {
 			this.codeChannels = {};
 			this.drawingChannels = {};
 
-			var defaultChannel = window.location.pathname;
+			if (channelsFromLastVisit && channelsFromLastVisit.length) {
+				_.each(channelsFromLastVisit, function (channelName) {
+					self.joinChannel(channelName);
+				});
+			}
 
+			// join the root channel by default:
+			this.joinChannel("/");
+
+			// join the URL slug channel by default:
+			var defaultChannel = window.location.pathname;
 			this.joinChannel(defaultChannel);
-			this.showChannel(defaultChannel);
+
+			if (window.localStorage.getObj("activeChannel")) {
+				this.showChannel(window.localStorage.getObj("activeChannel"));
+			} else {
+				this.showChannel("/"); // show the default
+			}
 
 			this.attachEvents();
 		},
@@ -66,6 +81,7 @@ function ChannelSwitcher (options) {
 				ev.stopPropagation();
 				var $chatButton = $(this).parents(".channelBtn"),
 					channel = $chatButton.data("channel");
+				self.leaveChannel(channel);
 			});
 
 			this.on("nextChannel", this.showNextChannel);
@@ -112,6 +128,11 @@ function ChannelSwitcher (options) {
 			} else {
 				$channelButton.next().click();
 			}
+
+			this.sortedChannelNames = _.uniq(this.sortedChannelNames);
+
+			// update stored channels for revisit/refresh
+			window.localStorage.setObj("joined_channels", this.sortedChannelNames);
 
 			// remove the button in the channel switcher too:
 			$channelButton.remove();
@@ -173,6 +194,9 @@ function ChannelSwitcher (options) {
 
 			// keep track of which one is currently active
 			this.activeChannel = channelName;
+
+			// keep track of which one we were viewing:
+			window.localStorage.setObj("activeChannel", channelName);
 		},
 
 		joinChannel: function (channelName) {
@@ -212,6 +236,10 @@ function ChannelSwitcher (options) {
 			this.sortedChannelNames = _.sortBy(this.sortedChannelNames, function (key) {
 				return key;
 			});
+			this.sortedChannelNames = _.uniq(this.sortedChannelNames);
+
+			// update stored channels for revisit/refresh
+			window.localStorage.setObj("joined_channels", this.sortedChannelNames);
 
 			this.render(); // re-render the channel switcher
 		},

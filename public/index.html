@@ -214,7 +214,7 @@
 				</div>
 				<div class="htmlREPL repl-result">
 					<h2>HTML</h2>
-					<iframe class="jsIframe" src="/codeframe.html" sandbox="allow-scripts"></iframe>
+					<iframe class="jsIframe" src="/codeframe.html" sandbox="allow-scripts allow-same-origin"></iframe>
 				</div>
 				<div class="jsREPL repl-result">
 					<h2>Result</h2>
@@ -288,7 +288,8 @@
 	<script src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="/libs.min.js"></script>
 
-<!--
+
+	<script src='client/utility.js' type='text/javascript'></script>
 	<script src='client/lib/backbone/backbone.js' type='text/javascript'></script>
 	<script src='client/lib/codemirror-3.11/lib/codemirror.js' type='text/javascript'></script>
 	<script src='client/lib/codemirror-3.11/mode/javascript/javascript.js' type='text/javascript'></script>
@@ -309,10 +310,11 @@
 	<script src='client/ChatClient.js' type='text/javascript'></script>
 	<script src='client/ui/ChannelSwitcher.js' type='text/javascript'></script>
 	<script src='client/ui.js' type='text/javascript'></script>
--->
 
 
+<!--
 	<script type="text/javascript" src="/echoplexus.min.js"></script>
+-->
 
 	<link href="//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css" rel="stylesheet">
 	</div>
