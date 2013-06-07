@@ -2,8 +2,40 @@
 <head>
 	<title>CodeFrame</title>
 	<script src="/libs.min.js"></script>
+	<script>
+		var HANDLERS = {
+			js: function(code){
+				var html = code['html'],
+					js = '(function(){ ' + code['js'] + ' })();',
+					result = '';
+				$('body').html(html);
+				try {
+					result = eval(js);
+				} catch (e) {
+					result = e.toString();
+				}
+				return result;
+			}
+		}
+		$(document).ready(function(){
+			if (!window.location.hasOwnProperty("origin")) {
+			    window.origin = window.location.origin = window.location.protocol + "//" + window.location.host;
+			}
+			$(window).on('message', function(e){
+				e = e.originalEvent;
+				var data = JSON.parse(decodeURI(e.data));
+				console.log(data);
+				var result = '';
+				console.log(HANDLERS[data.type]);
+				result = HANDLERS[data.type](data.code);
+				e.source.postMessage(encodeURI(JSON.stringify({
+					result: result
+				})), e.origin);
+			});
+		});
+	</script>
 </head>
 <body>
-
+	
 </body>
 </html>
