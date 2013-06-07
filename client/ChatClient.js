@@ -151,7 +151,7 @@ function ChatChannel (options) {
 			var storedAuth = $.cookie("channel_pw:" + this.channelName);
 			if (storedAuth) {
 				DEBUG && console.log("Auto-authing", this.channelName, storedAuth);
-				io.this.me.channelAuth(storedAuth, this.channelName);
+				this.me.channelAuth(storedAuth, this.channelName);
 			}
 		},
 
