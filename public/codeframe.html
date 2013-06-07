@@ -6,7 +6,7 @@
 		var HANDLERS = {
 			js: function(code){
 				var html = code['html'],
-					js = '(function(){ ' + code['js'] + ' })();',
+					js = '(function(window,$,_){ ' + code['js'] + ' })(window,$,_);', //Don't allow user to override basic api's
 					result = '';
 				$('body').html(html);
 				try {
@@ -25,9 +25,7 @@
 			$(window).on('message', function(e){
 				e = e.originalEvent;
 				var data = JSON.parse(decodeURI(e.data));
-				console.log(data);
 				var result = '';
-				console.log(HANDLERS[data.type]);
 				result = HANDLERS[data.type](data.code);
 				e.source.postMessage(encodeURI(JSON.stringify({
 					result: result,
