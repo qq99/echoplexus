@@ -36,6 +36,7 @@ function CodeClient (options) {
                 subchannel: "html",
                 editor: this.editors["html"]
             });
+            this.repl = $(".jsREPL .output", this.$el)
 
             this.attachEvents();
 
@@ -89,6 +90,17 @@ function CodeClient (options) {
             $("body").on("codeSectionActive", function () {
                 self.refresh();
             });
+            $(window).on('message',function(e){
+                var data;
+                try{
+                    data = JSON.parse(decodeURI(e.originalEvent.data));
+                    if (data.channel === self.channelName){
+                        self.updateREPL(data.result);
+                    }
+                } catch(ex){
+                    self.updateREPL(ex.toString());
+                }
+            });
             this.$el.on("click", ".evaluate", function (ev) {
                 ev.preventDefault();
                 ev.stopPropagation();
@@ -102,41 +114,33 @@ function CodeClient (options) {
             });
         },
 
+        updateREPL: function(result){
+            if (_.isObject(result)) {
+                result = JSON.stringify(result);
+            }
+            else if (typeof result === "undefined") {
+                result = "undefined";
+            }
+            else {
+                result = result.toString();
+            }
+            this.repl.text(result);
+        },
+
         evaluate: function (code) {
             // var iframe = document.getElementById("repl-frame").contentWindow;
-            var $repl = $(".jsREPL .output", this.$el);
             if (typeof code === "undefined") {
-                $repl.text("");
+                this.repl.text("");
                 return;
             }
             var iframe = $("iframe.jsIframe", this.$el)[0];
-            //Register an event to run only once
-            
-            $(window).one('message', function(e){
-                var result;
-                try {
-                    result = JSON.parse(decodeURI(e.originalEvent.data)).result;
-                } catch (e) {
-                    result = e.toString();
-                }
-                if (_.isObject(result)) {
-                    result = JSON.stringify(result);
-                }
-                else if (result === undefined) {
-                    result = "undefined";
-                }
-                else {
-                    result = result.toString();
-                }
-                $repl.text(result);
-            });
+
             //Send the message
             iframe.contentWindow.postMessage(encodeURI(JSON.stringify({
                 type: 'js',
-                code: code
+                code: code,
+                channel: this.channelName
             })),"*");
-            /*
-            iframe.contentWindow.postMessage('Hello',"*");*/
         },
 
         _repl: function () {

@@ -10,9 +10,10 @@
 					result = '';
 				$('body').html(html);
 				try {
-					result = eval(js);
-				} catch (e) {
-					result = e.toString();
+					if (typeof code['js'] !== "undefined" && code['js'] !== "")
+						result = eval(js);
+				} catch (ex) {
+					result = ex.toString();
 				}
 				return result;
 			}
@@ -29,7 +30,8 @@
 				console.log(HANDLERS[data.type]);
 				result = HANDLERS[data.type](data.code);
 				e.source.postMessage(encodeURI(JSON.stringify({
-					result: result
+					result: result,
+					channel: data.channel
 				})), e.origin);
 			});
 		});
