@@ -275,6 +275,11 @@ function ChannelSwitcher (options) {
 		},
 
 		joinAndShowChannel: function(channelName) {
+			if (typeof channelName === "undefined" || channelName === null) return; // prevent null channel names
+
+			if (channelName.charAt(0) !== '/') { // keep channel names consistent with URL slug
+				channelName = '/' + channelName;
+			}
 			this.joinChannel(channelName);
 			this.showChannel(channelName);
 		}
