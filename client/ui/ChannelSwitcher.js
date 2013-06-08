@@ -195,6 +195,12 @@ function ChannelSwitcher (options) {
 			// keep track of which one is currently active
 			this.activeChannel = channelName;
 
+			// allow the user to know that his channel can be joined via URL slug by updating the URL
+			if (history.replaceState) {
+				// replaceState rather than pushing to keep Back/Forward intact && because we have no other option to perform here atm
+				history.replaceState(null,"",channelName);
+			}
+
 			// keep track of which one we were viewing:
 			window.localStorage.setObj("activeChannel", channelName);
 		},
