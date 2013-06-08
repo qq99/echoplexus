@@ -6,7 +6,7 @@
 		var HANDLERS = {
 			js: function(code){
 				var html = code['html'],
-					js = '(function(window,$,_){ ' + code['js'] + ' })(window,$,_);', //Don't allow user to override basic api's
+					js = '(function(window,$,_,alert){ ' + code['js'] + ' })(window,$,_);', //Don't allow user to override basic api's
 					result = '';
 				$('body').html(html);
 				try {
