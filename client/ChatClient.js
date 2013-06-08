@@ -162,15 +162,28 @@ function ChatChannel (options) {
 		},
 
 		checkToNotify: function (msg) {
-			// // scan through the message and determine if we need to notify somebody that was mentioned:
+			// scan through the message and determine if we need to notify somebody that was mentioned:
 			if (this.me !== "undefined") {
+				// check to see if me.nick is contained in the msg
 				if (msg.body.toLowerCase().indexOf(this.me.get("nick").toLowerCase()) !== -1) {
+
+					// do not alter the message in the following circumstances:
+					if (msg.class) {
+						if ((msg.class.indexOf("part") !== -1) ||
+							(msg.class.indexOf("join") !== -1)) { // don't notify for join/part; it's annoying when anonymous
+
+							return msg; // short circuit
+						}
+					}
+
+					// alter the message:
 					DEBUG && console.log("@me", msg.body);
 					notifications.notify(msg.nickname, msg.body.substring(0,50));
 					msg.directedAtMe = true;
 				}
 			}
-			// also ping the chat button if they're on the other pane:
+
+			// ping the chat button regardless of whether it was directed @me, if looking at another panel:
 			if (!chatModeActive()) {
 				$("#chatButton").addClass("activity");
 			}
