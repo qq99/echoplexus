@@ -41,7 +41,16 @@ module.exports = function(grunt) {
         dest: '<%= public_dir %>echoplexus.min.js'
       }
     },
-
+    strip: {
+      libs: {
+        src: '<%= concat.libs.dest %>',
+        dest: '<%= concat.libs.dest %>'
+      },
+      scripts: {
+        src: '<%= concat.scripts.dest %>',
+        dest: '<%= concat.scripts.dest %>'
+      }
+    },
     uglify: {
       options: {
         banner: '<%= banner %>'
@@ -84,12 +93,13 @@ module.exports = function(grunt) {
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-strip');
   grunt.loadNpmTasks('grunt-sass');
   grunt.loadNpmTasks('grunt-css');
   grunt.loadNpmTasks('grunt-contrib-clean');
 
   // Default task.
-  grunt.registerTask('default', ['concat', 'uglify','sass','cssmin']);
+  grunt.registerTask('default', ['concat','strip','uglify','sass','cssmin']);
 
   //Developer task TODO: add more features like jshint
   grunt.registerTask('dev',['concat:scripts','sass','cssmin']);
