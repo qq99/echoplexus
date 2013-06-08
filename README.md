@@ -1,7 +1,8 @@
 echoplexus (v0.10)
 ==================
 
-Demo: [chat.echoplex.us](http://chat.echoplex.us/github "chat.echoplex.us /github channel")
+[http://echoplex.us](http://echoplex.us "overview landing page")
+Dive in: [chat.echoplex.us](http://chat.echoplex.us/github "chat.echoplex.us /github channel")
 
 What is it?
 -----------
