@@ -33,12 +33,12 @@ module.exports = function(grunt) {
           'client/lib/codemirror-3.11/mode/htmlmixed/htmlmixed.js',
           'client/lib/keymaster.js'
         ],
-        dest: '<%= public_dir %>libs.js'
+        dest: '<%= public_dir %>libs.min.js'
       },
       //The rest of the scripts
       scripts: {
         src: ['client/**/*.js','!client/lib/**'],
-        dest: '<%= public_dir %>echoplexus.js'
+        dest: '<%= public_dir %>echoplexus.min.js'
       }
     },
 
@@ -48,11 +48,11 @@ module.exports = function(grunt) {
       },
       libs: {
         src: '<%= concat.libs.dest %>',
-        dest: '<%= public_dir %>libs.min.js'
+        dest: '<%= concat.libs.dest %>'
       },
       scripts: {
         src: '<%= concat.scripts.dest %>',
-        dest: '<%= public_dir %>echoplexus.min.js'
+        dest: '<%= concat.scripts.dest %>'
       }
     },
     sass: {
@@ -71,8 +71,6 @@ module.exports = function(grunt) {
     clean: {
       build: {
         src: [
-          "<%= public_dir %>libs.js",
-          "<%= public_dir %>echoplexus.js",
           "<%= public_dir %>libs.min.js",
           "<%= public_dir %>echoplexus.min.js",
           "<%= public_dir %>css/main.css",
@@ -92,4 +90,7 @@ module.exports = function(grunt) {
 
   // Default task.
   grunt.registerTask('default', ['concat', 'uglify','sass','cssmin']);
+
+  //Developer task TODO: add more features like jshint
+  grunt.registerTask('dev',['concat:scripts','sass','cssmin']);
 };
