@@ -2,6 +2,7 @@ echoplexus (v0.10)
 ==================
 
 [http://echoplex.us](http://echoplex.us "overview landing page")
+
 Dive in: [chat.echoplex.us](http://chat.echoplex.us/github "chat.echoplex.us /github channel")
 
 What is it?
