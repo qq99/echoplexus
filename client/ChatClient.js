@@ -261,7 +261,9 @@ function ChatChannel (options) {
 		attachEvents: function () {
 			var self = this;
 			this.$el.on("keydown", ".chatinput textarea", function (ev) {
-				$this = $(this);
+				if (ev.ctrlKey || ev.shiftKey) return; // we don't fire any events when these keys are pressed
+				
+				var $this = $(this);
 				switch (ev.keyCode) {
 					// enter:
 					case 13:
