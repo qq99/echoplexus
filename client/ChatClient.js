@@ -342,6 +342,12 @@ function ChatChannel (options) {
 			this.$el.on("click", "button.deleteLocalStorage", function (ev) {
 				ev.preventDefault();
 				self.persistentLog.destroy();
+				self.chatLog.clear(); // visually reinforce to the user that it deleted them by clearing the chatlog
+			});
+
+			this.$el.on("click", "button.clearChatlog", function (ev) {
+				ev.preventDefault();
+				self.chatLog.clear();
 			});
 		},
 

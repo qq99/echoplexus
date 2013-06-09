@@ -212,6 +212,11 @@ function ChatLog (options) {
 			this.scrollToLatest();
 		},
 
+		clear: function () {
+			var $chatlog = $(".messages", this.$el);
+			$chatlog.html("");
+		},
+
 		renderUserlist: function (users) {
 			var self = this, 
 				$userlist = $(".userlist .body", this.$el);
