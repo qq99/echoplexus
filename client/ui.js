@@ -143,10 +143,10 @@ $(document).ready(function () {
     key.filter = function () { return true; }; // stub out the filter method from the lib to enable them globally
 
     // change channels:
-    key('ctrl+→', function () {
+    key('alt+→, alt+k', function () {
         channelSwitcher.trigger("nextChannel");
     });
-    key('ctrl+←', function () {
+    key('alt+←, alt+j', function () {
         channelSwitcher.trigger("previousChannel");
     });
     key('ctrl+shift+c', function () {
@@ -157,14 +157,14 @@ $(document).ready(function () {
     // change tabs:
     var tabIDs = ["#chatButton", "#codeButton", "#drawButton"];
     var activeTabIndex = 0;
-    key('alt+→', function () {
+    key('alt+shift+→, alt+shift+k, alt+shift+d', function () {
         console.log(activeTabIndex);
         activeTabIndex += 1;
         activeTabIndex = activeTabIndex % tabIDs.length; // prevent array OOB
         $(tabIDs[activeTabIndex]).trigger("click");
         return false;
     });
-    key('alt+←', function () {
+    key('alt+shift+←, alt+shift+j, alt+shift+s', function () {
         activeTabIndex -= 1;
         if (activeTabIndex < 0) { // prevent array OOB
             activeTabIndex = tabIDs.length - 1;
