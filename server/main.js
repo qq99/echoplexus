@@ -1,3 +1,5 @@
+var config = require('./config.js').Configuration;
+
 var express = require('express'),
 	_ = require('underscore'),
 	Backbone = require('backbone'),
@@ -7,7 +9,6 @@ var express = require('express'),
 	sio = require('socket.io'),
 	app = express(),
 	redisC = redis.createClient(),
-	server = require('http').createServer(app),
 	spawn = require('child_process').spawn,
 	async = require('async'),
 	chatServer = require('./ChatServer.js').ChatServer,
@@ -16,7 +17,16 @@ var express = require('express'),
 	PUBLIC_FOLDER = __dirname + '/../public',
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox';
 
-var config = require('./config.js').Configuration;
+var protocol = require(config.host.SCHEME);
+
+if (config.host.SCHEME == 'https') {
+	var privateKey  = fs.readFileSync(config.ssl.PRIVATE_KEY).toString();
+	var certificate = fs.readFileSync(config.ssl.CERTIFICATE).toString();
+	var credentials = { key: privateKey, cert: certificate };
+	var server = protocol.createServer(credentials, app); 
+} else {
+	var server = protocol.createServer(app);
+}
 
 // Custom objects:
 // shared with the client:
