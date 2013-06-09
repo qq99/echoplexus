@@ -67,40 +67,55 @@ So you like the idea of this and want to give it a go.  Here's how:
 
 Dependencies:
 -------------
-- *node.js*: for server, confirmed working v.10.9, and should be OK with v.10.* -- node-sass has troubles with v.11.*-pre
 
-> git pull https://github.com/joyent/node.git
+### node.js 
 
-> ./configure
+For server, confirmed working v0.10.10, and should be OK with v0.10.1*.
 
-> make
+    $ git pull https://github.com/joyent/node.git
+    $ git checkout v0.10.10
+    $ ./configure
+    $ make
+    $ make install
 
-> make install
+Known Issues:
 
-- *phantomjs* (optional): for taking screenshots of websites to embed in the chat
+- Node v0.10.8 and v0.10.9 have an [incompatibility with socket.io and HTTPS](https://github.com/joyent/node/pull/5624).
+- Node v0.11.* has issues with node-sass.
+
+
+### node.js Packages
+
+    $ npm install
+
+### Redis
+
+For persistence.
+
+    $ sudo apt-get install redis-server
+
+### PhantomJS (optional)
+
+For taking screenshots of websites to embed in the chat.
+
 Download from http://phantomjs.org/
-Install the binary to /opt/bin/phantomjs
 
-If you don't want to do this step, set "phantomjs_screenshot" to false in server/config.js
+Install the binary to `/opt/bin/phantomjs`
+
+If you don't want to do this step, set "phantomjs_screenshot" to false in `server/config.js`. 
 This step also requires cloning the [phantomjs-screenshot](https://github.com/qq99/phantomjs-screenshot) repository beside this repo.
-
-- *redis*: for persistence
-> sudo apt-get install redis-server
-
-- *node packages*
-> npm install
 
 Building:
 ---------
 
 `npm run-script build`
 
-
 Running the server:
 -------------------
 
 Create a copy of the sample config file for the server, and change any relevant options:
-> cp server/config.sample.js server/config.js
+
+    $ cp server/config.sample.js server/config.js
 
 Run `npm start` or `nodemon server/main.js` or `node server/main.js`.  It will become available on http://localhost:8080/ under the default configuration.
 
