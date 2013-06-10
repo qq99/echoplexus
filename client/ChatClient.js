@@ -210,6 +210,7 @@ function ChatChannel (options) {
 			this.socketEvents = {
 				"chat": function (msg) {
 					DEBUG && console.log("onChat:", self.channelName, msg);
+					window.EventBus.trigger("message",socket,self.channelName,msg);
 					switch (msg.class) {
 						case "join":
 							var newClient = new ClientModel(msg.client);
