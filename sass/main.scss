@@ -80,7 +80,7 @@ a {
 	}
 }
 
-@keyframes activity {
+@include keyframes(activity) {
   100% {
     background:transparent;
   }
@@ -95,24 +95,39 @@ a {
   }
 }
 
-@keyframes wiggle {
+@include keyframes(activity2) {
+  100% {
+    background:transparent;
+  }
+ 
+  50% {
+    background:rgba(5,20,50,0.9);
+    color:#efefef;
+  }
+
+  0% {
+  	background:transparent;
+  }
+}
+
+@include keyframes(wiggle) {
 	100% {
-		transform: rotate(0deg);
+		@include transform(rotate(0deg));
 	}
 	6% {
-		transform: rotate(0deg);
+		@include transform(rotate(0deg));
 	}
 	4.5% {
-		transform: rotate(-6deg);
+		@include transform(rotate(-6deg));
 	}
 	3% {
-		transform: rotate(6deg);
+		@include transform(rotate(6deg));
 	}
 	1.5% {
-		transform: rotate(-6deg);
+		@include transform(rotate(-6deg));
 	}
 	0% {
-		transform: rotate(6deg);
+		@include transform(rotate(6deg));
 	}
 }
 
@@ -192,8 +207,6 @@ nav {
 
 			transition:all 0.25s ease-in-out;
 			display:inline-block;
-/*			width:0px;
-			opacity:0;*/
 			overflow:hidden;
 			margin-left:0;
 		}
@@ -206,16 +219,6 @@ nav {
 		}
 		&:hover {
 			border-bottom:1px solid rgba(71,178,250,0.7);
-/*			.button-description {
-				width:75px;
-				opacity:1;
-				margin-left:1em;
-			}
-			.button-description.long {
-				width:120px;
-				opacity:1;
-				margin-left:1em;
-			}*/
 		}
 		&.active {
 			border-bottom:0px;
@@ -225,19 +228,15 @@ nav {
 		}
 
 		&.activity {
-			animation-name: activity;
-			animation-iteration-count: infinite;
-			animation-duration: 2.5s;
+			@include animation(activity 2.5s infinite);
 			i {
-				animation-name: wiggle;
-				animation-iteration-count: infinite;
-				animation-duration: 5s;
+				@include animation(wiggle 5s infinite);
 			}
 		}
 		&:hover {
 			color:#efefef;
 			text-shadow:2px 2px 2px #252525;
-			animation-name: none;
+			@include animation-name(none);
 		}
 	}
 	h1.active {
@@ -320,6 +319,9 @@ header {
 			}
 			&.join {
 				padding:0.25em 0.75em;
+			}
+			&.activity {
+				@include animation(activity2 3s infinite);
 			}
 		}
 		input {

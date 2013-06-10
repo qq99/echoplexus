@@ -185,7 +185,9 @@ function ChannelSwitcher (options) {
 
 			// style the buttons depending on which view is active
 			$(".channels .channelBtn", this.$el).removeClass("active");
-			$(".channels .channelBtn[data-channel='"+ channelName + "']", this.$el).addClass("active");
+			$(".channels .channelBtn[data-channel='"+ channelName + "']", this.$el)
+				.addClass("active")
+				.removeClass("activity");
 
 			// send events to the view we're showing:
 			this.channels[channelName].trigger("show");
@@ -205,6 +207,15 @@ function ChannelSwitcher (options) {
 			window.localStorage.setObj("activeChannel", channelName);
 		},
 
+		channelActivity: function (data) {
+			var fromChannel = data.channelName;
+			
+			// if we hear that there's activity from a channel, but we're not looking at it, add a style to the button to notify the user:
+			if (fromChannel !== this.activeChannel) {
+				$(".channels .channelBtn[data-channel='"+ fromChannel +"']").addClass("activity");
+			}
+		},
+
 		joinChannel: function (channelName) {
 			var channel = this.channels[channelName];
 			// join the chat portion
@@ -215,6 +226,7 @@ function ChannelSwitcher (options) {
 				});
 				this.channels[channelName]
 					.on('joinChannel', this.joinAndShowChannel, this)
+					.on('activity', this.channelActivity)
 					.$el.hide(); // don't show by default
 			}
 

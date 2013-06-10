@@ -188,6 +188,12 @@ function ChatChannel (options) {
 				$("#chatButton").addClass("activity");
 			}
 
+			if (msg.type !== "SYSTEM") { // count non-system messages as chat activity
+				this.trigger("activity", {
+					channelName: this.channelName
+				});
+			}
+
 			return msg;
 		},
 
