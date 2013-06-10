@@ -319,7 +319,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 								you: true
 							}));
 
-							if (config.features.phantomjs_screenshot) {
+							if (config.features.PHANTOMJS_SCREENSHOT) {
 								// strip out other things the client is doing before we attempt to render the web page
 								var urls = data.body.replace(REGEXES.urls.image, "")
 													.replace(REGEXES.urls.youtube,"")
@@ -335,7 +335,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 											
 											DEBUG && console.log("Processing ", urls[i]);
 											// requires that the phantomjs-screenshot repo is a sibling repo of this one
-											var screenshotter = spawn('/opt/bin/phantomjs',
+											var screenshotter = spawn(config.features.PHANTOMJS_PATH),
 												['../../phantomjs-screenshot/main.js', url, output],
 												{
 													cwd: __dirname

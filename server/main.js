@@ -34,14 +34,6 @@ var Client = require('../client/client.js').ClientModel,
 	Clients = require('../client/client.js').ClientsCollection,
 	REGEXES = require('../client/regex.js').REGEXES;
 
-// special things to do on init:
-if (config.features.phantomjs_screenshot) { // change the user of the current process
-	process.setgid('sandbox');
-	process.setuid('sandbox');
-	console.log('Now leaving the DANGERZONE!', 'New User ID:', process.getuid(), 'New Group ID:', process.getgid());
-	console.log('Probably still a somewhat dangerous zone, tho.');
-}
-
 // Web server init:
 app.use(express.static(PUBLIC_FOLDER));
 // always server up the index.html
