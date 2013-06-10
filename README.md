@@ -49,11 +49,28 @@ Currently, interactive and collaborative HTML & JavaScript is supported, with ev
 Security
 --------
 
-*echoplexus is not secure, but it's getting there.*  Your registration, identification, and private channel passwords are first salted with 256 random bytes from node's `crypto.randomBytes`.  Then, they are run through 4096 iterations of `crypto.pbkdf2` with a key length of 256 bytes before the is stored in redis.  Of course, this is meaningless since there isn't HTTPS by default (for that, I apologize).  I'd especially appreciate any input in securing echoplexus.  You should rest assured that this project will take security very seriously.  *Currently, the chatlogs of a private channel are not encrypted!*
+*echoplexus is not secure, but it's getting there.*  Your registration, 
+identification, and private channel passwords are first salted with 256 random 
+bytes from node's `crypto.randomBytes`.  Then, they are run through 4096 
+iterations of `crypto.pbkdf2` with a key length of 256 bytes before the is 
+stored in Redis.  Of course, this is meaningless since there isn't HTTPS by 
+default (for that, I apologize).  I'd especially appreciate any input in 
+securing echoplexus.  You should rest assured that this project will take 
+security very seriously.  *Currently, the chatlogs of a private channel are not
+encrypted!*
 
-The phantomjs_screenshotting is currently accomplished by starting as the rooter user, then immediately dropping privileges to another sandboxed user (named sandbox) who hopefully should be more limited under an attack.  This really makes me nervous.
+It is recommended to setup a non-privileged user for `echoplexus` and run `node.js` 
+as this user on a non-privileged port (default is `8080`). From there, you may do
+one of the following, depending on your needs:
 
-If you're using it on a relatively private server or on a LAN, you should have little worries.
+1. Pro: Proxy echoplexus behind nginx v1.3.13 or later (requires WebSocket 
+   support). You may also use HAProxy.
+2. Git'r done: Update iptables to redirect port 80 or 443 to the port of your 
+   choice. *Remember to save and test your rules!*
+
+Example:
+
+    $ iptables  -t nat -I PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 8080
 
 Draw
 ----
