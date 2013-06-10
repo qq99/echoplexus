@@ -335,7 +335,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 											
 											DEBUG && console.log("Processing ", urls[i]);
 											// requires that the phantomjs-screenshot repo is a sibling repo of this one
-											var screenshotter = spawn(config.features.PHANTOMJS_PATH),
+											var screenshotter = spawn(config.features.PHANTOMJS_PATH,
 												['../../phantomjs-screenshot/main.js', url, output],
 												{
 													cwd: __dirname
