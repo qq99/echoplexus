@@ -60,8 +60,14 @@ security very seriously.  *Currently, the chatlogs of a private channel are not
 encrypted!*
 
 It is recommended to setup a non-privileged user for `echoplexus` and run `node.js` 
-as this user on a non-privileged port (default is `8080`). From there, you may do
-one of the following, depending on your needs:
+as this user on a non-privileged port (default is `8080`).
+
+    $ adduser --disabled-login --gecos 'Sandbox' $SANDBOX_USERNAME
+    $ cd /home/$SANDBOX_USERNAME
+    $ sudo -u $SANDBOX_USERNAME git clone git://github.com/qq99/echoplexus.git
+    ...continue similarly to the steps below, prefixing 'sudo -u $SANDBOX_USERNAME' if appropriate ...
+
+From there, you may do one of the following, depending on your needs:
 
 1. Pro: Proxy echoplexus behind nginx v1.3.13 or later (requires WebSocket 
    support). You may also use HAProxy.
@@ -124,6 +130,12 @@ This step also requires cloning the [phantomjs-screenshot](https://github.com/qq
 
 Building:
 ---------
+
+Development:
+`grunt dev`
+
+Production:
+`grunt`
 
 `npm run-script build`
 
