@@ -9,6 +9,7 @@
 			USE_PORT_IN_URL: true,
 		},
 		ssl: {
+			USE_NODE_SSL: false, // must be true if you want SSL & you don't have another SSL web server proxying to the echoplexus server
 			PRIVATE_KEY: '/path/to/server.key',
 			CERTIFICATE: '/path/to/certificate.crt'
 		},
