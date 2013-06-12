@@ -104,7 +104,6 @@ $(document).ready(function () {
     var tooltipTemplate = $("#tooltip").html();
 
     window.notifications = new UserNotifications();
-    window.uniqueImages = {};
 
     $(window).on("blur", function () {
         $("body").addClass("blurred");

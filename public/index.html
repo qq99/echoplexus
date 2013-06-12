@@ -1,3 +1,4 @@
+<!doctype html>
 <html>
 <head>
 	<title>Chat</title>
@@ -74,12 +75,73 @@
 			</div>
 		</script>
 		<script id="linkedImageTemplate" type="text/template" class="template">
-			<div class="imageThumbnail">
-				<div class="close-button">X</div>
-				<a href="<%= url %>" target="_blank" title="Linked by <%- linker %>">
-					<img src="<%= url %>" target="_blank" />
-				</a>
+			<div class="media-item imageThumbnail">
+				<div class="media-buttons">
+					<a class="to-external" href="<%= url %>" target="_blank">
+						<span class="explanatory-text">Direct</span>
+						<i class="icon-external-link"></i>
+					</a>
+					<a class="hide" href="#">
+						<span class="explanatory-text">Hide</span>
+						<i class="icon-collapse-alt"></i>
+					</a>
+					<a class="close" href="#">
+						<i class="icon-remove"></i>
+					</a>
+				</div>
+				<div class="media-object">
+					<div class="max">
+						<a href="<%= url %>" target="_blank" title="Linked by <%- linker %>">
+							<img src="<%= url %>" target="_blank" />
+						</a>
+					</div>
+					<div class="min">
+						<a href="<%= url %>" target="_blank" title="Linked by <%- linker %>">
+							<%= url %>
+						</a>
+					</div>
+				</div>
 			</div>
+		</script>
+		<script id="youtubeTemplate" type="text/template" class="template">
+			<div class="media-item youtubeEmbed">
+				<div class="media-buttons">
+					<a class="to-external" href="<%= originalSrc %>" target="_blank">
+						<span class="explanatory-text">Direct</span>
+						<i class="icon-external-link"></i>
+					</a>
+					<a class="hide" href="#">
+						<span class="explanatory-text">Hide</span>
+						<i class="icon-collapse-alt"></i>
+					</a>
+					<a class="close" href="#">
+						<i class="icon-remove"></i>
+					</a>
+				</div>
+				<div class="media-object">
+					<div class="max">
+						<object width="254" height="200">
+			            	<param name="movie" value="<%= src %>&wmode=Opaque"></param>
+			            	<param name="allowFullScreen" value="true"></param>
+			                <param name="allowscriptaccess" value="always"></param>
+			                <param name="wMode" value="opaque"></param>
+			                <embed
+			                	src="<%= src %>&wmode=Opaque"
+			                	type="application/x-shockwave-flash"
+			                	allowscriptaccess="always"
+			                	allowfullscreen="true"
+			                	width="254"
+			                	height="200">
+			                </embed>
+			            </object>
+			        </div>
+					<div class="min">
+						<a href="<%= originalSrc %>" target="_blank">
+							<%= originalSrc %>
+						</a>
+					</div>
+				</div>
+	        </div>
 		</script>
 		<script id="userListUserTemplate" type="text/template" class="template">
 			<div class="user" rel="<%= cid %>">

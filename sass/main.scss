@@ -25,7 +25,7 @@
 	border:none;
 	box-shadow:inset 2px 2px 1px rgba(0,0,0,0.55),inset -2px -2px 1px -1px rgba(0,0,0,0.3);
 	position:relative;
-	transition:background 0.25s ease-out, color 0.75s ease-out;
+	@include transition(background 0.25s ease-out, color 0.75s ease-out);
 	&:focus {
 		background:rgba(0,0,0,0.30);
 		color:#efefef;
@@ -141,10 +141,11 @@ a {
 	max-width:100%;
 	padding-top:65px;
 	box-sizing:border-box;
+	overflow:hidden;
 }
 
 @mixin fancyButton {
-	transition:all 0.25s ease-in-out;
+	@include transition(all 0.25s ease-in-out);
 	cursor:pointer;
 	border:0;
 	margin:0;
@@ -183,7 +184,7 @@ nav {
 	width:100%;
 	background:rgba(0,0,0,0.4);
 	h1 {
-		transition:all 0.25s ease-in-out;
+		@include transition(all 0.25s ease-in-out);
 		font-size:1.3em;
 		vertical-align: top;
 		margin:0px;
@@ -197,7 +198,7 @@ nav {
 		height:100%;
 		float:left;
 		cursor:pointer;
-		transition:all 0.25s ease-in-out;
+		@include transition(all 0.25s ease-in-out);
 		padding:0.25em 1em;
 		border-bottom:0px solid transparent;
 		.button-description {
@@ -205,13 +206,13 @@ nav {
 			vertical-align: top;
 			height:100%;
 
-			transition:all 0.25s ease-in-out;
+			@include transition(all 0.25s ease-in-out);
 			display:inline-block;
 			overflow:hidden;
 			margin-left:0;
 		}
 		i {
-			transition:all 0.25s ease-in-out;
+			@include transition(all 0.25s ease-in-out);
 			display:inline-block;
 			vertical-align: top;
 			height:100%;
@@ -267,7 +268,10 @@ nav {
 
 header {
 	@include unselectable;
-	position:relative;
+	position:absolute;
+	top:0;
+	left:0;
+	width:100%;
 	z-index:100;
 	height:65px;
 	padding:1em;
@@ -298,7 +302,7 @@ header {
 				padding-right:3em;
 			}
 			.close {
-				transition:all 0.25s ease-in-out;
+				@include transition(all 0.25s ease-in-out);
 				height:100%;
 				width:2em;
 				font-size:0.8em;
@@ -362,6 +366,8 @@ header {
 }
 #panes {
 	position:relative;
+	width:100%;
+	height:100%;
 	z-index:1;
 	& > section {
 		height:100%;
@@ -482,6 +488,7 @@ header {
 $supportbar-width: 300px;
 
 #chatting {
+	height:100%;
 	$chatinput-height:5em;
 	.chatarea {
 		position:relative;
@@ -493,6 +500,7 @@ $supportbar-width: 300px;
 		}
 	}
 	.chatChannel {
+		height:100%;
 		&.inactive {
 			display:none;
 		}
@@ -520,7 +528,7 @@ $supportbar-width: 300px;
 			border:none;
 			box-shadow:inset 2px 2px 1px rgba(0,0,0,0.55),inset -2px -2px 1px -1px rgba(0,0,0,0.3);
 			position:relative;
-			transition:background 0.25s ease-out, color 0.75s ease-out;
+			@include transition(background 0.25s ease-out, color 0.75s ease-out);
 			&:focus {
 				background:rgba(0,0,0,0.30);
 				color:#efefef;
@@ -588,9 +596,11 @@ $room-specific-height: 30px;
 	}
 }
 .chatlog {
+	position:relative;
 	overflow:hidden;
 	max-height:100%;
 	width:100%;
+	height:100%;
 	padding-right:$supportbar-width;
 	.messages {
 		padding:1em;
@@ -658,28 +668,90 @@ $room-specific-height: 30px;
 		margin-bottom:1em;
 	}
 }
+
+.close-button {
+	cursor:pointer;
+	position: absolute;
+	top:0;
+	right:0;
+	display:inline-block;
+	padding:0.5em 0.75em;
+	font-size:0.8em;
+	background:rgba(0,0,0,0.85);
+}
+
+
+.media-buttons {
+	background: #222;
+	font-size:0.8em;
+	a {
+		@include transition(all 0.25s ease-in-out);
+		text-shadow:1px 1px 0px rgba(0,0,0,0.5);
+		display:inline-block;
+		color:#777;
+		text-decoration: none;
+		font-family:'Noto Sans', sans-serif;
+		margin:0.25em 0.5em;
+		&:hover {
+			color:#aaa;
+		}
+	}
+
+	a.close {
+		float:right;
+	}
+
+	/* tweaks to make icon sizes more consistent */
+	.icon-external-link {
+		font-size:1.1em;
+	}
+	.icon-collapse-alt, .icon-expand-alt {
+		font-size:1.3em;
+	}
+	.icon-remove {
+		font-size:1.3em;
+	}
+}
+
+.media-item {
+	width:100%;
+	max-width:100%;
+	margin-bottom:1em;
+	position: relative;
+	.object {
+		position:relative;
+		z-index:1;
+	}
+	.close-button {
+		z-index:2;
+	}
+
+
+	.min {
+		display:none;
+	}
+	&.minimized {
+		.min {
+			display:block;
+		}
+		.max {
+			display:none;
+		}
+	}
+}
+
 .imageThumbnail {
 	width:100%;
 	max-width:100%;
 	margin-bottom:1em;
 	position:relative;
 
-	a {
+	.media-object > a {
 		display:block;
 	}
 	img {
 		width:100%;
 		height:auto;
-	}
-	.close-button {
-		cursor:pointer;
-		position: absolute;
-		top:0;
-		right:0;
-		display:inline-block;
-		padding:0.5em 0.75em;
-		font-size:0.8em;
-		background:rgba(0,0,0,0.85);
 	}
 }
 body {
@@ -700,7 +772,7 @@ body {
 	}
 }
 .chatMessage {
-	transition:all 0.25s ease-in-out;
+	@include transition(all 0.25s ease-in-out);
 	height:auto;
 	position:relative;
 	&.fromlog {
@@ -829,7 +901,7 @@ body {
 	margin-left: -8em;
 	text-align: center;
 	box-shadow:2px 2px 10px rgba(0,0,0,0.9);
-	transition:opacity 0.2s ease-in-out;
+	@include transition(opacity 0.2s ease-in-out);
 	.title {
 		padding:0.5em;
 		background:$title-color;
@@ -895,7 +967,7 @@ body {
 			}
 			.tool-options-contents {
 				padding:5px;
-				transition:all 0.25s ease-in-out;
+				@include transition(all 0.25s ease-in-out);
 				text-align: left;
 				background:rgba(0,0,0,0.55);
 				width:0px;

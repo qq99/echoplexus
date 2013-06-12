@@ -19,12 +19,7 @@ function ChatLog (options) {
 		chatMessageTemplate: _.template($("#chatMessageTemplate").html()),
 		linkedImageTemplate: _.template($("#linkedImageTemplate").html()),
 		userTemplate: _.template($("#userListUserTemplate").html()),
-		fl_obj_template: '<object>' +
-                  '<param name="movie" value=""></param>' +   
-                  '<param name="allowFullScreen" value="true"></param>' +   
-                  '<param name="allowscriptaccess" value="always"></param>' +   
-                  '<embed src="" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="274" height="200"></embed>' +   
-                  '</object>',
+		youtubeTemplate: _.template($("#youtubeTemplate").html()),
 
         initialize: function (options) {
         	_.bindAll(this);
@@ -33,6 +28,8 @@ function ChatLog (options) {
         		throw "No channel designated for the chat log";
         	}
         	this.room = options.room;
+
+        	this.uniqueURLs = {};
 
         	this.render();
         	this.attachEvents();
@@ -49,9 +46,31 @@ function ChatLog (options) {
 			this.$el.on("hover", ".chatMessage", function (ev) {
 				$(this).attr("title", "sent " + moment($(".time", this).data("timestamp")).fromNow());
 			});
-			// remove the image from the media bar when the user clicks the close button:
-			this.$el.on("click", ".imageThumbnail .close-button", function () {
-				$(this).parent(".imageThumbnail").remove();
+
+			// media item events:
+			// remove it from view on close button
+			this.$el.on("click", ".close", function (ev) {
+				var $button = $(this);
+				$button.closest(".media-item").remove();
+			});
+
+			// minimize/maximize the media item
+			this.$el.on("click", ".hide, .show", function (ev) {
+				var $button = $(this);
+
+				$button.toggleClass("hide").toggleClass("show");
+				// change the icon
+				$button.find("i").toggleClass("icon-collapse-alt").toggleClass("icon-expand-alt");
+				// toggle the displayed view (.min|.max)
+				$button.closest(".media-item").toggleClass("minimized");
+
+				// update the text
+				if ($button.hasClass("hide")) {
+					$button.find(".explanatory-text").text("Hide");
+				} else {
+					$button.find(".explanatory-text").text("Show");
+				}
+
 			});
         },
 
@@ -75,13 +94,13 @@ function ChatLog (options) {
 						var href = images[i];
 
 						// only do it if it's an image we haven't seen before
-						if (uniqueImages[href] === undefined) {
+						if (self.uniqueURLs[href] === undefined) {
 							var img = self.linkedImageTemplate({
 								url: href,
 								linker: msg.nickname
 							});
 							$(".linklog .body", this.$el).prepend(img);
-							uniqueImages[href] = true;
+							self.uniqueURLs[href] = true;
 						}
 					}
 
@@ -93,12 +112,13 @@ function ChatLog (options) {
 				if (OPTIONS["autoload_media"] && (youtubes = body.match(REGEXES.urls.youtube))) {
 					for (var i = 0, l = youtubes.length; i < l; i++) {
 						var src = makeYoutubeURL(youtubes[i]),
-							yt = $(this.fl_obj_template);
-						if (uniqueImages[src] === undefined) {
-							yt.find("embed").attr("src", src)
-								.find("param[name='movie']").attr("src", src);
+							yt = self.youtubeTemplate({
+								src: src,
+								originalSrc: youtubes[i]
+							});
+						if (self.uniqueURLs[src] === undefined) {
 							$(".linklog .body", this.$el).prepend(yt);
-							uniqueImages[src] = true;
+							self.uniqueURLs[src] = true;
 						}
 					}
 				}
@@ -107,9 +127,9 @@ function ChatLog (options) {
 				var links;
 				if (links = body.match(REGEXES.urls.all_others)) {
 					for (var i = 0, l = links.length; i < l; i++) {
-						if (uniqueImages[links[i]] === undefined) {
+						if (self.uniqueURLs[links[i]] === undefined) {
 							$(".linklog .body", this.$el).prepend("<a href='" + links[i] + "' target='_blank'>" + links[i] + "</a>");
-							uniqueImages[links[i]] = true;
+							self.uniqueURLs[links[i]] = true;
 						}
 					}
 				}
