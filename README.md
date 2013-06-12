@@ -1,7 +1,7 @@
 [echoplexus](https://echoplex.us) (v0.10)
 ==================
 
-Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us") (don't worry about the SSL warning; working on updating it)
+Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
 
 What is it?
 -----------
