@@ -19,7 +19,7 @@ var express = require('express'),
 
 var protocol = require(config.host.SCHEME);
 
-if (config.ssl.USE_NODE_SSL === true) {
+if (config.host.SCHEME === 'https') {
 	var privateKey  = fs.readFileSync(config.ssl.PRIVATE_KEY).toString();
 	var certificate = fs.readFileSync(config.ssl.CERTIFICATE).toString();
 	var credentials = { key: privateKey, cert: certificate };
