@@ -20,10 +20,10 @@ function UserNotifications () {
 		} else {
 			if (hasPermission === 0) { // allowed
 				var notification = _notificationProvider.createNotification(
-					'http://i.stack.imgur.com/dmHl0.png',
+					'',
 					user + " says:",
 					body
-				);
+				); // params: (icon [url], notification title, notification body)
 
 				notification.show();
 				setTimeout(function () {

@@ -7,6 +7,19 @@ function chatModeActive () {
     return $("#chatting").is(":visible");
 }
 
+// 14 seems like a good time to keep the cookie around
+window.COOKIE_OPTIONS = {
+    path: '/',
+    expires: 14
+};
+
+// require secure cookies if the protocol is https
+if (window.location.protocol === "https:") {
+    _.extend(window.COOKIE_OPTIONS, {
+        secure: true
+    });
+}
+
 $(document).ready(function () {
     
     // tooltip stuff:s
@@ -64,7 +77,7 @@ $(document).ready(function () {
         }
         // bind events to the click of the element of the same ID as the option's key
         $option.on("click", function () {
-            $.cookie(option, $(this).prop("checked"));
+            $.cookie(option, $(this).prop("checked"), window.COOKIE_OPTIONS);
             OPTIONS[option] = !OPTIONS[option];
             if (OPTIONS[option]) {
                 $("body").addClass(option);

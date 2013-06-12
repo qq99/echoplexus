@@ -70,7 +70,7 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 			}
 		},
 		channelAuth: function (pw, room) {
-			$.cookie("channel_pw:" + room, pw);
+			$.cookie("channel_pw:" + room, pw, window.COOKIE_OPTIONS);
 			DEBUG && console.log("sending channel pw", pw, room);
 
 			this.socket.emit('join_private:' + room, {
@@ -95,7 +95,7 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 			}
 		},
 		setNick: function (nick, room, ack) {
-			$.cookie("nickname:" + room, nick);
+			$.cookie("nickname:" + room, nick, window.COOKIE_OPTIONS);
 			DEBUG && console.log("sending new nick", nick, room);
 
 			this.set("nick", nick);
@@ -108,7 +108,7 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 			});
 		},
 		identify: function (pw, room, ack) {
-			$.cookie("ident_pw:" + room, pw);
+			$.cookie("ident_pw:" + room, pw, window.COOKIE_OPTIONS);
 			this.socket.emit('identify:' + room, {
 				password: pw,
 				room: room
@@ -127,8 +127,8 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 			if (body.match(REGEXES.commands.nick)) { // /nick [nickname]
 				body = body.replace(REGEXES.commands.nick, "").trim();
 				this.setNick(body, room);
-				$.cookie("nickname:" + room, body);
-				$.cookie("ident_pw:" + room, ""); // clear out the old saved nick
+				$.cookie("nickname:" + room, body, window.COOKIE_OPTIONS);
+				$.removeCookie("ident_pw:" + room, window.COOKIE_OPTIONS); // clear out the old saved nick
 				return;
 			} else if (body.match(REGEXES.commands.private)) {  // /private [password]
 				body = body.replace(REGEXES.commands.private, "").trim();
@@ -136,7 +136,7 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 					password: body,
 					room: room
 				});
-				$.cookie("channel_pw:" + room, body);
+				$.cookie("channel_pw:" + room, body, window.COOKIE_OPTIONS);
 				return;
 			} else if (body.match(REGEXES.commands.public)) {  // /public
 				body = body.replace(REGEXES.commands.public, "").trim();
@@ -154,7 +154,7 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 					password: body,
 					room: room
 				});
-				$.cookie("ident_pw:" + room, body);
+				$.cookie("ident_pw:" + room, body, window.COOKIE_OPTIONS);
 				return;
 			} else if (body.match(REGEXES.commands.identify)) { // /identify [password]
 				body = body.replace(REGEXES.commands.identify, "").trim();

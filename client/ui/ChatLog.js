@@ -9,7 +9,7 @@ function ChatLog (options) {
 		if (end === -1) {
 			end = s.length;
 		}
-		return "http://youtube.com/v/" + s.substring(start,end);
+		return window.location.protocol + "//youtube.com/v/" + s.substring(start,end);
 	}
 
 	var ChatLogView = Backbone.View.extend({
