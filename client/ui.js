@@ -157,9 +157,11 @@ $(document).ready(function () {
     // change channels:
     key('alt+→, alt+k', function () {
         channelSwitcher.trigger("nextChannel");
+        return false;
     });
     key('alt+←, alt+j', function () {
         channelSwitcher.trigger("previousChannel");
+        return false;
     });
     key('ctrl+shift+c', function () {
         channelSwitcher.trigger("leaveChannel");
@@ -174,7 +176,7 @@ $(document).ready(function () {
         activeTabIndex += 1;
         activeTabIndex = activeTabIndex % tabIDs.length; // prevent array OOB
         $(tabIDs[activeTabIndex]).trigger("click");
-        return false;
+        return false; // don't trigger alt+right => "History Forward"
     });
     key('alt+shift+←, alt+shift+j, alt+shift+s', function () {
         activeTabIndex -= 1;
@@ -182,7 +184,7 @@ $(document).ready(function () {
             activeTabIndex = tabIDs.length - 1;
         }
         $(tabIDs[activeTabIndex]).trigger("click");
-        return false;
+        return false; // don't trigger alt+left => "History Back"
     });
 
     // TODO: refactor this, it's gross

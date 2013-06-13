@@ -69,19 +69,21 @@ function ChannelSwitcher (options) {
 				}
 			});
 
+			// kill the channel when clicking the channel button's close icon
+			this.$el.on("click", ".channels .channelBtn .close", function (ev) {
+				var $chatButton = $(this).parents(".channelBtn"),
+					channel = $chatButton.data("channel");
+
+				ev.stopPropagation(); // prevent the event from bubbling up to the .channelBtn bound below
+				ev.preventDefault();
+				self.leaveChannel(channel);
+			});
+
 			// make the channel corresponding to the clicked channel button active:
 			this.$el.on("click", ".channels .channelBtn", function (ev) {
 				var channel = $(this).data("channel");
+				
 				self.showChannel(channel);
-			});
-
-			// kill the channel when clicking the channel button's close icon
-			this.$el.on("click", ".close", function (ev) {
-				ev.preventDefault();
-				ev.stopPropagation();
-				var $chatButton = $(this).parents(".channelBtn"),
-					channel = $chatButton.data("channel");
-				self.leaveChannel(channel);
 			});
 
 			this.on("nextChannel", this.showNextChannel);

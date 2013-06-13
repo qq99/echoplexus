@@ -3,6 +3,16 @@
 	-moz-box-sizing:border-box;
 	-webkit-box-sizing:border-box;
 }
+@mixin clearfix {
+
+	&:before, &:after {
+    	content: " ";
+    	display: table;
+	}
+	&:after {
+    	clear: both;
+	}
+}
 @mixin unselectable {
 	-webkit-user-select: none;
 	-khtml-user-select: none;
@@ -101,7 +111,7 @@ a {
   }
  
   50% {
-    background:rgba(5,20,50,0.9);
+    background:rgba(15,40,80,0.9);
     color:#efefef;
   }
 
@@ -281,54 +291,69 @@ header {
 	}
 
 	.channel-selector {
+		@include clearfix;
+		height:25px;
+
 		> div {
-			display:inline-block;
+			display:block;
+			float:left;
 		}
 		position: absolute;
 		bottom: 0;
 		left: 0;
 		padding:0 0 0.5em 1em;
 		font-size:0.8em;
-		.channels {
-			.channelBtn {
-				text-transform:none;
-				font-style:italic;
-				margin-right:0.5em;
-			}
+
+		.channels, .join-channel {
+			height:100%;
 		}
+
 		.channelBtn {
 			@include fancyButton;
-			&.closable {
-				padding-right:3em;
+			@include clearfix;
+			height:100%;
+			text-transform:none;
+			font-style:italic;
+			margin-right:0.75em;
+			padding:0;
+			display:block;
+			float:left;
+			.channelName {
+				height:100%;
+				padding:0.25em 1em;
+			}
+			.channelName, .close {
+				float:left;
+				display: block;
+				height:100%;
+				vertical-align: middle;
+				font-family: sans-serif;
 			}
 			.close {
 				@include transition(all 0.25s ease-in-out);
-				height:100%;
+				text-align: center;
 				width:2em;
-				font-size:0.8em;
+				font-size:1.25em;
 				font-style:normal;
-				background:rgba(0,0,0,0.55);
-				display:block;
-				position: absolute;
-				top: 0;
-				right: 0;
-				vertical-align: middle;
-				font-family: sans-serif;
-				color:white;
-				line-height: 225%;
+				background:#111;
+				vertical-align: middle;		
+				color:#333;
 				border-left:1px solid #222;
 				&:hover {
+					color:#aaa;
 					background:rgba(255,255,255,0.15);
 				}
 			}
-			&.join {
-				padding:0.25em 0.75em;
-			}
+
 			&.activity {
 				@include animation(activity2 3s infinite);
 			}
 		}
+		.join-channel {
+			margin-left:1em;
+		}
 		input {
+			margin-left:0.25em;
 			display:none;
 			@include cool-button;
 			padding:0.25em 1em;
