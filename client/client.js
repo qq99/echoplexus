@@ -167,6 +167,22 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 					room: room
 				});
 				return;
+			} else if (body.match(REGEXES.commands.private_message)) { // /tell [nick] [message]
+				body = body.replace(REGEXES.commands.private_message, "").trim();
+
+				var targetNick = body.split(" "); // take the first token to mean the
+
+				if (targetNick.length) {
+					targetNick = targetNick[0];
+					body = body.replace(targetNick, "").trim();
+
+					socket.emit('private_message:' + room, {
+						body: body,
+						room: room,
+						directedAt: targetNick
+					});
+				}
+				return;
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!

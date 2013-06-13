@@ -70,8 +70,21 @@
 		<script id="chatMessageTemplate" type="text/template" class="template">
 			<div class="chatMessage <%= classes %>" rel="<%= timestamp %>">
 				<div data-timestamp="<%= timestamp %>" class="time"><%- humanTime %></div>
-				<div class="nick <%= nickClasses %>" title="<%- nickname %>" style="color: <%= color %>"><%- nickname %></div>
-				<div class="body"><%= body %></div>
+				<div class="nick <%= nickClasses %>" title="<%- nickname %>" style="color: <%= color %>">
+					<%- nickname %>
+				</div>
+				<div class="body">
+					<% if (isPrivateMessage) { %>
+						<span class="private-icon" title="This is a private message">
+							<i class="icon-long-arrow-right"></i>
+						</span>
+						<span class="message-recepient">
+							<%- directedAt %>
+						</span>:
+					<% } %>
+
+					<%= body %>
+				</div>
 			</div>
 		</script>
 		<script id="linkedImageTemplate" type="text/template" class="template">
@@ -391,7 +404,7 @@
 	<script type="text/javascript" src="/echoplexus.min.js"></script>
 
 
-	<link href="//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css" rel="stylesheet">
+	<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.0/css/font-awesome.css" rel="stylesheet">
 	</div>
 </body>
 </html>

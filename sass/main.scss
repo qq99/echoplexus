@@ -789,6 +789,9 @@ body {
 		.chatMessage.me {
 			background:rgba(120,120,220,0.1)
 		}
+		.chatMessage.private {
+			background:rgba(0,0,30,0.5);
+		}
 	}
 	&.suppress_client {
 		.chatMessage.client{
@@ -814,6 +817,12 @@ body {
 		background:rgba(109,116,255,0.15);
 		.time {
 			color:#efefef;
+		}
+	}
+	&.private.me, &.private {
+		background:rgba(0,0,30,0.5);
+		.private-icon {
+			color:#00ffbb;
 		}
 	}
 	& > div {

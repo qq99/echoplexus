@@ -62,6 +62,7 @@ function ChatChannel (options) {
 			this.on("hide", function () {
 				self.$el.hide();
 			});
+
 		},
 
 		bindReconnections: function(){
@@ -218,7 +219,15 @@ function ChatChannel (options) {
 
 					msg = self.checkToNotify(msg);
 
-					self.persistentLog.add(msg); // TODO: log to a channel
+					self.persistentLog.add(msg); 
+					self.chatLog.renderChatMessage(msg);
+				},
+				"private_message": function (msg) {
+					DEBUG && console.log("private_message:", self.channelName, msg);
+
+					msg = self.checkToNotify(msg);
+
+					self.persistentLog.add(msg);
 					self.chatLog.renderChatMessage(msg);
 				},
 				"private": function () {

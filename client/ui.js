@@ -167,12 +167,27 @@ $(document).ready(function () {
         channelSwitcher.trigger("leaveChannel");
         return false;
     });
+    // quick reply to PM:
+    key('ctrl+r', function () {
+        var replyTo = $(".chatlog:visible .chatMessage.private:not(.me)").last().find(".nick").text().trim(),
+            $chatInput = $(".chatinput:visible textarea"),
+            currentBuffer;
+
+
+        currentBuffer = $chatInput.val();
+        if (replyTo !== "" &&
+            currentBuffer.indexOf("/w " + replyTo) === -1) {
+            // prepend the command and the user string
+            $chatInput.val("/w " + replyTo + " " + currentBuffer);
+        }
+
+        return false; // don't trigger browser's autoreload
+    });
 
     // change tabs:
     var tabIDs = ["#chatButton", "#codeButton", "#drawButton"];
     var activeTabIndex = 0;
     key('alt+shift+→, alt+shift+k, alt+shift+d', function () {
-        console.log(activeTabIndex);
         activeTabIndex += 1;
         activeTabIndex = activeTabIndex % tabIDs.length; // prevent array OOB
         $(tabIDs[activeTabIndex]).trigger("click");

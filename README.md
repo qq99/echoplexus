@@ -1,4 +1,4 @@
-[echoplexus](https://echoplex.us) (v0.10)
+[echoplexus](https://echoplex.us) (v0.1.1)
 ==================
 
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
@@ -34,6 +34,7 @@ Currently Supported Commands:
 - /private [channel_password]: Makes a channel private.  Only those with the password may enter it.
 - /password [channel_password]: Join a private channel.
 - /public: Make the private channel a public channel.
+- /whisper [nickname]: Send a private message that is visible to anybody with the nickname you've supplied.  Aliases: /w, /tell, /t, /pm
 
 Nick name registrations are considered on a per-channel basis to increase the available nickspace for all users.
 

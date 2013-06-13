@@ -166,7 +166,7 @@ function ChatLog (options) {
 				}
 				// special styling of nickname depending on who you are:
 				if (msg.you) { // if it's me!
-					chatMessageClasses += "me ";
+					chatMessageClasses += " me ";
 				}
 
 				var chat = self.chatMessageTemplate({
@@ -176,7 +176,9 @@ function ChatLog (options) {
 					humanTime: moment(msg.timestamp).format('hh:mm:ss'),
 					timestamp: msg.timestamp,
 					classes: chatMessageClasses,
-					nickClasses: nickClasses
+					nickClasses: nickClasses,
+					isPrivateMessage: (msg.type && msg.type === "private"),
+					directedAt: msg.directedAt
 				});
 
 				if (!opts.delayInsert) {

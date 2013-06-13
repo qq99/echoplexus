@@ -204,6 +204,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 										}, room));
 									} else { // auth'd
 										client.set("room", room);
+										client.socketRef = socket;
 										channel.clients.add(client);
 										// officially join the room on the server:
 										socket.join(room);
@@ -289,6 +290,35 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 						cID: client.cid
 					});
 					publishUserList(room);
+				},
+				"private_message": function (data) {
+					var targetClients;
+
+					// only send a message if it has a body & is directed at someone
+					if (data.body && data.directedAt) {
+						data.cID = client.cid;
+						data.color = client.get("color").toRGB();
+						data.nickname = client.get("nick");
+						data.timestamp = Number(new Date());
+						data.type = "private";
+						data.class = "private";
+
+						targetClients = channel.clients.where({nick: data.directedAt}); // returns an array
+						if (typeof targetClients !== "undefined" &&
+							targetClients.length) {
+
+							// send the pm to each client matching the name
+							_.each(targetClients, function (client) {
+								client.socketRef.emit('private_message:' + room, data);
+							});
+							// send it to the sender s.t. he knows that it went through
+							socket.in(room).emit('private_message:' + room, _.extend(data, {
+								you: true
+							}));
+						} else {
+							// some kind of error message
+						}
+					}
 				},
 				"chat": function (data) {
 					if (data.body) {
@@ -537,7 +567,9 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 					client = new Client({
 						room: room
 					});
+					client.socketRef = socket;
 					channel.clients.add(client);
+
 					// officially join the room on the server:
 					socket.join(room);
 

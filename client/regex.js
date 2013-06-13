@@ -10,11 +10,12 @@
 			nick: /^\/(nick|n)/,
 			register: /^\/register/,
 			identify: /^\/(identify|id)/,
-			topic: /^\/(topic|t)/,
+			topic: /^\/(topic)/,
 			failed_command: /^\//,
 			private: /^\/private/,
 			public: /^\/public/,
 			password: /^\/(password|pw)/,
+			private_message: /^\/(pm|w|whisper|t|tell) /,
 			join: /^\/(join|j)/
 		},
 		phantomjs: {
