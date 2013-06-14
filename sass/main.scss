@@ -1054,11 +1054,14 @@ body {
 			position:absolute;
 			top:0;
 			left:0;
-			&.feedback {
+			&.background {
+				z-index:1;
+			}
+			&.foreground {
 				z-index:2;
 			}
-			&.real {
-				z-index:1;
+			&.active{
+				z-index: 3;
 			}
 		}
 		.paper {

@@ -3,7 +3,8 @@ exports.DrawingServer = function (sio, redisC, EventBus) {
 	var DRAWSPACE = "/draw",
 		config = require('./config.js').Configuration,
 		Client = require('../client/client.js').ClientModel,
-		Clients = require('../client/client.js').ClientsCollection;
+		Clients = require('../client/client.js').ClientsCollection,
+		_ = require('underscore');
 
 	var DEBUG = config.DEBUG;
 
@@ -28,7 +29,9 @@ exports.DrawingServer = function (sio, redisC, EventBus) {
 						type: "draw:line",
 						data: data
 					});
-					socket.in(channelKey).broadcast.emit('draw:line:' + channelKey, data);
+					socket.in(channelKey).broadcast.emit('draw:line:' + channelKey, _.extend(data,{
+						cid: client.cid
+					}));
 				},
 				"trash": function (data) {
 					channel.replay = [];

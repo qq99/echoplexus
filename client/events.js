@@ -5,5 +5,4 @@ window.EventBus.on("message",function(socket,client,msg){
 });
 window.EventBus.on("speak",function(socket,client,msg){
 	console.log("Speak Event called");
-	msg.body = "STAHP";
 });

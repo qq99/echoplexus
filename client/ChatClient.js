@@ -1,7 +1,6 @@
 if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 
 function ChatChannel (options) {
-
 	var ChatChannelView = Backbone.View.extend({
 		className: "chatChannel",
 		template: _.template($("#chatpanelTemplate").html()),
@@ -210,7 +209,7 @@ function ChatChannel (options) {
 			this.socketEvents = {
 				"chat": function (msg) {
 					DEBUG && console.log("onChat:", self.channelName, msg);
-					window.EventBus.trigger("message",socket,self.channelName,msg);
+					window.EventBus.trigger("message",socket,self,msg);
 					switch (msg.class) {
 						case "join":
 							var newClient = new ClientModel(msg.client);
