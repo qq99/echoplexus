@@ -179,7 +179,11 @@ function ChatChannel (options) {
 
 					// alter the message:
 					DEBUG && console.log("@me", msg.body);
-					notifications.notify(msg.nickname, msg.body.substring(0,50));
+					notifications.notify({
+						title: msg.nickname + " says:",
+						body: msg.body,
+						tag: "chatMessage"
+					});
 					msg.directedAtMe = true;
 				}
 			}
