@@ -231,7 +231,9 @@ function ChatLog (options) {
 				DEBUG && console.log("not timestamp");
 				$chatlog.append($chatMessage);
 			}
-			this.scrollToLatest();
+			if (OPTIONS['auto_scroll']){
+				this.scrollToLatest();
+			}
 		},
 
 		clear: function () {
