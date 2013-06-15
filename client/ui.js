@@ -59,7 +59,8 @@ $(document).ready(function () {
         "autoload_media": true,
         "suppress_join": false,
         "highlight_mine": true,
-        "suppress_client": false
+        "suppress_client": false,
+        "auto_scroll": true //autoscroll to new chat messages
     };
 
 
