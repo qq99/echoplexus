@@ -153,7 +153,7 @@ function DrawingClient (options) {
                 coord: coords
             });
             //Prepare the canvas
-            var self = this, 
+            var self = this,
                 buffer = this.buffer;
             //TODO: Global path (for history purposes)
             window.requestAnimationFrame(function(){
@@ -223,6 +223,18 @@ function DrawingClient (options) {
             });
 
             this.$el.on("click", ".tool.info", function(){
+                $(this).find(".tool-options").toggleClass("active");
+            });
+            this.$el.on("click", ".tool.color",function(){
+                var options = $(this).find(".tool-options-contents"),
+                    swatch = $('<div class="swatch"></div>');
+                options.html('');
+                _(30).times(function () {
+                    var randomColor = (new ColorModel()).toRGB();
+                    swatch.clone().css("background", randomColor)
+                        .data("color", randomColor).appendTo(options);
+                });
+
                 $(this).find(".tool-options").toggleClass("active");
             });
             key(']',function(){
