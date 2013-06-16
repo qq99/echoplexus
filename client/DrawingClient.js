@@ -8,38 +8,7 @@ function DrawingClient (options) {
     var TOOLS = {
         PEN: 1,
         ERASER: 2
-    }
-
-    function DrawQueue () {
-        var fifo = [],
-        executing = false;
-        //Dat pun
-        var exequeute = function () {
-            if (!executing) { // simple lock
-                executing = true;
-            } else { // don't try to process same queue twice
-                return;
-            }
-
-            while (fifo.length > 0) {
-                var task = fifo.shift();
-
-                task();
-            }
-            executing = false;
-        };
-
-        return {
-            add: function (dfrdFnc) {
-                fifo.push(dfrdFnc);
-                exequeute();
-            },
-            run: function (dfrdFnc) {
-                exequeute();
-            }
-        }
-    }
-
+    };
     function TimeCapsule() {
         var time = 0;
         this.getLapse = function() {
@@ -66,14 +35,13 @@ function DrawingClient (options) {
             this.socket = io.connect("/draw");
             this.channelName = opts.room;
 
-            this.drawQ = new DrawQueue();
             //Initialize a path variable to hold the paths buffer as we recieve it from other clients
             this.paths = {};
 
             this.listen();
             this.render();
 
-            //this.brush = new Brush((new ColorModel()).toRGB(), 2.0);
+            //The current canvas style
             this.style = {
                 tool: TOOLS.PEN,
                 globalAlpha: 1,
@@ -84,8 +52,6 @@ function DrawingClient (options) {
                 lineJoin: "round"
             };
 
-
-            // debounce a function for repling
             this.attachEvents();
 
             this.on("show", function () {
@@ -102,9 +68,8 @@ function DrawingClient (options) {
             //Background (where everything gets drawn ultimately)
             this.ctx = this.layerBackground.getContext('2d');
 
-            /*this.ctx.lineWidth = 2;
-            this.ctx.strokeStyle = 'black';*/
-            this.timeCapsule = null;
+            //A timecapsule (for recording timelapses at a later date)
+            //this.timeCapsule = null;
         },
 
         kill: function () {
@@ -132,7 +97,7 @@ function DrawingClient (options) {
 
             this.cursorDown = true;
             this.buffer = [];
-            this.timer = new TimeCapsule();
+            //this.timer = new TimeCapsule();
             this.movePath(_.extend(coords,{
                 beginPath: true
             }));
@@ -142,7 +107,7 @@ function DrawingClient (options) {
             
             var ctx = this.ctx;
             //Set up the coordinates
-            coords.lapse = this.timer.getLapse();
+            //coords.lapse = this.timer.getLapse();
             if (coords.beginPath){
                 coords.style = _.clone(this.style);
             }
