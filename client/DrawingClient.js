@@ -96,16 +96,10 @@ function DrawingClient (options) {
                 DEBUG && console.log("drawing_client:hide");
                 self.$el.hide();
             });
-            this.layerForeground = this.$el.find('canvas.foreground')[0];
             this.layerBackground = this.$el.find('canvas.background')[0];
-            this.layerActive = this.$el.find('canvas.active')[0];
 
-            //Foreground (where other users draw)
-            this.fctx = this.layerForeground.getContext('2d');
             //Background (where everything gets drawn ultimately)
             this.bctx = this.layerBackground.getContext('2d');
-            //Active layer
-            this.ctx = this.layerActive.getContext('2d');
 
             /*this.ctx.lineWidth = 2;
             this.ctx.strokeStyle = 'black';*/
@@ -145,58 +139,45 @@ function DrawingClient (options) {
         movePath: function (coords) {
             if (!this.cursorDown) { return; }
             
-            var ctx = this.ctx;
-            //Update the style
+            var ctx = this.bctx;
+            //Set up the coordinates
+            coords.lapse = this.timer.getLapse();
             if (coords.beginPath){
-                _.extend(ctx,this.style);
                 coords.style = _.clone(this.style);
             }
-            // store points for curve interp
-            //this.buffer.push(pt);
-            //this.streamBezier();
-            // Record ms since last update.
-            coords.lapse = this.timer.getLapse();
             // Push coords to current path.
             this.buffer.push(coords);
-
             //Stream the point out
             this.socket.emit("draw:line:" + this.channelName, {
                 coord: coords
             });
-            // Push coords to global path.
-            //this.path.push(coords);
-            // Reset the composite operation.
-            // Clear the path being actively drawn.
-            // Setup for eraser mode.
-            // 
-            ctx.globalCompositeOperation = "source-over";
-            ctx.clearRect(0, 0, this.layerActive.width, this.layerActive.height);
-
-            if (this.style.tool === TOOLS.ERASER) {
-                this.layerBackground.style.display = "none";
+            //Prepare the canvas
+            var self = this, 
+                buffer = this.buffer;
+            //TODO: Global path (for history purposes)
+            window.requestAnimationFrame(function(){
                 ctx.save();
-                ctx.globalAlpha = 1;
-                ctx.drawImage(this.layerBackground, 0, 0);
-                ctx.restore();
-                ctx.globalCompositeOperation = "destination-out";
-            }
-            ctx.save();
-            //ctx.scale(this.zoom, this.zoom);
-            this.catmull({
-                path: this.buffer,
-                ctx: ctx
-            });
-            ctx.restore();
-            if(coords.endPath){
-                if (this.style.tool == TOOLS.ERASER) {
-                    this.layerBackground.style.display = "block";
-                    this.bctx.clearRect(0, 0, innerWidth, innerHeight);
+                _.extend(ctx,self.style);
+                ctx.globalCompositeOperation = "source-over";
+                //Setup Eraser (TODO: FIX)
+                if (self.style.tool === TOOLS.ERASER) {
+                    self.layerBackground.style.display = "none";
+                    ctx.save();
+                    ctx.globalAlpha = 1;
+                    ctx.drawImage(self.layerBackground, 0, 0);
+                    ctx.restore();
+                    ctx.globalCompositeOperation = "destination-out";
                 }
-                //Draw the current line to the background canvas
-                this.bctx.drawImage(this.layerActive, 0, 0);
-                //Clear the active layer
-                this.ctx.clearRect(0, 0, this.layerActive.width, this.layerActive.height);
-            }
+                //ctx.scale(this.zoom, this.zoom);
+                self.catmull(buffer.slice(buffer.length - 4, buffer.length),ctx);
+                if(coords.endPath){
+                    if (self.style.tool == TOOLS.ERASER) {
+                        self.layerBackground.style.display = "block";
+                        self.bctx.clearRect(0, 0, innerWidth, innerHeight);
+                    }
+                }
+                ctx.restore();
+            });
         },
         stopPath: function (coords) {
             //Record what we just drew to the foreground and clean up
@@ -288,37 +269,32 @@ function DrawingClient (options) {
                     /*var line = new BezierLine(msg.fromX, msg.fromY, self.ctx, msg.ctxState, msg.bezier);
                     self.drawQ.add(line);*/
                     //Draw to the foreground context
-                    var ctx = self.fctx;
-                    self.paths[msg.cid] = (self.paths[msg.cid] || []);
+                    var ctx = self.bctx;
+                    var path = self.paths[msg.cid] = (self.paths[msg.cid] || []);
                     if (msg.coord.beginPath){
-                        self.paths[msg.cid] = [];
+                        path = self.paths[msg.cid] = [];
                     }
-                    self.paths[msg.cid].push(msg.coord);
-                    ctx.save();
-                    //Load the style
-                    _.extend(ctx,self.paths[msg.cid][0].style);
-                    if (self.paths[msg.cid][0].style.tool === TOOLS.ERASER) {
-                        self.layerBackground.style.display = "none";
-                        ctx.globalAlpha = 1;
-                        ctx.drawImage(self.layerBackground, 0, 0);
-                        ctx.globalCompositeOperation = "destination-out";
-                    }
-                    //ctx.scale(this.zoom, this.zoom);
-                    self.catmull({
-                        path: self.paths[msg.cid],
-                        ctx: ctx
-                    });
-                    ctx.restore();
-                    if (msg.coord.endPath){
-                        if (self.paths[msg.cid][0].style.tool == TOOLS.ERASER) {
-                            self.layerBackground.style.display = "block";
-                            self.bctx.clearRect(0, 0, innerWidth, innerHeight);
+                    path.push(msg.coord);
+                    window.requestAnimationFrame(function(){
+                        ctx.save();
+                        //Load the style
+                        _.extend(ctx,path[0].style);
+                        if (path[0].style.tool === TOOLS.ERASER) {
+                            self.layerBackground.style.display = "none";
+                            ctx.globalAlpha = 1;
+                            ctx.drawImage(self.layerBackground, 0, 0);
+                            ctx.globalCompositeOperation = "destination-out";
                         }
-                        //Draw the current line to the background canvas
-                        self.bctx.drawImage(self.layerForeground, 0, 0);
-                        //Clear the foreground
-                        self.fctx.clearRect(0, 0, self.layerForeground.width, self.layerForeground.height);
-                    }
+                        //ctx.scale(this.zoom, this.zoom);
+                        self.catmull(path.slice(path.length - 4, path.length),ctx);
+                        ctx.restore();
+                        if (msg.coord.endPath){
+                            if (path[0].style.tool == TOOLS.ERASER) {
+                                self.layerBackground.style.display = "block";
+                                self.bctx.clearRect(0, 0, innerWidth, innerHeight);
+                            }
+                        }
+                    });
                 },
                 "trash": function () {
                     self.trash();
@@ -348,10 +324,8 @@ function DrawingClient (options) {
         },
 
         //Catmull-Rom spline
-        catmull: function (config) {
-            var path = _.clone(config.path);
-            var tension = 1 - (config.tension || 0);
-            var ctx = config.ctx;
+        catmull: function (path,ctx,tens) {
+            var tension = 1 - (tens || 0);
             var length = path.length - 3;
             path.splice(0, 0, path[0]);
             path.push(path[path.length - 1]);
