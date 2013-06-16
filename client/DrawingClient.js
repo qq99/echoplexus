@@ -342,7 +342,7 @@ function DrawingClient (options) {
                 //Resend the subscribe event
                 socket.emit("subscribe", {
                     room: self.channelName
-                });
+                }, this.postSubscribe);
             });
         },
 

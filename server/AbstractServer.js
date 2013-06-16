@@ -39,7 +39,7 @@ function AbstractServer (sio, redisC, EventBus, auth) {
 		this.initialized = true;
 	};
 
-	Server.prototype.Channel = function (options) {
+	var Channel = function (options) {
 		this.name = options.name;
 		this.replay = [];
 
@@ -65,7 +65,6 @@ function AbstractServer (sio, redisC, EventBus, auth) {
 
 				// get the socket's authentication status for the current channel.name
 				socket.get("authStatus", function (err, authStatus) {
-
 					// don't do anything if the user is not authenticated for the channel
 					// AND the event in question is an authenticated one
 					if (!authStatus[channel.name] &&
@@ -98,8 +97,6 @@ function AbstractServer (sio, redisC, EventBus, auth) {
 					client,
 					channel;
 
-				console.log("wtf ack", subscribeAck);
-
 				// some clients may supply a custom namespace for their channel, e.g. CodeClient has ":html" and ":js"
 				if (typeof channelNamespace === "undefined") {
 					channelNamespace = channelName;
@@ -110,28 +107,34 @@ function AbstractServer (sio, redisC, EventBus, auth) {
 
 				// create the channel if it doesn't already exist
 				if (typeof channel === "undefined") {
-					channel = new server.Channel({
+					channel = new Channel({
 						name: channelName,
 						namespace: channelNamespace
 					});
 					server.channels[channelNamespace] = channel;
 				}
 
-				auth.authenticate(socket, channelName, "", function (err, response) {		
-					client = new Client({
-						room: channelName
-					});
-					client.socketRef = socket;
+				client = new Client({
+					room: channelName
+				});
+				client.socketRef = socket;
+
+				auth.authenticate(socket, channelName, "", function (err, response) {
 
 					server.initializeClientEvents(socket, channel, client);
 
-					subscribeAck({
-						cid: client.cid
-					});
+					if (subscribeAck !== null) {
+						console.warn("subscribeAck was null");
+						subscribeAck({
+							cid: client.cid
+						});
+					}
 
+					// let any custom servers handle errors the way they like
 					if (callback) {
 						callback(err, socket, channel, client);
 					}
+					
 				});
 
 				socket.on('disconnect', function () {

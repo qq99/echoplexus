@@ -129,6 +129,7 @@ exports.AuthenticationModule = function (redisC, EventBus) {
 
 				socket.join(channelName);
 				EventBus.trigger("authentication:success", {
+					socket: socket,
 					channelName: channelName
 				});
 			});

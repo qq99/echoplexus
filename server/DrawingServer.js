@@ -35,13 +35,21 @@ exports.DrawingServer = function (sio, redisC, EventBus, auth) {
 
 	DrawServer.start(function (err, socket, channel, client) {
 		if (err) {
-			console.log(err);
+			console.log("DrawServer: ", err);
 			return;
 		}
-		// play back what has happened
-		_.each(channel.replay, function (datum) {
-			socket.emit(datum.type + ":" + channelKey, datum.data);
+		EventBus.on("authentication:success", function (data) {
+			var room = data.channelName,
+				channel = DrawServer.channels[room];
+
+			socket.join(room);
+			// play back what has happened
+			_.each(channel.replay, function (datum) {
+				socket.in(room).emit(datum.type + ":" + room, datum.data);
+			});
 		});
 	});
+
+
 
 };

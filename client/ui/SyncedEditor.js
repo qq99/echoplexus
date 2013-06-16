@@ -32,7 +32,7 @@ function SyncedEditor () {
 			this.socket.emit("subscribe", {
 				room: this.channelName,
 				subchannel: this.subchannelName
-			});
+			}, this.postSubscribe);
 
 			this.on("show", function () {
 				DEBUG && console.log("synced_editor:show");
@@ -51,6 +51,10 @@ function SyncedEditor () {
 			$("body").on("codeSectionActive", function () { // sloppy, forgive me
 				self.trigger("eval");
 			});
+		},
+
+		postSubscribe: function () {
+
 		},
 
 		kill: function () {
