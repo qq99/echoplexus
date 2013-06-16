@@ -1,4 +1,4 @@
-exports.AuthenticationModule = function (redisC) {
+exports.AuthenticationModule = function (redisC, EventBus) {
 
 	var async = require('async'),
 		crypto = require('crypto'),
@@ -113,6 +113,11 @@ exports.AuthenticationModule = function (redisC) {
 		}
 		socket.join(channelName);
 		socket.authStatus[channelName] = true;
+
+		EventBus.trigger("authentication:success", {
+			channelName: channelName
+		});
+
 	}
 
 	// stores data & triggers events on the socket itself when attempting to join

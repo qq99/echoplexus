@@ -1,4 +1,4 @@
-exports.CodeServer = function (sio, redisC, EventBus) {
+exports.CodeServer = function (sio, redisC, EventBus, auth) {
 	
 	var CODESPACE = "/code",
 		config = require('./config.js').Configuration,
@@ -10,7 +10,7 @@ exports.CodeServer = function (sio, redisC, EventBus) {
 	function CodeCache (namespace) {
 		var currentState = "",
 			namespace = (typeof namespace !== "undefined") ? namespace : "",
-			mruClient = null,
+			mruClient,
 			ops = [];
 
 		return {
@@ -23,9 +23,9 @@ exports.CodeServer = function (sio, redisC, EventBus) {
 				ops.push(op);
 			},
 			syncFromClient: function () {
-				if (mruClient === null) return;
+				if (typeof mruClient === "undefined") return;
 
-				mruClient.socket.emit('code:request:' + namespace);
+				mruClient.socketRef.emit('code:request:' + namespace);
 			},
 			syncToClient: function () {
 				return {
@@ -42,6 +42,7 @@ exports.CodeServer = function (sio, redisC, EventBus) {
 	}
 
 	function Channel (name) {
+		this.name = name;
 		this.clients = new Clients();
 		this.codeCache = new CodeCache(name);
 		return this;
@@ -64,9 +65,17 @@ exports.CodeServer = function (sio, redisC, EventBus) {
 		console.log("sockID:", socket.id);
 		socket.on("subscribe", function (data) {
 			var client,
+				unauthenticatedEvents = [],
 				room = data.room,
 				subchannel = data.subchannel,
 				channelKey = room + ":" + subchannel;
+
+			// get the channel
+			var channel = channels[channelKey];
+			if (typeof channel === "undefined") { // start a new channel if it doesn't exist
+				channel = new Channel(channelKey);
+				channels[channelKey] = channel;
+			}
 
 			var codeEvents = {
 				"code:cursorActivity": function (data) {
@@ -89,38 +98,56 @@ exports.CodeServer = function (sio, redisC, EventBus) {
 				}
 			};
 
-			DEBUG && console.log("codeclient connected on", channelKey);
-			socket.leave("\"\"");
-			socket.join(channelKey);
+			// EventBus.on("nickset." + socket.id, function (data) {
+			// 	client.set("nick", data.nick);
+			// 	client.set("color", data.color);
+			// 	publishUserList(channelKey);
+			// });
 
-			// get the channel
-			var channel = channels[channelKey];
-			if (typeof channel === "undefined") { // start a new channel if it doesn't exist
-				channel = new Channel(channelKey);
-				channels[channelKey] = channel;
+			function bindEvents () {
+				// client must exist!
+				// bind all chat events:
+				_.each(codeEvents, function (method, eventName) {
+					var authFiltered = _.wrap(method, function (meth) {
+						// DEBUG && console.log(arguments);
+						// DEBUG && console.log(eventName, client.get("room"), !_.contains(unauthenticatedEvents, eventName));
+						console.log(socket.authStatus)
+						if (!socket.authStatus[room] &&
+							!_.contains(unauthenticatedEvents, eventName)) {
+							return;
+						}
+						var args = Array.prototype.slice.call(arguments).splice(1); // first arg is the function itself
+						meth.apply(socket, args); // not even once.
+					});
+					socket.on(eventName + ":" + channelKey, authFiltered);
+				});
 			}
 
-			// add the new client to our internal list
-			client = new Client({
-				room: room
-			});
-			client.socket = socket;
-			channel.clients.add(client);
 
-			EventBus.on("nickset." + socket.id, function (data) {
-				client.set("nick", data.nick);
-				client.set("color", data.color);
-				publishUserList(channelKey);
+
+			auth.authenticate(socket, room, "", function (err, response) {
+				
+				client = new Client({
+					room: room
+				});
+				client.socketRef = socket;
+
+				bindEvents();
 			});
 
-			// bind all chat events:
-			_.each(codeEvents, function (value, key) {
-				socket.on(key + ":" + channelKey, value);
-			});
 
 			setInterval(channel.codeCache.syncFromClient, 1000*30);
 
-			socket.in(channelKey).emit('code:authoritative_push:' + channelKey, channel.codeCache.syncToClient());
+			EventBus.on("authentication:success", function (data) {
+				if (data.channelName === room) {
+					console.log(channelKey, " recv'd auth success");
+					socket.join(channelKey);	
+
+					socket.in(channelKey).emit('code:authoritative_push:' + channelKey, channel.codeCache.syncToClient());
+
+					channel.clients.add(client);
+				}
+			});
 
 			socket.on("unsubscribe", function () {
 				if (typeof client !== "undefined") {

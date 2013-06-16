@@ -11,7 +11,8 @@ var express = require('express'),
 	redisC = redis.createClient(),
 	spawn = require('child_process').spawn,
 	async = require('async'),
-	auth = require('./Authentication.js').AuthenticationModule(redisC),
+	EventBus = new Backbone.Model(),
+	auth = require('./Authentication.js').AuthenticationModule(redisC, EventBus),
 	chatServer = require('./ChatServer.js').ChatServer,
 	codeServer = require('./CodeServer.js').CodeServer,
 	drawServer = require('./DrawingServer.js').DrawingServer,
@@ -44,8 +45,6 @@ app.get("/*", function (req, res) {
 server.listen(config.host.PORT);
 
 console.log('Listening on port', config.host.PORT);
-
-var EventBus = new Backbone.Model();
 
 // SocketIO init:
 sio = sio.listen(server);
