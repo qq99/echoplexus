@@ -6,7 +6,7 @@
 function DrawingClient (options) {
 
     var TOOLS = {
-        BRUSH: 1,
+        PEN: 1,
         ERASER: 2
     }
 
@@ -75,7 +75,7 @@ function DrawingClient (options) {
 
             //this.brush = new Brush((new ColorModel()).toRGB(), 2.0);
             this.style = {
-                tool: TOOLS.BRUSH,
+                tool: TOOLS.PEN,
                 globalAlpha: 1,
                 globalCompositeOperation: "source-over",
                 strokeStyle: (new ColorModel()).toRGB(),
@@ -83,6 +83,7 @@ function DrawingClient (options) {
                 lineCap: "round",
                 lineJoin: "round"
             };
+
 
             // debounce a function for repling
             this.attachEvents();
@@ -99,7 +100,7 @@ function DrawingClient (options) {
             this.layerBackground = this.$el.find('canvas.background')[0];
 
             //Background (where everything gets drawn ultimately)
-            this.bctx = this.layerBackground.getContext('2d');
+            this.ctx = this.layerBackground.getContext('2d');
 
             /*this.ctx.lineWidth = 2;
             this.ctx.strokeStyle = 'black';*/
@@ -139,7 +140,7 @@ function DrawingClient (options) {
         movePath: function (coords) {
             if (!this.cursorDown) { return; }
             
-            var ctx = this.bctx;
+            var ctx = this.ctx;
             //Set up the coordinates
             coords.lapse = this.timer.getLapse();
             if (coords.beginPath){
@@ -161,21 +162,11 @@ function DrawingClient (options) {
                 ctx.globalCompositeOperation = "source-over";
                 //Setup Eraser (TODO: FIX)
                 if (self.style.tool === TOOLS.ERASER) {
-                    self.layerBackground.style.display = "none";
-                    ctx.save();
                     ctx.globalAlpha = 1;
-                    ctx.drawImage(self.layerBackground, 0, 0);
-                    ctx.restore();
                     ctx.globalCompositeOperation = "destination-out";
                 }
                 //ctx.scale(this.zoom, this.zoom);
                 self.catmull(buffer.slice(buffer.length - 4, buffer.length),ctx);
-                if(coords.endPath){
-                    if (self.style.tool == TOOLS.ERASER) {
-                        self.layerBackground.style.display = "block";
-                        self.bctx.clearRect(0, 0, innerWidth, innerHeight);
-                    }
-                }
                 ctx.restore();
             });
         },
@@ -193,9 +184,7 @@ function DrawingClient (options) {
         },
 
         trash: function () {
-            this.bctx.clearRect(0, 0, this.layerBackground.width, this.layerBackground.height);
-            this.fctx.clearRect(0, 0, this.layerForeground.width, this.layerForeground.height);
-            this.ctx.clearRect(0, 0, this.layerActive.width, this.layerActive.height);
+            this.ctx.clearRect(0, 0, this.layerBackground.width, this.layerBackground.height);
         },
 
         attachEvents: function () {
@@ -222,8 +211,7 @@ function DrawingClient (options) {
             });
 
             this.$el.on("click", ".tool.eraser", function(){
-                //TODO: Eraser code here
-                self.style.tool = TOOLS.ERASER;
+                self.changeTool('ERASER');
             });
 
             this.$el.on("click", ".swatch", function (ev) {
@@ -231,23 +219,38 @@ function DrawingClient (options) {
             });
 
             this.$el.on("click", ".tool.pen", function () {
-                
-                $(this).find(".tool-options .swatch").each(function (index, ele) {
-                    var randomColor = (new ColorModel()).toRGB();
-                    $(ele).css("background", randomColor)
-                        .data("color", randomColor);
-                });
-
-                $(this).find(".tool-options").toggleClass("active");
+                self.changeTool('PEN');
             });
 
-            $(window).on("keydown", function (ev) {
+            this.$el.on("click", ".tool.info", function(){
+                $(this).find(".tool-options").toggleClass("active");
+            });
+            key(']',function(){
                 if (self.$el.is(":visible")) {
-                    if (ev.keyCode === 221) { // } key
-                        self.style.lineWidth += 0.25;
-                    } else if (ev.keyCode === 219) { // { key
-                        self.style.lineWidth -= 0.25;
-                    }
+                    self.style.lineWidth += 0.25;
+                }
+            });
+            key('[',function(){
+                if (self.$el.is(":visible")) {
+                    self.style.lineWidth -= 0.25;
+                }
+            });
+            key(',',function(){
+                if (self.$el.is(":visible")) {
+                    //Increment brushes
+                    var tools = _.keys(TOOLS);
+                    var tool = self.style.tool;
+                    if (tool >= tools.length) tool = 0;
+                    self.changeTool(tools[tool]);
+                }
+            });
+            key('.',function(){
+                if (self.$el.is(":visible")) {
+                    //Decrement brushes
+                    var tools = _.keys(TOOLS);
+                    var tool = self.style.tool - 2;
+                    if (tool < 0) tool = tools.length - 1;
+                    self.changeTool(tools[tool]);
                 }
             });
         },
@@ -266,34 +269,29 @@ function DrawingClient (options) {
 
             this.socketEvents = {
                 "draw:line": function (msg) {
-                    /*var line = new BezierLine(msg.fromX, msg.fromY, self.ctx, msg.ctxState, msg.bezier);
-                    self.drawQ.add(line);*/
                     //Draw to the foreground context
-                    var ctx = self.bctx;
+                    var ctx = self.ctx;
+                    //Initialize the path if it wasn't already initialized
                     var path = self.paths[msg.cid] = (self.paths[msg.cid] || []);
+                    //If the path was just started, clear it
                     if (msg.coord.beginPath){
                         path = self.paths[msg.cid] = [];
                     }
+                    //Add the coordinate to the path
                     path.push(msg.coord);
+                    //Add to the animation queue
                     window.requestAnimationFrame(function(){
                         ctx.save();
                         //Load the style
                         _.extend(ctx,path[0].style);
+                        //If eraser, set to erase mode
                         if (path[0].style.tool === TOOLS.ERASER) {
-                            self.layerBackground.style.display = "none";
                             ctx.globalAlpha = 1;
-                            ctx.drawImage(self.layerBackground, 0, 0);
                             ctx.globalCompositeOperation = "destination-out";
                         }
-                        //ctx.scale(this.zoom, this.zoom);
+                        //Draw the path
                         self.catmull(path.slice(path.length - 4, path.length),ctx);
                         ctx.restore();
-                        if (msg.coord.endPath){
-                            if (path[0].style.tool == TOOLS.ERASER) {
-                                self.layerBackground.style.display = "block";
-                                self.bctx.clearRect(0, 0, innerWidth, innerHeight);
-                            }
-                        }
                     });
                 },
                 "trash": function () {
@@ -316,6 +314,14 @@ function DrawingClient (options) {
                     room: self.channelName
                 });
             });
+        },
+
+        changeTool: function(tool){
+            _.each(_.omit(TOOLS,tool),function(v,key){
+                $('.tool.' + key.toLowerCase()).removeClass('tool-highlight');
+            });
+            $('.tool.' + tool.toLowerCase()).addClass('tool-highlight');
+            this.style.tool = TOOLS[tool];
         },
 
         render: function () {
