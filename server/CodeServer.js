@@ -61,6 +61,7 @@ exports.CodeServer = function (sio, redisC, EventBus) {
 	}
 
 	var CODE = sio.of(CODESPACE).on('connection', function (socket) {
+		console.log("sockID:", socket.id);
 		socket.on("subscribe", function (data) {
 			var client,
 				room = data.room,

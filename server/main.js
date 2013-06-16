@@ -11,6 +11,7 @@ var express = require('express'),
 	redisC = redis.createClient(),
 	spawn = require('child_process').spawn,
 	async = require('async'),
+	auth = require('./Authentication.js').AuthenticationModule(redisC),
 	chatServer = require('./ChatServer.js').ChatServer,
 	codeServer = require('./CodeServer.js').CodeServer,
 	drawServer = require('./DrawingServer.js').DrawingServer,
@@ -54,7 +55,7 @@ sio.set('log level', 1);
 
 // use db 15:
 redisC.select(15, function (err, reply) {
-	chatServer(sio, redisC, EventBus); // start up the chat server
-	codeServer(sio, redisC, EventBus); // start up the code server
-	drawServer(sio, redisC, EventBus); // start up the code server
+	chatServer(sio, redisC, EventBus, auth); // start up the chat server
+	codeServer(sio, redisC, EventBus, auth); // start up the code server
+	drawServer(sio, redisC, EventBus, auth); // start up the code server
 });

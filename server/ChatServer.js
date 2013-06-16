@@ -1,4 +1,4 @@
-exports.ChatServer = function (sio, redisC, EventBus) {
+exports.ChatServer = function (sio, redisC, EventBus, auth) {
 
 	var config = require('./config.js').Configuration,
 		CHATSPACE = "/chat",
@@ -10,6 +10,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 		SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
 		Client = require('../client/client.js').ClientModel,
 		Clients = require('../client/client.js').ClientsCollection,
+		Error = require('./Error'),
 		REGEXES = require('../client/regex.js').REGEXES;
 
 	var DEBUG = config.DEBUG;
@@ -61,13 +62,24 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 	}
 
 	function Channel (name) {
+		this.name = name;
 		this.clients = new Clients();
 		return this;
 	}
 	var channels = {};
 
-	function subscribeSuccess (socket, client, room) {
-		// let the newly connected client know the ID of the latest logged message
+	function subscribeSuccess (socket, client, channel, subscribeAck) {
+		var room = channel.name;
+
+		// let the client know they're actually an active member of the channel
+		subscribeAck({
+			cid: client.cid
+		});
+
+		// add to server's list of authenticated clients
+		channel.clients.add(client);
+
+		// tell the newly connected client know the ID of the latest logged message
 		redisC.hget("channels:currentMessageID", room, function (err, reply) {
 			if (err) throw err;
 			socket.emit('chat:currentID:' + room, {
@@ -75,7 +87,8 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 				room: room
 			});
 		});
-		// global topic:
+
+		// tell the newly connected client the topic of the channel:
 		redisC.hget('topic', room, function (err, reply){
 			if (client.get("room") !== room) return;
 			socket.emit('topic:' + room, serverSentMessage({
@@ -83,13 +96,17 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 				log: false,
 			}, room));
 		});
+
 		// tell everyone about the new client in the room
 		userJoined(client, room);
+
 		// let them know their cid
 		socket.emit("chat:your_cid:" + room, {
 			room: room,
 			cid: client.cid
 		});
+
+		// finally, announce to the client that he's now in the room
 		socket.emit("chat:" + room, serverSentMessage({
 			body: "Talking in channel '" + room + "'",
 			log: false
@@ -99,6 +116,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 
 
 	var CHAT = sio.of(CHATSPACE).on('connection', function (socket) {
+		console.log("sockID:", socket.id);
 		socket.on("subscribe", function (data, subscribeAck) {
 			DEBUG && console.log("client connected, leaving default room");
 			socket.leave("\"\"");
@@ -110,117 +128,60 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 			var chatEvents = {
 				"make_public": function (data) {
 
-					redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
-						if (err) throw err;
-						if (reply === "true") { // channel is not currently private
-							async.parallel([
-								function (callback) {
-									redisC.hdel("channels:" + room, "isPrivate", callback);
-								}, function (callback) {
-									redisC.hdel("channels:" + room, "salt", callback);
-								}, function (callback) {
-									redisC.hdel("channels:" + room, "password", callback);
-								}
-							], function (err, reply) {
-								if (err) throw err;
-								socket.emit('chat:' + room, serverSentMessage({
-									body: "This channel is now public."
-								}, room));
-							});
-						} else {
+					auth.makePublic(room, function (err, response) {
+						if (err) {
 							socket.emit('chat:' + room, serverSentMessage({
-								body: "This channel is already public."
+								body: err.message
 							}, room));
+							return;
 						}
+						
+						socket.emit('chat:' + room, serverSentMessage({
+							body: "This channel is now public."
+						}, room));
 					});
 				},
 				"make_private": function (data) {
 
-					redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
-						if (err) throw err;
-						if (!reply) { // channel is not currently private
-							try { // try crypto & persistence
-								crypto.randomBytes(256, function (ex, buf) {
-									if (ex) throw ex;
-									var salt = buf.toString();
-									
-									crypto.pbkdf2(data.password, salt, 4096, 256, function (err, derivedKey) {
-										if (err) throw err;
-
-										async.parallel([
-											function (callback) {
-												redisC.hset("channels:" + room, "isPrivate", true, callback);
-											}, function (callback) {
-												redisC.hset("channels:" + room, "salt", salt, callback);
-											}, function (callback) {
-												redisC.hset("channels:" + room, "password", derivedKey.toString(), callback);
-											}
-										], function (err, reply) {
-											if (err) throw err;
-											socket.emit('chat:' + room, serverSentMessage({
-												body: "This channel is now private.  Please remember your password."
-											}, room));
-										});
-
-									});
-								});
-							} catch (e) {
-								socket.emit('chat:' + room, serverSentMessage({
-									body: "Error in setting the channel to private: " + e
-								}, room));
-							}
-						} else {
+					auth.makePrivate(room, data.password, function (err, response) {
+						if (err) {
 							socket.emit('chat:' + room, serverSentMessage({
-								body: "This channel is already private."
-							}, room));
+								body: err.message
+							}, room));				
+							return;
 						}
+						
+						socket.emit('chat:' + room, serverSentMessage({
+							body: "This channel is now private.  Please remember your password."
+						}, room));
 					});
+
 				},
 				"join_private": function (data) {
 
-					redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
-						if (err) throw err;
-						if (reply === "true") { // channel is not currently private
-							DEBUG && console.log(client.get("nick"), "attempting to auth to private room");
-							async.parallel({
-								salt: function (callback) {
-									redisC.hget("channels:" + room, "salt", callback);
-								},
-								password: function (callback) {
-									redisC.hget("channels:" + room, "password", callback);
+					var password = data.password;
+
+					auth.authenticate(socket, room, password, function (err, response) {
+
+						if (err) {
+							if (err instanceof Error.Authentication) {
+								if (err.message === "Incorrect password.") {
+									// let everyone currently in the room know that someone failed to join it
+									socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
+										class: "identity",
+										body: client.get("nick") + " just failed to join the room."
+									}, room));
 								}
-							}, function (err, stored) {
-								if (err) throw err;
-								crypto.pbkdf2(data.password, stored.salt, 4096, 256, function (err, derivedKey) {
-									if (err) throw err;
-
-									if (derivedKey.toString() !== stored.password) { // FAIL
-										socket.emit('chat:' + room, serverSentMessage({
-											body: "Wrong password for room"
-										}, room));
-										socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
-											class: "identity",
-											body: client.get("nick") + " just failed to join the room."
-										}, room));
-									} else { // auth'd
-										client.set("room", room);
-										client.socketRef = socket;
-										channel.clients.add(client);
-										// officially join the room on the server:
-										socket.join(room);
-
-										// do the typical post-join stuff
-										subscribeSuccess(socket, client, room);
-
-										socket.emit("subscribed:" + room);
-									}
-								});
-							});
-						} else {
+							}
+							// let the joiner know what went wrong:
 							socket.emit('chat:' + room, serverSentMessage({
-								body: "This channel isn't private."
+								body: err.message
 							}, room));
+							return;
 						}
+
+						subscribeSuccess(socket, client, channel, subscribeAck);
+
 					});
 				},
 				"nickname": function (data, ack) {
@@ -280,13 +241,13 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 					client.set("idle", true);
 					client.set("idleSince", Number(new Date()));
 					data.cID = client.cid;
-					sio.of(CHATSPACE).emit('chat:idle:' + room, data);
+					sio.of(CHATSPACE).in(room).emit('chat:idle:' + room, data);
 					publishUserList(room);
 				},
 				"chat:unidle": function (data) {
 					client.set("idle", false);
 					client.unset("idleSince");
-					sio.of(CHATSPACE).emit('chat:unidle:' + room, {
+					sio.of(CHATSPACE).in(room).emit('chat:unidle:' + room, {
 						cID: client.cid
 					});
 					publishUserList(room);
@@ -389,15 +350,15 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 											screenshotter.on("exit", function (data) {
 												DEBUG && console.log('screenshotter exit: ' + data);
 												if (pageData.title && pageData.excerpt) {
-													sio.of(CHATSPACE).emit('chat:' + room, serverSentMessage({
+													sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
 														body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
 													}, room));
 												} else if (pageData.title) {
-													sio.of(CHATSPACE).emit('chat:' + room, serverSentMessage({
+													sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
 														body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
 													}, room));
 												} else {
-													sio.of(CHATSPACE).emit('chat:' + room, serverSentMessage({
+													sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
 														body: urlRoot() + 'sandbox/' + fileName
 													}, room));
 												}
@@ -504,8 +465,10 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 				"unsubscribe": function () {
 					var channel = channels[room];
 
+					auth.unauthenticate(socket, room);
+
 					if (typeof client !== "undefined") {
-						DEBUG && console.log("unsub'ing ", client.cid, "from", room);
+
 						userLeft(client, room);
 						channel.clients.remove(client);
 					}
@@ -513,8 +476,6 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 					_.each(chatEvents, function (value, key) {
 						socket.removeAllListeners(key + ":" + room);
 					});
-
-					socket.leave(room);
 
 					publishUserList(room);
 				}
@@ -534,7 +495,7 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 					var authFiltered = _.wrap(method, function (meth) {
 						// DEBUG && console.log(arguments);
 						// DEBUG && console.log(eventName, client.get("room"), !_.contains(unauthenticatedEvents, eventName));
-						if (client.get("room") !== room &&
+						if (!socket.authStatus[room] &&
 							!_.contains(unauthenticatedEvents, eventName)) {
 							return;
 						}
@@ -545,41 +506,29 @@ exports.ChatServer = function (sio, redisC, EventBus) {
 				});
 			}
 
-			// check to see if the room is private:
-			redisC.hget("channels:" + room, "isPrivate", function (err, reply) {
-				if (err) throw err;
-				if (reply === "true") { // if it's private
-					DEBUG && console.log("user attempted to join private room");
-					socket.emit('chat:' + room, serverSentMessage({
-						body: "This room is private.  Type /password [room password] to join.",
-						log: false
-					}, room));
-					socket.emit('private:' + room);
-					client = new Client();
-					subscribeAck({
-						cid: client.cid
-					});
-					bindChatEvents();
-				} else { // it's public:
-					DEBUG && console.log("subscribed to public room", data.room);
+			auth.authenticate(socket, room, "", function (err, response) {
+				
+				client = new Client({
+					room: room
+				});
+				client.socketRef = socket;
 
-					// add the new client to our internal list
-					client = new Client({
-						room: room
-					});
-					client.socketRef = socket;
-					channel.clients.add(client);
+				bindChatEvents();
 
-					// officially join the room on the server:
-					socket.join(room);
-
-					// do the typical post-join stuff
-					subscribeSuccess(socket, client, room);
-					subscribeAck({
-						cid: client.cid
-					});
-					bindChatEvents();
+				if (err) {
+					if (err instanceof Error.Authentication) {
+						socket.emit('chat:' + room, serverSentMessage({
+							body: "This room is private.  Type /password [room password] to join.",
+							log: false
+						}, room));
+						socket.emit('private:' + room);
+						
+						
+					}
+					return;
 				}
+
+				subscribeSuccess(socket, client, channel, subscribeAck);
 			});
 
 			// unauthenticated events:
