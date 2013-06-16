@@ -6,19 +6,6 @@ function AbstractServer (sio, redisC, EventBus, auth) {
 		Clients = require('../client/client.js').ClientsCollection,
 		DEBUG = config.DEBUG;
 
-	function Channel (options) {
-		this.name = options.name;
-
-		if (options.namespace) { // e.g., "code:js" and "code:html"
-			this.namespace = options.namespace;
-		} else { // e.g., chat, which doesn't have subchannels
-			this.namespace = this.name;
-		}
-
-		this.clients = new Clients();
-		return this;
-	}
-
 	function Server () {
 		this.initialized = false;
 
@@ -51,6 +38,20 @@ function AbstractServer (sio, redisC, EventBus, auth) {
 
 		this.initialized = true;
 	};
+
+	Server.prototype.Channel = function (options) {
+		this.name = options.name;
+		this.replay = [];
+
+		if (options.namespace) { // e.g., "code:js" and "code:html"
+			this.namespace = options.namespace;
+		} else { // e.g., chat, which doesn't have subchannels
+			this.namespace = this.name;
+		}
+
+		this.clients = new Clients();
+		return this;
+	}
 
 	Server.prototype.initializeClientEvents = function (socket, channel, client) {
 		var server = this;
@@ -93,16 +94,27 @@ function AbstractServer (sio, redisC, EventBus, auth) {
 
 			socket.on("subscribe", function (data, subscribeAck) {
 				var channelName = data.room,
+					channelNamespace = data.namespace,
 					client,
-					channelNamespace,
-					channel = server.channels[channelName];
+					channel;
+
+				console.log("wtf ack", subscribeAck);
+
+				// some clients may supply a custom namespace for their channel, e.g. CodeClient has ":html" and ":js"
+				if (typeof channelNamespace === "undefined") {
+					channelNamespace = channelName;
+				}
+
+				// attempt to get the channel
+				channel = server.channels[channelNamespace];
 
 				// create the channel if it doesn't already exist
 				if (typeof channel === "undefined") {
-					channel = new Channel({
-						name: channelName
+					channel = new server.Channel({
+						name: channelName,
+						namespace: channelNamespace
 					});
-					server.channels[channelName] = channel;
+					server.channels[channelNamespace] = channel;
 				}
 
 				auth.authenticate(socket, channelName, "", function (err, response) {		
@@ -124,7 +136,18 @@ function AbstractServer (sio, redisC, EventBus, auth) {
 
 				socket.on('disconnect', function () {
 					if (typeof client !== "undefined") { // sometimes client is undefined; TODO: find out why
-						DEBUG && console.log("Killing ", client.cid, " from ", channelName);
+						DEBUG && console.log("Killing (d/c) ", client.cid, " from ", channelName);
+						channel.clients.remove(client);
+					}
+				
+					_.each(server.events, function (value, key) {
+						socket.removeAllListeners(key + ":" + channelName);
+					});
+				});
+
+				socket.on('unsubscribe', function () {
+					if (typeof client !== "undefined") { // sometimes client is undefined; TODO: find out why
+						DEBUG && console.log("Killing (left) ", client.cid, " from ", channelName);
 						channel.clients.remove(client);
 					}
 				
