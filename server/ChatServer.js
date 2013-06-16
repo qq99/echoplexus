@@ -457,8 +457,9 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 			"unsubscribe": function (socket, channel, client) {
 				var room = channel.name;
 
+				channel.clients.remove(client);
 				auth.unauthenticate(socket, room);
-
+				userLeft(client, channel.name);
 				publishUserList(channel);
 			}
 		},
