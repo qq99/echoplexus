@@ -55,6 +55,6 @@ sio.set('log level', 1);
 // use db 15:
 redisC.select(15, function (err, reply) {
 	chatServer(sio, redisC, EventBus, auth); // start up the chat server
-	codeServer(sio, redisC, EventBus, auth); // start up the code server
-	drawServer(sio, redisC, EventBus, auth); // start up the code server
+	// codeServer(sio, redisC, EventBus, auth); // start up the code server
+	// drawServer(sio, redisC, EventBus, auth); // start up the code server
 });

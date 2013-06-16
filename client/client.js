@@ -57,7 +57,6 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 			return json;
 		},
 		initialize: function (opts) {
-			DEBUG && console.log(this, opts);
 			_.bindAll(this);
 
 			if (opts && opts.color) {
@@ -71,7 +70,6 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 		},
 		channelAuth: function (pw, room) {
 			$.cookie("channel_pw:" + room, pw, window.COOKIE_OPTIONS);
-			DEBUG && console.log("sending channel pw", pw, room);
 
 			this.socket.emit('join_private:' + room, {
 				password: pw,
@@ -80,7 +78,7 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 		},
 		inactive: function (reason, room, socket) {
 			reason = reason || "User idle.";
-			DEBUG && console.log("sending inactive msg", room);
+
 			socket.emit("chat:idle:" + room, {
 				reason: reason,
 				room: room
@@ -89,14 +87,12 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 		},
 		active: function (room, socket) {
 			if (this.isInactive) { // only send over wire if we're inactive
-				DEBUG && console.log("sending active msg");
 				socket.emit("chat:unidle:" + room);
 				this.isInactive = false;
 			}
 		},
 		setNick: function (nick, room, ack) {
 			$.cookie("nickname:" + room, nick, window.COOKIE_OPTIONS);
-			DEBUG && console.log("sending new nick", nick, room);
 
 			this.set("nick", nick);
 			this.socket.emit('nickname:' + room, {

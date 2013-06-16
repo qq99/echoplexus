@@ -105,17 +105,33 @@ exports.AuthenticationModule = function (redisC, EventBus) {
 		}
 	}
 
+	function getAuthObject(socket, callback) {
+		socket.get("authStatus", function (err, authObject) {
+			if (err) callback(err);
+
+			if (authObject === null) {
+				authObject = {};
+			}
+
+			callback(null, authObject);
+		});
+	}
+
 	// performs side effects on the socket itself
 	function authSuccess (socket, channelName) {
 
-		if (typeof socket.authStatus === "undefined") {
-			socket.authStatus = {};
-		}
-		socket.join(channelName);
-		socket.authStatus[channelName] = true;
+		getAuthObject(socket, function (err, authStatus) {
+			if (err) throw err;
 
-		EventBus.trigger("authentication:success", {
-			channelName: channelName
+			authStatus[channelName] = true;
+			socket.set("authStatus", authStatus, function () {
+				console.log("authSucc", channelName, socket.id);
+
+				socket.join(channelName);
+				EventBus.trigger("authentication:success", {
+					channelName: channelName
+				});
+			});
 		});
 
 	}

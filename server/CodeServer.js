@@ -109,15 +109,18 @@ exports.CodeServer = function (sio, redisC, EventBus, auth) {
 				// bind all chat events:
 				_.each(codeEvents, function (method, eventName) {
 					var authFiltered = _.wrap(method, function (meth) {
+						var margs = arguments;
 						// DEBUG && console.log(arguments);
 						// DEBUG && console.log(eventName, client.get("room"), !_.contains(unauthenticatedEvents, eventName));
-						console.log(socket.authStatus)
-						if (!socket.authStatus[room] &&
-							!_.contains(unauthenticatedEvents, eventName)) {
-							return;
-						}
-						var args = Array.prototype.slice.call(arguments).splice(1); // first arg is the function itself
-						meth.apply(socket, args); // not even once.
+						socket.get("authStatus", function (err, authStatus) {
+							console.log("prefilter", room, socket.id, socket.authStatus)
+							if (!authStatus[room] &&
+								!_.contains(unauthenticatedEvents, eventName)) {
+								return;
+							}
+							var args = Array.prototype.slice.call(margs).splice(1); // first arg is the function itself
+							meth.apply(socket, args); // not even once.
+						});
 					});
 					socket.on(eventName + ":" + channelKey, authFiltered);
 				});
