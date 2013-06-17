@@ -117,23 +117,7 @@ function DrawingClient (options) {
             this.socket.emit("draw:line:" + this.channelName, {
                 coord: coords
             });
-            //Prepare the canvas
-            var self = this,
-                buffer = this.buffer;
-            //TODO: Global path (for history purposes)
-            window.requestAnimationFrame(function(){
-                ctx.save();
-                _.extend(ctx,self.style);
-                ctx.globalCompositeOperation = "source-over";
-                //Setup Eraser (TODO: FIX)
-                if (self.style.tool === TOOLS.ERASER) {
-                    ctx.globalAlpha = 1;
-                    ctx.globalCompositeOperation = "destination-out";
-                }
-                //ctx.scale(this.zoom, this.zoom);
-                self.catmull(buffer.slice(buffer.length - 4, buffer.length),ctx);
-                ctx.restore();
-            });
+            this.drawLine(ctx,this.buffer);
         },
         stopPath: function (coords) {
             //Record what we just drew to the foreground and clean up
@@ -240,6 +224,23 @@ function DrawingClient (options) {
 
         },
 
+        drawLine: function(ctx, path){
+            var self = this;
+            window.requestAnimationFrame(function(){
+                ctx.save();
+                //Load the style
+                _.extend(ctx,path[0].style);
+                //If eraser, set to erase mode
+                if (path[0].style.tool === TOOLS.ERASER) {
+                    ctx.globalAlpha = 1;
+                    ctx.globalCompositeOperation = "destination-out";
+                }
+                //Draw the path
+                self.catmull(path.slice(Math.max(0,path.length - 4), path.length),ctx);
+                ctx.restore();
+            });
+        },
+
         listen: function () {
             var self = this,
             socket = this.socket;
@@ -256,46 +257,31 @@ function DrawingClient (options) {
                     }
                     //Add the coordinate to the path
                     path.push(msg.coord);
-                    //Add to the animation queue
-                    window.requestAnimationFrame(function(){
-                        ctx.save();
-                        //Load the style
-                        _.extend(ctx,path[0].style);
-                        //If eraser, set to erase mode
-                        if (path[0].style.tool === TOOLS.ERASER) {
-                            ctx.globalAlpha = 1;
-                            ctx.globalCompositeOperation = "destination-out";
-                        }
-                        //Draw the path
-                        self.catmull(path.slice(path.length - 4, path.length),ctx);
-                        ctx.restore();
-                    });
+                    //Draw the line
+                    self.drawLine(ctx,path);
                 },
                 "trash": function () {
                     self.trash();
                 },
-                "draw:replay": function(msg){
-                    //Message is the entire draw buffer for one client
-                    //
+                "draw:replay": function(buffer){
+                    //Message is the entire draw buffer(will be huge!(probably))
+                    //Although we have recieved a ton of data, to combat this we can render n points at a time, and then wait
                     //Draw to the foreground context
                     var ctx = self.ctx;
-                    //Add to the animation queue
-                    _.each(msg.data,function(path){
-                        self.paths[msg.cid] = path;
-                        window.requestAnimationFrame(function(){
-                            ctx.save();
-                            //Load the style
-                            _.extend(ctx,path[0].style);
-                            //If eraser, set to erase mode
-                            if (path[0].style.tool === TOOLS.ERASER) {
-                                ctx.globalAlpha = 1;
-                                ctx.globalCompositeOperation = "destination-out";
-                            }
-                            //Draw the path
-                            self.catmull(path,ctx);
-                            ctx.restore();
-                        });
-                    })
+                    var paths = {};
+                    _.each(buffer,function(msg){
+                        //Initialize the path if it wasn't already initialized
+                        var path = paths[msg.cid] = (paths[msg.cid] || []);
+                        //If the path was just started, clear it
+                        if (msg.coord.beginPath){
+                            path = paths[msg.cid] = [];
+                        }
+                        console.log(path);
+                        //Add the coordinate to the path
+                        path.push(msg.coord);
+                        //Add to the animation queue
+                        self.drawLine(ctx,_.clone(path));
+                    });
                 }
             };
             _.each(this.socketEvents, function (value, key) {
