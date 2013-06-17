@@ -6,7 +6,7 @@
 		var HANDLERS = {
 			js: function(code){
 				var html = code['html'],
-					js = '(function(window,$,_){ ' + code['js'] + ' })(window,$,_);', //Don't allow user to override basic api's
+					js = '(function(window,$,_,undefined){ ' + code['js'] + ' })(window,$,_);', //Don't allow user to override basic api's
 					result = '';
 				$('body').html(html);
 				try {
@@ -22,15 +22,25 @@
 			if (!window.location.hasOwnProperty("origin")) {
 			    window.origin = window.location.origin = window.location.protocol + "//" + window.location.host;
 			}
+			window.parent.postMessage("ready","*");
 			$(window).on('message', function(e){
 				e = e.originalEvent;
 				var data = JSON.parse(decodeURI(e.data));
 				var result = '';
 				result = HANDLERS[data.type](data.code);
-				e.source.postMessage(encodeURI(JSON.stringify({
-					result: result,
-					channel: data.channel
-				})), e.origin);
+				var msg = '';
+				try{
+					msg = encodeURI(JSON.stringify({
+						result: result,
+						channel: data.channel
+					}));
+				} catch (ex) {
+					msg = encodeURI(JSON.stringify({
+						result: ex.toString(),
+						channel: data.channel
+					}));
+				}	
+				e.source.postMessage(msg, e.origin);
 			});
 		});
 	</script>

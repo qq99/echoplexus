@@ -274,6 +274,16 @@ nav {
 		}
 	}
 }
+.pull-right {
+	float: right;
+}
+.pull-left {
+	float:left;
+}
+.clearfix {
+	float: none;
+	clear:both;
+}
 
 
 header {

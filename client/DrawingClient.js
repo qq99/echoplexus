@@ -276,7 +276,6 @@ function DrawingClient (options) {
                         if (msg.coord.beginPath){
                             path = paths[msg.cid] = [];
                         }
-                        console.log(path);
                         //Add the coordinate to the path
                         path.push(msg.coord);
                         //Add to the animation queue
