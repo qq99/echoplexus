@@ -92,6 +92,9 @@ function ChatChannel (options) {
 				self.socket.emit("subscribe", {
 					room: self.channelName
 				}, self.postSubscribe);
+				if (self.me.get('idle')){
+					self.me.inactive("", self.channelName, self.socket);
+				}
 			});
 		},
 
@@ -164,7 +167,7 @@ function ChatChannel (options) {
 		checkToNotify: function (msg) {
 			// scan through the message and determine if we need to notify somebody that was mentioned:
 			if (this.me !== "undefined") {
-				// check to see if me.nick is contained in the msg
+				// check to see if me.nick is contained in the msgme.
 				if (msg.body.toLowerCase().indexOf(this.me.get("nick").toLowerCase()) !== -1) {
 
 					// do not alter the message in the following circumstances:
