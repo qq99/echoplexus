@@ -273,6 +273,29 @@ function DrawingClient (options) {
                 },
                 "trash": function () {
                     self.trash();
+                },
+                "draw:replay": function(msg){
+                    //Message is the entire draw buffer for one client
+                    //
+                    //Draw to the foreground context
+                    var ctx = self.ctx;
+                    //Add to the animation queue
+                    _.each(msg.data,function(path){
+                        self.paths[msg.cid] = path;
+                        window.requestAnimationFrame(function(){
+                            ctx.save();
+                            //Load the style
+                            _.extend(ctx,path[0].style);
+                            //If eraser, set to erase mode
+                            if (path[0].style.tool === TOOLS.ERASER) {
+                                ctx.globalAlpha = 1;
+                                ctx.globalCompositeOperation = "destination-out";
+                            }
+                            //Draw the path
+                            self.catmull(path,ctx);
+                            ctx.restore();
+                        });
+                    })
                 }
             };
             _.each(this.socketEvents, function (value, key) {
