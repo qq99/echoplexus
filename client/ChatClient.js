@@ -60,7 +60,11 @@ function ChatChannel (options) {
 			this.on("hide", function () {
 				self.$el.hide();
 			});
-
+			this.on("activity", function(){
+				if (!chatModeActive()) {
+					$("#chatButton").addClass("activity");
+				}
+			});
 		},
 
 		show: function(){
@@ -194,11 +198,7 @@ function ChatChannel (options) {
 				}
 			}
 
-			// ping the chat button regardless of whether it was directed @me, if looking at another panel:
-			if (!chatModeActive()) {
-				$("#chatButton").addClass("activity");
-			}
-
+			
 			if (msg.type !== "SYSTEM") { // count non-system messages as chat activity
 				this.trigger("activity", {
 					channelName: this.channelName
