@@ -1,4 +1,4 @@
-exports.ChatServer = function (sio, redisC, EventBus, auth) {
+exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelModel) {
 
 	var config = require('./config.js').Configuration,
 		CHATSPACE = "/chat",
@@ -33,10 +33,14 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 	}
 
 	function publishUserList (channel) {
-		var room = channel.name;
+		var room = channel.get("name"),
+			authenticatedClients = channel.clients.where({authenticated: true}),
+			clientsJson;
+
+		// console.log(authenticatedClients.hasOwnProperty("toJSON"));
 		
 		sio.of(CHATSPACE).in(room).emit('userlist:' + room, {
-			users: channel.clients.toJSON(),
+			users: authenticatedClients,
 			room: room
 		});
 	}
@@ -59,7 +63,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 	}
 
 	function subscribeSuccess (socket, client, channel) {
-		var room = channel.name;
+		var room = channel.get("name");
 
 		// add to server's list of authenticated clients
 		channel.clients.add(client);
@@ -86,13 +90,13 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 		userJoined(client, room);
 
 		// let them know their cid
-		socket.emit("chat:your_cid:" + room, {
+		socket.in(room).emit("chat:your_cid:" + room, {
 			room: room,
 			cid: client.cid
 		});
 
 		// finally, announce to the client that he's now in the room
-		socket.emit("chat:" + room, serverSentMessage({
+		socket.in(room).emit("chat:" + room, serverSentMessage({
 			body: "Talking in channel '" + room + "'",
 			log: false
 		}, room));
@@ -100,13 +104,14 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 		publishUserList(channel);
 	}
 
-	var ChatServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, auth);
+	var ChatServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, auth, Channels, ChannelModel);
 
 	ChatServer.initialize({
+		name: "ChatServer",
 		SERVER_NAMESPACE: CHATSPACE,
 		events: {
 			"make_public": function (socket, channel, client, data) {
-				var room = channel.name;
+				var room = channel.get("name");
 
 				auth.makePublic(room, function (err, response) {
 					if (err) {
@@ -122,7 +127,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 				});
 			},
 			"make_private": function (socket, channel, client, data) {
-				var room = channel.name;
+				var room = channel.get("name");
 
 				auth.makePrivate(room, data.password, function (err, response) {
 					if (err) {
@@ -140,10 +145,9 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 			},
 			"join_private": function (socket, channel, client, data) {
 				var password = data.password;
-				var room = channel.name;
+				var room = channel.get("name");
 
-				auth.authenticate(socket, room, password, function (err, response) {
-
+				channel.authenticate(client, password, function (err, response) {
 					if (err) {
 						if (err instanceof ApplicationError.Authentication) {
 							if (err.message === "Incorrect password.") {
@@ -160,13 +164,10 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 						}, room));
 						return;
 					}
-
-					subscribeSuccess(socket, client, channel);
-
 				});
 			},
 			"nickname": function (socket, channel, client, data, ack) {
-				var room = channel.name;
+				var room = channel.get("name");
 
 				var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
 					prevName = client.get("nick");
@@ -200,7 +201,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 				ack();
 			},
 			"topic": function (socket, channel, client, data) {
-				var room = channel.name;
+				var room = channel.get("name");
 
 				redisC.hset('topic', room, data.topic);
 				socket.emit('topic:' + room, serverSentMessage({
@@ -209,7 +210,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 				}, room));
 			},
 			"chat:history_request": function (socket, channel, client, data) {
-				var room = channel.name;
+				var room = channel.get("name");
 
 				redisC.hmget("chatlog:" + room, data.requestRange, function (err, reply) {
 					if (err) throw err;
@@ -221,7 +222,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 				});
 			},
 			"chat:idle": function (socket, channel, client, data) {
-				var room = channel.name;
+				var room = channel.get("name");
 
 				client.set("idle", true);
 				client.set("idleSince", Number(new Date()));
@@ -230,7 +231,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 				publishUserList(channel);
 			},
 			"chat:unidle": function (socket, channel, client, data) {
-				var room = channel.name;
+				var room = channel.get("name");
 
 				client.set("idle", false);
 				client.unset("idleSince");
@@ -241,7 +242,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 			},
 			"private_message": function (socket, channel, client, data) {
 				var targetClients;
-				var room = channel.name;
+				var room = channel.get("name");
 
 				// only send a message if it has a body & is directed at someone
 				if (data.body && data.directedAt) {
@@ -270,7 +271,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 				}
 			},
 			"chat": function (socket, channel, client, data) {
-				var room = channel.name;
+				var room = channel.get("name");
 
 				if (data.body) {
 					data.cID = client.cid;
@@ -361,7 +362,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 				}
 			},
 			"identify": function (socket, channel, client, data) {
-				var room = channel.name;
+				var room = channel.get("name");
 				var nick = client.get("nick");
 				try {
 					redisC.sismember("users:" + room, nick, function (err, reply) {
@@ -413,7 +414,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 				}
 			},
 			"register_nick": function (socket, channel, client, data) {
-				var room = channel.name;
+				var room = channel.get("name");
 				var nick = client.get("nick");
 				redisC.sismember("users:" + room, nick, function (err, reply) {
 					if (err) throw err;
@@ -455,7 +456,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 				});
 			},
 			"unsubscribe": function (socket, channel, client) {
-				var room = channel.name;
+				var room = channel.get("name");
 
 				channel.clients.remove(client);
 				auth.unauthenticate(socket, room);
@@ -466,22 +467,28 @@ exports.ChatServer = function (sio, redisC, EventBus, auth) {
 		unauthenticatedEvents: ["join_private"]
 	});
 
-	ChatServer.start(function (err, socket, channel, client) {
-		var room = channel.name;
+	ChatServer.start({
+		error: function (err, socket, channel, client) {
+			var room = channel.get("name");
 
-		if (err) {
-			if (err instanceof ApplicationError.Authentication) {
-				socket.emit("chat:" + room, serverSentMessage({
-					body: "This channel is private.  Please type /password [channel password] to join"
-				}, room));
-				socket.emit("private:" + room);
-			} else {
-				socket.emit("chat:" + room, serverSentMessage({
-					body: err.message
-				}, room));
+			if (err) {
+				console.log("ChatServer: ", err);
+				if (err instanceof ApplicationError.Authentication) {
+					socket.emit("chat:" + room, serverSentMessage({
+						body: "This channel is private.  Please type /password [channel password] to join"
+					}, room));
+					socket.emit("private:" + room);
+				} else {
+					socket.emit("chat:" + room, serverSentMessage({
+						body: err.message
+					}, room));
+				}
+				return;
 			}
-			return;
+		},
+		success: function (socket, channel, client) {
+			console.log("Client joined ", channel.get("name"));
+			subscribeSuccess(socket, client, channel);
 		}
-		subscribeSuccess(socket, client, channel);
 	});
 };

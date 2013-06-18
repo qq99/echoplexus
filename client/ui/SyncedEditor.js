@@ -76,6 +76,7 @@ function SyncedEditor () {
 				
 			this.editor.on("change", function (instance, change) {
 				if (change.origin !== undefined && change.origin !== "setValue") {
+					console.log(self.channelKey);
 					socket.emit("code:change:" + self.channelKey, change);
 				}
 				if (codingModeActive()) {

@@ -54,7 +54,11 @@ sio.set('log level', 1);
 
 // use db 15:
 redisC.select(15, function (err, reply) {
-	chatServer(sio, redisC, EventBus, auth); // start up the chat server
-	// codeServer(sio, redisC, EventBus, auth); // start up the code server
-	drawServer(sio, redisC, EventBus, auth); // start up the code server
+	var ChannelStructures = require('./Channels.js').ChannelStructures(redisC, EventBus),
+		Channels = new ChannelStructures.ChannelsCollection(),
+		ChannelModel = ChannelStructures.ServerChannelModel;
+
+	chatServer(sio, redisC, EventBus, auth, Channels, ChannelModel); // start up the chat server
+	// codeServer(sio, redisC, EventBus, auth, Channels); // start up the code server
+	drawServer(sio, redisC, EventBus, auth, Channels); // start up the code server
 });

@@ -49,7 +49,8 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 			nick: "Anonymous",
 			identified: false,
 			idle: false,
-			isServer: false
+			isServer: false,
+			authenticated: false
 		},
 		toJSON: function() {
 			var json = Backbone.Model.prototype.toJSON.apply(this, arguments);
