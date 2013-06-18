@@ -221,7 +221,9 @@ $(document).ready(function () {
         if ($("#chatting:visible").length === 0) {
             $(this).addClass("active").siblings().removeClass("active");
             $("#panes > section").not('#chatting').hide();
-            $("#chatting").show();
+            $("#chatting").show(function(){
+                $("body").trigger("chatSectionActive") // also pretty sloppy. TODO: add eventbus to handle this
+            });
             $(".ghost-cursor").remove();
             turnOffLiveReload();
         }

@@ -4,12 +4,9 @@ function ChatLog (options) {
 	"use strict";
 
 	function makeYoutubeURL(s) {
-		var start = s.indexOf("v=") + 2;
-		var end = s.indexOf("&", start);
-		if (end === -1) {
-			end = s.length;
-		}
-		return window.location.protocol + "//youtube.com/v/" + s.substring(start,end);
+		var matches = REGEXES.urls.youtube.exec(s);
+		//If this function was called, the regex will have matched (aka it must have a v= match)
+		return window.location.protocol + "//youtube.com/v/" + matches[5];
 	}
 
 	var ChatLogView = Backbone.View.extend({
@@ -75,7 +72,8 @@ function ChatLog (options) {
         },
 
         scrollToLatest: function () {
-			$(".messages", this.$el).scrollTop($(".messages", this.$el)[0].scrollHeight);
+			//Get the last message and scroll that into view
+			$('.messages .chatMessage:last-child',this.$el)[0].scrollIntoView();
 		},
 
 		renderChatMessage: function (msg, opts) {
@@ -110,6 +108,8 @@ function ChatLog (options) {
 				// put youtube linsk on the side:
 				var youtubes;
 				if (OPTIONS["autoload_media"] && (youtubes = body.match(REGEXES.urls.youtube))) {
+					console.debug(body);
+					console.debug(youtubes);
 					for (var i = 0, l = youtubes.length; i < l; i++) {
 						var src = makeYoutubeURL(youtubes[i]),
 							yt = self.youtubeTemplate({
@@ -136,7 +136,7 @@ function ChatLog (options) {
 			}
 
 			// sanitize the body:
-			body = body.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+			body = _.escape(body);
 
 			// convert new lines to breaks:
 			if (body.match(/\n/g)) {

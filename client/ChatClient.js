@@ -54,14 +54,22 @@ function ChatChannel (options) {
 
 			this.on("show", function () {
 				self.$el.show();
-				self.chatLog.scrollToLatest();
-				$("textarea", self.$el).focus();
+				self.show();
 			});
 
 			this.on("hide", function () {
 				self.$el.hide();
 			});
+			this.on("activity", function(){
+				if (!chatModeActive()) {
+					$("#chatButton").addClass("activity");
+				}
+			});
+		},
 
+		show: function(){
+			this.chatLog.scrollToLatest();
+			$("textarea", self.$el).focus();
 		},
 
 		bindReconnections: function(){
@@ -190,11 +198,7 @@ function ChatChannel (options) {
 				}
 			}
 
-			// ping the chat button regardless of whether it was directed @me, if looking at another panel:
-			if (!chatModeActive()) {
-				$("#chatButton").addClass("activity");
-			}
-
+			
 			if (msg.type !== "SYSTEM") { // count non-system messages as chat activity
 				this.trigger("activity", {
 					channelName: this.channelName
@@ -282,6 +286,9 @@ function ChatChannel (options) {
 		},
 		attachEvents: function () {
 			var self = this;
+			$("body").on("chatSectionActive",function(){
+				self.show();
+			});
 			this.$el.on("keydown", ".chatinput textarea", function (ev) {
 				if (ev.ctrlKey || ev.shiftKey) return; // we don't fire any events when these keys are pressed
 				
