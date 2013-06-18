@@ -6,7 +6,9 @@ exports.ChannelStructures = function (redisC, EventBus) {
 		crypto = require('crypto'),
 		ApplicationError = require('./Error'),
 		Client = require('../client/client.js').ClientModel,
-		Clients = require('../client/client.js').ClientsCollection;
+		Clients = require('../client/client.js').ClientsCollection,
+		config = require('./config.js').Configuration,
+		DEBUG = config.DEBUG;
 
 
 
@@ -166,7 +168,7 @@ exports.ChannelStructures = function (redisC, EventBus) {
 
 				authStatus[channelName] = true;
 				socket.set("authStatus", authStatus, function () {
-					console.log("authSucc", channelName, socket.id);
+					DEBUG && console.log("authSucc", channelName, socket.id);
 
 					client.set("authenticated", true);
 					// console.log(client.get("authenticated"));

@@ -55,7 +55,7 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 					!_.contains(server.unauthenticatedEvents, eventName)) {
 					return;
 				}
-				DEBUG && console.log(eventName + ":" + namespace);
+				//DEBUG && console.log(eventName + ":" + namespace);
 				method_args = Array.prototype.slice.call(method_args).splice(1); // first argument is the function itself
 				method_args.unshift(namespace, socket, channel, client);
 				meth.apply(server, method_args); // not even once.
