@@ -1,4 +1,4 @@
-[echoplexus](https://echoplex.us) (v0.1.1)
+[echoplexus](https://echoplex.us) (v0.1.3)
 ==================
 
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
@@ -37,8 +37,9 @@ Currently Supported Commands:
 - `/password [channel_password]`: Join a private channel.
 - `/public`: Make the private channel a public channel.
 - `/whisper [nickname]`: Send a private message that is visible to anybody with the nickname you've supplied.  Aliases: `/w`, `/tell`, `/t`, `/pm`.  *Pro-tip:* Press "ctrl+r" to quick-reply to the last person who has whispered you -- it'll append `/w [nick]` to your current chat buffer.
+- `[partial nickname]+<TABKEY>`: Autocompletes (based on L-Distance) to the name of somebody in the channel
 
-Nick name registrations are considered on a per-channel basis to increase the available nickspace for all users.
+Nickname registrations are considered on a per-channel basis to increase the available nickspace for all users.
 
 Some measures of User Access Controls are planned for the future.
 
