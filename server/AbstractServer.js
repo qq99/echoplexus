@@ -173,10 +173,10 @@ function AbstractServer (sio, redisC, EventBus, auth, Channels, ChannelModel) {
 				client.socketRef = socket;
 
 				client.on("change:authenticated", function (result) {
-					console.log("change:authenticated", server.name, client.cid, socket.id);
+					console.log("change:authenticated", server.name, client.cid, socket.id, result.attributes.authenticated);
 					if (result.attributes.authenticated) {
 						socket.join(channel.get("namespace"));
-						// callback.success(socket, channel, client);
+						callback.success(socket, channel, client);
 					} else {
 						socket.leave(channel.get("namespace"));
 					}
@@ -197,8 +197,6 @@ function AbstractServer (sio, redisC, EventBus, auth, Channels, ChannelModel) {
 					// let any implementing servers handle errors the way they like
 					if (err) {
 						callback.error(err, socket, channel, client);
-					} else {
-						callback.success(socket, channel, client);
 					}
 					
 				});

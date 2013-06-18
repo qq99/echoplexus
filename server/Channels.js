@@ -36,7 +36,7 @@ exports.ChannelStructures = function (redisC, EventBus) {
 			var self = this,
 				channelName = this.get("name");
 			// if we've cached the redis result, return that
-			if (typeof this.attributes.private !== "undefined") {
+			if (false) {
 				callback(null, this.get("private"));
 			} else { // otherwise we don't know the state of isPrivate, so we query the db
 				// only query the isPrivate once per lifetime

@@ -66,7 +66,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 		var room = channel.get("name");
 
 		// add to server's list of authenticated clients
-		channel.clients.add(client);
+		// channel.clients.add(client);
 
 		// tell the newly connected client know the ID of the latest logged message
 		redisC.hget("channels:currentMessageID", room, function (err, reply) {
