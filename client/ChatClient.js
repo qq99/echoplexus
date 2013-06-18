@@ -54,14 +54,18 @@ function ChatChannel (options) {
 
 			this.on("show", function () {
 				self.$el.show();
-				self.chatLog.scrollToLatest();
-				$("textarea", self.$el).focus();
+				self.show();
 			});
 
 			this.on("hide", function () {
 				self.$el.hide();
 			});
 
+		},
+
+		show: function(){
+			this.chatLog.scrollToLatest();
+			$("textarea", self.$el).focus();
 		},
 
 		bindReconnections: function(){
@@ -282,6 +286,9 @@ function ChatChannel (options) {
 		},
 		attachEvents: function () {
 			var self = this;
+			$("body").on("chatSectionActive",function(){
+				self.show();
+			});
 			this.$el.on("keydown", ".chatinput textarea", function (ev) {
 				if (ev.ctrlKey || ev.shiftKey) return; // we don't fire any events when these keys are pressed
 				
