@@ -136,7 +136,7 @@ function ChatLog (options) {
 			}
 
 			// sanitize the body:
-			body = body.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+			body = _.escape(body);
 
 			// convert new lines to breaks:
 			if (body.match(/\n/g)) {
