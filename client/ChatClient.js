@@ -337,7 +337,7 @@ function ChatChannel (options) {
 							text[text.length - 1] = completion;
 						}
 						if (text.length === 1) {
-							text[0] = text[0] + ", ";
+							text[0] = text[0];
 						}
 
 						$(this).val(text.join(" "));
