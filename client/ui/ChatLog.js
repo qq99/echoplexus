@@ -75,7 +75,8 @@ function ChatLog (options) {
         },
 
         scrollToLatest: function () {
-			$(".messages", this.$el).scrollTop($(".messages", this.$el)[0].scrollHeight);
+			//Get the last message and scroll that into view
+			$('.messages .chatMessage:last-child',this.$el)[0].scrollIntoView();
 		},
 
 		renderChatMessage: function (msg, opts) {
