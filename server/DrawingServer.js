@@ -1,4 +1,4 @@
-exports.DrawingServer = function (sio, redisC, EventBus, auth, Channels, ChannelModel) {
+exports.DrawingServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 	
 	var DRAWSPACE = "/draw",
 		config = require('./config.js').Configuration,
@@ -8,13 +8,13 @@ exports.DrawingServer = function (sio, redisC, EventBus, auth, Channels, Channel
 
 	var DEBUG = config.DEBUG;
 
-	var DrawServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, auth, Channels, ChannelModel);
+	var DrawServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, Channels, ChannelModel);
 
 	DrawServer.initialize({
 		name: "DrawServer",
 		SERVER_NAMESPACE: DRAWSPACE,
 		events: {
-			"draw:line": function (socket, channel, client, data) {
+			"draw:line": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				channel.replay.push({
@@ -26,7 +26,7 @@ exports.DrawingServer = function (sio, redisC, EventBus, auth, Channels, Channel
 					cid: client.cid
 				}));
 			},
-			"trash": function (socket, channel, client, data) {
+			"trash": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				channel.replay = [];
@@ -38,11 +38,11 @@ exports.DrawingServer = function (sio, redisC, EventBus, auth, Channels, Channel
 	DrawServer.start({
 		error: function (err, socket, channel, client) {
 			if (err) {
-				console.log("DrawServer: ", err);
+				DEBUG && console.log("DrawServer: ", err);
 				return;
 			}
 		},
-		success: function (socket, channel, client) {
+		success: function (namespace, socket, channel, client) {
 			var room = channel.get("name");
 		
 			// socket.join(room);

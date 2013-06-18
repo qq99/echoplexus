@@ -1,4 +1,4 @@
-exports.CodeServer = function (sio, redisC, EventBus, auth, Channels) {
+exports.CodeServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 	
 	var CODESPACE = "/code",
 		config = require('./config.js').Configuration,
@@ -7,65 +7,94 @@ exports.CodeServer = function (sio, redisC, EventBus, auth, Channels) {
 
 	var DEBUG = config.DEBUG;
 
-	var CodeServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, auth);
+	var CodeServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, Channels, ChannelModel);
 
-	function publishUserList (channel) {
-		var room = channel.namespace;
+	function CodeCache (namespace) {
+		var currentState = "",
+			namespace = (typeof namespace !== "undefined") ? namespace : "",
+			mruClient,
+			ops = [];
 
-		sio.of(CODESPACE).in(room).emit('userlist:' + room, {
-			users: channel.clients.toJSON(),
-			room: room
-		});
+		return {
+			set: function (state) {
+				currentState = state;
+				ops = [];
+			},
+			add: function (op, client) {
+				mruClient = client;
+				ops.push(op);
+			},
+			syncFromClient: function () {
+				if (typeof mruClient === "undefined") return;
+
+				mruClient.socketRef.emit('code:request:' + namespace);
+			},
+			syncToClient: function () {
+				return {
+					start: currentState,
+					ops: ops
+				};
+			},
+			remove: function (client) {
+				if (mruClient === client) {
+					mruClient = null;
+				}
+			}
+		};
 	}
+
+	var codeCaches = {};
 
 	CodeServer.initialize({
 		name: "CodeServer",
 		SERVER_NAMESPACE: CODESPACE,
 		events: {
-			"code:cursorActivity": function (socket, channel, client, data) {
-				var channelKey = channel.namespace;
-
-				socket.in(channelKey).broadcast.emit('code:cursorActivity:' + channelKey, {
+			"code:cursorActivity": function (namespace, socket, channel, client, data) {
+				socket.in(namespace).broadcast.emit('code:cursorActivity:' + namespace, {
 					cursor: data.cursor,
 					cid: client.cid
 				});
 			},
-			"code:change": function (socket, channel, client, data) {
-				var channelKey = channel.namespace;
+			"code:change": function (namespace, socket, channel, client, data) {
+				var codeCache = spawnCodeCache(namespace);
 
 				data.timestamp = Number(new Date());
-				channel.codeCache.add(data, client);
-				socket.in(channelKey).broadcast.emit('code:change:' + channelKey, data);
+				codeCache.add(data, client);
+				socket.in(namespace).broadcast.emit('code:change:' + namespace, data);
 			},
-			"code:full_transcript": function (socket, channel, client, data) {
-				var channelKey = channel.namespace;
+			"code:full_transcript": function (namespace, socket, channel, client, data) {
+				var codeCache = spawnCodeCache(namespace);
 
-				channel.codeCache.set(data.code);
-				socket.in(channelKey).broadcast.emit('code:sync:' + channelKey, data);
+				codeCache.set(data.code);
+				socket.in(namespace).broadcast.emit('code:sync:' + namespace, data);
 			}
 		}
 	});
 
+	function spawnCodeCache (ns) {
+		if (typeof codeCaches[ns] !== "undefined") {
+			DEBUG && console.log("note: Aborted spawning a code that already exists", ns);
+			return codeCaches[ns];
+		}
+		cc = new CodeCache(ns);
+		codeCaches[ns] = cc;
+		
+		setInterval(cc.syncFromClient, 1000*30);
+
+		return cc;
+	}
 
 	CodeServer.start({
 		error: function (err, socket, channel, client) {
 			if (err) {
-				console.log("CodeServer: ", err);
+				DEBUG && console.log("CodeServer: ", err);
 				return;
 			}
 		},
-		success: function (socket, channel, client) {
-			var ns = channel.namespace;
+		success: function (namespace, socket, channel, client) {
+			var cc = spawnCodeCache(namespace);
 			
-			socket.join(ns);
-			
-			// TODO: only do this ONCE per channel
-			setInterval(channel.codeCache.syncFromClient, 1000*30);
-
-			socket.in(ns).emit('code:authoritative_push:' + ns, channel.codeCache.syncToClient());
-
-			channel.clients.add(client);
-			publishUserList(channel);
+			socket.in(namespace).emit('code:authoritative_push:' + namespace, cc.syncToClient());
 		}
 	});
 

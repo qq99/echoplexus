@@ -1,4 +1,4 @@
-function AbstractServer (sio, redisC, EventBus, auth, Channels, ChannelModel) {
+function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 
 	var _ = require('underscore'),
 		config = require('./config.js').Configuration,
@@ -40,72 +40,29 @@ function AbstractServer (sio, redisC, EventBus, auth, Channels, ChannelModel) {
 		this.initialized = true;
 	};
 
-	// TODO: find a nice way to move this into CodeServer.js
-	function CodeCache (namespace) {
-		var currentState = "",
-			namespace = (typeof namespace !== "undefined") ? namespace : "",
-			mruClient,
-			ops = [];
 
-		return {
-			set: function (state) {
-				currentState = state;
-				ops = [];
-			},
-			add: function (op, client) {
-				mruClient = client;
-				ops.push(op);
-			},
-			syncFromClient: function () {
-				if (typeof mruClient === "undefined") return;
 
-				mruClient.socketRef.emit('code:request:' + namespace);
-			},
-			syncToClient: function () {
-				return {
-					start: currentState,
-					ops: ops
-				};
-			},
-			remove: function (client) {
-				if (mruClient === client) {
-					mruClient = null;
-				}
-			}
-		};
-	}
-
-	Server.prototype.initializeClientEvents = function (socket, channel, client) {
+	Server.prototype.initializeClientEvents = function (namespace, socket, channel, client) {
 		var server = this;
 
 		// bind the events:
 		_.each(this.events, function (method, eventName) {
-			// DEBUG && console.log("binding", eventName + ":" + channel.get("namespace"));
 			// wrap the event in an authentication filter:
 			var authFiltered = _.wrap(method, function (meth) {
 				var method_args = arguments;
 
-				// get the socket's authentication status for the current channel.name
-				// socket.get("authStatus", function (err, authStatus) {
-					// don't do anything if the user is not authenticated for the channel
-					// AND the event in question is an authenticated one
-					// console.log(server.name, client.get("authenticated"));
-					if ((client.get("authenticated") === false) && 
-						!_.contains(server.unauthenticatedEvents, eventName)) {
-						return;
-					}
-					// if (!authStatus[channel.name] &&
-					// 	!_.contains(server.unauthenticatedEvents, eventName)) {
-					// 	return;
-					// }
-					method_args = Array.prototype.slice.call(method_args).splice(1); // first argument is the function itself
-					method_args.unshift(socket, channel, client);
-					meth.apply(server, method_args); // not even once.
-				// });
+				if ((client.get("authenticated") === false) && 
+					!_.contains(server.unauthenticatedEvents, eventName)) {
+					return;
+				}
+				DEBUG && console.log(eventName + ":" + namespace);
+				method_args = Array.prototype.slice.call(method_args).splice(1); // first argument is the function itself
+				method_args.unshift(namespace, socket, channel, client);
+				meth.apply(server, method_args); // not even once.
 			});
 
 			// bind the pre-filtered event
-			socket.on(eventName + ":" + channel.get("namespace"), authFiltered);
+			socket.on(eventName + ":" + namespace, authFiltered);
 		});
 	};
 
@@ -120,10 +77,17 @@ function AbstractServer (sio, redisC, EventBus, auth, Channels, ChannelModel) {
 
 			socket.on("subscribe", function (data, subscribeAck) {
 				var channelName = data.room,
-					channelNamespace = data.subchannel,
+					subchannel = data.subchannel,
+					namespace,
 					channelProperties,
 					client,
 					channel;
+
+				if (typeof subchannel !== "undefined") {
+					namespace = channelName + ":" + subchannel;
+				} else {
+					namespace = channelName;
+				}
 
 				// attempt to get the channel
 				channel = Channels.findWhere({name: channelName});
@@ -131,28 +95,16 @@ function AbstractServer (sio, redisC, EventBus, auth, Channels, ChannelModel) {
 				// create the channel if it doesn't already exist
 				if (typeof channel === "undefined" ||
 					channel === null) {
-					// construct properties hash for the channel model
-					if (channelNamespace) {
-						channelProperties = {
-							name: channelName,
-							namespace: channelNamespace
-						};
-					} else {
-						channelProperties = {
-							name: channelName
-						};
-					}
 
 					// create the channel
 					channel = new Channel({
-						name: channelName,
-						namespace: channelNamespace
+						name: channelName
 					});
 					Channels.add(channel);
 				}
 
 				client = channel.clients.findWhere({sid: socket.id});
-				console.log(server.name, "c", typeof client);
+				// console.log(server.name, "c", typeof client);
 
 				if (typeof client === "undefined" ||
 					client === null) { // there was no pre-existing client
@@ -165,27 +117,26 @@ function AbstractServer (sio, redisC, EventBus, auth, Channels, ChannelModel) {
 					channel.clients.add(client);
 				} else { // there was a pre-existing client
 					if (client.get("authenticated")) {
-						socket.join(channel.get("namespace"));
+						socket.join(namespace);
 					}
 				}
 
-				// socket.join(channel.get("namespace"));
 				client.socketRef = socket;
 
 				client.on("change:authenticated", function (result) {
-					console.log("change:authenticated", server.name, client.cid, socket.id, result.attributes.authenticated);
+					DEBUG && console.log("change:authenticated", server.name, client.cid, socket.id, result.attributes.authenticated);
 					if (result.attributes.authenticated) {
-						socket.join(channel.get("namespace"));
-						callback.success(socket, channel, client);
+						socket.join(namespace);
+						callback.success(namespace, socket, channel, client);
 					} else {
-						socket.leave(channel.get("namespace"));
+						socket.leave(namespace);
 					}
 				})
 
 				// attempt to authenticate on the chanenl
 				channel.authenticate(client, "", function (err, response) {
 
-					server.initializeClientEvents(socket, channel, client);
+					server.initializeClientEvents(namespace, socket, channel, client);
 
 					if (subscribeAck !== null &&
 						typeof (subscribeAck) !== "undefined") {
@@ -214,7 +165,7 @@ function AbstractServer (sio, redisC, EventBus, auth, Channels, ChannelModel) {
 				});
 
 				// every server shall support a unsubscribe handler (user closes channel but remains in chat)
-				socket.on('unsubscribe', function () {
+				socket.on('unsubscribe:' + namespace, function () {
 					if (typeof client !== "undefined") {
 						DEBUG && console.log("Killing (left) ", client.cid, " from ", channelName);
 						channel.clients.remove(client);

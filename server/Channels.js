@@ -8,6 +8,8 @@ exports.ChannelStructures = function (redisC, EventBus) {
 		Client = require('../client/client.js').ClientModel,
 		Clients = require('../client/client.js').ClientsCollection;
 
+
+
 	var ChannelModel = Backbone.Model.extend({
 		isPrivate: function (callback) {
 			return this.get("private");
@@ -16,8 +18,7 @@ exports.ChannelStructures = function (redisC, EventBus) {
 
 	var ServerChannelModel = ChannelModel.extend({
 		defaults: {
-			name: "",
-			namespace: ""
+			name: ""
 		},
 		initialize: function (properties, options) {
 			_.bindAll(this);
@@ -26,11 +27,7 @@ exports.ChannelStructures = function (redisC, EventBus) {
 			this.clients = new Clients();
 			this.replay = [];
 
-			if (!this.attributes.namespace) {
-				this.attributes.namespace = this.attributes.name;
-			} else {
-				this.attributes.namespace = this.attributes.name + ":" + this.attributes.namespace;
-			}
+			this.codeCaches = {};
 		},
 		isPrivate: function (callback) {
 			var self = this,

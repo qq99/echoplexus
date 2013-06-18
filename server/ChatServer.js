@@ -1,4 +1,4 @@
-exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelModel) {
+exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 	var config = require('./config.js').Configuration,
 		CHATSPACE = "/chat",
@@ -104,13 +104,13 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 		publishUserList(channel);
 	}
 
-	var ChatServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, auth, Channels, ChannelModel);
+	var ChatServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, Channels, ChannelModel);
 
 	ChatServer.initialize({
 		name: "ChatServer",
 		SERVER_NAMESPACE: CHATSPACE,
 		events: {
-			"make_public": function (socket, channel, client, data) {
+			"make_public": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				auth.makePublic(room, function (err, response) {
@@ -126,7 +126,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 					}, room));
 				});
 			},
-			"make_private": function (socket, channel, client, data) {
+			"make_private": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				auth.makePrivate(room, data.password, function (err, response) {
@@ -143,7 +143,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 				});
 
 			},
-			"join_private": function (socket, channel, client, data) {
+			"join_private": function (namespace, socket, channel, client, data) {
 				var password = data.password;
 				var room = channel.get("name");
 
@@ -166,7 +166,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 					}
 				});
 			},
-			"nickname": function (socket, channel, client, data, ack) {
+			"nickname": function (namespace, socket, channel, client, data, ack) {
 				var room = channel.get("name");
 
 				var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
@@ -200,7 +200,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 				publishUserList(channel);
 				ack();
 			},
-			"topic": function (socket, channel, client, data) {
+			"topic": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				redisC.hset('topic', room, data.topic);
@@ -209,7 +209,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 					log: false
 				}, room));
 			},
-			"chat:history_request": function (socket, channel, client, data) {
+			"chat:history_request": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				redisC.hmget("chatlog:" + room, data.requestRange, function (err, reply) {
@@ -221,7 +221,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 					});
 				});
 			},
-			"chat:idle": function (socket, channel, client, data) {
+			"chat:idle": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				client.set("idle", true);
@@ -230,7 +230,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 				sio.of(CHATSPACE).in(room).emit('chat:idle:' + room, data);
 				publishUserList(channel);
 			},
-			"chat:unidle": function (socket, channel, client, data) {
+			"chat:unidle": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				client.set("idle", false);
@@ -240,7 +240,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 				});
 				publishUserList(channel);
 			},
-			"private_message": function (socket, channel, client, data) {
+			"private_message": function (namespace, socket, channel, client, data) {
 				var targetClients;
 				var room = channel.get("name");
 
@@ -270,7 +270,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 					}
 				}
 			},
-			"chat": function (socket, channel, client, data) {
+			"chat": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				if (data.body) {
@@ -361,7 +361,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 					});
 				}
 			},
-			"identify": function (socket, channel, client, data) {
+			"identify": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 				var nick = client.get("nick");
 				try {
@@ -413,7 +413,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 					}, room));
 				}
 			},
-			"register_nick": function (socket, channel, client, data) {
+			"register_nick": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 				var nick = client.get("nick");
 				redisC.sismember("users:" + room, nick, function (err, reply) {
@@ -455,7 +455,7 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 					}
 				});
 			},
-			"unsubscribe": function (socket, channel, client) {
+			"unsubscribe": function (namespace, socket, channel, client) {
 				var room = channel.get("name");
 
 				channel.clients.remove(client);
@@ -472,7 +472,6 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 			var room = channel.get("name");
 
 			if (err) {
-				console.log("ChatServer: ", err);
 				if (err instanceof ApplicationError.Authentication) {
 					socket.emit("chat:" + room, serverSentMessage({
 						body: "This channel is private.  Please type /password [channel password] to join"
@@ -482,12 +481,14 @@ exports.ChatServer = function (sio, redisC, EventBus, auth, Channels, ChannelMod
 					socket.emit("chat:" + room, serverSentMessage({
 						body: err.message
 					}, room));
+
+					DEBUG && console.log("ChatServer: ", err);
 				}
 				return;
 			}
 		},
-		success: function (socket, channel, client) {
-			console.log("Client joined ", channel.get("name"));
+		success: function (namespace, socket, channel, client) {
+			DEBUG && console.log("Client joined ", channel.get("name"));
 			subscribeSuccess(socket, client, channel);
 		}
 	});

@@ -12,7 +12,6 @@ var express = require('express'),
 	spawn = require('child_process').spawn,
 	async = require('async'),
 	EventBus = new Backbone.Model(),
-	auth = require('./Authentication.js').AuthenticationModule(redisC, EventBus),
 	chatServer = require('./ChatServer.js').ChatServer,
 	codeServer = require('./CodeServer.js').CodeServer,
 	drawServer = require('./DrawingServer.js').DrawingServer,
@@ -58,7 +57,7 @@ redisC.select(15, function (err, reply) {
 		Channels = new ChannelStructures.ChannelsCollection(),
 		ChannelModel = ChannelStructures.ServerChannelModel;
 
-	chatServer(sio, redisC, EventBus, auth, Channels, ChannelModel); // start up the chat server
-	// codeServer(sio, redisC, EventBus, auth, Channels); // start up the code server
-	drawServer(sio, redisC, EventBus, auth, Channels); // start up the code server
+	chatServer(sio, redisC, EventBus, Channels, ChannelModel); // start up the chat server
+	codeServer(sio, redisC, EventBus, Channels); // start up the code server
+	drawServer(sio, redisC, EventBus, Channels); // start up the code server
 });
