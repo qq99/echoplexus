@@ -220,6 +220,10 @@ function DrawingClient (options) {
 
         },
 
+        postSubscribe: function () {
+
+        },
+
         refresh: function () {
 
         },
@@ -291,13 +295,13 @@ function DrawingClient (options) {
             // initialize the channel
             socket.emit("subscribe", {
                 room: self.channelName
-            });
+            }, this.postSubscribe);
             //On successful reconnect, attempt to rejoin the room
             socket.on("reconnect",function(){
                 //Resend the subscribe event
                 socket.emit("subscribe", {
                     room: self.channelName
-                });
+                }, this.postSubscribe);
             });
         },
 

@@ -1,4 +1,4 @@
-exports.DrawingServer = function (sio, redisC, EventBus) {
+exports.DrawingServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 	
 	var DRAWSPACE = "/draw",
 		config = require('./config.js').Configuration,
@@ -8,76 +8,45 @@ exports.DrawingServer = function (sio, redisC, EventBus) {
 
 	var DEBUG = config.DEBUG;
 
-	function Channel (name) {
-		this.clients = new Clients();
-		this.replay = [];
-		return this;
-	}
+	var DrawServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, Channels, ChannelModel);
 
-	var channels = {};
+	DrawServer.initialize({
+		name: "DrawServer",
+		SERVER_NAMESPACE: DRAWSPACE,
+		events: {
+			"draw:line": function (namespace, socket, channel, client, data) {
+				var room = channel.get("name");
 
-	var DRAW = sio.of(DRAWSPACE).on('connection', function (socket) {
-		socket.on("subscribe", function (data) {
-			var client,
-				room = data.room,
-				channelKey = room;
+				channel.replay.push(data);
 
-			var drawEvents = {
-				"draw:line": function (data) {
-					//DEBUG && console.log("draw:line", data);
-					channel.replay.push(data);
-					socket.in(channelKey).broadcast.emit('draw:line:' + channelKey, _.extend(data,{
-						cid: client.cid
-					}));
-				},
-				"trash": function (data) {
-					channel.replay = [];
-					socket.in(channelKey).broadcast.emit('trash:' + channelKey, data);	
-				}
-			};
+				socket.in(room).broadcast.emit('draw:line:' + room, _.extend(data,{
+					cid: client.cid
+				}));
+			},
+			"trash": function (namespace, socket, channel, client, data) {
+				var room = channel.get("name");
 
-			DEBUG && console.log("drawclient connected on", channelKey);
-			socket.leave("\"\"");
-			socket.join(channelKey);
-
-			// get the channel
-			var channel = channels[channelKey];
-			if (typeof channel === "undefined") { // start a new channel if it doesn't exist
-				channel = new Channel(channelKey);
-				channels[channelKey] = channel;
+				channel.replay = [];
+				socket.in(room).broadcast.emit('trash:' + room, data);
 			}
-
-			// add the new client to our internal list
-			client = new Client({
-				room: room
-			});
-			client.socket = socket;
-			channel.clients.add(client);
-
-			// play back what has happened
-			_.each(channel.replay, function (datum, key) {
-				
-			});
-			socket.emit("draw:replay:" + channelKey, channel.replay);
-
-			// bind all draw events:
-			_.each(drawEvents, function (value, key) {
-				socket.on(key + ":" + channelKey, value);
-			});
-
-			socket.on("unsubscribe", function () {
-				if (typeof client !== "undefined") {
-					channel.clients.remove(client);
-				}
-			});
-
-			socket.on("disconnect", function () {
-				if (typeof client !== "undefined") {
-					channel.clients.remove(client);
-				}
-			});
-		});
-
+		}
 	});
+
+	DrawServer.start({
+		error: function (err, socket, channel, client) {
+			if (err) {
+				DEBUG && console.log("DrawServer: ", err);
+				return;
+			}
+		},
+		success: function (namespace, socket, channel, client) {
+			var room = channel.get("name");
+		
+			// play back what has happened
+			socket.emit("draw:replay:" + namespace, channel.replay);
+		}
+	});
+
+
 
 };

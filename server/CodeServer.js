@@ -1,4 +1,4 @@
-exports.CodeServer = function (sio, redisC, EventBus) {
+exports.CodeServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 	
 	var CODESPACE = "/code",
 		config = require('./config.js').Configuration,
@@ -7,10 +7,12 @@ exports.CodeServer = function (sio, redisC, EventBus) {
 
 	var DEBUG = config.DEBUG;
 
+	var CodeServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, Channels, ChannelModel);
+
 	function CodeCache (namespace) {
 		var currentState = "",
 			namespace = (typeof namespace !== "undefined") ? namespace : "",
-			mruClient = null,
+			mruClient,
 			ops = [];
 
 		return {
@@ -23,9 +25,9 @@ exports.CodeServer = function (sio, redisC, EventBus) {
 				ops.push(op);
 			},
 			syncFromClient: function () {
-				if (mruClient === null) return;
+				if (typeof mruClient === "undefined") return;
 
-				mruClient.socket.emit('code:request:' + namespace);
+				mruClient.socketRef.emit('code:request:' + namespace);
 			},
 			syncToClient: function () {
 				return {
@@ -41,103 +43,59 @@ exports.CodeServer = function (sio, redisC, EventBus) {
 		};
 	}
 
-	function Channel (name) {
-		this.clients = new Clients();
-		this.codeCache = new CodeCache(name);
-		return this;
-	}
+	var codeCaches = {};
 
-	var channels = {};
+	CodeServer.initialize({
+		name: "CodeServer",
+		SERVER_NAMESPACE: CODESPACE,
+		events: {
+			"code:cursorActivity": function (namespace, socket, channel, client, data) {
+				socket.in(namespace).broadcast.emit('code:cursorActivity:' + namespace, {
+					cursor: data.cursor,
+					cid: client.cid
+				});
+			},
+			"code:change": function (namespace, socket, channel, client, data) {
+				var codeCache = spawnCodeCache(namespace);
 
-	function publishUserList (room) {
-		if (channels[room] === undefined) {
-			console.warn("Publishing userlist of a channel that doesn't exist...", room);
-			return;
-		}
-		sio.of(CODESPACE).in(room).emit('userlist:' + room, {
-			users: channels[room].clients.toJSON(),
-			room: room
-		});
-	}
+				data.timestamp = Number(new Date());
+				codeCache.add(data, client);
+				socket.in(namespace).broadcast.emit('code:change:' + namespace, data);
+			},
+			"code:full_transcript": function (namespace, socket, channel, client, data) {
+				var codeCache = spawnCodeCache(namespace);
 
-	var CODE = sio.of(CODESPACE).on('connection', function (socket) {
-		socket.on("subscribe", function (data) {
-			var client,
-				room = data.room,
-				subchannel = data.subchannel,
-				channelKey = room + ":" + subchannel;
-
-			var codeEvents = {
-				"code:cursorActivity": function (data) {
-					DEBUG && console.log("code:cursorActivity", data);
-					socket.in(channelKey).broadcast.emit('code:cursorActivity:' + channelKey, {
-						cursor: data.cursor,
-						cid: client.cid
-					});
-				},
-				"code:change": function (data) {
-					DEBUG && console.log("code:change", data);
-					data.timestamp = Number(new Date());
-					channel.codeCache.add(data, client);
-					socket.in(channelKey).broadcast.emit('code:change:' + channelKey, data);
-				},
-				"code:full_transcript": function (data) {
-					DEBUG && console.log("code:full_transcript", data);
-					channel.codeCache.set(data.code);
-					socket.in(channelKey).broadcast.emit('code:sync:' + channelKey, data);
-				}
-			};
-
-			DEBUG && console.log("codeclient connected on", channelKey);
-			socket.leave("\"\"");
-			socket.join(channelKey);
-
-			// get the channel
-			var channel = channels[channelKey];
-			if (typeof channel === "undefined") { // start a new channel if it doesn't exist
-				channel = new Channel(channelKey);
-				channels[channelKey] = channel;
+				codeCache.set(data.code);
+				socket.in(namespace).broadcast.emit('code:sync:' + namespace, data);
 			}
+		}
+	});
 
-			// add the new client to our internal list
-			client = new Client({
-				room: room
-			});
-			client.socket = socket;
-			channel.clients.add(client);
+	function spawnCodeCache (ns) {
+		if (typeof codeCaches[ns] !== "undefined") {
+			DEBUG && console.log("note: Aborted spawning a code that already exists", ns);
+			return codeCaches[ns];
+		}
+		cc = new CodeCache(ns);
+		codeCaches[ns] = cc;
+		
+		setInterval(cc.syncFromClient, 1000*30);
 
-			EventBus.on("nickset." + socket.id, function (data) {
-				client.set("nick", data.nick);
-				client.set("color", data.color);
-				publishUserList(channelKey);
-			});
+		return cc;
+	}
 
-			// bind all chat events:
-			_.each(codeEvents, function (value, key) {
-				socket.on(key + ":" + channelKey, value);
-			});
-
-			setInterval(channel.codeCache.syncFromClient, 1000*30);
-
-			socket.in(channelKey).emit('code:authoritative_push:' + channelKey, channel.codeCache.syncToClient());
-
-			socket.on("unsubscribe", function () {
-				if (typeof client !== "undefined") {
-					channel.clients.remove(client);
-				}
-
-				publishUserList(channelKey);
-			});
-
-			socket.on("disconnect", function () {
-				if (typeof client !== "undefined") {
-					channel.clients.remove(client);
-				}
-
-				publishUserList(channelKey);
-			});
-		});
-
+	CodeServer.start({
+		error: function (err, socket, channel, client) {
+			if (err) {
+				DEBUG && console.log("CodeServer: ", err);
+				return;
+			}
+		},
+		success: function (namespace, socket, channel, client) {
+			var cc = spawnCodeCache(namespace);
+			
+			socket.in(namespace).emit('code:authoritative_push:' + namespace, cc.syncToClient());
+		}
 	});
 
 };
