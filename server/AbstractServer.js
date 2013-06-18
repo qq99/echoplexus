@@ -113,7 +113,7 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 						room: channelName,
 						sid: socket.id
 					});
-					
+					client.socketRef = socket;					
 					channel.clients.add(client);
 				} else { // there was a pre-existing client
 					if (client.get("authenticated")) {
@@ -121,7 +121,7 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 					}
 				}
 
-				client.socketRef = socket;
+
 
 				client.on("change:authenticated", function (result) {
 					DEBUG && console.log("change:authenticated", server.name, client.cid, socket.id, result.attributes.authenticated);
