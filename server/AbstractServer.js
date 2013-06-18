@@ -128,6 +128,13 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 					if (result.attributes.authenticated) {
 						socket.join(namespace);
 						callback.success(namespace, socket, channel, client);
+
+						if (subscribeAck !== null &&
+							typeof (subscribeAck) !== "undefined") {
+							subscribeAck({
+								cid: client.cid
+							});
+						}
 					} else {
 						socket.leave(namespace);
 					}
@@ -137,13 +144,6 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 				channel.authenticate(client, "", function (err, response) {
 
 					server.initializeClientEvents(namespace, socket, channel, client);
-
-					if (subscribeAck !== null &&
-						typeof (subscribeAck) !== "undefined") {
-						subscribeAck({
-							cid: client.cid
-						});
-					}
 
 					// let any implementing servers handle errors the way they like
 					if (err) {
