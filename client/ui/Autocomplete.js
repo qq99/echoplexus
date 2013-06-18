@@ -64,9 +64,9 @@ function Autocomplete () {
         pool = arr;
         candidates = [];
         lastStub = null;
-        lastPool = null;
-        lastResult = null;
-        lastN = 0;
+        candidates = null;
+        result = null;
+        nID = 0;
     };
     this.next = function (stub) {
         if (!pool.length) return "";
