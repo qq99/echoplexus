@@ -17,10 +17,7 @@ exports.DrawingServer = function (sio, redisC, EventBus, Channels, ChannelModel)
 			"draw:line": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
-				channel.replay.push({
-					type: "draw:line",
-					data: data
-				});
+				channel.replay.push(data);
 
 				socket.in(room).broadcast.emit('draw:line:' + room, _.extend(data,{
 					cid: client.cid
@@ -45,11 +42,8 @@ exports.DrawingServer = function (sio, redisC, EventBus, Channels, ChannelModel)
 		success: function (namespace, socket, channel, client) {
 			var room = channel.get("name");
 		
-			// socket.join(room);
 			// play back what has happened
-			_.each(channel.replay, function (datum) {
-				socket.emit(datum.type + ":" + room, datum.data);
-			});
+			socket.emit("draw:replay:" + namespace, channel.replay);
 		}
 	});
 

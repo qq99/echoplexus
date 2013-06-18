@@ -44,6 +44,11 @@ function CodeClient (options) {
             // perhaps should also be triggered when a user chooses a different tab
             this.on("show", this.show);
             this.on("hide", this.hide);
+
+            //Is the REPL loaded?
+            this.isIframeAvailable = false;
+            //Wether to evaluate immediately on REPL load
+            this.runNext = false;
         },
 
         hide: function () {
@@ -79,6 +84,8 @@ function CodeClient (options) {
             // only automatically evaluate the REPL if the user has opted in
             if (this.$livereload_checkbox && 
                 this.$livereload_checkbox.is(":checked")) {
+                //Reload the iframe (causes huge amounts of lag)
+                //this.refreshIframe();
                 this.doREPL();
             }
         },
@@ -91,6 +98,14 @@ function CodeClient (options) {
                 self.refresh();
             });
             $(window).on('message',function(e){
+                if (e.originalEvent.data === "ready"){
+                    self.isIframeAvailable = true;
+                    if(self.runNext){
+                        self._repl();
+                        self.runNext = false;
+                    }
+                    return;
+                }
                 var data;
                 try{
                     data = JSON.parse(decodeURI(e.originalEvent.data));
@@ -106,12 +121,23 @@ function CodeClient (options) {
                 ev.stopPropagation();
                 self._repl(); // doesn't need to be the debounced version since the user is triggering it purposefully
             });
+            this.$el.on("click", ".refresh",function(ev){
+                ev.preventDefault();
+                ev.stopPropagation();
+                self.refreshIframe();
+            })
         },
 
         refresh: function () {
             _.each(this.editors, function (editor) {
                 editor.refresh();
             });
+        },
+
+        refreshIframe: function(){
+            var iframe = $("iframe.jsIframe", this.$el)[0];
+            iframe.src = iframe.src;
+            this.isIframeAvailable = false;
         },
 
         updateREPL: function(result){
@@ -133,6 +159,7 @@ function CodeClient (options) {
                 this.repl.text("");
                 return;
             }
+            
             var iframe = $("iframe.jsIframe", this.$el)[0];
 
             //Send the message
@@ -142,13 +169,14 @@ function CodeClient (options) {
                 channel: this.channelName
             })),"*");
         },
-
         _repl: function () {
-
+            if (!this.isIframeAvailable){
+                this.runNext = true;
+                return;
+            }
             code = _.object(_.map(this.editors, function (editor,key) {
                 return [key,editor.getValue()];
             }));
-            console.log(code);
             // do HTML first so it's available to the user JS:
             //this.evaluateHTML(html);
             //this.evaluateJS(js);

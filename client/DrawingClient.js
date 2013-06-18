@@ -6,40 +6,9 @@
 function DrawingClient (options) {
 
     var TOOLS = {
-        BRUSH: 1,
+        PEN: 1,
         ERASER: 2
-    }
-
-    function DrawQueue () {
-        var fifo = [],
-        executing = false;
-        //Dat pun
-        var exequeute = function () {
-            if (!executing) { // simple lock
-                executing = true;
-            } else { // don't try to process same queue twice
-                return;
-            }
-
-            while (fifo.length > 0) {
-                var task = fifo.shift();
-
-                task();
-            }
-            executing = false;
-        };
-
-        return {
-            add: function (dfrdFnc) {
-                fifo.push(dfrdFnc);
-                exequeute();
-            },
-            run: function (dfrdFnc) {
-                exequeute();
-            }
-        }
-    }
-
+    };
     function TimeCapsule() {
         var time = 0;
         this.getLapse = function() {
@@ -66,16 +35,15 @@ function DrawingClient (options) {
             this.socket = io.connect("/draw");
             this.channelName = opts.room;
 
-            this.drawQ = new DrawQueue();
             //Initialize a path variable to hold the paths buffer as we recieve it from other clients
             this.paths = {};
 
             this.listen();
             this.render();
 
-            //this.brush = new Brush((new ColorModel()).toRGB(), 2.0);
+            //The current canvas style
             this.style = {
-                tool: TOOLS.BRUSH,
+                tool: TOOLS.PEN,
                 globalAlpha: 1,
                 globalCompositeOperation: "source-over",
                 strokeStyle: (new ColorModel()).toRGB(),
@@ -84,7 +52,6 @@ function DrawingClient (options) {
                 lineJoin: "round"
             };
 
-            // debounce a function for repling
             this.attachEvents();
 
             this.on("show", function () {
@@ -96,20 +63,13 @@ function DrawingClient (options) {
                 DEBUG && console.log("drawing_client:hide");
                 self.$el.hide();
             });
-            this.layerForeground = this.$el.find('canvas.foreground')[0];
             this.layerBackground = this.$el.find('canvas.background')[0];
-            this.layerActive = this.$el.find('canvas.active')[0];
 
-            //Foreground (where other users draw)
-            this.fctx = this.layerForeground.getContext('2d');
             //Background (where everything gets drawn ultimately)
-            this.bctx = this.layerBackground.getContext('2d');
-            //Active layer
-            this.ctx = this.layerActive.getContext('2d');
+            this.ctx = this.layerBackground.getContext('2d');
 
-            /*this.ctx.lineWidth = 2;
-            this.ctx.strokeStyle = 'black';*/
-            this.timeCapsule = null;
+            //A timecapsule (for recording timelapses at a later date)
+            //this.timeCapsule = null;
         },
 
         kill: function () {
@@ -137,7 +97,7 @@ function DrawingClient (options) {
 
             this.cursorDown = true;
             this.buffer = [];
-            this.timer = new TimeCapsule();
+            //this.timer = new TimeCapsule();
             this.movePath(_.extend(coords,{
                 beginPath: true
             }));
@@ -146,57 +106,18 @@ function DrawingClient (options) {
             if (!this.cursorDown) { return; }
             
             var ctx = this.ctx;
-            //Update the style
+            //Set up the coordinates
+            //coords.lapse = this.timer.getLapse();
             if (coords.beginPath){
-                _.extend(ctx,this.style);
                 coords.style = _.clone(this.style);
             }
-            // store points for curve interp
-            //this.buffer.push(pt);
-            //this.streamBezier();
-            // Record ms since last update.
-            coords.lapse = this.timer.getLapse();
             // Push coords to current path.
             this.buffer.push(coords);
-
             //Stream the point out
             this.socket.emit("draw:line:" + this.channelName, {
                 coord: coords
             });
-            // Push coords to global path.
-            //this.path.push(coords);
-            // Reset the composite operation.
-            // Clear the path being actively drawn.
-            // Setup for eraser mode.
-            // 
-            ctx.globalCompositeOperation = "source-over";
-            ctx.clearRect(0, 0, this.layerActive.width, this.layerActive.height);
-
-            if (this.style.tool === TOOLS.ERASER) {
-                this.layerBackground.style.display = "none";
-                ctx.save();
-                ctx.globalAlpha = 1;
-                ctx.drawImage(this.layerBackground, 0, 0);
-                ctx.restore();
-                ctx.globalCompositeOperation = "destination-out";
-            }
-            ctx.save();
-            //ctx.scale(this.zoom, this.zoom);
-            this.catmull({
-                path: this.buffer,
-                ctx: ctx
-            });
-            ctx.restore();
-            if(coords.endPath){
-                if (this.style.tool == TOOLS.ERASER) {
-                    this.layerBackground.style.display = "block";
-                    this.bctx.clearRect(0, 0, innerWidth, innerHeight);
-                }
-                //Draw the current line to the background canvas
-                this.bctx.drawImage(this.layerActive, 0, 0);
-                //Clear the active layer
-                this.ctx.clearRect(0, 0, this.layerActive.width, this.layerActive.height);
-            }
+            this.drawLine(ctx,this.buffer);
         },
         stopPath: function (coords) {
             //Record what we just drew to the foreground and clean up
@@ -212,9 +133,7 @@ function DrawingClient (options) {
         },
 
         trash: function () {
-            this.bctx.clearRect(0, 0, this.layerBackground.width, this.layerBackground.height);
-            this.fctx.clearRect(0, 0, this.layerForeground.width, this.layerForeground.height);
-            this.ctx.clearRect(0, 0, this.layerActive.width, this.layerActive.height);
+            this.ctx.clearRect(0, 0, this.layerBackground.width, this.layerBackground.height);
         },
 
         attachEvents: function () {
@@ -241,8 +160,7 @@ function DrawingClient (options) {
             });
 
             this.$el.on("click", ".tool.eraser", function(){
-                //TODO: Eraser code here
-                self.style.tool = TOOLS.ERASER;
+                self.changeTool('ERASER');
             });
 
             this.$el.on("click", ".swatch", function (ev) {
@@ -250,23 +168,50 @@ function DrawingClient (options) {
             });
 
             this.$el.on("click", ".tool.pen", function () {
-                
-                $(this).find(".tool-options .swatch").each(function (index, ele) {
+                self.changeTool('PEN');
+            });
+
+            this.$el.on("click", ".tool.info", function(){
+                $(this).find(".tool-options").toggleClass("active");
+            });
+            this.$el.on("click", ".tool.color",function(){
+                var options = $(this).find(".tool-options-contents"),
+                    swatch = $('<div class="swatch"></div>');
+                options.html('');
+                _(30).times(function () {
                     var randomColor = (new ColorModel()).toRGB();
-                    $(ele).css("background", randomColor)
-                        .data("color", randomColor);
+                    swatch.clone().css("background", randomColor)
+                        .data("color", randomColor).appendTo(options);
                 });
 
                 $(this).find(".tool-options").toggleClass("active");
             });
-
-            $(window).on("keydown", function (ev) {
+            key(']',function(){
                 if (self.$el.is(":visible")) {
-                    if (ev.keyCode === 221) { // } key
-                        self.style.lineWidth += 0.25;
-                    } else if (ev.keyCode === 219) { // { key
-                        self.style.lineWidth -= 0.25;
-                    }
+                    self.style.lineWidth += 0.25;
+                }
+            });
+            key('[',function(){
+                if (self.$el.is(":visible")) {
+                    self.style.lineWidth -= 0.25;
+                }
+            });
+            key(',',function(){
+                if (self.$el.is(":visible")) {
+                    //Increment brushes
+                    var tools = _.keys(TOOLS);
+                    var tool = self.style.tool;
+                    if (tool >= tools.length) tool = 0;
+                    self.changeTool(tools[tool]);
+                }
+            });
+            key('.',function(){
+                if (self.$el.is(":visible")) {
+                    //Decrement brushes
+                    var tools = _.keys(TOOLS);
+                    var tool = self.style.tool - 2;
+                    if (tool < 0) tool = tools.length - 1;
+                    self.changeTool(tools[tool]);
                 }
             });
         },
@@ -283,49 +228,63 @@ function DrawingClient (options) {
 
         },
 
+        drawLine: function(ctx, path){
+            var self = this;
+            window.requestAnimationFrame(function(){
+                ctx.save();
+                //Load the style
+                _.extend(ctx,path[0].style);
+                //If eraser, set to erase mode
+                if (path[0].style.tool === TOOLS.ERASER) {
+                    ctx.globalAlpha = 1;
+                    ctx.globalCompositeOperation = "destination-out";
+                }
+                //Draw the path
+                self.catmull(path.slice(Math.max(0,path.length - 4), path.length),ctx);
+                ctx.restore();
+            });
+        },
+
         listen: function () {
             var self = this,
             socket = this.socket;
 
             this.socketEvents = {
                 "draw:line": function (msg) {
-                    /*var line = new BezierLine(msg.fromX, msg.fromY, self.ctx, msg.ctxState, msg.bezier);
-                    self.drawQ.add(line);*/
                     //Draw to the foreground context
-                    var ctx = self.fctx;
-                    self.paths[msg.cid] = (self.paths[msg.cid] || []);
+                    var ctx = self.ctx;
+                    //Initialize the path if it wasn't already initialized
+                    var path = self.paths[msg.cid] = (self.paths[msg.cid] || []);
+                    //If the path was just started, clear it
                     if (msg.coord.beginPath){
-                        self.paths[msg.cid] = [];
+                        path = self.paths[msg.cid] = [];
                     }
-                    self.paths[msg.cid].push(msg.coord);
-                    ctx.save();
-                    //Load the style
-                    _.extend(ctx,self.paths[msg.cid][0].style);
-                    if (self.paths[msg.cid][0].style.tool === TOOLS.ERASER) {
-                        self.layerBackground.style.display = "none";
-                        ctx.globalAlpha = 1;
-                        ctx.drawImage(self.layerBackground, 0, 0);
-                        ctx.globalCompositeOperation = "destination-out";
-                    }
-                    //ctx.scale(this.zoom, this.zoom);
-                    self.catmull({
-                        path: self.paths[msg.cid],
-                        ctx: ctx
-                    });
-                    ctx.restore();
-                    if (msg.coord.endPath){
-                        if (self.paths[msg.cid][0].style.tool == TOOLS.ERASER) {
-                            self.layerBackground.style.display = "block";
-                            self.bctx.clearRect(0, 0, innerWidth, innerHeight);
-                        }
-                        //Draw the current line to the background canvas
-                        self.bctx.drawImage(self.layerForeground, 0, 0);
-                        //Clear the foreground
-                        self.fctx.clearRect(0, 0, self.layerForeground.width, self.layerForeground.height);
-                    }
+                    //Add the coordinate to the path
+                    path.push(msg.coord);
+                    //Draw the line
+                    self.drawLine(ctx,path);
                 },
                 "trash": function () {
                     self.trash();
+                },
+                "draw:replay": function(buffer){
+                    //Message is the entire draw buffer(will be huge!(probably))
+                    //Although we have recieved a ton of data, to combat this we can render n points at a time, and then wait
+                    //Draw to the foreground context
+                    var ctx = self.ctx;
+                    var paths = {};
+                    _.each(buffer,function(msg){
+                        //Initialize the path if it wasn't already initialized
+                        var path = paths[msg.cid] = (paths[msg.cid] || []);
+                        //If the path was just started, clear it
+                        if (msg.coord.beginPath){
+                            path = paths[msg.cid] = [];
+                        }
+                        //Add the coordinate to the path
+                        path.push(msg.coord);
+                        //Add to the animation queue
+                        self.drawLine(ctx,_.clone(path));
+                    });
                 }
             };
             _.each(this.socketEvents, function (value, key) {
@@ -346,16 +305,22 @@ function DrawingClient (options) {
             });
         },
 
+        changeTool: function(tool){
+            _.each(_.omit(TOOLS,tool),function(v,key){
+                $('.tool.' + key.toLowerCase()).removeClass('tool-highlight');
+            });
+            $('.tool.' + tool.toLowerCase()).addClass('tool-highlight');
+            this.style.tool = TOOLS[tool];
+        },
+
         render: function () {
             this.$el.html(this.template());
             this.$el.attr("data-channel", this.channelName);
         },
 
         //Catmull-Rom spline
-        catmull: function (config) {
-            var path = _.clone(config.path);
-            var tension = 1 - (config.tension || 0);
-            var ctx = config.ctx;
+        catmull: function (path,ctx,tens) {
+            var tension = 1 - (tens || 0);
             var length = path.length - 3;
             path.splice(0, 0, path[0]);
             path.push(path[path.length - 1]);

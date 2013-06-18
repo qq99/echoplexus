@@ -47,6 +47,10 @@
 					<input type="checkbox" id="suppress_client">
 					<label for="suppress_client">Hide Client Messages</label>
 				</div>
+				<div class="option">
+					<input type="checkbox" id="auto_scroll">
+					<label for="auto_scroll">Auto Scroll to New Messages</label>
+				</div>
 			</div>
 		</div>
 	</nav>
@@ -299,6 +303,10 @@
 				<div class="repl-options">
 					<button class="btn evaluate">Evaluate</button>
 					<input type="checkbox" class="livereload" /> <label>LiveReload?</label>
+					<button class="btn refresh pull-right">
+						<i class="icon-refresh"></i>
+						Refresh
+					</button>
 				</div>
 				<div class="htmlREPL repl-result">
 					<h2>HTML</h2>
@@ -312,54 +320,34 @@
 		</script>
 		<script id="drawingTemplate" type="text/template" class="template">
 			<div class="tools">
-				<div class="tool pen">
-					<i class="icon-pencil"></i>
+				<div class="tool info">
+					<i class="icon-info"></i>
 					<div class="tool-options">
 						<div class="tool-options-contents">
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="swatch"></div>
-							<div class="explanation">"{" increases brush size.  "}" decreases brush size.  Better color picker hopefully coming soon!</div>
+							<div class="explanation">"[" increases brush size. "]" decreases brush size. "," Scrolls the brushes forward, "." scrolls them backward. </div>
 						</div>
 					</div>
 				</div>
+				<div class="tool pen tool-highlight"><i class="icon-pencil"></i></div>
 				
 				<div class="tool eraser"><i class="icon-eraser"></i></div>
-				<div class="tool color"><i class="icon-tint"></i></div>
-				<div class="tool textarea"><i class="icon-quote-left"></i></div>
 				
+				<div class="tool color">
+					<i class="icon-tint"></i>
+					<div class="tool-options">
+						<div class="tool-options-contents">
+						</div>
+					</div>
+				</div>
+				<!--
+				<div class="tool textarea"><i class="icon-quote-left"></i></div>
+				-->
 				<div class="tool trash"><i class="icon-trash"></i></div>
 			</div>
 			<div class="drawarea">
 				<div class="canvas-area">
 					<canvas class="background" width="1000" height="1000">
 
-					</canvas>
-					<canvas class="foreground" width="1000" height="1000">
-
-					</canvas>
-					<canvas class="active" width="1000" height="1000">
 					</canvas>
 					<div class="paper">
 

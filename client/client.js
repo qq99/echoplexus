@@ -84,12 +84,13 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 				reason: reason,
 				room: room
 			});
-			this.isInactive = true;
+			this.set('idle',true);
 		},
 		active: function (room, socket) {
-			if (this.isInactive) { // only send over wire if we're inactive
+			if (this.get('idle')) { // only send over wire if we're inactive
+				DEBUG && console.log("sending active msg");
 				socket.emit("chat:unidle:" + room);
-				this.isInactive = false;
+				this.set('idle',false);
 			}
 		},
 		setNick: function (nick, room, ack) {
