@@ -11,12 +11,15 @@ var express = require('express'),
 	redisC = redis.createClient(),
 	spawn = require('child_process').spawn,
 	async = require('async'),
+	path = require('path'),
 	EventBus = new Backbone.Model(),
 	chatServer = require('./ChatServer.js').ChatServer,
 	codeServer = require('./CodeServer.js').CodeServer,
 	drawServer = require('./DrawingServer.js').DrawingServer,
-	PUBLIC_FOLDER = __dirname + '/../public',
-	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox';
+	ROOT_FOLDER = path.dirname(__dirname),
+	PUBLIC_FOLDER = ROOT_FOLDER + '/public',
+	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
+	CLIENT_FOLDER = ROOT_FOLDER + '/client';
 
 var protocol = require(config.host.SCHEME);
 
@@ -36,6 +39,7 @@ var Client = require('../client/client.js').ClientModel,
 	REGEXES = require('../client/regex.js').REGEXES;
 
 // Web server init:
+app.use('/client',express.static(CLIENT_FOLDER));
 app.use(express.static(PUBLIC_FOLDER));
 // always server up the index.html
 app.get("/*", function (req, res) {
