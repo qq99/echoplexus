@@ -242,7 +242,6 @@ function ChatChannel (options) {
 						self.persistentLog.add(msg);
 						self.chatLog.renderChatMessage(msg);
 					}
-					self.chatLog.insertBatch(renderedEntries);
 				},
 				"private_message": function (msg) {
 					DEBUG && console.log("private_message:", self.channelName, msg);
