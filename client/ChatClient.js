@@ -177,7 +177,7 @@ function ChatChannel (options) {
 			// scan through the message and determine if we need to notify somebody that was mentioned:
 			if (this.me !== "undefined") {
 				// check to see if me.nick is contained in the msgme.
-				if (msg.body.toLowerCase().indexOf(this.me.get("nick").toLowerCase()) !== -1) {
+				if (msg.body.toLowerCase().indexOf("@" + this.me.get("nick").toLowerCase()) !== -1) {
 
 					// do not alter the message in the following circumstances:
 					if (msg.class) {
