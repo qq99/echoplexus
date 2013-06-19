@@ -1,8 +1,17 @@
-if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 
-function ChatLog (options) {
-	"use strict";
-
+define(['jQuery','backbone', 'underscore','regex','moment',
+	'text!templates/chatArea.html',
+	'text!templates/chatMessage.html',
+	'text!templates/linkedImage.html',
+	'text!templates/userListUser.html',
+	'text!templates/youtube.html'
+],function($, Backbone, _, Regex, moment,
+	chatareaTemplate,
+	chatMessageTemplate,
+	linkedImageTemplate,
+	userListUserTemplate,
+	youtubeTemplate){
+	var REGEXES = Regex.REGEXES;
 	function makeYoutubeURL(s) {
 		var matches = REGEXES.urls.youtube.exec(s);
 		//If this function was called, the regex will have matched (aka it must have a v= match)
@@ -12,11 +21,11 @@ function ChatLog (options) {
 	var ChatLogView = Backbone.View.extend({
 		className: "channel",
 		// templates:
-		template: _.template($("#chatareaTemplate").html()),
-		chatMessageTemplate: _.template($("#chatMessageTemplate").html()),
-		linkedImageTemplate: _.template($("#linkedImageTemplate").html()),
-		userTemplate: _.template($("#userListUserTemplate").html()),
-		youtubeTemplate: _.template($("#youtubeTemplate").html()),
+		template: _.template(chatareaTemplate),
+		chatMessageTemplate: _.template(chatMessageTemplate),
+		linkedImageTemplate: _.template(linkedImageTemplate),
+		userTemplate: _.template(userListUserTemplate),
+		youtubeTemplate: _.template(youtubeTemplate),
 
         initialize: function (options) {
         	_.bindAll(this);
@@ -283,6 +292,5 @@ function ChatLog (options) {
 			$(".channel-topic .value", this.$el).html(msg.body);
 		}
 	});
-
 	return ChatLogView;
-}
+});

@@ -1,0 +1,18 @@
+<div class="chatMessage <%= classes %>" rel="<%= timestamp %>">
+	<div data-timestamp="<%= timestamp %>" class="time"><%- humanTime %></div>
+	<div class="nick <%= nickClasses %>" title="<%- nickname %>" style="color: <%= color %>">
+		<%- nickname %>
+	</div>
+	<div class="body">
+		<% if (isPrivateMessage) { %>
+			<span class="private-icon" title="This is a private message">
+				<i class="icon-long-arrow-right"></i>
+			</span>
+			<span class="message-recepient">
+				<%- directedAt %>
+			</span>:
+		<% } %>
+
+		<%= body %>
+	</div>
+</div>

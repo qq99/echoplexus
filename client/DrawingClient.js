@@ -1,10 +1,6 @@
-(function() {
-  var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-                              window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-  window.requestAnimationFrame = requestAnimationFrame;
-})();
-function DrawingClient (options) {
-
+define(['jQuery','underscore','backbone','client','keymaster','text!templates/drawing.html'], function($,_,Backbone,Client,key,drawingTemplate){
+    var ColorModel = Client.ColorModel;
+    
     var TOOLS = {
         PEN: 1,
         ERASER: 2
@@ -22,10 +18,10 @@ function DrawingClient (options) {
     }
 
     // this is really the JSHTML code client:
-    var DrawingClientView = Backbone.View.extend({
+    return Backbone.View.extend({
         className: "drawingClient",
 
-        template: _.template($("#drawingTemplate").html()),
+        template: _.template(drawingTemplate),
 
         initialize: function (opts) {
             var self = this;
@@ -346,6 +342,4 @@ function DrawingClient (options) {
         }
 
     });
-
-    return DrawingClientView; // todo: return a different view for different top-level options
-}
+});

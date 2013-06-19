@@ -1,11 +1,17 @@
-if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
-
-(function( exports ) {
-	if (typeof require !== "undefined") { // factor out node stuff
-		_ = require('underscore');
-		Backbone = require('backbone');
-	}
-
+(function(root, factory) {
+  // Set up Backbone appropriately for the environment.
+  if (typeof exports !== 'undefined') {
+    // Node/CommonJS, no need for jQuery in that case.
+    factory(exports,require('backbone'),require('underscore'));
+  } else if (typeof define === 'function' && define.amd) {
+    // AMD
+    define(['underscore', 'backbone', 'exports'], function(_, Backbone,exports) {
+      // Export global even in AMD case in case this script is loaded with
+      // others that may still expect a global Backbone.
+      return factory(exports, Backbone, _);
+    });
+  }
+})(this,function(exports,Backbone,_) {
 	exports.ColorModel = Backbone.Model.extend({
 		defaults: {
 			r: 0,
@@ -189,6 +195,4 @@ if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 		}
 	});
 
-})(
-  typeof exports === 'object' ? exports : window
-);
+});

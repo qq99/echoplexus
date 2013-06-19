@@ -1,20 +1,10 @@
-if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
-
-function ChannelSwitcher (options) {
-	var ChannelSwitcherView = Backbone.View.extend({
+define(['jQuery','backbone','underscore','ChatClient','CodeClient','DrawingClient',
+		'text!channelSelector.html'
+	],function($,Backbone, _,ChatClient,CodeClient,DrawingClient,channelSelectorTemplate){
+	return Backbone.View.extend({
 		className: "channelSwitcher",
-		template: _.template($("#channelSelectorTemplate").html()),
+		template: _.template(channelSelectorTemplate),
 
-		channelView: new ChatChannel({
-			namespace: "/chat"
-		}),
-		codeView: new CodeClient({
-			namespace: "/code",
-			type: "htmljs"
-		}),
-		drawingView: new DrawingClient({
-			namespace: "/draw"
-		}),
 		initialize: function () {
 			var self = this,
 				channelsFromLastVisit = window.localStorage.getObj("joined_channels");
@@ -223,7 +213,7 @@ function ChannelSwitcher (options) {
 			// join the chat portion
 			DEBUG && console.log("creating view for", channelName);
 			if (typeof channel === "undefined") {
-				this.channels[channelName] = new this.channelView({
+				this.channels[channelName] = new ChatClient({
 					room: channelName
 				});
 				this.channels[channelName]
@@ -236,9 +226,10 @@ function ChannelSwitcher (options) {
 			DEBUG && console.log("creating code view for", channelName);
 			channel = this.codeChannels[channelName];
 			if (typeof channel === "undefined") {
-				this.codeChannels[channelName] = new this.codeView({
+				this.codeChannels[channelName] = new CodeClient({
 					room: channelName
 				});
+				console.log(this.codeChannels[channelName].$el);
 				this.codeChannels[channelName].$el.hide(); // don't show by default
 			}
 
@@ -246,7 +237,7 @@ function ChannelSwitcher (options) {
 			DEBUG && console.log("creating drawing view for", channelName);
 			channel = this.drawingChannels[channelName];
 			if (typeof channel === "undefined") {
-				this.drawingChannels[channelName] = new this.drawingView({
+				this.drawingChannels[channelName] = new DrawingClient({
 					room: channelName
 				});
 				this.drawingChannels[channelName].$el.hide(); // don't show by default
@@ -304,6 +295,4 @@ function ChannelSwitcher (options) {
 			this.showChannel(channelName);
 		}
 	});
-
-	return ChannelSwitcherView;
-}
+});

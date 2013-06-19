@@ -1,4 +1,17 @@
-(function( exports ) {
+(function(root, factory) {
+  // Set up Backbone appropriately for the environment.
+  if (typeof exports !== 'undefined') {
+    // Node/CommonJS, no need for jQuery in that case.
+    factory(exports);
+  } else if (typeof define === 'function' && define.amd) {
+    // AMD
+    define(['exports'], function(exports) {
+      // Export global even in AMD case in case this script is loaded with
+      // others that may still expect a global Backbone.
+      return factory(exports);
+    });
+  }
+})(this,function( exports ) {
     // utility: a container of useful regexes arranged into some a rough taxonomy
 	exports.REGEXES = {
 		urls: {
@@ -24,6 +37,4 @@
 		}
 	};
 
-})(
-  typeof exports === 'object' ? exports : this
-);
+});

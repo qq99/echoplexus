@@ -1,0 +1,59 @@
+<div class="room-specific">
+	<span class="channel-name">
+		<span class="room-name"><%- roomName %></span>
+	</span>
+	<span class="channel-topic">
+		Topic: <span class="value">...</span>
+	</span>
+	<div class="channel-options">
+		<div class="button-group">
+			<div
+				data-tooltip-title="What's this?"
+				data-tooltip-body="Clears the chat messages from the visible channel, but doesn't delete them from your browser."
+				class="tooltip-target option">
+				<button class="clearChatlog">Clear</button>
+			</div>
+			<div
+				data-tooltip-title="What's this?"
+				data-tooltip-body="This will delete your browser's locally stored copies of all chat messages in this channel."
+				class="tooltip-target option">
+				<button class="deleteLocalStorage">Delete Cache</button>
+			</div>
+			<div
+				data-tooltip-title="What's this?"
+				data-tooltip-body="This will pull recent chat messages (10 at a time) that you missed while you weren't connected to this channel."
+				class="tooltip-target option">
+				<button class="syncLogs">Pull Chatlogs</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="chatlog">
+	<div class="messages"></div>
+</div>
+<div class="supportbar">
+	<div class="userlist">
+		<div class="header">
+			<h2>Users</h2>
+			<div class="count">
+				<div class="active">
+					<span class="value"></span> active
+				</div>
+				<div class="total">
+					<span class="value"></span> total
+				</div>
+			</div>
+		</div>
+		<div class="body">
+
+		</div>
+	</div>
+	<div class="linklog">
+		<div class="header">
+			<h2>Media & Links</h2>
+		</div>
+		<div class="body">
+
+		</div>
+	</div>
+</div>

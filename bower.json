@@ -1,0 +1,21 @@
+{
+  "name": "echoplexus",
+  "version": "0.1.3",
+  "main": "server/main.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ],
+  "dependencies": {
+    "codemirror": "~3.13.0",
+    "backbone-amd": "~1.0.0",
+    "underscore": "~1.4.4",
+    "requirejs": "~2.1.6",
+    "jquery": "~2.0.2",
+    "jquery.cookie": "~1.3.1",
+    "moment": "~2.0.0",
+    "keymaster": "latest",
+    "requirejs-text": "~2.0.7"
+  }
+}

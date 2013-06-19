@@ -1,9 +1,10 @@
-function CodeClient (options) {
+define(['jQuery','underscore','backbone','codemirror','ui/SyncedEditor','text!templates/jsCodeRepl.html'],
+    function($,_,Backbone,CodeMirror,SyncedEditor,jsCodeReplTemplate){
     // this is really the JSHTML code client:
-    var CodeClientView = Backbone.View.extend({
+    return Backbone.View.extend({
         className: "codeClient",
 
-        htmlEditorTemplate: _.template($("#jsCodeReplTemplate").html()),
+        htmlEditorTemplate: _.template(jsCodeReplTemplate),
 
         initialize: function (opts) {
             var self = this;
@@ -212,9 +213,7 @@ function CodeClient (options) {
             this.$el.attr("data-channel", this.channelName);
 
             this.$livereload_checkbox = this.$el.find("input.livereload");
-        },
+        }
 
     });
-
-    return CodeClientView; // todo: return a different view for different top-level options
-}
+});
