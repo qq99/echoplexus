@@ -4,6 +4,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		CHATSPACE = "/chat",
 		async = require('async'),
 		spawn = require('child_process').spawn,
+		_= require('underscore'),
 		fs = require('fs'),
 		crypto = require('crypto'),
 		PUBLIC_FOLDER = __dirname + '/../public',
