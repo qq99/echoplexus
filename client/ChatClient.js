@@ -329,7 +329,16 @@ function ChatChannel (options) {
 					 // tab key
 					case 9:
 						ev.preventDefault();
-						var text = $(this).val().split(" ");
+						var flattext = $(this).val();
+
+						// don't continue to append auto-complete results on the end
+						if (flattext.length >= 1 && 
+							flattext[flattext.length-1] === " ") {
+							
+							return;
+						}
+
+						var text = flattext.split(" ");
 						var stub = text[text.length - 1];				
 						var completion = self.autocomplete.next(stub);
 
