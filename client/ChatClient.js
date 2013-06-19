@@ -28,6 +28,7 @@ function ChatChannel (options) {
 			this.me = new ClientModel({
 				socket: this.socket
 			});
+			this.me.persistentLog = this.persistentLog;
 
 			this.listen();
 			this.render();
@@ -233,6 +234,16 @@ function ChatChannel (options) {
 					self.persistentLog.add(msg); 
 					self.chatLog.renderChatMessage(msg);
 				},
+				"chat:batch": function (msgs) {
+					var msg;
+					for (var i = 0, l = msgs.length; i < l; i++) {
+						msg = JSON.parse(msgs[i]);
+
+						self.persistentLog.add(msg);
+						self.chatLog.renderChatMessage(msg);
+					}
+					self.chatLog.insertBatch(renderedEntries);
+				},
 				"private_message": function (msg) {
 					DEBUG && console.log("private_message:", self.channelName, msg);
 
@@ -369,7 +380,7 @@ function ChatChannel (options) {
 
 			this.$el.on("click", "button.syncLogs", function (ev) {
 				ev.preventDefault();
-				var missed = self.persistentLog.getMissingIDs(10);
+				var missed = self.persistentLog.getMissingIDs(25);
 				if (missed.length) {
 					self.socket.emit("chat:history_request:" + self.channelName, {
 					 	requestRange: missed

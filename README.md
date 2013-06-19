@@ -37,6 +37,7 @@ Currently Supported Commands:
 - `/password [channel_password]`: Join a private channel.
 - `/public`: Make the private channel a public channel.
 - `/whisper [nickname]`: Send a private message that is visible to anybody with the nickname you've supplied.  Aliases: `/w`, `/tell`, `/t`, `/pm`.  *Pro-tip:* Press "ctrl+r" to quick-reply to the last person who has whispered you -- it'll append `/w [nick]` to your current chat buffer.
+- `/pull [N]`: Sync the N latest chat messages that you've missed while you weren't connected to the channel.  Currently, maximum is set to 100 for UI responsiveness until a more efficient rendering method is added.
 - `[partial nickname]+<TABKEY>`: Autocompletes (based on L-Distance) to the name of somebody in the channel
 
 Nickname registrations are considered on a per-channel basis to increase the available nickspace for all users.
