@@ -70,11 +70,305 @@
 			</section>
 		</section>
 	</section>
+<<<<<<< HEAD
 	<span id="linklog-options" class="options">options</span>
 	<div id="tooltip">
 		<div class="tooltip">
 			<div class="title"></div>
 			<div class="body"></div>
+=======
+	<div id="ghetto_templates">
+		<script id="chatMessageTemplate" type="text/template" class="template">
+			<div class="chatMessage <%= classes %>" rel="<%= timestamp %>">
+				<div data-timestamp="<%= timestamp %>" class="time"><%- humanTime %></div>
+				<div class="nick <%= nickClasses %>" title="<%- nickname %>" style="color: <%= color %>">
+					<%- nickname %>
+				</div>
+				<div class="body">
+					<% if (isPrivateMessage) { %>
+						<span class="private-icon" title="This is a private message">
+							<i class="icon-long-arrow-right"></i>
+						</span>
+						<span class="message-recepient">
+							<%- directedAt %>
+						</span>:
+					<% } %>
+
+					<%= body %>
+				</div>
+			</div>
+		</script>
+		<script id="linkedImageTemplate" type="text/template" class="template">
+			<div class="media-item imageThumbnail">
+				<div class="media-buttons">
+					<a class="to-external" href="<%= url %>" target="_blank">
+						<span class="explanatory-text">Direct</span>
+						<i class="icon-external-link"></i>
+					</a>
+					<a class="hide" href="#">
+						<span class="explanatory-text">Hide</span>
+						<i class="icon-collapse-alt"></i>
+					</a>
+					<a class="close" href="#">
+						<i class="icon-remove"></i>
+					</a>
+				</div>
+				<div class="media-object">
+					<div class="max">
+						<a href="<%= url %>" target="_blank" title="Linked by <%- linker %>">
+							<img src="<%= url %>" target="_blank" />
+						</a>
+					</div>
+					<div class="min">
+						<a href="<%= url %>" target="_blank" title="Linked by <%- linker %>">
+							<%= url %>
+						</a>
+					</div>
+				</div>
+			</div>
+		</script>
+		<script id="youtubeTemplate" type="text/template" class="template">
+			<div class="media-item youtubeEmbed">
+				<div class="media-buttons">
+					<a class="to-external" href="<%= originalSrc %>" target="_blank">
+						<span class="explanatory-text">Direct</span>
+						<i class="icon-external-link"></i>
+					</a>
+					<a class="hide" href="#">
+						<span class="explanatory-text">Hide</span>
+						<i class="icon-collapse-alt"></i>
+					</a>
+					<a class="close" href="#">
+						<i class="icon-remove"></i>
+					</a>
+				</div>
+				<div class="media-object">
+					<div class="max">
+						<object width="254" height="200">
+			            	<param name="movie" value="<%= src %>&wmode=Opaque"></param>
+			            	<param name="allowFullScreen" value="true"></param>
+			                <param name="allowscriptaccess" value="always"></param>
+			                <param name="wMode" value="opaque"></param>
+			                <embed
+			                	src="<%= src %>&wmode=Opaque"
+			                	type="application/x-shockwave-flash"
+			                	allowscriptaccess="always"
+			                	allowfullscreen="true"
+			                	width="254"
+			                	height="200">
+			                </embed>
+			            </object>
+			        </div>
+					<div class="min">
+						<a href="<%= originalSrc %>" target="_blank">
+							<%= originalSrc %>
+						</a>
+					</div>
+				</div>
+	        </div>
+		</script>
+		<script id="userListUserTemplate" type="text/template" class="template">
+			<div class="user" rel="<%= cid %>">
+				<span class="nick" style="color: <%= color %>"><%- nick %></span>
+				<% if (identified) { %>
+					<span
+						data-tooltip-title="Identified"
+						data-tooltip-body="This user has confirmed his identity with the server."
+						data-tooltip-class="ident success"
+						class='tooltip-target ident yes'>
+							<i class="icon-lock"></i>
+					</span>
+				<% } else { %>
+					<span
+						data-tooltip-title="Not Identified"
+						data-tooltip-body="This user has not confirmed his identity with the server.  He could be anyone!"
+						data-tooltip-class="ident warn"
+						class='tooltip-target ident no'>
+							<i class="icon-unlock-alt"></i>
+					</span>
+				<% } %>
+				<% if (idle === true) { %>
+					<span class="idle" data-timestamp="<%= idleSince %>">
+						<span class="zzz">Z
+							<span class="zzz">Z
+								<span class="zzz">Z
+								</span>
+							</span>
+						</span>
+					</span>
+				<% } %>
+			</div>
+		</script>
+		<script id="chatpanelTemplate" type="text/template" class="template">
+			<section class="chatarea">
+
+			</section>
+			<section class="chatinput">
+				<textarea placeholder="Say something..."></textarea>
+			</section>
+		</script>
+		<script id="chatareaTemplate" type="text/template" class="template">
+			<div class="room-specific">
+				<span class="channel-name">
+					<span class="room-name"><%- roomName %></span>
+				</span>
+				<span class="channel-topic">
+					Topic: <span class="value">...</span>
+				</span>
+				<div class="channel-options">
+					<div class="button-group">
+						<div
+							data-tooltip-title="What's this?"
+							data-tooltip-body="Clears the chat messages from the visible channel, but doesn't delete them from your browser."
+							class="tooltip-target option">
+							<button class="clearChatlog">Clear</button>
+						</div>
+						<div
+							data-tooltip-title="What's this?"
+							data-tooltip-body="This will delete your browser's locally stored copies of all chat messages in this channel."
+							class="tooltip-target option">
+							<button class="deleteLocalStorage">Delete Cache</button>
+						</div>
+						<div
+							data-tooltip-title="What's this?"
+							data-tooltip-body="This will pull recent chat messages (25 at a time) that you missed while you weren't connected to this channel."
+							class="tooltip-target option">
+							<button class="syncLogs">Pull Chatlogs</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="chatlog">
+				<div class="messages"></div>
+			</div>
+			<div class="supportbar">
+				<div class="userlist">
+					<div class="header">
+						<h2>Users</h2>
+						<div class="count">
+							<div class="active">
+								<span class="value"></span> active
+							</div>
+							<div class="total">
+								<span class="value"></span> total
+							</div>
+						</div>
+					</div>
+					<div class="body">
+
+					</div>
+				</div>
+				<div class="linklog">
+					<div class="header">
+						<h2>Media & Links</h2>
+					</div>
+					<div class="body">
+
+					</div>
+				</div>
+			</div>
+		</script>
+		<script id="channelSelectorTemplate" type="text/template" class="template">
+			<div class="channel-selector">
+				<div class="channels">
+				<% _.each(channels, function (name) { %>
+					<div data-channel='<%- name %>' class='channelBtn closable'>
+						<div class="channelName">
+							<%- name %>
+						</div><div class="close">
+							<i class="icon-remove"></i>
+						</div>
+					</div>
+				<% }); %>
+				</div>
+				<div class="join-channel">
+					<button class="channelBtn join">
+						<div class="channelName">
+							+ join channel
+						</div>
+					</button>
+					<input class="channelName" placeholder="Type your channel name" />
+				</div>
+			</div>
+		</script>
+		<script id="jsCodeReplTemplate" type="text/template" class="template">
+			<div class="codelog">
+				<div class="editor">
+					<div class="explanation">HTML/CSS</div>
+					<div class="textarea_container">
+						<textarea class="htmlEditor" name="html"></textarea>
+					</div>
+				</div>
+				<div class="editor">
+					<div class="explanation">JavaScript</div>
+					<div class="textarea_container">
+						<textarea class="jsEditor" name="code"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="replPANE">
+				<div class="repl-options">
+					<button class="btn evaluate">Evaluate</button>
+					<input type="checkbox" class="livereload" /> <label>LiveReload?</label>
+					<button class="btn refresh pull-right">
+						<i class="icon-refresh"></i>
+						Refresh
+					</button>
+				</div>
+				<div class="htmlREPL repl-result">
+					<h2>HTML</h2>
+					<iframe class="jsIframe" src="/codeframe.html" sandbox="allow-scripts"></iframe>
+				</div>
+				<div class="jsREPL repl-result">
+					<h2>Result</h2>
+					<div class="output"></div>
+				</div>
+			</div>
+		</script>
+		<script id="drawingTemplate" type="text/template" class="template">
+			<div class="tools">
+				<div class="tool info">
+					<i class="icon-info"></i>
+					<div class="tool-options">
+						<div class="tool-options-contents">
+							<div class="explanation">"[" increases brush size. "]" decreases brush size. "," Scrolls the brushes forward, "." scrolls them backward. </div>
+						</div>
+					</div>
+				</div>
+				<div class="tool pen tool-highlight"><i class="icon-pencil"></i></div>
+				
+				<div class="tool eraser"><i class="icon-eraser"></i></div>
+				
+				<div class="tool color">
+					<i class="icon-tint"></i>
+					<div class="tool-options">
+						<div class="tool-options-contents">
+						</div>
+					</div>
+				</div>
+				<!--
+				<div class="tool textarea"><i class="icon-quote-left"></i></div>
+				-->
+				<div class="tool trash"><i class="icon-trash"></i></div>
+			</div>
+			<div class="drawarea">
+				<div class="canvas-area">
+					<canvas class="background" width="1000" height="1000">
+
+					</canvas>
+					<div class="paper">
+
+					</div>
+				</div>
+			</div>
+		</script>
+		<span id="linklog-options" class="options">options</span>
+		<div id="tooltip">
+			<div class="tooltip">
+				<div class="title"></div>
+				<div class="body"></div>
+			</div>
+>>>>>>> master
 		</div>
 	</div>
 	<script src="/socket.io/socket.io.js"></script>

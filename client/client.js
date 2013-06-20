@@ -187,6 +187,23 @@
 					});
 				}
 				return;
+			} else if (body.match(REGEXES.commands.pull_logs)) { // pull
+				body = body.replace(REGEXES.commands.pull_logs, "").trim();
+
+				if (body === "ALL") {
+					console.warn("/pull all -- Not implemented yet");
+				} else {
+					var nLogs = Math.max(1, parseInt(body, 10));
+						nLogs = Math.min(100, nLogs), // 1 <= N <= 100
+						missed = this.persistentLog.getMissingIDs(nLogs);
+
+					if (missed.length) {
+						this.socket.emit("chat:history_request:" + room, {
+						 	requestRange: missed
+						});
+					}
+				}
+				return;
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!

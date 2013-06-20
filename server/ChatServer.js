@@ -4,6 +4,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		CHATSPACE = "/chat",
 		async = require('async'),
 		spawn = require('child_process').spawn,
+		_= require('underscore'),
 		fs = require('fs'),
 		crypto = require('crypto'),
 		PUBLIC_FOLDER = __dirname + '/../public',
@@ -210,15 +211,14 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				}, room));
 			},
 			"chat:history_request": function (namespace, socket, channel, client, data) {
-				var room = channel.get("name");
+				var room = channel.get("name"),
+					jsonArray = [];
 
 				redisC.hmget("chatlog:" + room, data.requestRange, function (err, reply) {
 					if (err) throw err;
 					// emit the logged replies to the client requesting them
-					_.each(reply, function (chatMsg) {
-						if (chatMsg === null) return;
-						socket.in(room).emit('chat:' + room, JSON.parse(chatMsg));
-					});
+
+					socket.in(room).emit('chat:batch:' + room, reply);
 				});
 			},
 			"chat:idle": function (namespace, socket, channel, client, data) {

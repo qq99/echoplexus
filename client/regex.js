@@ -20,7 +20,7 @@
 			all_others: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi
 		},
 		commands: {
-			nick: /^\/(nick|n)/,
+			nick: /^\/(nick|n) /,
 			register: /^\/register/,
 			identify: /^\/(identify|id)/,
 			topic: /^\/(topic)/,
@@ -29,7 +29,8 @@
 			public: /^\/public/,
 			password: /^\/(password|pw)/,
 			private_message: /^\/(pm|w|whisper|t|tell) /,
-			join: /^\/(join|j)/
+			join: /^\/(join|j)/,
+			pull_logs: /^\/(pull|p|sync|s) /,
 		},
 		phantomjs: {
 			delimiter: /!!!/g,
