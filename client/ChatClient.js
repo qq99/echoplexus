@@ -1,8 +1,9 @@
-define(['jquery','underscore','backbone','client', 'ui/Autocomplete','ui/Scrollback','ui/Log', 'ui/ChatLog','text!templates/chatPanel.html'],
-	function($,_,Backbone,Client,Autocomplete,Scrollback,Log,ChatLog,chatpanelTemplate){
+define(['jquery','underscore','backbone','client','regex', 'ui/Autocomplete','ui/Scrollback','ui/Log', 'ui/ChatLog','text!templates/chatPanel.html'],
+	function($,_,Backbone,Client,Regex,Autocomplete,Scrollback,Log,ChatLog,chatpanelTemplate){
 	var ColorModel = Client.ColorModel,
 		ClientModel = Client.ClientModel,
-		ClientsCollection = Client.ClientsCollection;
+		ClientsCollection = Client.ClientsCollection,
+		REGEXES = Regex.REGEXES;
 	return Backbone.View.extend({
 		className: "chatChannel",
 		template: _.template(chatpanelTemplate),

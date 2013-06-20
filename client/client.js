@@ -2,16 +2,16 @@
   // Set up Backbone appropriately for the environment.
   if (typeof exports !== 'undefined') {
     // Node/CommonJS, no need for jQuery in that case.
-    factory(exports,require('backbone'),require('underscore'));
+    factory(exports,require('backbone'),require('underscore'),require('../client/regex.js').REGEXES);
   } else if (typeof define === 'function' && define.amd) {
     // AMD
-    define(['underscore', 'backbone', 'exports'], function(_, Backbone,exports) {
+    define(['underscore', 'backbone', 'regex', 'exports'], function(_, Backbone,Regex,exports) {
       // Export global even in AMD case in case this script is loaded with
       // others that may still expect a global Backbone.
-      return factory(exports, Backbone, _);
+      return factory(exports, Backbone, _,Regex.REGEXES);
     });
   }
-})(this,function(exports,Backbone,_) {
+})(this,function(exports,Backbone,_,REGEXES) {
 	exports.ColorModel = Backbone.Model.extend({
 		defaults: {
 			r: 0,
