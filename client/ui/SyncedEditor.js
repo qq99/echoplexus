@@ -1,4 +1,4 @@
-define(['jQuery','underscore','backbone','client'],function($,_,Backbone,Client){
+define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client){
 	return function() {
 		var ColorModel = Client.ColorModel,
 			ClientsCollection = Client.ClientsCollection,

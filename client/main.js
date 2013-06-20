@@ -24,11 +24,11 @@ if (window.location.protocol === "https:") {
 }
 require.config({
     paths: {
-        'jQuery': 'lib/jquery/jquery.min',
+        'jquery': 'lib/jquery/jquery.min',
         'underscore': 'lib/underscore/underscore-min',
         'backbone': 'lib/backbone-amd/backbone-min',
         'keymaster': 'lib/keymaster/keymaster.min',
-        'jQuery.cookie': 'lib/jquery.cookie/jquery.cookie',
+        'jquery.cookie': 'lib/jquery.cookie/jquery.cookie',
         'text': 'lib/requirejs-text/text',
         'moment': 'lib/moment/moment',
         'codemirror': 'lib/codemirror/lib/codemirror'
@@ -37,7 +37,7 @@ require.config({
         'underscore': {
             exports: '_'
         },
-        'jQuery': {
+        'jquery': {
             exports: '$'
         },
         'keymaster': {
@@ -46,13 +46,12 @@ require.config({
         'codemirror': {
             exports: 'CodeMirror'
         },
-        'jQuery.cookie': ['jQuery']
+        'jquery.cookie': ['jquery']
     }
-})
-require(['jQuery','underscore','keymaster','ui/ChannelSwitcher','ui/Notifications','utility', 'jQuery.cookie'],
+});
+require(['jquery','underscore','keymaster','ui/ChannelSwitcher','ui/Notifications','events','utility', 'jquery.cookie'],
     function($,_,key,ChannelSwitcher,Notifications){
     $(document).ready(function () {
-        
         // tooltip stuff:s
         $("body").on("mouseenter", ".tooltip-target", function(ev) {
             var title = $(this).data("tooltip-title");
@@ -236,7 +235,7 @@ require(['jQuery','underscore','keymaster','ui/ChannelSwitcher','ui/Notification
         $("#codeButton").on("click", function (ev) {
             ev.preventDefault();
             if ($("#coding:visible").length === 0) {
-                console.log('SHOWING CODEPANE')
+                console.log('SHOWING CODEPANE');
                 $(this).addClass("active").siblings().removeClass("active");
                 $("#panes > section").not('#coding').hide();
                 $("#coding").show(function () {

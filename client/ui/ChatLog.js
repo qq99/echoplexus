@@ -1,5 +1,5 @@
 
-define(['jQuery','backbone', 'underscore','regex','moment',
+define(['jquery','backbone', 'underscore','regex','moment',
 	'text!templates/chatArea.html',
 	'text!templates/chatMessage.html',
 	'text!templates/linkedImage.html',

@@ -1,8 +1,11 @@
-define(['jQuery','underscore','backbone','client', 'ui/Autocomplete','ui/Scrollback','ui/Log', 'ui/ChatLog','text!templates/chatPanel.html'],
+define(['jquery','underscore','backbone','client', 'ui/Autocomplete','ui/Scrollback','ui/Log', 'ui/ChatLog','text!templates/chatPanel.html'],
 	function($,_,Backbone,Client,Autocomplete,Scrollback,Log,ChatLog,chatpanelTemplate){
+	var ColorModel = Client.ColorModel,
+		ClientModel = Client.ClientModel,
+		ClientsCollection = Client.ClientsCollection;
 	return Backbone.View.extend({
 		className: "chatChannel",
-		template: _.template($("#chatpanelTemplate").html()),
+		template: _.template(chatpanelTemplate),
 
 		initialize: function (opts) {
 			var self = this;

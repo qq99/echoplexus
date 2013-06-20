@@ -1,5 +1,5 @@
-define(['jQuery','backbone','underscore','ChatClient','CodeClient','DrawingClient',
-		'text!channelSelector.html'
+define(['jquery','backbone','underscore','ChatClient','CodeClient','DrawingClient',
+		'text!templates/channelSelector.html'
 	],function($,Backbone, _,ChatClient,CodeClient,DrawingClient,channelSelectorTemplate){
 	return Backbone.View.extend({
 		className: "channelSwitcher",

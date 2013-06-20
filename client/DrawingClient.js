@@ -1,4 +1,4 @@
-define(['jQuery','underscore','backbone','client','keymaster','text!templates/drawing.html'], function($,_,Backbone,Client,key,drawingTemplate){
+define(['jquery','underscore','backbone','client','keymaster','text!templates/drawing.html'], function($,_,Backbone,Client,key,drawingTemplate){
     var ColorModel = Client.ColorModel;
     
     var TOOLS = {

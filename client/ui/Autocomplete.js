@@ -2,7 +2,6 @@
 //  transforms A,B -> lowerCase for the comparison
 //      TODO: use a scheme involving something like l-distance instead
 define(['underscore'],function(_){
-
     var Autocomplete = function() {
         "use strict";
 
