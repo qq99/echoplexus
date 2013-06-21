@@ -171,6 +171,7 @@ define(['jquery','backbone','underscore','ui/Loader',
 			// tell the views to deactivate
 			_.each(channelsToDeactivate, function (channelName) {
 				_.each(self.channels[channelName],function(module){
+					module.view.$el.hide();
 					module.view.trigger("hide");
 				});
 			});
@@ -183,6 +184,7 @@ define(['jquery','backbone','underscore','ui/Loader',
 
 			// send events to the view we're showing:
 			_.each(this.channels[channelName],function(module){
+				module.view.$el.show();
 				module.view.trigger("show");
 			});
 
@@ -218,12 +220,12 @@ define(['jquery','backbone','underscore','ui/Loader',
 				require(modules,function(){
 					self.channels[channelName]=[];
 					_.each(arguments,function(ClientModule,idx){
-						var view = new ClientModule({
-							room: channelName
-						});
-						var mod = _.extend(Modules[idx],{
-							view: view
-						});
+						var mod = {
+							view: new ClientModule({
+								room: channelName
+							}),
+							config: Modules[idx]
+						};
 						mod.view.$el.hide();
 
 						self.channels[channelName].push(mod);
@@ -258,11 +260,9 @@ define(['jquery','backbone','underscore','ui/Loader',
 
 			// clear out old pane:
 			_.each(this.channels, function (channelViews,channelName) {
-				console.log(channelName);
 				_.each(channelViews,function(module){
 					if (!$('.' + module.view.className + "[data-channel='"+ channelName +"']").length) {
-						$('#'+module.section).append(module.view.$el);
-						// module.view.$el.show();
+						$('#'+module.config.section).append(module.view.$el);
 					}
 				});
 			});
@@ -276,14 +276,7 @@ define(['jquery','backbone','underscore','ui/Loader',
 				channelName = '/' + channelName;
 			}
 			this.joinChannel(channelName);
-			var callback = function(){
-				if(self.loading > 0){
-					setTimeout(callback,50);
-					return;
-				}
-				self.showChannel(channelName);
-			};
-			callback();
+			this.showChannel(channelName);
 		}
 	});
 });

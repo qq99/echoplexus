@@ -200,12 +200,13 @@ define(function(require,exports,module){
         $('.tabButton').on('click',function(ev){
             ev.preventDefault();
             console.log('changing tab');
+            $(this).removeClass("activity");
             var element = $(this).data('target');
             if ($(element + ":visible").length === 0) {
                 $(this).addClass("active").siblings().removeClass("active");
                 $("#panes > section").not(element).hide();
                 $(element).show(function () {
-                    $("body").trigger($(this).data('target').substring(1) + "SectionActive"); // sloppy, forgive me
+                    $("body").trigger(element.substring(1) + "SectionActive"); // sloppy, forgive me
                 });
             }
         });
