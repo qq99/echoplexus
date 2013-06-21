@@ -1,10 +1,10 @@
 
 define(['jquery','backbone', 'underscore','regex','moment',
-	'text!templates/chatArea.html',
-	'text!templates/chatMessage.html',
-	'text!templates/linkedImage.html',
-	'text!templates/userListUser.html',
-	'text!templates/youtube.html'
+	'text!modules/chat/templates/chatArea.html',
+	'text!modules/chat/templates/chatMessage.html',
+	'text!modules/chat/templates/linkedImage.html',
+	'text!modules/chat/templates/userListUser.html',
+	'text!modules/chat/templates/youtube.html'
 ],function($, Backbone, _, Regex, moment,
 	chatareaTemplate,
 	chatMessageTemplate,

@@ -1,4 +1,7 @@
-define(['jquery','underscore','backbone','codemirror','ui/SyncedEditor','text!templates/jsCodeRepl.html'],
+define(['jquery','underscore','backbone','codemirror',
+        'modules/code/SyncedEditor',
+        'text!modules/code/templates/jsCodeRepl.html'
+    ],
     function($,_,Backbone,CodeMirror,SyncedEditor,jsCodeReplTemplate){
     // this is really the JSHTML code client:
     return Backbone.View.extend({

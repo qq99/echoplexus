@@ -1,4 +1,10 @@
-define(['jquery','underscore','backbone','client','regex', 'ui/Autocomplete','ui/Scrollback','ui/Log', 'ui/ChatLog','text!templates/chatPanel.html'],
+define(['jquery','underscore','backbone','client','regex',
+		'modules/chat/Autocomplete',
+		'modules/chat/Scrollback',
+		'modules/chat/Log',
+		'modules/chat/ChatLog',
+		'text!modules/chat/templates/chatPanel.html'
+	],
 	function($,_,Backbone,Client,Regex,Autocomplete,Scrollback,Log,ChatLog,chatpanelTemplate){
 	var ColorModel = Client.ColorModel,
 		ClientModel = Client.ClientModel,
