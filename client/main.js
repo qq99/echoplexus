@@ -1,10 +1,6 @@
 if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 
-(function() {
-  var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-                              window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-  window.requestAnimationFrame = requestAnimationFrame;
-})();
+
 function codingModeActive () { // sloppy, forgive me
     return $("#coding").is(":visible");
 }
@@ -12,45 +8,16 @@ function chatModeActive () {
     return $("#chatting").is(":visible");
 }
 
-// 14 seems like a good time to keep the cookie around
-window.COOKIE_OPTIONS = {
-    path: '/',
-    expires: 14
-};
-
-// require secure cookies if the protocol is https
-if (window.location.protocol === "https:") {
-    window.COOKIE_OPTIONS.secure = true;
-}
-require.config({
-    paths: {
-        'jquery': 'lib/jquery/jquery.min',
-        'underscore': 'lib/underscore/underscore-min',
-        'backbone': 'lib/backbone-amd/backbone-min',
-        'keymaster': 'lib/keymaster/keymaster.min',
-        'jquery.cookie': 'lib/jquery.cookie/jquery.cookie',
-        'text': 'lib/requirejs-text/text',
-        'moment': 'lib/moment/moment',
-        'codemirror': 'lib/codemirror/lib/codemirror'
-    },
-    shim: {
-        'underscore': {
-            exports: '_'
-        },
-        'jquery': {
-            exports: '$'
-        },
-        'keymaster': {
-            exports: 'key'
-        },
-        'codemirror': {
-            exports: 'CodeMirror'
-        },
-        'jquery.cookie': ['jquery']
-    }
-});
-require(['jquery','underscore','keymaster','ui/ChannelSwitcher','ui/Notifications','events','utility', 'jquery.cookie'],
-    function($,_,key,ChannelSwitcher,Notifications){
+//We need the require function for loading variadic modules
+define(function(require,exports,module){
+    var $ = require('jquery'),
+        _ = require('underscore'),
+        key = require('keymaster'),
+        ChannelSwitcher = require('ui/ChannelSwitcher'),
+        Notifications = require('ui/Notifications'),
+        config = require('config');
+    require('jquery.cookie');
+    require('events'); require('utility');require('ui/Loader');
     $(document).ready(function () {
         // tooltip stuff:s
         $("body").on("mouseenter", ".tooltip-target", function(ev) {
@@ -230,34 +197,19 @@ require(['jquery','underscore','keymaster','ui/ChannelSwitcher','ui/Notification
             $(tabIDs[activeTabIndex]).trigger("click");
             return false; // don't trigger alt+left => "History Back"
         });
-
-        // TODO: refactor this, it's gross
-        $("#codeButton").on("click", function (ev) {
+        $('.tabButton').on('click',function(ev){
             ev.preventDefault();
-            if ($("#coding:visible").length === 0) {
-                console.log('SHOWING CODEPANE');
+            console.log('changing tab');
+            var element = $(this).data('target');
+            if ($(element + ":visible").length === 0) {
                 $(this).addClass("active").siblings().removeClass("active");
-                $("#panes > section").not('#coding').hide();
-                $("#coding").show(function () {
-                    $("body").trigger("codeSectionActive"); // sloppy, forgive me
+                $("#panes > section").not(element).hide();
+                $(element).show(function () {
+                    $("body").trigger($(this).data('target').substring(1) + "SectionActive"); // sloppy, forgive me
                 });
             }
         });
-
-        $("#chatButton").on("click", function (ev) {
-            ev.preventDefault();
-            $(this).removeClass("activity");
-            if ($("#chatting:visible").length === 0) {
-                $(this).addClass("active").siblings().removeClass("active");
-                $("#panes > section").not('#chatting').hide();
-                $("#chatting").show(function(){
-                    $("body").trigger("chatSectionActive") // also pretty sloppy. TODO: add eventbus to handle this
-                });
-                $(".ghost-cursor").remove();
-                turnOffLiveReload();
-            }
-        });
-
+        /*
         $("#drawButton").on("click", function (ev) {
             ev.preventDefault();
             $(this).removeClass("activity");
@@ -268,7 +220,7 @@ require(['jquery','underscore','keymaster','ui/ChannelSwitcher','ui/Notification
                 $(".ghost-cursor").remove();
                 turnOffLiveReload();
             }
-        });
+        });*/
 
     });
 });

@@ -8,18 +8,9 @@
 </head>
 <body>
 	<nav>
-		<h1 class="button active" id="chatButton">
-			<i class="icon-comments-alt"></i>
-			<span class="button-description">Chat</span>
-		</h1>
-		<h1 class="button" id="codeButton">
-			<i class="icon-code"></i>
-			<span class="button-description">Code</span>
-		</h1>
-		<h1 class="button" id="drawButton">
-			<i class="icon-pencil"></i>
-			<span class="button-description">Draw</span>
-		</h1>
+		<div id="buttons">
+			
+		</div>
 		<div class="options-list">
 			<div class="header">
 				<h1 class="button global-options">
@@ -59,15 +50,7 @@
 	</header>
 	<section id="main">
 		<section id="panes">
-			<section id="chatting">
-
-			</section>
-			<section id="coding">
-				
-			</section>
-			<section id="drawing">
-
-			</section>
+			
 		</section>
 	</section>
 	<div id="ghetto_templates">
@@ -78,9 +61,18 @@
 				<div class="body"></div>
 			</div>
 		</div>
+		<script type="text/template" id="buttonTemplate">
+			<h1 class="button tabButton <%= active%>" data-target="#<%= section%>">
+				<i class="icon-<%=icon%>"></i>
+				<span class="button-description"><%= title %></span>
+			</h1>
+		</script>
+		<script type="text/template" id="sectionTemplate">
+			<section id="<%= section %>"></section>
+		</script>
 	</div>
 	<script src="/socket.io/socket.io.js"></script>
-	<script data-main="client/main" src="client/lib/requirejs/require.js"></script>
+	<script data-main="client/app" src="client/lib/requirejs/require.js"></script>
 	<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.0/css/font-awesome.css" rel="stylesheet">
 </body>
 </html>

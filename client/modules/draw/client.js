@@ -1,5 +1,10 @@
+(function() {
+  var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                              window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+  window.requestAnimationFrame = requestAnimationFrame;
+})();
 define(['jquery','underscore','backbone','client','keymaster',
-        'text!modules/drawing/templates/drawing.html'
+        'text!modules/draw/templates/drawing.html'
     ],
     function($,_,Backbone,Client,key,drawingTemplate){
     var ColorModel = Client.ColorModel;
