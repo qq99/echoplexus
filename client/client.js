@@ -178,6 +178,9 @@
 
 				if (targetNick.length) {
 					targetNick = targetNick[0];
+					if (targetNick.charAt(0) === "@") { // remove the leading "@" symbol; TODO: validate username characters not to include special symbols
+						targetNick = targetNick.substring(1);
+					}
 					body = body.replace(targetNick, "").trim();
 
 					socket.emit('private_message:' + room, {
