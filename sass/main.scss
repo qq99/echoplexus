@@ -389,6 +389,7 @@ header {
 .header {
 	font-family:'Noto Sans', sans-serif;
 	position: relative;
+	z-index:2;
 	.count {
 		position: absolute;
 		top: 0;
@@ -702,9 +703,18 @@ $room-specific-height: 30px;
 	z-index:4;
 	position:relative;
 	overflow-y:auto;
+	.media-scroll {
+		position: absolute;
+		width:100%;
+		height:100%;
+		top:0;
+		left:0;
+		padding-top:30px;
+	}
 	.body {
-		padding-right:10px;
 		overflow-x:hidden;
+		padding-right:10px;
+		height:100%;
 	}
 	object {
 		display:block;
