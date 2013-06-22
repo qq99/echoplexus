@@ -51,7 +51,7 @@ define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client)
 
 				// remove their ghost-cursor when they leave
 				this.clients.on("remove", function (model) {
-					$(".ghost-cursor[rel='" + model.get("id") + "']").remove();
+					$(".ghost-cursor[rel='" + self.channelKey + model.get("id") + "']").remove();
 				});
 
 				$("body").on("codeSectionActive", function () { // sloppy, forgive me
@@ -144,9 +144,9 @@ define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client)
 						}
 
 						// try to find an existing ghost cursor:
-						var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']"); // NOT SCOPED: it's appended and positioned absolutely in the body!
+						var $ghostCursor = $(".ghost-cursor[rel='" + self.channelKey + data.id + "']"); // NOT SCOPED: it's appended and positioned absolutely in the body!
 						if (!$ghostCursor.length) { // if non-existent, create one
-							$ghostCursor = $("<div class='ghost-cursor' rel=" + data.id +"></div>");
+							$ghostCursor = $("<div class='ghost-cursor' rel=" + self.channelKey + data.id + "></div>");
 							$(editor.getWrapperElement()).find(".CodeMirror-lines > div").append($ghostCursor);
 
 							$ghostCursor.append("<div class='user'>"+ fromClient.get("nick") +"</div>");
