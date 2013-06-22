@@ -46,15 +46,17 @@
 				this.setFromHex(userString);
 				callback(null);
 			} else { // only 6-digit hex is supported for now
-				callback("Invalid colour; you must supply a 6-digit hexadecimal color code (e.g., '#cd3fk8')");
+				callback(new Error("Invalid colour; you must supply a valid CSS hex color code (e.g., '#efefef', '#fff')"));
 				return;
 			}
 		},
 		setFromHex: function (hexString) {
 			// trim any leading "#"
-			if (hexString.length === 7 &&
-				hexString.charAt(0) === "#") {
+			if (hexString.charAt(0) === "#") { // strip any leading # symbols
 				hexString = hexString.substring(1);
+			}
+			if (hexString.length === 3) { // e.g. fff -> ffffff
+				hexString += hexString;
 			}
 
 			var r, g, b;

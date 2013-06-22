@@ -277,7 +277,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					if (err) {
 						socket.in(room).emit('chat:' + room, serverSentMessage({
 							type: "SERVER",
-							body: "Invalid colour; you must supply a 6-digit hexadecimal color code (e.g., '#cd3fk8')"
+							body: err.message
 						}, room));
 						return;
 					}
