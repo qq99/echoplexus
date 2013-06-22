@@ -1,4 +1,4 @@
-define(['jquery','backbone','underscore','client','ui/Loader',
+define(['jquery','backbone','underscore','loader',
 		'text!templates/channelSelector.html'
 	],function($,Backbone, _,Client,Modules,channelSelectorTemplate){
 		var modules = _.map(Modules,function(module){return module.view;}),

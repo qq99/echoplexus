@@ -3,7 +3,10 @@ node_modules
 public/css
 public/*.js
 *.swp
-build
+client/main.build.js
+.libs
+.css
+.js
 public/sandbox
 .npm-debug.log
 server/config.js

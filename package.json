@@ -18,7 +18,14 @@
     "url": "http://anthonycameron.com"
   },
   "homepage": "https://echoplex.us",
-  "keywords": ["socket.io", "chat", "anonymous", "collaborative", "REPL", "whiteboard"],
+  "keywords": [
+    "socket.io",
+    "chat",
+    "anonymous",
+    "collaborative",
+    "REPL",
+    "whiteboard"
+  ],
   "licenses": [
     {
       "type": "LICENSE",
@@ -48,6 +55,7 @@
     "grunt-sass": "~0.6.0",
     "grunt-css": "~0.5.4",
     "grunt-contrib-clean": "~0.4.1",
-    "supervisor": "~0.5.2"
+    "supervisor": "~0.5.2",
+    "grunt-contrib-requirejs": "~0.4.1"
   }
 }

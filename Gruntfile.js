@@ -1,6 +1,10 @@
 /*global module:false*/
 module.exports = function(grunt) {
-
+  var _      = grunt.util._,
+    config = require('./client/config');//Load r.js config
+  config.shim = _.extend(config.shim,{main: []});
+  _.each(config.config.loader.modules,function(val){config.shim.main.push('modules/'+val.name+'/client');});
+  console.log(config);
   // Project configuration.
   grunt.initConfig({
     // Metadata.
@@ -11,57 +15,17 @@ module.exports = function(grunt) {
       '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author%>;' +
       ' Licensed under <%= pkg.licenses.type %> */\n',
     public_dir: 'public/',
+    client_dir: 'client/',
     // Task configuration.
-    // Concatenation
-    concat: {
-      options: {
-        banner: '<%= banner %>',
-        stripBanners: true
-      },
-      libs: {
-        //The order of libs is important
-        src: [
-          'client/lib/underscore-min.js',
-          'client/lib/jquery.min.js',
-          'client/lib/jquery.cookie.js',
-          'client/lib/moment.min.js',
-          'client/lib/backbone/backbone.js',
-          'client/lib/codemirror-3.11/lib/codemirror.js',
-          'client/lib/codemirror-3.11/mode/javascript/javascript.js',
-          'client/lib/codemirror-3.11/mode/xml/xml.js',
-          'client/lib/codemirror-3.11/mode/css/css.js',
-          'client/lib/codemirror-3.11/mode/htmlmixed/htmlmixed.js',
-          'client/lib/keymaster.js'
-        ],
-        dest: '<%= public_dir %>libs.min.js'
-      },
-      //The rest of the scripts
-      scripts: {
-        src: ['client/**/*.js','!client/lib/**'],
-        dest: '<%= public_dir %>echoplexus.min.js'
-      }
-    },
-    strip: {
-      libs: {
-        src: '<%= concat.libs.dest %>',
-        dest: '<%= concat.libs.dest %>'
-      },
-      scripts: {
-        src: '<%= concat.scripts.dest %>',
-        dest: '<%= concat.scripts.dest %>'
-      }
-    },
-    uglify: {
-      options: {
-        banner: '<%= banner %>'
-      },
-      libs: {
-        src: '<%= concat.libs.dest %>',
-        dest: '<%= concat.libs.dest %>'
-      },
-      scripts: {
-        src: '<%= concat.scripts.dest %>',
-        dest: '<%= concat.scripts.dest %>'
+    requirejs:{
+      dist: {
+        options: _.merge(config, { // Here, we merge to override config, if needed
+          findNestedDependencies: true,
+          baseUrl       : '<%= client_dir %>',
+          name          : 'config',
+          out           : '<%= client_dir %>main.build.js'
+          //optimize: 'none'
+        })
       }
     },
     sass: {
@@ -80,8 +44,7 @@ module.exports = function(grunt) {
     clean: {
       build: {
         src: [
-          "<%= public_dir %>libs.min.js",
-          "<%= public_dir %>echoplexus.min.js",
+          "<%= client_dir %>main.build.js",
           "<%= public_dir %>css/main.css",
           "<%= public_dir %>css/main.min.css",
           "<%= public_dir %>css/"
@@ -91,16 +54,14 @@ module.exports = function(grunt) {
   });
 
   // These plugins provide necessary tasks.
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-strip');
+  //grunt.loadNpmTasks('grunt-strip');
   grunt.loadNpmTasks('grunt-sass');
   grunt.loadNpmTasks('grunt-css');
   grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-requirejs');
 
   // Default task.
-  grunt.registerTask('default', ['concat','strip','uglify','sass','cssmin']);
+  grunt.registerTask('default', ['clean','requirejs','sass','cssmin']);
 
-  //Developer task TODO: add more features like jshint
-  grunt.registerTask('dev',['concat:scripts','sass','cssmin']);
+  //TODO: developer task
 };

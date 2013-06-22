@@ -24,10 +24,9 @@ define(function(require,exports,module){
         _ = require('underscore'),
         key = require('keymaster'),
         ChannelSwitcher = require('ui/ChannelSwitcher'),
-        Notifications = require('ui/Notifications'),
-        config = require('config');
+        Notifications = require('ui/Notifications');
     require('jquery.cookie');
-    require('events'); require('utility');require('ui/Loader');
+    require('events'); require('utility');
     $(document).ready(function () {
         // tooltip stuff:s
         $("body").on("mouseenter", ".tooltip-target", function(ev) {
