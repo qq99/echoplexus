@@ -27,6 +27,10 @@ define(['jquery','backbone', 'underscore','regex','moment',
 		userTemplate: _.template(userListUserTemplate),
 		youtubeTemplate: _.template(youtubeTemplate),
 
+		events: {
+			"click .clearMediaLog": "clearMedia"
+		},
+
         initialize: function (options) {
         	_.bindAll(this);
         	
@@ -246,9 +250,14 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			}
 		},
 
-		clear: function () {
+		clearChat: function () {
 			var $chatlog = $(".messages", this.$el);
 			$chatlog.html("");
+		},
+
+		clearMedia: function () {
+			var $mediaPane = $(".linklog .body", this.$el);
+			$mediaPane.html("");
 		},
 
 		renderUserlist: function (users) {

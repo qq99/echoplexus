@@ -393,12 +393,13 @@ define(['jquery','underscore','backbone','client','regex',
 			this.$el.on("click", "button.deleteLocalStorage", function (ev) {
 				ev.preventDefault();
 				self.persistentLog.destroy();
-				self.chatLog.clear(); // visually reinforce to the user that it deleted them by clearing the chatlog
+				self.chatLog.clearChat(); // visually reinforce to the user that it deleted them by clearing the chatlog
+				self.chatLog.clearMedia(); // "
 			});
 
 			this.$el.on("click", "button.clearChatlog", function (ev) {
 				ev.preventDefault();
-				self.chatLog.clear();
+				self.chatLog.clearChat();
 			});
 		},
 

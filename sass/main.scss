@@ -185,9 +185,17 @@ button {
 	@include fancyButton;
 }
 
+section h2 {
+	height:21px;
+}
 
 nav {
 	@include unselectable;
+
+	#buttons {
+		height: 100%;
+	}
+
 	box-shadow:inset 0px -1px 10px rgba(0,0,0,0.3);
 	position: absolute;
 	height:30px;
@@ -609,6 +617,9 @@ $room-specific-height: 30px;
 			border-bottom-right-radius:3px;
 		}
 	}
+	button {
+		font-size:0.8em;
+	}
 	
 }
 
@@ -704,6 +715,11 @@ $room-specific-height: 30px;
 	a {
 		display:block;
 		margin-bottom:1em;
+	}
+	.options {
+		position:absolute;
+		right:0;
+		top:0;
 	}
 }
 
