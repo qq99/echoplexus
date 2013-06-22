@@ -13,7 +13,11 @@
             'jquery.cookie': 'lib/jquery.cookie/jquery.cookie',
             'text': 'lib/requirejs-text/text',
             'moment': 'lib/moment/moment',
-            'codemirror': 'lib/codemirror/lib/codemirror'
+            'codemirror': 'lib/codemirror/lib/codemirror',
+            'codemirror-js': 'lib/codemirror/mode/javascript/javascript',
+            'codemirror-html': 'lib/codemirror/mode/htmlmixed/htmlmixed',
+            'codemirror-xml': 'lib/codemirror/mode/xml/xml',
+            'codemirror-css': 'lib/codemirror/mode/css/css'
         },
         shim: {
             'underscore': {

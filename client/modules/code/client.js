@@ -1,6 +1,7 @@
 define(['jquery','underscore','backbone','codemirror',
         'modules/code/SyncedEditor',
-        'text!modules/code/templates/jsCodeRepl.html'
+        'text!modules/code/templates/jsCodeRepl.html',
+        'codemirror-xml','codemirror-css','codemirror-js','codemirror-html'
     ],
     function($,_,Backbone,CodeMirror,SyncedEditor,jsCodeReplTemplate){
     // this is really the JSHTML code client:
