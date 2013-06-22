@@ -181,20 +181,21 @@ define(function(require,exports,module){
         });
 
         // change tabs:
-        var tabIDs = ["#chatButton", "#codeButton", "#drawButton"];
-        var activeTabIndex = 0;
+        var tabs = $('#buttons').children();
+        console.log(tabs.length);
+        var activeTabIndex = $('#buttons .active').index();
         key('alt+shift+right, alt+shift+k, alt+shift+d', function () {
             activeTabIndex += 1;
-            activeTabIndex = activeTabIndex % tabIDs.length; // prevent array OOB
-            $(".button[data-target='" + tabIDs[activeTabIndex] + "']").trigger("click");
+            activeTabIndex = activeTabIndex % tabs.length; // prevent array OOB
+            $(tabs[activeTabIndex]).trigger("click");
             return false; // don't trigger alt+right => "History Forward"
         });
         key('alt+shift+left, alt+shift+j, alt+shift+s', function () {
             activeTabIndex -= 1;
             if (activeTabIndex < 0) { // prevent array OOB
-                activeTabIndex = tabIDs.length - 1;
+                activeTabIndex = tabs.length - 1;
             }
-            $(".button[data-target='" + tabIDs[activeTabIndex] + "']").trigger("click");
+            $(tabs[activeTabIndex]).trigger("click");
             return false; // don't trigger alt+left => "History Back"
         });
         $('.tabButton').on('click',function(ev){
