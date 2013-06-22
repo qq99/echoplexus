@@ -1,15 +1,5 @@
 //Initializer for our app
 //
-//Set cookie options
-// 14 seems like a good time to keep the cookie around
-window.COOKIE_OPTIONS = {
-    path: '/',
-    expires: 14
-};
-// require secure cookies if the protocol is https
-if (window.location.protocol === "https:") {
-    window.COOKIE_OPTIONS.secure = true;
-}
 //Set up requirejs
 require.config({
     paths: {

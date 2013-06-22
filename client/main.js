@@ -10,6 +10,16 @@ function chatModeActive () {
 
 //We need the require function for loading variadic modules
 define(function(require,exports,module){
+    //Set cookie options
+    // 14 seems like a good time to keep the cookie around
+    window.COOKIE_OPTIONS = {
+        path: '/',
+        expires: 14
+    };
+    // require secure cookies if the protocol is https
+    if (window.location.protocol === "https:") {
+        window.COOKIE_OPTIONS.secure = true;
+    }
     var $ = require('jquery'),
         _ = require('underscore'),
         key = require('keymaster'),
