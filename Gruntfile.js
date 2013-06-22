@@ -28,6 +28,12 @@ module.exports = function(grunt) {
         })
       }
     },
+    strip: {
+      dist: {
+        src: '<%= requirejs.dist.options.out %>',
+        dest: '<%= requirejs.dist.options.out %>'
+      }
+    },
     sass: {
       dist: {
         files: {
@@ -59,9 +65,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-css');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
+  grunt.loadNpmTasks('grunt-strip');
 
   // Default task.
-  grunt.registerTask('default', ['clean','requirejs','sass','cssmin']);
+  grunt.registerTask('default', ['clean','requirejs','strip','sass','cssmin']);
 
   //TODO: developer task
 };
