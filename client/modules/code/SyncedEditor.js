@@ -127,37 +127,44 @@ define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client)
 							self.applyChanges(data.ops[i]);
 						}
 					},
-					"code:cursorActivity": function (data) {
-						// show the other users' cursors in our view
-						if (!self.active || !codingModeActive()) {
-							return;
-						}
-						var pos = editor.charCoords(data.cursor); // their position
-						var fromClient = self.users.where({cid: data.cid}); // this might seem liek some crazy shit, but we're using the server's cid as our ID, and ignoring our local cid
-						if (fromClient.length > 0) {
-							fromClient = fromClient[0];
-						} else {
-							return;
-						}
+					// "code:cursorActivity": function (data) {
+					// 	// TODO: this whole event could use a lot of work
 
-						// try to find an existing ghost cursor:
-						var $ghostCursor = $(".ghost-cursor[rel='" + data.cid + "']"); // NOT SCOPED: it's appended and positioned absolutely in the body!
-						if (!$ghostCursor.length) { // if non-existent, create one
-							$ghostCursor = $("<div class='ghost-cursor' rel=" + data.cid +"></div>");
-							$("body").append($ghostCursor); // it's absolutely positioned wrt body
+					// 	// show the other users' cursors in our view
+					// 	if (!self.active || !codingModeActive()) {
+					// 		return;
+					// 	}
+					// 	var pos = editor.charCoords(data.cursor); // their position
 
-							$ghostCursor.append("<div class='user'>"+ fromClient.get("nick") +"</div>");
-						}
+					// 	// TODO: old cruft below.  make the Channels global (to mirror the Server), so that we can easily see the colour and nick of the user
+					// 	/*
+					// 	var fromClient = self.users.where({cid: data.cid}); // this might seem liek some crazy shit, but we're using the server's cid as our ID, and ignoring our local cid
+					// 	if (fromClient.length > 0) {
+					// 		fromClient = fromClient[0];
+					// 	} else {
+					// 		return;
+					// 	}
+					// 	*/
 
-						var clientColor = fromClient.get("color").toRGB();
+					// 	// try to find an existing ghost cursor:
+					// 	var $ghostCursor = $(".ghost-cursor[rel='" + data.cid + "']"); // NOT SCOPED: it's appended and positioned absolutely in the body!
+					// 	if (!$ghostCursor.length) { // if non-existent, create one
+					// 		$ghostCursor = $("<div class='ghost-cursor' rel=" + data.cid +"></div>");
+					// 		$("body").append($ghostCursor); // it's absolutely positioned wrt body; TODO: it shouldn't be
 
-						$ghostCursor.css({
-							background: clientColor,
-							color: clientColor,
-							top: pos.top,
-							left: pos.left
-						});
-					},
+					// 		// $ghostCursor.append("<div class='user'>"+ fromClient.get("nick") +"</div>");
+					// 	}
+
+					// 	// var clientColor = fromClient.get("color").toRGB();
+					// 	var clientColor = "#00ffbb";
+
+					// 	$ghostCursor.css({
+					// 		background: clientColor,
+					// 		color: clientColor,
+					// 		top: pos.top,
+					// 		left: pos.left
+					// 	});
+					// },
 					"userlist": function (data) {
 						self.users.set(data.users);
 						DEBUG && console.log("USERS", self.users);
