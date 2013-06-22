@@ -41,6 +41,33 @@
 				this.set("b", b);
 			}
 		},
+		parse: function (userString, callback) {
+			if (userString.match(REGEXES.colors.hex)) {
+				this.setFromHex(userString);
+				callback(null);
+			} else { // only 6-digit hex is supported for now
+				callback("Invalid colour; you must supply a 6-digit hexadecimal color code (e.g., '#cd3fk8')");
+				return;
+			}
+		},
+		setFromHex: function (hexString) {
+			// trim any leading "#"
+			if (hexString.length === 7 &&
+				hexString.charAt(0) === "#") {
+				hexString = hexString.substring(1);
+			}
+
+			var r, g, b;
+			r = parseInt(hexString.substring(0,2), 16);
+			g = parseInt(hexString.substring(2,4), 16);
+			b = parseInt(hexString.substring(4,6), 16);
+
+			this.set({
+				r: r,
+				g: g,
+				b: b
+			});
+		},
 		toRGB: function () {
 			return "rgb(" + this.attributes.r + "," + this.attributes.g + "," + this.attributes.b + ")";
 		}
@@ -211,6 +238,13 @@
 						});
 					}
 				}
+				return;
+			} else if (body.match(REGEXES.commands.set_color)) { // pull
+				body = body.replace(REGEXES.commands.set_color, "").trim();
+
+				socket.emit('user:set_color:' + room, {
+					userColorString: body
+				});
 				return;
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;

@@ -31,6 +31,10 @@
 			private_message: /^\/(pm|w|whisper|t|tell) /,
 			join: /^\/(join|j)/,
 			pull_logs: /^\/(pull|p|sync|s) /,
+			set_color: /^\/(color|c) /,
+		},
+		colors: {
+			hex: /#?[a-fA-F0-9]{6}/,
 		},
 		phantomjs: {
 			delimiter: /!!!/g,

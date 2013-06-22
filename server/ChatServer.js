@@ -270,6 +270,21 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					}
 				}
 			},
+			"user:set_color": function (namespace, socket, channel, client, data) {
+				var room = channel.get("name");
+
+				client.get("color").parse(data.userColorString, function (err) {
+					if (err) {
+						socket.in(room).emit('chat:' + room, serverSentMessage({
+							type: "SERVER",
+							body: "Invalid colour; you must supply a 6-digit hexadecimal color code (e.g., '#cd3fk8')"
+						}, room));
+						return;
+					}
+
+					publishUserList(channel);
+				});
+			},
 			"chat": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
