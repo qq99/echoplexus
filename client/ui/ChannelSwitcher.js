@@ -8,8 +8,7 @@ define(['jquery','backbone','underscore','ui/Loader',
 
 		initialize: function () {
 			var self = this,
-				channelsFromLastVisit = window.localStorage.getObj("joined_channels");
-				joinChannels = ["/",window.location.pathname];
+				joinChannels = window.localStorage.getObj("joined_channels") || [];;
 			_.bindAll(this);
 
 			this.sortedChannelNames = [];
@@ -20,10 +19,11 @@ define(['jquery','backbone','underscore','ui/Loader',
 			this.codeChannels = {};
 			this.drawingChannels = {};*/
 
-			if (channelsFromLastVisit && channelsFromLastVisit.length) {
-				joinChannels.concat(channelsFromLastVisit);
+			if (!joinChannels.length) {
+				joinChannels = []
 			}
-
+			joinChannels.push('/',window.location.pathname);
+			console.log(joinChannels);
 			_.each(_.uniq(joinChannels),function(chan){
 				self.joinChannel(chan);
 			});
@@ -36,7 +36,9 @@ define(['jquery','backbone','underscore','ui/Loader',
 		},
 		attachEvents: function () {
 			var self = this;
-
+			window.events.on('joinChannel',function(channel){
+				self.joinAndShowChannel(channel);
+			});
 			// show an input after clicking "+ Join Channel"
 			this.$el.on("click", ".join", function () {
 				var $input = $(this).siblings("input");
@@ -212,10 +214,8 @@ define(['jquery','backbone','underscore','ui/Loader',
 
 		joinChannel: function (channelName) {
 			var self = this;
-			var channel = this.channels[channelName];
-
 			DEBUG && console.log("creating view for", channelName);
-			if (_.isUndefined(channel)) {
+			if(_.isUndefined(this.channels[channelName])) {
 				this.loading += 1;
 				require(modules,function(){
 					self.channels[channelName]=[];

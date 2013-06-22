@@ -320,7 +320,7 @@ define(['jquery','underscore','backbone','client','regex',
 
 						if (userInput.match(REGEXES.commands.join)) { // /join [channel_name]
 							channelName = userInput.replace(REGEXES.commands.join, "").trim();
-							self.trigger('joinChannel', channelName);
+							window.events.trigger('joinChannel', channelName);
 						} else {
 							self.me.speak({
 								body: userInput,
