@@ -206,7 +206,7 @@ define(function(require,exports,module){
                 $(this).addClass("active").siblings().removeClass("active");
                 $("#panes > section").not(element).hide();
                 $(element).show(function () {
-                    $("body").trigger(element.substring(1) + "SectionActive"); // sloppy, forgive me
+                    window.events.trigger("sectionActive:" + element.substring(1)); // sloppy, forgive me
                 });
             }
         });

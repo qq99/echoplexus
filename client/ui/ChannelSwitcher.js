@@ -222,7 +222,8 @@ define(['jquery','backbone','underscore','ui/Loader',
 					_.each(arguments,function(ClientModule,idx){
 						var mod = {
 							view: new ClientModule({
-								room: channelName
+								room: channelName,
+								config: Modules[idx]
 							}),
 							config: Modules[idx]
 						};

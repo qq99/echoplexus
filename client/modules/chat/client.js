@@ -225,7 +225,7 @@ define(['jquery','underscore','backbone','client','regex',
 			this.socketEvents = {
 				"chat": function (msg) {
 					DEBUG && console.log("onChat:", self.channelName, msg);
-					window.EventBus.trigger("message",socket,self,msg);
+					window.events.trigger("message",socket,self,msg);
 					switch (msg.class) {
 						case "join":
 							var newClient = new ClientModel(msg.client);

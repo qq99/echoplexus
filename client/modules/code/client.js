@@ -15,6 +15,7 @@ define(['jquery','underscore','backbone','codemirror',
             _.bindAll(this);
 
             this.channelName = opts.room;
+            this.config = opts.config;
 
             this.listen();
             this.render();
@@ -28,7 +29,6 @@ define(['jquery','underscore','backbone','codemirror',
             };
 
             var syncedEditor = new SyncedEditor();
-            
 
             this.syncedJs = new syncedEditor({
                 room: this.channelName,
@@ -40,7 +40,7 @@ define(['jquery','underscore','backbone','codemirror',
                 subchannel: "html",
                 editor: this.editors["html"]
             });
-            this.repl = $(".jsREPL .output", this.$el)
+            this.repl = $(".jsREPL .output", this.$el);
 
             this.attachEvents();
 
@@ -98,7 +98,7 @@ define(['jquery','underscore','backbone','codemirror',
             var self = this;
             this.listenTo(this.syncedJs, "eval", this.livereload);
             this.listenTo(this.syncedHtml, "eval", this.livereload);
-            $("body").on("codeSectionActive", function () {
+            window.events.on("sectionActive:"+this.config.section, function () {
                 self.refresh();
             });
             $(window).on('message',function(e){
@@ -129,7 +129,7 @@ define(['jquery','underscore','backbone','codemirror',
                 ev.preventDefault();
                 ev.stopPropagation();
                 self.refreshIframe();
-            })
+            });
         },
 
         refresh: function () {
@@ -163,7 +163,6 @@ define(['jquery','underscore','backbone','codemirror',
                 this.repl.text("");
                 return;
             }
-            
             var iframe = $("iframe.jsIframe", this.$el)[0];
 
             //Send the message

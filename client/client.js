@@ -126,7 +126,7 @@
 		speak: function (msg, socket) {
 			var body = msg.body,
 				room = msg.room;
-			window.EventBus.trigger("speak",socket,this,msg);
+			window.events.trigger("speak",socket,this,msg);
 			if (!body) return; // if there's no body, we probably don't want to do anything
 			if (body.match(REGEXES.commands.nick)) { // /nick [nickname]
 				body = body.replace(REGEXES.commands.nick, "").trim();
