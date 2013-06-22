@@ -442,6 +442,7 @@ header {
     text-align: center;
     i {
     	@include transition(all 0.5s ease-out);
+    	cursor:pointer;
     	display:block;
     	font-size:500%;
     }
