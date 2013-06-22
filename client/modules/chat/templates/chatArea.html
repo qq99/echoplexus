@@ -32,7 +32,7 @@
 	<div class="messages"></div>
 </div>
 <div class="supportbar">
-	<div class="userlist">
+	<div class="userlist <%= userlistClasses %>">
 		<div class="header">
 			<h2>Users</h2>
 			<div class="count">
@@ -48,18 +48,34 @@
 
 		</div>
 	</div>
-	<div class="linklog">
+	<div class="linklog <%= linklogClasses %>">
 		<div class="header">
 			<h2>Media & Links</h2>
 			<div class="options">
 				<div class="button-group">
-					<button class="clearMediaLog">Clear</button>
+					<button class="maximizeMediaLog">Enable</button>
+					<div>
+						<button class="disableMediaLog">Disable</button>
+					</div>
+					<div>
+						<button class="clearMediaLog">Clear</button>
+					</div>
 				</div>
 			</div>
 		</div>
 		<div class="media-scroll">
 			<div class="body">
-
+			</div>
+			<div class="media-opt-in <%= optInClasses %>">
+				<div class="opting-button opt-in">
+					<i class="icon-cloud-download"></i>
+					<p>Automatically embed media (image links, website previews, youtube videos)?</p>
+					<p class="warn"><strong>This can reduce your anonymity.</strong></p>
+				</div>
+				<div class="opting-button opt-out">
+					<i class="icon-umbrella"></i>
+					<p>Not for this channel...</p>
+				</div>
 			</div>
 		</div>
 	</div>

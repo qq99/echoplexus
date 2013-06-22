@@ -28,10 +28,16 @@ define(['jquery','backbone', 'underscore','regex','moment',
 		youtubeTemplate: _.template(youtubeTemplate),
 
 		events: {
-			"click .clearMediaLog": "clearMedia"
+			"click .clearMediaLog": "clearMedia",
+			"click .disableMediaLog": "disallowMedia",
+			"click .maximizeMediaLog": "unminimizeMediaLog",
+			"click .media-opt-in .opt-in": "allowMedia",
+			"click .media-opt-in .opt-out": "disallowMedia"
 		},
 
         initialize: function (options) {
+        	var preferredAutoloadSetting;
+
         	_.bindAll(this);
         	
         	if (!options.room) {
@@ -41,14 +47,68 @@ define(['jquery','backbone', 'underscore','regex','moment',
 
         	this.uniqueURLs = {};
 
+        	this.autoloadMedia = null; // the safe default
+
+        	preferredAutoloadSetting = window.localStorage.getItem("autoloadMedia:" + this.room);
+			if (preferredAutoloadSetting) { // if a saved setting exists
+				if (preferredAutoloadSetting === "true") {
+					this.autoloadMedia = true;
+				} else {
+					this.autoloadMedia = false;
+				}
+			}
+
         	this.render();
         	this.attachEvents();
         },
 
         render: function () {
+        	var linklogClasses = "",
+        		userlistClasses = "",
+        		optInClasses = "";
+
+        	if (this.autoloadMedia === true) {
+        		optInClasses = "hidden";
+        	} else if (this.autoloadMedia === false) {
+        		linklogClasses = "minimized";
+        		userlistClasses = "maximized";
+        	} else { // user hasn't actually made a choice (null value)
+        		linklogClasses = "not-initialized";
+        	}
+
         	this.$el.html(this.template({
-        		roomName: this.room
+        		roomName: this.room,
+        		linklogClasses: linklogClasses,
+        		optInClasses: optInClasses,
+        		userlistClasses: userlistClasses
         	}));
+        },
+
+        unminimizeMediaLog: function () { // nb: not the opposite of maximize
+        	// resets the state to the null choice
+        	// slide up the media tab (if it was hidden)
+        	$(".linklog", this.$el).removeClass("minimized").addClass("not-initialized");
+        	$(".userlist", this.$el).removeClass("maximized");
+        	$(".media-opt-in", this.$el).fadeIn();
+        },
+
+        disallowMedia: function () {
+        	this.autoloadMedia = false;
+        	this.clearMedia();
+        	window.localStorage.setItem("autoloadMedia:" + this.room, false);
+
+        	// slide down the media tab to make more room for the Users tab
+        	$(".linklog", this.$el).addClass("minimized").removeClass("not-initialized");
+        	$(".userlist", this.$el).addClass("maximized");
+        },
+
+        allowMedia: function () {
+        	$(".media-opt-in", this.$el).fadeOut();
+
+        	this.autoloadMedia = true;
+        	window.localStorage.setItem("autoloadMedia:" + this.room, true);
+
+        	$(".linklog", this.$el).removeClass("not-initialized");
         },
 
         attachEvents: function () {
@@ -100,10 +160,11 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				opts = {};
 			}
 			
-			if (msg.class !== "identity") { // setting nick to a image URL or youtube URL should not update media bar
+			if (this.autoloadMedia &&
+				msg.class !== "identity") { // setting nick to a image URL or youtube URL should not update media bar
 				// put image links on the side:
 				var images;
-				if (OPTIONS["autoload_media"] && (images = body.match(REGEXES.urls.image))) {
+				if (images = body.match(REGEXES.urls.image)) {
 					for (var i = 0, l = images.length; i < l; i++) {
 						var href = images[i];
 
@@ -123,7 +184,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 
 				// put youtube linsk on the side:
 				var youtubes;
-				if (OPTIONS["autoload_media"] && (youtubes = body.match(REGEXES.urls.youtube))) {
+				if (youtubes = body.match(REGEXES.urls.youtube)) {
 					console.debug(body);
 					console.debug(youtubes);
 					for (var i = 0, l = youtubes.length; i < l; i++) {
@@ -149,7 +210,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 						}
 					}
 				}
-			}
+			} // end media insertion
 
 			// sanitize the body:
 			body = _.escape(body);

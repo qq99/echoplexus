@@ -69,6 +69,7 @@ module.exports = function(grunt) {
 
   // Default task.
   grunt.registerTask('default', ['clean','requirejs','strip','sass','cssmin']);
+  grunt.registerTask('dev', ['clean','requirejs','sass']);
 
   //TODO: developer task
 };

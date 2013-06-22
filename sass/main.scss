@@ -3,6 +3,7 @@
 	-moz-box-sizing:border-box;
 	-webkit-box-sizing:border-box;
 }
+$active-color: rgba(71,178,250,0.7);
 @mixin clearfix {
 
 	&:before, &:after {
@@ -189,6 +190,10 @@ section h2 {
 	height:21px;
 }
 
+.warn {
+	color:#FF8B2C;
+}
+
 nav {
 	@include unselectable;
 
@@ -268,8 +273,9 @@ nav {
 		box-shadow:inset 0px 0px 5px -3px rgba(0,0,0,0.9),inset 0px -1px 10px rgba(0,0,0,0.3);
 	}
 	.options-list {
-		float:right;
-		position:relative;
+		position: absolute;
+		top: 0;
+		right: 0;
 		.options {
 			display:none;
 			position:absolute;
@@ -426,6 +432,39 @@ header {
 	}
 }
 
+
+.media-opt-in {
+	position:absolute;
+	top:40px;
+	&.hidden {
+		display:none;
+	}
+    text-align: center;
+    i {
+    	@include transition(all 0.5s ease-out);
+    	display:block;
+    	font-size:500%;
+    }
+    p {
+    	padding: 0 1em;
+    	margin:0;
+    	margin-bottom: 2em;
+    	font-family: 'Noto Sans', sans-serif;
+    }
+    .opting-button {
+    	cursor:pointer;
+    	@include transition(all 0.5s ease-out);
+    	padding:1em;
+    	margin-bottom:1em;
+    	&:hover {
+    		border-radius:5px;
+    		background:rgba(0,0,0,0.25);
+    		i {
+    			color:$active-color;
+    		}
+    	}
+    }
+}
 
 #coding .codeClient {
 	height:100%;
@@ -670,6 +709,7 @@ $room-specific-height: 30px;
 	padding-top:0px;
 }
 .userlist {
+	@include transition(all 0.5s ease-in-out);
 	height:20%;
 	width:100%;
 	overflow-y:auto;
@@ -696,8 +736,14 @@ $room-specific-height: 30px;
 		bottom:0.5em;
 		opacity:0.75;
 	}
+
+	&.maximized {
+		height:100%;
+		margin-bottom:-30px;
+	}
 }
 .linklog {
+	@include transition(all 0.5s ease-in-out);
 	height:80%;
 	width:100%;
 	z-index:4;
@@ -730,6 +776,26 @@ $room-specific-height: 30px;
 		position:absolute;
 		right:0;
 		top:0;
+	}
+
+	.maximizeMediaLog {
+		display:none;
+	}
+	&.minimized {
+		height:30px;
+		overflow:hidden;
+		.disableMediaLog, .clearMediaLog {
+			display:none;
+		} /* these aren't relevant while the media log is small */
+		.maximizeMediaLog {
+			display:block;
+		}
+	}
+
+	&.not-initialized {
+		.header .options {
+			display:none;
+		}
 	}
 }
 
