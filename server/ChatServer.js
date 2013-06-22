@@ -50,14 +50,14 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
 			body: client.get("nick") + ' has joined the chat.',
 			client: client.toJSON(),
-			cid: client.cid,
-			class: "join"
+			class: "join",
+			log: false
 		}, room));
 	}
 	function userLeft (client, room) {
 		sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
 			body: client.get("nick") + ' has left the chat.',
-			clientID: client.cid,
+			id: client.get("id"),
 			class: "part",
 			log: false
 		}, room));
@@ -90,10 +90,10 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		// tell everyone about the new client in the room
 		userJoined(client, room);
 
-		// let them know their cid
-		socket.in(room).emit("chat:your_cid:" + room, {
+		// let the knewly joined know their ID
+		socket.in(room).emit("client:id:" + room, {
 			room: room,
-			cid: client.cid
+			id: client.get("id")
 		});
 
 		// finally, announce to the client that he's now in the room
@@ -226,7 +226,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 				client.set("idle", true);
 				client.set("idleSince", Number(new Date()));
-				data.cID = client.cid;
+				data.id = client.get("id");
 				sio.of(CHATSPACE).in(room).emit('chat:idle:' + room, data);
 				publishUserList(channel);
 			},
@@ -236,7 +236,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				client.set("idle", false);
 				client.unset("idleSince");
 				sio.of(CHATSPACE).in(room).emit('chat:unidle:' + room, {
-					cID: client.cid
+					id: client.get("id")
 				});
 				publishUserList(channel);
 			},
@@ -246,7 +246,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 				// only send a message if it has a body & is directed at someone
 				if (data.body && data.directedAt) {
-					data.cID = client.cid;
+					data.id = client.get("id");
 					data.color = client.get("color").toRGB();
 					data.nickname = client.get("nick");
 					data.timestamp = Number(new Date());
@@ -274,7 +274,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				var room = channel.get("name");
 
 				if (data.body) {
-					data.cID = client.cid;
+					data.id = client.get("id");
 					data.color = client.get("color").toRGB();
 					data.nickname = client.get("nick");
 					data.timestamp = Number(new Date());
@@ -457,9 +457,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			},
 			"unsubscribe": function (namespace, socket, channel, client) {
 				var room = channel.get("name");
-
+				userLeft(client, room);
 				channel.clients.remove(client);
-				userLeft(client, channel.name);
 				publishUserList(channel);
 			}
 		},

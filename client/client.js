@@ -2,7 +2,7 @@
   // Set up Backbone appropriately for the environment.
   if (typeof exports !== 'undefined') {
     // Node/CommonJS, no need for jQuery in that case.
-    factory(exports,require('backbone'),require('underscore'),require('../client/regex.js').REGEXES);
+    factory(exports,require('backbone'),require('underscore'),require('../client/regex.js').REGEXES, require('node-uuid'));
   } else if (typeof define === 'function' && define.amd) {
     // AMD
     define(['underscore', 'backbone', 'regex', 'exports'], function(_, Backbone,Regex,exports) {
@@ -11,7 +11,7 @@
       return factory(exports, Backbone, _,Regex.REGEXES);
     });
   }
-})(this,function(exports,Backbone,_,REGEXES) {
+})(this,function(exports,Backbone,_,REGEXES, uuid) {
 	exports.ColorModel = Backbone.Model.extend({
 		defaults: {
 			r: 0,
@@ -73,6 +73,11 @@
 			}
 			if (opts && opts.socket) {
 				this.socket = opts.socket;
+			}
+
+			// set a good global identifier
+			if (typeof uuid !== "undefined") {
+				this.set("id", uuid.v4());
 			}
 		},
 		channelAuth: function (pw, room) {

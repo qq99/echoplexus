@@ -20,7 +20,7 @@ exports.DrawingServer = function (sio, redisC, EventBus, Channels, ChannelModel)
 				channel.replay.push(data);
 
 				socket.in(room).broadcast.emit('draw:line:' + room, _.extend(data,{
-					cid: client.cid
+					id: client.get("id")
 				}));
 			},
 			"trash": function (namespace, socket, channel, client, data) {

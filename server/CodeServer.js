@@ -52,7 +52,7 @@ exports.CodeServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"code:cursorActivity": function (namespace, socket, channel, client, data) {
 				socket.in(namespace).broadcast.emit('code:cursorActivity:' + namespace, {
 					cursor: data.cursor,
-					cid: client.cid
+					id: client.get("id")
 				});
 			},
 			"code:change": function (namespace, socket, channel, client, data) {

@@ -14,6 +14,7 @@ define(['jquery','underscore','backbone','codemirror',
 
             _.bindAll(this);
 
+            this.channel = opts.channel;
             this.channelName = opts.room;
             this.config = opts.config;
 
@@ -31,11 +32,13 @@ define(['jquery','underscore','backbone','codemirror',
             var syncedEditor = new SyncedEditor();
 
             this.syncedJs = new syncedEditor({
+                clients: this.channel.clients,
                 room: this.channelName,
                 subchannel: "js",
                 editor: this.editors["js"]
             });
             this.syncedHtml = new syncedEditor({
+                clients: this.channel.clients,
                 room: this.channelName,
                 subchannel: "html",
                 editor: this.editors["html"]

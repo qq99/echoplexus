@@ -230,8 +230,6 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				// attempt to select this early message:
 				var $target = $(".chatlog .chatMessage[rel='"+ candidate +"']", this.$el);
 
-				DEBUG && console.log(timestamps, candidate);
-
 				if ($target.length) { // it was in the DOM, so we can insert the current message after it
 					DEBUG && console.log('target found');
 					$target.last().after($chatMessage); // .last() just in case there can be more than one.... it seems this may have happened once, hopefully by glitch alone

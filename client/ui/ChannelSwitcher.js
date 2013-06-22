@@ -1,7 +1,10 @@
-define(['jquery','backbone','underscore','ui/Loader',
+define(['jquery','backbone','underscore','client','ui/Loader',
 		'text!templates/channelSelector.html'
-	],function($,Backbone, _,Modules,channelSelectorTemplate){
-		var modules = _.map(Modules,function(module){return module.view;});
+	],function($,Backbone, _,Client,Modules,channelSelectorTemplate){
+		var modules = _.map(Modules,function(module){return module.view;}),
+			ClientModel = Client.ClientModel,
+			ClientsCollection = Client.ClientsCollection;
+
 	return Backbone.View.extend({
 		className: "channelSwitcher",
 		template: _.template(channelSelectorTemplate),
@@ -15,15 +18,12 @@ define(['jquery','backbone','underscore','ui/Loader',
 			this.loading = 0; //Wether scripts are loading (async lock)
 
 			this.channels = {};
-			/*
-			this.codeChannels = {};
-			this.drawingChannels = {};*/
 
 			if (!joinChannels.length) {
 				joinChannels = []
 			}
 			joinChannels.push('/',window.location.pathname);
-			console.log(joinChannels);
+
 			_.each(_.uniq(joinChannels),function(chan){
 				self.joinChannel(chan);
 			});
@@ -95,7 +95,7 @@ define(['jquery','backbone','underscore','ui/Loader',
 
 
 
-			var channelViews = this.channels[channelName],
+			var channelViews = this.channels[channelName].modules,
 				$channelButton = this.$el.find(".channelBtn[data-channel='"+ channelName +"']");
 
 			// remove the views, then their $els
@@ -176,7 +176,7 @@ define(['jquery','backbone','underscore','ui/Loader',
 			var channelsToDeactivate = _.without(_.keys(this.channels), channelName);
 			// tell the views to deactivate
 			_.each(channelsToDeactivate, function (channelName) {
-				_.each(self.channels[channelName],function(module){
+				_.each(self.channels[channelName].modules,function(module){
 					module.view.$el.hide();
 					module.view.trigger("hide");
 				});
@@ -189,7 +189,7 @@ define(['jquery','backbone','underscore','ui/Loader',
 				.removeClass("activity");
 
 			// send events to the view we're showing:
-			_.each(this.channels[channelName],function(module){
+			_.each(this.channels[channelName].modules,function(module){
 				module.view.$el.show();
 				module.view.trigger("show");
 			});
@@ -221,20 +221,27 @@ define(['jquery','backbone','underscore','ui/Loader',
 			DEBUG && console.log("creating view for", channelName);
 			if(_.isUndefined(this.channels[channelName])) {
 				this.loading += 1;
-				require(modules,function(){
-					self.channels[channelName]=[];
+				require(modules,function(){ // dynamically load each of the modules defined in client/config.js
+					var channel = {
+						clients: new ClientsCollection(),
+						modules: []
+					};
+					// create an instance of each module:
 					_.each(arguments,function(ClientModule,idx){
-						var mod = {
+						var modInstance = {
 							view: new ClientModule({
+								channel: channel,
 								room: channelName,
 								config: Modules[idx]
 							}),
 							config: Modules[idx]
 						};
-						mod.view.$el.hide();
+						modInstance.view.$el.hide();
 
-						self.channels[channelName].push(mod);
+						channel.modules.push(modInstance);
 					});
+
+					self.channels[channelName] = channel;
 					self.loading -= 1;
 					self.render();
 				});
@@ -260,7 +267,9 @@ define(['jquery','backbone','underscore','ui/Loader',
 			}));
 
 			// clear out old pane:
-			_.each(this.channels, function (channelViews,channelName) {
+			_.each(this.channels, function (channel,channelName) {
+				var channelViews = channel.modules;
+
 				_.each(channelViews,function(module){
 					if (!$('.' + module.view.className + "[data-channel='"+ channelName +"']").length) {
 						$('#'+module.config.section).append(module.view.$el);

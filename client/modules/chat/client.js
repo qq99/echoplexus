@@ -20,10 +20,11 @@ define(['jquery','underscore','backbone','client','regex',
 			_.bindAll(this);
 
 			this.socket = io.connect("/chat");
+			this.channel = opts.channel;
+			this.channel.clients.model = ClientModel;
+
 			this.channelName = opts.room;
 			this.autocomplete = new Autocomplete();
-			this.users = new ClientsCollection();
-			this.users.model = ClientModel;
 			this.scrollback = new Scrollback();
 			this.persistentLog = new Log({
 				namespace: this.channelName
@@ -118,11 +119,11 @@ define(['jquery','underscore','backbone','client','regex',
 		kill: function () {
 			var self = this;
 
-			_.each(this.socketEvents, function (method, key) {
-				self.socket.removeAllListeners(key + ":" + self.channelName);
-			});
 			this.socket.emit("unsubscribe:" + this.channelName, {
 				room: this.channelName
+			});
+			_.each(this.socketEvents, function (method, key) {
+				self.socket.removeAllListeners(key + ":" + self.channelName);
 			});
 		},
 
@@ -130,10 +131,6 @@ define(['jquery','underscore','backbone','client','regex',
 			var self = this;
 			
 			DEBUG && console.log("Subscribed", self.channelName);
-
-			if (data) {
-				self.me.cid = data.cid;
-			}
 
 			// attempt to automatically /nick and /ident
 			$.when(this.autoNick()).done(function () {
@@ -229,11 +226,11 @@ define(['jquery','underscore','backbone','client','regex',
 					switch (msg.class) {
 						case "join":
 							var newClient = new ClientModel(msg.client);
-							newClient.cid = msg.cid;
-							self.users.add(newClient);
-							DEBUG && console.log("users now contains", self.users);
+							self.channel.clients.add(newClient);
+							DEBUG && console.log("users now contains", self.channel.clients);
 							break;
 						case "part":
+							self.channel.clients.remove(msg.id);
 							break;
 					}
 
@@ -267,15 +264,13 @@ define(['jquery','underscore','backbone','client','regex',
 				},
 				"chat:idle": function (msg) {
 					DEBUG && console.log(msg);
-					$(".user[rel='"+ msg.cID +"']", self.$el).append("<span class='idle' data-timestamp='" + Number(new Date()) +"'>Idle</span>");
+					$(".user[rel='"+ msg.id +"']", self.$el).append("<span class='idle' data-timestamp='" + Number(new Date()) +"'>Idle</span>");
 				},
 				"chat:unidle": function (msg) {
-					$(".user[rel='"+ msg.cID +"'] .idle", self.$el).remove();
+					$(".user[rel='"+ msg.id +"'] .idle", self.$el).remove();
 				},
-				"chat:your_cid": function (msg) {
-					DEBUG && console.log("my_cid:", msg.cid, "users I know about:", self.users);
-					// self.me = self.users.get(msg.cid);
-					self.me.cid = msg.cid;
+				"client:id": function (msg) {
+					self.me.set("id", msg.id);
 				},
 				"userlist": function (msg) {
 					DEBUG && console.log("userlist",msg);
@@ -283,11 +278,11 @@ define(['jquery','underscore','backbone','client','regex',
 					self.autocomplete.setPool(_.map(msg.users, function (user) {
 						return user.nick;
 					}));
-					self.users.set(msg.users);
+					self.channel.clients.set(msg.users);
 
-					self.chatLog.renderUserlist(self.users);
+					self.chatLog.renderUserlist(self.channel.clients);
 
-					DEBUG && console.log("and stored users are", self.users);
+					DEBUG && console.log("and stored users are", self.channel.clients);
 				},
 				"chat:currentID": function (msg) {
 					self.persistentLog.latestIs(msg.ID);

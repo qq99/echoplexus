@@ -258,10 +258,10 @@ define(['jquery','underscore','backbone','client','keymaster',
                     //Draw to the foreground context
                     var ctx = self.ctx;
                     //Initialize the path if it wasn't already initialized
-                    var path = self.paths[msg.cid] = (self.paths[msg.cid] || []);
+                    var path = self.paths[msg.id] = (self.paths[msg.id] || []);
                     //If the path was just started, clear it
                     if (msg.coord.beginPath){
-                        path = self.paths[msg.cid] = [];
+                        path = self.paths[msg.id] = [];
                     }
                     //Add the coordinate to the path
                     path.push(msg.coord);
@@ -279,10 +279,10 @@ define(['jquery','underscore','backbone','client','keymaster',
                     var paths = {};
                     _.each(buffer,function(msg){
                         //Initialize the path if it wasn't already initialized
-                        var path = paths[msg.cid] = (paths[msg.cid] || []);
+                        var path = paths[msg.id] = (paths[msg.id] || []);
                         //If the path was just started, clear it
                         if (msg.coord.beginPath){
-                            path = paths[msg.cid] = [];
+                            path = paths[msg.id] = [];
                         }
                         //Add the coordinate to the path
                         path.push(msg.coord);
