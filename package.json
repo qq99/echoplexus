@@ -1,6 +1,6 @@
 {
   "name": "echoplexus",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A modular, anonymous, real-time chatting system.",
   "scripts": {
     "dev": "supervisor -n error -w public/echoplexus.min.js server/main.js",
@@ -12,7 +12,13 @@
     "type": "git",
     "url": "https://github.com/qq99/echoplexus.git"
   },
-  "author": "Anthony Cameron",
+  "author": {
+    "name": "Anthony Cameron",
+    "email": "ar.cameron@gmail.com",
+    "url": "http://anthonycameron.com"
+  },
+  "homepage": "https://echoplex.us",
+  "keywords": ["socket.io", "chat", "anonymous", "collaborative", "REPL", "whiteboard"],
   "licenses": [
     {
       "type": "LICENSE",

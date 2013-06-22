@@ -1,4 +1,4 @@
-[echoplexus](https://echoplex.us) (v0.1.3)
+[echoplexus](https://echoplex.us) (v0.1.4)
 ==================
 
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
@@ -113,6 +113,11 @@ Known Issues:
 ### node.js Packages
 
     $ npm install
+
+### bower Packages
+    
+    $ npm install -g bower
+    $ bower install
 
 ### Redis
 

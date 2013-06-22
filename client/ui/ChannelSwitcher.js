@@ -80,6 +80,10 @@ define(['jquery','backbone','underscore','ui/Loader',
 			this.on("leaveChannel", function () {
 				self.leaveChannel(self.activeChannel);
 			});
+
+			window.events.on("chat:activity", function (data) {
+				self.channelActivity(data);
+			});
 		},
 
 		leaveChannel: function (channelName) {
@@ -234,10 +238,6 @@ define(['jquery','backbone','underscore','ui/Loader',
 					self.loading -= 1;
 					self.render();
 				});
-				//this.channels[channelName]
-					//.on('joinChannel', this.joinAndShowChannel, this)
-					//.on('activity', this.channelActivity)
-					//.$el.hide(); // don't show by default
 			}
 
 			this.sortedChannelNames.push(channelName);

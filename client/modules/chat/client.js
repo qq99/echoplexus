@@ -209,7 +209,7 @@ define(['jquery','underscore','backbone','client','regex',
 
 			
 			if (msg.type !== "SYSTEM") { // count non-system messages as chat activity
-				this.trigger("activity", {
+				window.events.trigger("chat:activity", {
 					channelName: this.channelName
 				});
 			}

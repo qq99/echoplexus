@@ -151,11 +151,11 @@ define(function(require,exports,module){
         key.filter = function () { return true; }; // stub out the filter method from the lib to enable them globally
 
         // change channels:
-        key('alt+→, alt+k', function () {
+        key('alt+right, alt+k', function () {
             channelSwitcher.trigger("nextChannel");
             return false;
         });
-        key('alt+←, alt+j', function () {
+        key('alt+left, alt+j', function () {
             channelSwitcher.trigger("previousChannel");
             return false;
         });
@@ -183,18 +183,18 @@ define(function(require,exports,module){
         // change tabs:
         var tabIDs = ["#chatButton", "#codeButton", "#drawButton"];
         var activeTabIndex = 0;
-        key('alt+shift+→, alt+shift+k, alt+shift+d', function () {
+        key('alt+shift+right, alt+shift+k, alt+shift+d', function () {
             activeTabIndex += 1;
             activeTabIndex = activeTabIndex % tabIDs.length; // prevent array OOB
-            $(tabIDs[activeTabIndex]).trigger("click");
+            $(".button[data-target='" + tabIDs[activeTabIndex] + "']").trigger("click");
             return false; // don't trigger alt+right => "History Forward"
         });
-        key('alt+shift+←, alt+shift+j, alt+shift+s', function () {
+        key('alt+shift+left, alt+shift+j, alt+shift+s', function () {
             activeTabIndex -= 1;
             if (activeTabIndex < 0) { // prevent array OOB
                 activeTabIndex = tabIDs.length - 1;
             }
-            $(tabIDs[activeTabIndex]).trigger("click");
+            $(".button[data-target='" + tabIDs[activeTabIndex] + "']").trigger("click");
             return false; // don't trigger alt+left => "History Back"
         });
         $('.tabButton').on('click',function(ev){
