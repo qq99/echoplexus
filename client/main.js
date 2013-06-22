@@ -210,6 +210,16 @@ define(function(require,exports,module){
                 });
             }
         });
+
+        window.events.on("chat:activity", function (data) {
+            if (!chatModeActive()) {
+                $(".button[data-target='#chatting']").addClass("activity");
+            }
+        });
+
+
+
+
         /*
         $("#drawButton").on("click", function (ev) {
             ev.preventDefault();
