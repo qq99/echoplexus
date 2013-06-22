@@ -38,7 +38,6 @@ define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client)
 				}, this.postSubscribe);
 
 				this.on("show", function () {
-					DEBUG && console.log("synced_editor:show");
 					self.active = true;
 					if (self.editor) {
 						self.editor.refresh();
@@ -46,13 +45,13 @@ define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client)
 				});
 
 				this.on("hide", function () {
-					DEBUG && console.log("synced_editor:hide");
 					self.active = false;
 					$(".ghost-cursor").remove();
 				});
 
-				this.clients.on("remove", function () {
-					// remove their ghost-cursor here
+				// remove their ghost-cursor when they leave
+				this.clients.on("remove", function (model) {
+					$(".ghost-cursor[rel='" + model.get("id") + "']").remove();
 				});
 
 				$("body").on("codeSectionActive", function () { // sloppy, forgive me
@@ -137,7 +136,8 @@ define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client)
 							return;
 						}
 
-						var pos = editor.charCoords(data.cursor); // their position
+						var pos = editor.cursorCoords(data.cursor, "local"); // their position
+
 						var fromClient = self.clients.get(data.id); // our knowledge of their client object
 						if (fromClient === null) {
 							return; // this should never happen
@@ -147,7 +147,7 @@ define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client)
 						var $ghostCursor = $(".ghost-cursor[rel='" + data.id + "']"); // NOT SCOPED: it's appended and positioned absolutely in the body!
 						if (!$ghostCursor.length) { // if non-existent, create one
 							$ghostCursor = $("<div class='ghost-cursor' rel=" + data.id +"></div>");
-							$("body").append($ghostCursor); // it's absolutely positioned wrt body; TODO: it shouldn't be
+							$(editor.getWrapperElement()).find(".CodeMirror-lines > div").append($ghostCursor);
 
 							$ghostCursor.append("<div class='user'>"+ fromClient.get("nick") +"</div>");
 						}
