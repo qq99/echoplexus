@@ -113,7 +113,8 @@ define(['jquery','backbone', 'underscore','regex','moment',
 
         attachEvents: function () {
         	// show "Sent ___ ago" when hovering all chat messages:
-			this.$el.on("hover", ".chatMessage", function (ev) {
+			this.$el.on("mouseenter", ".chatMessage", function (ev) {
+				console.log("wut");
 				$(this).attr("title", "sent " + moment($(".time", this).data("timestamp")).fromNow());
 			});
 
