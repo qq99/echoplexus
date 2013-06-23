@@ -217,8 +217,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				redisC.hmget("chatlog:" + room, data.requestRange, function (err, reply) {
 					if (err) throw err;
 					// emit the logged replies to the client requesting them
-
-					socket.in(room).emit('chat:batch:' + room, reply);
+					socket.in(room).emit('chat:batch:' + room, _.without(reply, null));
 				});
 			},
 			"chat:idle": function (namespace, socket, channel, client, data) {

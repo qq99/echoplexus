@@ -285,7 +285,19 @@ define(['jquery','underscore','backbone','client','regex',
 					DEBUG && console.log("and stored users are", self.channel.clients);
 				},
 				"chat:currentID": function (msg) {
-					self.persistentLog.latestIs(msg.ID);
+					var missed;
+					
+					self.persistentLog.latestIs(msg.ID); // store the server's current sequence number
+
+					// find out only what we missed since we were last connected to this channel
+					missed = self.persistentLog.getListOfMissedMessages();
+
+					// then pull it, if there was anything
+					if (missed && missed.length) {
+						socket.emit("chat:history_request:" + self.channelName, {
+						 	requestRange: missed
+						});
+					}
 				},
 				"topic": function (msg) {
 					self.chatLog.setTopic(msg);
@@ -383,7 +395,7 @@ define(['jquery','underscore','backbone','client','regex',
 			this.$el.on("click", "button.syncLogs", function (ev) {
 				ev.preventDefault();
 				var missed = self.persistentLog.getMissingIDs(25);
-				if (missed.length) {
+				if (missed && missed.length) {
 					self.socket.emit("chat:history_request:" + self.channelName, {
 					 	requestRange: missed
 					});
