@@ -180,30 +180,41 @@ define(['jquery','underscore','backbone','client','regex',
 
 		checkToNotify: function (msg) {
 			// scan through the message and determine if we need to notify somebody that was mentioned:
-			if (this.me !== "undefined") {
-				// check to see if me.nick is contained in the msgme.
-				if (msg.body.toLowerCase().indexOf("@" + this.me.get("nick").toLowerCase()) !== -1) {
 
-					// do not alter the message in the following circumstances:
-					if (msg.class) {
-						if ((msg.class.indexOf("part") !== -1) ||
-							(msg.class.indexOf("join") !== -1)) { // don't notify for join/part; it's annoying when anonymous
+			// check to see if me.nick is contained in the msgme.
+			if (msg.body.toLowerCase().indexOf("@" + this.me.get("nick").toLowerCase()) !== -1) {
 
-							return msg; // short circuit
-						}
+				var strippedBody = msg.body.replace("@" + this.me.get("nick"), "");
+
+				// do not alter the message in the following circumstances:
+				if (msg.class) {
+					if ((msg.class.indexOf("part") !== -1) ||
+						(msg.class.indexOf("join") !== -1)) { // don't notify for join/part; it's annoying when anonymous
+
+						return msg; // short circuit
 					}
+				}
 
-					// alter the message:
-					DEBUG && console.log("@me", msg.body);
+				// alter the message:
+				DEBUG && console.log("@me", msg.body);
+
+				if (this.channel.isPrivate) {
+					// display more privacy-minded notifications for private channels
 					notifications.notify({
-						title: msg.nickname + " says:",
-						body: msg.body,
+						title: "echoplexus",
+						body: "There are new unread messages",
 						tag: "chatMessage"
 					});
-					msg.directedAtMe = true;
+				} else {
+					// display a full notification for a public channel
+					notifications.notify({
+						title: msg.nickname + " says:",
+						body: strippedBody,
+						tag: "chatMessage"
+					});
 				}
+				msg.directedAtMe = true;
 			}
-
 			
 			if (msg.type !== "SYSTEM") { // count non-system messages as chat activity
 				window.events.trigger("chat:activity", {
@@ -257,6 +268,7 @@ define(['jquery','underscore','backbone','client','regex',
 					self.chatLog.renderChatMessage(msg);
 				},
 				"private": function () {
+					self.channel.isPrivate = true;
 					self.autoAuth();
 				},
 				"subscribed": function () {

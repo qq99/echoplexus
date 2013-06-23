@@ -112,8 +112,9 @@ define(function(require,exports,module){
         window.notifications = new Notifications();
         $(window).on("blur", function () {
             $("body").addClass("blurred");
-        }).on("focus", function () {
+        }).on("focus mouseenter", function () {
             $("body").removeClass("blurred");
+            document.title = "echoplexus";
         });
 
         io.connect(window.location.origin,{
@@ -223,6 +224,9 @@ define(function(require,exports,module){
         window.events.on("chat:activity", function (data) {
             if (!chatModeActive()) {
                 $(".button[data-target='#chatting']").addClass("activity");
+            }
+            if (!document.hasFocus()) {
+                document.title = "!echoplexus";
             }
         });
 

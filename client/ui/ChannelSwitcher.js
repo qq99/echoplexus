@@ -224,7 +224,8 @@ define(['jquery','backbone','underscore','client', 'loader',
 				require(modules,function(){ // dynamically load each of the modules defined in client/config.js
 					var channel = {
 						clients: new ClientsCollection(),
-						modules: []
+						modules: [],
+						isPrivate: false
 					};
 					// create an instance of each module:
 					_.each(arguments,function(ClientModule,idx){
