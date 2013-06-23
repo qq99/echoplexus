@@ -36,6 +36,10 @@
             'codemirror': {
                 exports: 'CodeMirror'
             },
+            'codemirror-js': ['codemirror'],
+            'codemirror-html': ['codemirror'],
+            'codemirror-xml': ['codemirror'],
+            'codemirror-css': ['codemirror'],
             'jquery.cookie': ['jquery']
         },
         config: {
