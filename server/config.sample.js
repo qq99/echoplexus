@@ -15,7 +15,12 @@
 		features: {
 			SERVER_NICK: 'Server',
 			PHANTOMJS_SCREENSHOT: false, // http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
-			PHANTOMJS_PATH: '/opt/bin/phantomjs'
+			PHANTOMJS_PATH: '/opt/bin/phantomjs',
+			CHAT_RATE_LIMITING: {
+				enabled: false,
+				rate: 5.0, // # allowed messages
+				per: 8000.0 // per # of seconds
+			}
 		},
 		DEBUG: false
 	};

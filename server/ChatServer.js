@@ -287,6 +287,12 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"chat": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
+				if (config.features.CHAT_RATE_LIMITING &&
+					config.features.CHAT_RATE_LIMITING.enabled) {
+					
+					if (client.tokenBucket.rateLimit()) return;
+				}
+
 				if (data.body) {
 					data.id = client.get("id");
 					data.color = client.get("color").toRGB();

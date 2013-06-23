@@ -2,7 +2,7 @@
   // Set up Backbone appropriately for the environment.
   if (typeof exports !== 'undefined') {
     // Node/CommonJS, no need for jQuery in that case.
-    factory(exports,require('backbone'),require('underscore'),require('../client/regex.js').REGEXES, require('node-uuid'));
+    factory(exports,require('backbone'),require('underscore'),require('../client/regex.js').REGEXES, require('node-uuid'), require('../server/config.js').Configuration);
   } else if (typeof define === 'function' && define.amd) {
     // AMD
     define(['underscore', 'backbone', 'regex', 'exports'], function(_, Backbone,Regex,exports) {
@@ -11,7 +11,8 @@
       return factory(exports, Backbone, _,Regex.REGEXES);
     });
   }
-})(this,function(exports,Backbone,_,REGEXES, uuid) {
+})(this,function(exports,Backbone,_,REGEXES, uuid, config) {
+
 	exports.ColorModel = Backbone.Model.extend({
 		defaults: {
 			r: 0,
@@ -79,6 +80,34 @@
 		model: exports.ClientModel
 	});
 
+	function TokenBucket () {
+		// from: http://stackoverflow.com/questions/667508/whats-a-good-rate-limiting-algorithm
+
+		var rate = config.features.CHAT_RATE_LIMITING.rate, // unit: # messages
+			per  = config.features.CHAT_RATE_LIMITING.per, // unit: milliseconds
+			allowance = rate, // unit: # messages
+			last_check = Number(new Date()); // unit: milliseconds
+
+		this.rateLimit = function () {
+			var current = Number(new Date()),
+				time_passed = current - last_check;
+			
+			last_check = current;
+			allowance += time_passed * (rate / per);
+
+			if (allowance > rate) {
+				allowance = rate; // throttle
+			}
+			
+			if (allowance < 1.0) {
+				return true; // discard message, "true" to rate limiting
+			} else {
+				allowance -= 1.0;
+				return false; // allow message, "false" to rate limiting
+			}
+		};
+	}
+
 	exports.ClientModel = Backbone.Model.extend({
 		defaults: {
 			nick: "Anonymous",
@@ -107,6 +136,14 @@
 			// set a good global identifier
 			if (typeof uuid !== "undefined") {
 				this.set("id", uuid.v4());
+			}
+
+			// rate limit the client's chat, if it's enabled
+			if (config &&
+				config.features.CHAT_RATE_LIMITING &&
+				config.features.CHAT_RATE_LIMITING.enabled) {
+				
+				this.tokenBucket = new TokenBucket();
 			}
 		},
 		channelAuth: function (pw, room) {
