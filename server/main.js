@@ -31,7 +31,10 @@ if (config.host.SCHEME === 'https') {
 } else {
 	var server = protocol.createServer(app);
 }
-
+var index = "public/index/index.html";
+if(fs.existsSync(PUBLIC_FOLDER+'/index/index.build.html'))
+	index = "public/index/index.build.html";
+console.log('Using index: ' + index);
 // Custom objects:
 // shared with the client:
 var Client = require('../client/client.js').ClientModel,
@@ -39,11 +42,17 @@ var Client = require('../client/client.js').ClientModel,
 	REGEXES = require('../client/regex.js').REGEXES;
 
 // Web server init:
+
 app.use('/client',express.static(CLIENT_FOLDER));
+
 app.use(express.static(PUBLIC_FOLDER));
-// always server up the index.html
+// always server up the index
+// 
+app.use('/',function(req,res){
+	res.sendfile(index);
+});
 app.get("/*", function (req, res) {
-	res.sendfile("public/index.html");
+	res.sendfile(index);
 });
 server.listen(config.host.PORT);
 

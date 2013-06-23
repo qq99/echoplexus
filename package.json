@@ -56,6 +56,9 @@
     "grunt-css": "~0.5.4",
     "grunt-contrib-clean": "~0.4.1",
     "supervisor": "~0.5.2",
-    "grunt-contrib-requirejs": "~0.4.1"
+    "grunt-contrib-requirejs": "~0.4.1",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-usemin": "~0.1.12",
+    "grunt-contrib-htmlmin": "~0.1.3"
   }
 }

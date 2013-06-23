@@ -1,10 +1,9 @@
 /*global module:false*/
 module.exports = function(grunt) {
   var _      = grunt.util._,
-    config = require('./client/config');//Load r.js config
+    config = require('./client/app');//Load r.js config
   config.shim = _.extend(config.shim,{main: []});
   _.each(config.config.loader.modules,function(val){config.shim.main.push('modules/'+val.name+'/client');});
-  console.log(config);
   // Project configuration.
   grunt.initConfig({
     // Metadata.
@@ -17,13 +16,39 @@ module.exports = function(grunt) {
     public_dir: 'public/',
     client_dir: 'client/',
     // Task configuration.
+    // HTML
+    copy:{
+      dist: {
+        files: {
+          '<%= public_dir %>index/index.build.html': '<%= public_dir %>index/index.html'
+        }
+      }
+    },
+    'useminPrepare':{
+      html: '<%= public_dir %>index/index.html'
+    },
+    usemin: {
+      html: ['<%= public_dir %>index/index.build.html']
+    },
+    htmlmin:{
+      dist: {
+        options: {
+          removeComments: true,
+          collapseWhitespace: true
+        },
+        files: {
+          '<%= public_dir %>index/index.build.html': '<%= public_dir %>index/index.build.html'
+        }
+      }
+    },
+    // JS
     requirejs:{
       dist: {
         options: _.merge(config, { // Here, we merge to override config, if needed
           findNestedDependencies: true,
           baseUrl       : '<%= client_dir %>',
-          name          : 'config',
-          out           : '<%= client_dir %>main.build.js'
+          name          : 'app',
+          out           : '<%= client_dir %>app.min.js'
           //optimize: 'none'
         })
       }
@@ -34,6 +59,7 @@ module.exports = function(grunt) {
         dest: '<%= requirejs.dist.options.out %>'
       }
     },
+    //CSS
     sass: {
       dist: {
         files: {
@@ -47,13 +73,14 @@ module.exports = function(grunt) {
         dest: '<%= public_dir %>css/main.css'
       }
     },
+    //Clean
     clean: {
       build: {
         src: [
-          "<%= client_dir %>main.build.js",
+          "<%= client_dir %>app.min.js",
           "<%= public_dir %>css/main.css",
-          "<%= public_dir %>css/main.min.css",
-          "<%= public_dir %>css/"
+          "<%= public_dir %>css/",
+          "<%= public_dir %>index.build.html"
         ]
       }
     }
@@ -66,10 +93,13 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-strip');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-htmlmin');
+  grunt.loadNpmTasks('grunt-usemin');
 
   // Default task.
-  grunt.registerTask('default', ['clean','requirejs','strip','sass','cssmin']);
-  grunt.registerTask('dev', ['clean','requirejs','sass']);
+  grunt.registerTask('default', ['clean','copy','useminPrepare','requirejs','strip','usemin','htmlmin','sass','cssmin']);
+  grunt.registerTask('dev', ['clean','sass']);
 
   //TODO: developer task
 };

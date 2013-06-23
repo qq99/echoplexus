@@ -3,7 +3,8 @@ node_modules
 public/css
 public/*.js
 *.swp
-client/main.build.js
+client/app.min.js
+public/index/index.build.html
 .libs
 .css
 .js
