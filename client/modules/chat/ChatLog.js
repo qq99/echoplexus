@@ -14,6 +14,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 	var REGEXES = Regex.REGEXES;
 	function makeYoutubeURL(s) {
 		var matches = REGEXES.urls.youtube.exec(s);
+		REGEXES.urls.youtube.exec("");
 		//If this function was called, the regex will have matched (aka it must have a v= match)
 		return window.location.protocol + "//youtube.com/v/" + matches[5];
 	}
