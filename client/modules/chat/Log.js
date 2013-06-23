@@ -80,7 +80,7 @@ define(['underscore'],function(_){
 						clientLatest = known[known.length-1],
 						missed = [],
 						sensibleMax = 100, // don't pull everything that we might have missed, just the most relevant range
-						from = clientLatest,
+						from = clientLatest + 1,
 						to = Math.min(latestID, clientLatest + sensibleMax);
 
 					// if the server is ahead of us
