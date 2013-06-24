@@ -8,7 +8,9 @@ define(function(require,exports,module){
 		button = _.template($('#buttonTemplate').html());
 	_.each(config.modules,function(val){
 		val = _.defaults(val,{active: false});
-		$(section(val)).appendTo($('#panes'));
+
+		var s = $(section(val)).appendTo($('#panes'));
+		if (!val.active) s.hide();
 		$(button(val)).appendTo($('#buttons'));
 		mods.push(_.extend(val,{
 			view: 'modules/'+val.name+'/client'
