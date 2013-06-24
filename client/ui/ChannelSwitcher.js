@@ -229,6 +229,7 @@ define(['jquery','backbone','underscore','client', 'loader',
 					};
 					// create an instance of each module:
 					_.each(arguments,function(ClientModule,idx){
+						if (!_.isFunction(ClientModule)) return;
 						var modInstance = {
 							view: new ClientModule({
 								channel: channel,
