@@ -4,7 +4,7 @@ public/css
 public/*.js
 *.swp
 client/app.min.js
-public/index/index.build.html
+public/index.build.html
 .libs
 .css
 .js

@@ -31,9 +31,9 @@ if (config.host.SCHEME === 'https') {
 } else {
 	var server = protocol.createServer(app);
 }
-var index = "public/index/index.html";
-if(fs.existsSync(PUBLIC_FOLDER+'/index/index.build.html'))
-	index = "public/index/index.build.html";
+var index = "public/index.dev.html";
+if(fs.existsSync(PUBLIC_FOLDER+'/index.build.html'))
+	index = "public/index.build.html";
 console.log('Using index: ' + index);
 // Custom objects:
 // shared with the client:

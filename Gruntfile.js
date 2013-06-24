@@ -17,18 +17,22 @@ module.exports = function(grunt) {
     client_dir: 'client/',
     // Task configuration.
     // HTML
+    index:{
+      build: '<%= public_dir %>index.build.html',
+      dev: '<%= public_dir %>index.dev.html'
+    },
     copy:{
       dist: {
         files: {
-          '<%= public_dir %>index/index.build.html': '<%= public_dir %>index/index.html'
+          '<%= index.build %>': '<%= index.dev %>'
         }
       }
     },
     'useminPrepare':{
-      html: '<%= public_dir %>index/index.html'
+      html: '<%= index.dev %>'
     },
     usemin: {
-      html: ['<%= public_dir %>index/index.build.html']
+      html: ['<%= index.build %>']
     },
     htmlmin:{
       dist: {
@@ -37,7 +41,7 @@ module.exports = function(grunt) {
           collapseWhitespace: true
         },
         files: {
-          '<%= public_dir %>index/index.build.html': '<%= public_dir %>index/index.build.html'
+          '<%= index.build %>': '<%= index.build %>'
         }
       }
     },
