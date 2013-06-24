@@ -3,7 +3,10 @@
 	-moz-box-sizing:border-box;
 	-webkit-box-sizing:border-box;
 }
+
 $active-color: rgba(71,178,250,0.7);
+$pretty-font-family: 'Noto Sans', sans-serif;
+
 @mixin clearfix {
 
 	&:before, &:after {
@@ -76,7 +79,7 @@ h2 {
 }
 h1, h2 {
 	color:#999;
-	font-family: 'Noto Sans', sans-serif;
+	font-family: $pretty-font-family;
 	font-weight:normal;
 	font-style:italic;
 	border-bottom: 1px solid #444;
@@ -393,7 +396,7 @@ header {
 }
 
 .header {
-	font-family:'Noto Sans', sans-serif;
+	font-family:$pretty-font-family;
 	position: relative;
 	z-index:2;
 	.count {
@@ -450,7 +453,7 @@ header {
     	padding: 0 1em;
     	margin:0;
     	margin-bottom: 2em;
-    	font-family: 'Noto Sans', sans-serif;
+    	font-family: $pretty-font-family;
     }
     .opting-button {
     	cursor:pointer;
@@ -535,7 +538,7 @@ header {
 			position:relative;
 			z-index:10;
 			height:30px;
-			font-family:'Noto Sans', sans-serif;
+			font-family:$pretty-font-family;
 			font-size:0.7em;
 			padding: 0.5em 1em;
 			background: #272822;
@@ -714,7 +717,7 @@ $room-specific-height: 30px;
 	height:20%;
 	width:100%;
 	overflow-y:auto;
-	font-family: 'Noto Sans', sans-serif;
+	font-family: $pretty-font-family;
 	.body {
 		font-size:1em;
 		i {
@@ -821,7 +824,7 @@ $room-specific-height: 30px;
 		display:inline-block;
 		color:#777;
 		text-decoration: none;
-		font-family:'Noto Sans', sans-serif;
+		font-family:$pretty-font-family;
 		margin:0.25em 0.5em;
 		&:hover {
 			color:#aaa;
@@ -1018,7 +1021,7 @@ body {
 }
 .tooltip {
 	z-index:1000;
-	font-family:'Noto Sans', sans-serif;
+	font-family:$pretty-font-family;
 	&.warn {
 		.title {
 			color:orange;
@@ -1076,7 +1079,7 @@ body {
 	display:none;
 	width:100%;
 	height:100%;
-	font-family: 'Noto Sans', sans-serif;
+	font-family: $pretty-font-family;
 	.tools {
 		position:absolute;
 		height:100%;

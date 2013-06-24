@@ -3,9 +3,10 @@ define(['jquery','underscore','backbone','client','regex',
 		'modules/chat/Scrollback',
 		'modules/chat/Log',
 		'modules/chat/ChatLog',
+		'ui/Growl',
 		'text!modules/chat/templates/chatPanel.html'
 	],
-	function($,_,Backbone,Client,Regex,Autocomplete,Scrollback,Log,ChatLog,chatpanelTemplate){
+	function($,_,Backbone,Client,Regex,Autocomplete,Scrollback,Log,ChatLog,Growl,chatpanelTemplate){
 	var ColorModel = Client.ColorModel,
 		ClientModel = Client.ClientModel,
 		ClientsCollection = Client.ClientsCollection,
@@ -19,6 +20,7 @@ define(['jquery','underscore','backbone','client','regex',
 
 			_.bindAll(this);
 
+			this.hidden = true;
 			this.socket = io.connect("/chat");
 			this.channel = opts.channel;
 			this.channel.clients.model = ClientModel;
@@ -62,24 +64,22 @@ define(['jquery','underscore','backbone','client','regex',
 				this.chatLog.insertBatch(renderedEntries);
 			}
 
-			this.on("show", function () {
-				self.$el.show();
-				self.show();
-			});
+			// triggered by ChannelSwitcher:
+			this.on("show", this.show);
+			this.on("hide", this.hide);
 
-			this.on("hide", function () {
-				self.$el.hide();
-			});
-			this.on("activity", function(){
-				if (!chatModeActive()) {
-					$("#chatButton").addClass("activity");
-				}
-			});
 		},
 
 		show: function(){
+			this.$el.show();
 			this.chatLog.scrollToLatest();
 			$("textarea", self.$el).focus();
+			this.hidden = false;
+		},
+
+		hide: function () {
+			this.$el.hide();
+			this.hidden = true;
 		},
 
 		bindReconnections: function(){
@@ -220,6 +220,15 @@ define(['jquery','underscore','backbone','client','regex',
 				window.events.trigger("chat:activity", {
 					channelName: this.channelName
 				});
+
+				// do not show a growl for this channel's chat if we're looking at it
+				if (OPTIONS.show_growl &&
+					(this.hidden || !chatModeActive())) {
+					var growl = new Growl({
+						title: this.channelName + ":  " + msg.nickname,
+						body: msg.body
+					});
+				}
 			}
 
 			return msg;

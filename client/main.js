@@ -62,6 +62,7 @@ define(function(require,exports,module){
         // consider these persistent options
         // we use a cookie for these since they're small and more compatible
         window.OPTIONS = {
+            "show_growl": true,
             "suppress_join": false,
             "highlight_mine": true,
             "suppress_client": false,
