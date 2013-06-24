@@ -63,6 +63,12 @@
                         icon: 'pencil',
                         title: 'Draw',
                         section: 'drawing'
+                    },
+                    {
+                        name:'call',
+                        icon: 'phone',
+                        title: 'Call',
+                        section: 'calling'
                     }
                 ]
             }
