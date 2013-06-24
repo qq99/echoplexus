@@ -23,7 +23,10 @@ define(['jquery','underscore','backbone','codemirror',
             this.render();
 
             // debounce a function for auto-repling
-            this.doREPL = _.debounce(this._repl, 500);
+            this.doREPL = _.debounce(function(){
+                self.refreshIframe();
+                self._repl();
+            }, 700);
 
             this.editors = {
                 "js": this.editorTemplates.SimpleJS($(".jsEditor", this.$el)[0]),
