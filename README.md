@@ -48,7 +48,12 @@ Some measures of User Access Controls are planned for the future.
 Code
 ----
 
-Currently, interactive and collaborative HTML & JavaScript is supported, with evaluation taking place after a user stops typing.  The code is run in a sandboxed `iframe`, but I'd appreciate any audits to this functionality as it makes me nervous.  By default, the `iframe` has access to jQuery and underscore.js for user convenience.  The REPL is only evaluated if you've got the JavaScript tab open.  Ideally, more languages will be supported.
+Currently, interactive and collaborative HTML & JavaScript is supported, with evaluation taking place after a user stops typing.  The code is run in a fully sandboxed iframe without access to cookies or anything of the sort.  By default, the iframe has access to jQuery and underscore.js for user convenience.  The REPL is only evaluated if you have the JavaScript tab open.  Future support for more languages is planned.
+
+Draw
+----
+
+Right now, the Draw capabilities are pretty basic; just enough to facilitate sharing a persistent whiteboard with the people you're chatting with.  There is *much* room for improvement here but I do not think that there is a need to re-invent the wheel and re-implement Photoshop/Illustrator here.
 
 Security
 --------
@@ -82,10 +87,6 @@ Example:
 
     $ iptables  -t nat -I PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 8080
 
-Draw
-----
-
-Right now, the Draw capabilities are pretty basic; just enough to facilitate sharing a persistent whiteboard with the people you're chatting with.  There's a lot of deficiencies in this part of the code.  There is *much* room for improvement here but I don't know that we need to re-invent the wheel and re-implement Photoshop/Illustrator here.
 
 License:
 -------
