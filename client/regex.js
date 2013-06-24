@@ -19,6 +19,9 @@
 			youtube: /((https?:\/\/)?(www\.)?youtu((?=\.)\.be\/|be\.com\/watch.*v=)([\w\d\-_]*))/gi,
 			all_others: /(\b(https?|http):(\/\/|&#x2F;&#x2F;)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi
 		},
+		users: {
+			mentions: /(@[^\b\s]*)/gi
+		},
 		commands: {
 			nick: /^\/(nick|n) /,
 			register: /^\/register/,

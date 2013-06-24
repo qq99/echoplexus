@@ -228,7 +228,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 
 			// hyperify hyperlinks for the chatlog:
 			body = body.replace(REGEXES.urls.all_others,'<a target="_blank" href="$1">$1</a>');
-
+			body = body.replace(REGEXES.users.mentions,'<span class="mention">$1</span>');
 			if (body.length) { // if there's anything left in the body, 
 				var chatMessageClasses = "";
 				var nickClasses = "";
