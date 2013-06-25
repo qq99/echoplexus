@@ -79,13 +79,13 @@ define(['underscore'],function(_){
 					var known = this.knownIDs(),
 						clientLatest = known[known.length-1],
 						missed = [],
-						sensibleMax = 100, // don't pull everything that we might have missed, just the most relevant range
-						from = clientLatest + 1,
-						to = Math.min(latestID, clientLatest + sensibleMax);
+						sensibleMax = 50, // don't pull everything that we might have missed, just the most relevant range
+						from = latestID,
+						to = Math.max(latestID - sensibleMax, clientLatest + 1);
 
 					// if the server is ahead of us
 					if (latestID > clientLatest) {
-						for (var i = from; i <= to; i++) {
+						for (var i = from; i >= to; i--) {
 							missed.push(i);
 						}
 					} else {
@@ -130,5 +130,5 @@ define(['underscore'],function(_){
 				}
 			};
 		}
-	}
+	};
 });
