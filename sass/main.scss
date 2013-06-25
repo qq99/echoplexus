@@ -983,6 +983,19 @@ body {
 	.mention {
 		font-weight: bold;
 	}
+	.message-options {
+		@include transition(opacity 0.5s ease-in-out);
+		position:absolute;
+		top:0;
+		left:0;
+		opacity:0;
+		z-index:5;
+	}
+	&:hover {
+		.message-options {
+			opacity:1;
+		}
+	}
 }
 
 #ghetto_templates {

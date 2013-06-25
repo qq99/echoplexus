@@ -7,6 +7,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		_= require('underscore'),
 		fs = require('fs'),
 		crypto = require('crypto'),
+		uuid = require('node-uuid'),
 		PUBLIC_FOLDER = __dirname + '/../public',
 		SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
 		Client = require('../client/client.js').ClientModel,
@@ -16,6 +17,27 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 	var DEBUG = config.DEBUG;
 
+	function createEditingToken(room, client) {
+		var token,
+			nick = client.get("nick");
+
+		// check to see if a token already exists for the user
+		redisC.hget("identity_token:" + room, nick, function (err, reply) {
+			if (err) throw err;
+
+			if (!reply) { // if not, make a new one
+				token = uuid.v4();
+				redisC.hset("identity_token:" + room, nick, token, function (err, reply) { // persist it
+					if (err) throw err;
+					client.identity_token = token; // store it on the client object
+				});
+			} else {
+				token = reply;
+				client.identity_token = token; // store it on the client object
+			}
+		});
+	}
+
 	function urlRoot(){
 		if (config.host.USE_PORT_IN_URL) {
 			return config.host.SCHEME + "://" + config.host.FQDN + ":" + config.host.PORT + "/";
@@ -23,7 +45,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			return config.host.SCHEME + "://" + config.host.FQDN + "/";
 		}
 	}
-
 	function serverSentMessage (msg, room) {
 		return _.extend(msg, {
 			nickname: config.features.SERVER_NICK,
@@ -32,7 +53,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			room: room
 		});
 	}
-
 	function publishUserList (channel) {
 		var room = channel.get("name"),
 			authenticatedClients = channel.clients.where({authenticated: true}),
@@ -45,7 +65,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			room: room
 		});
 	}
-
 	function userJoined (client, room) {
 		sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
 			body: client.get("nick") + ' has joined the chat.',
@@ -210,6 +229,32 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					log: false
 				}, room));
 			},
+			"chat:edit": function (namespace, socket, channel, client, data) {
+				var room = channel.get("name"),
+					mID = data.mID,
+					newBody = data.body,
+					alteredMsg;
+
+				if (_.indexOf(client.mIDs, mID)) {
+					// get the pure message
+					redisC.hget("chatlog:" + room, mID, function (err, reply) {
+						if (err) throw err;
+
+						alteredMsg = JSON.parse(reply); // parse it
+						alteredMsg.body = newBody; // alter it
+
+						// store the altered chat message
+						redisC.hset("chatlog:" + room, mID, JSON.stringify(alteredMsg), function (err, reply) {
+							if (err) throw err;
+
+							socket.in(room).broadcast.emit('chat:edit:' + room, alteredMsg);
+							socket.in(room).emit('chat:edit:' + room, _.extend(alteredMsg, {
+								you: true
+							}));
+						});
+					});
+				}
+			},
 			"chat:history_request": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name"),
 					jsonArray = [];
@@ -298,6 +343,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					data.color = client.get("color").toRGB();
 					data.nickname = client.get("nick");
 					data.timestamp = Number(new Date());
+					data.identified = client.get("identified");
 
 					// store in redis
 					redisC.hget("channels:currentMessageID", room, function (err, reply) {
@@ -309,7 +355,20 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 						}
 						redisC.hset("channels:currentMessageID", room, mID+1);
 
-						data.ID = mID;
+						data.mID = mID;
+
+						// store the message ID transiently on the client object itself, for anonymous editing
+						if (!client.mIDs) {
+							client.mIDs = [];
+						}
+						client.mIDs.push(mID);
+
+						// is there an edit token associated with this client?  if so, persist that so he can edit the message later
+						if (client.identity_token) {
+							redisC.hset("chatlog:identity_tokens:" + room, mID, client.identity_token, function (err, reply) {
+								if (err) throw err;
+							});
+						}
 
 						// store the chat message
 						redisC.hset("chatlog:" + room, mID, JSON.stringify(data), function (err, reply) {

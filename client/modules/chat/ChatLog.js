@@ -33,7 +33,8 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			"click .disableMediaLog": "disallowMedia",
 			"click .maximizeMediaLog": "unminimizeMediaLog",
 			"click .media-opt-in .opt-in": "allowMedia",
-			"click .media-opt-in .opt-out": "disallowMedia"
+			"click .media-opt-in .opt-out": "disallowMedia",
+			"click .chatMessage-edit": "beginEdit"
 		},
 
         initialize: function (options) {
@@ -112,6 +113,15 @@ define(['jquery','backbone', 'underscore','regex','moment',
         	$(".linklog", this.$el).removeClass("not-initialized");
         },
 
+        beginEdit: function (ev) {
+        	var mID = $(ev.target).parents(".chatMessage").data("sequence");
+        	if (mID) {
+        		window.events.trigger("beginEdit:" + this.room, {
+        			mID: mID
+        		});
+        	}
+        },
+
         attachEvents: function () {
         	// show "Sent ___ ago" when hovering all chat messages:
 			this.$el.on("mouseenter", ".chatMessage", function (ev) {
@@ -152,6 +162,14 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				latestMessage.scrollIntoView();
 			}
 		},
+
+        replaceChatMessage: function (msg) {
+        	var msgHtml = this.renderChatMessage(msg, {delayInsert: true}), // render the altered message, but don't insert it yet
+        		$oldMsg = $(".chatMessage[data-sequence='" + msg.mID + "']", this.$el);
+
+        	$oldMsg.after(msgHtml);
+        	$oldMsg.remove();
+        },
 
 		renderChatMessage: function (msg, opts) {
 			var self = this;
@@ -249,6 +267,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 
 				var chat = self.chatMessageTemplate({
 					nickname: msg.nickname,
+					mID: msg.mID,
 					color: msg.color,
 					body: body,
 					humanTime: moment(msg.timestamp).format('hh:mm:ss'),
@@ -256,7 +275,9 @@ define(['jquery','backbone', 'underscore','regex','moment',
 					classes: chatMessageClasses,
 					nickClasses: nickClasses,
 					isPrivateMessage: (msg.type && msg.type === "private"),
-					directedAt: msg.directedAt
+					directedAt: msg.directedAt,
+					mine: (msg.you ? true : false),
+					identified: (msg.identified ? true : false)
 				});
 
 				if (!opts.delayInsert) {

@@ -290,6 +290,14 @@ define(['jquery','underscore','backbone','client','regex',
 				"chat:unidle": function (msg) {
 					$(".user[rel='"+ msg.id +"'] .idle", self.$el).remove();
 				},
+				"chat:edit": function (msg) {
+					window.events.trigger("message",socket,self,msg);
+
+					msg = self.checkToNotify(msg);
+
+					self.persistentLog.replaceMessage(msg);
+					self.chatLog.replaceChatMessage(msg);
+				},
 				"client:id": function (msg) {
 					self.me.set("id", msg.id);
 				},
@@ -433,6 +441,19 @@ define(['jquery','underscore','backbone','client','regex',
 			this.$el.on("click", "button.clearChatlog", function (ev) {
 				ev.preventDefault();
 				self.chatLog.clearChat();
+			});
+
+			window.events.on("beginEdit:" + this.channelName, function (data) {
+				var mID = data.mID,
+					msgText,
+					msg = self.persistentLog.getMessage(mID); // get the raw message data from our log, if possible
+
+				if (!msg) { // if we didn't have it in our log (e.g., recently cleared storage), then get it from the DOM
+					msgText = $(".chatMessage.mine[data-sequence='" + mID + "'] .body").text();
+				} else {
+					msgText = msg.body;
+				}
+				$(".chatinput textarea", this.$el).val("/edit #" + mID + " " + msg.body).focus();
 			});
 		},
 

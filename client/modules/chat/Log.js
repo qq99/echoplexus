@@ -75,6 +75,29 @@ define(['underscore'],function(_){
 
 					return known;
 				},
+				getMessage: function (byID) {
+					var start = log.length - 1;
+
+					for (var i = start; i > 0; i--) {
+						if (log[i].mID === byID) {
+							return log[i];
+						}
+					}
+					return null;
+				},
+				replaceMessage: function (msg) {
+					var start = log.length - 1;
+
+					for (var i = start; i > 0; i--) {
+						if (log[i].mID === msg.mID) {
+							log[i] = msg;
+
+							// presist to localStorage:
+							window.localStorage.setObj("log:" + options.namespace, log);
+							return;
+						}
+					}
+				},
 				getListOfMissedMessages: function () {
 					var known = this.knownIDs(),
 						clientLatest = known[known.length-1],
