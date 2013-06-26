@@ -34,7 +34,8 @@ define(['jquery','underscore','backbone','client','regex',
 			});
 
 			this.chatLog = new ChatLog({
-				room: this.channelName
+				room: this.channelName,
+				persistentLog: this.persistentLog
 			});
 
 			this.me = new ClientModel({
@@ -361,6 +362,13 @@ define(['jquery','underscore','backbone','client','regex',
 					msgText = msg.body;
 				}
 				$(".chatinput textarea", this.$el).val("/edit #" + mID + " " + msg.body).focus();
+			});
+
+			window.events.on("edit:commit:" + this.channelName, function (data) {
+				self.socket.emit('chat:edit:' + self.channelName, {
+					mID: data.mID,
+					body: data.newText
+				});
 			});
 		},
 

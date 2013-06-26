@@ -34,7 +34,10 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			"click .maximizeMediaLog": "unminimizeMediaLog",
 			"click .media-opt-in .opt-in": "allowMedia",
 			"click .media-opt-in .opt-out": "disallowMedia",
-			"click .chatMessage-edit": "beginEdit"
+			"click .chatMessage-edit": "beginEdit",
+			"blur .body[contenteditable='true']": "stopInlineEdit",
+			"keydown .body[contenteditable='true']": "onInlineEdit",
+			"dblclick .chatMessage.me": "beginInlineEdit"
 		},
 
         initialize: function (options) {
@@ -62,6 +65,55 @@ define(['jquery','backbone', 'underscore','regex','moment',
 
         	this.render();
         	this.attachEvents();
+        },
+
+        beginInlineEdit: function (ev) {
+        	var $chatMessage = $(ev.target).parents(".chatMessage"),
+        		oldText = $chatMessage.find(".body").text().trim();
+
+        	// store the old text with the node
+        	$chatMessage.data('oldText', oldText);
+
+        	// make the entry editable
+        	$chatMessage.find(".body")
+        		.attr("contenteditable", "true")
+        		.focus();
+        },
+
+        stopInlineEdit: function (ev) {
+        	$(ev.target).removeAttr("contenteditable").blur();
+        },
+
+        onInlineEdit: function (ev) {
+        	if (ev.ctrlKey || ev.shiftKey) return; // we don't fire any events when these keys are pressed
+
+        	var $this = $(ev.target),
+        		$chatMessage = $this.parents(".chatMessage"),
+        		oldText = $chatMessage.data("oldText"),
+        		mID = $chatMessage.data("sequence");
+
+			switch (ev.keyCode) {
+				// enter:
+				case 13:
+					ev.preventDefault();
+					var userInput = $this.text().trim();
+
+					if (userInput !== oldText) {
+						window.events.trigger("edit:commit:" + this.room, {
+							mID: mID,
+							newText: userInput
+						});
+						this.stopInlineEdit(ev);
+					} else {
+						this.stopInlineEdit(ev);
+					}
+
+					break;
+				// escape
+				case 27:
+					this.stopInlineEdit(ev);
+					break;
+			}
         },
 
         render: function () {
@@ -204,8 +256,6 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				// put youtube linsk on the side:
 				var youtubes;
 				if (youtubes = body.match(REGEXES.urls.youtube)) {
-					console.debug(body);
-					console.debug(youtubes);
 					for (var i = 0, l = youtubes.length; i < l; i++) {
 						var src = makeYoutubeURL(youtubes[i]),
 							yt = self.youtubeTemplate({
@@ -297,7 +347,6 @@ define(['jquery','backbone', 'underscore','regex','moment',
 
 		insertChatMessage: function (opts) {
 			// insert msg into the correct place in history
-			DEBUG && console.log("Inserting chat message", opts);
 			var $chatMessage = $(opts.html);
 			var $chatlog = $(".messages", this.$el);
 			if (opts.timestamp) {
@@ -318,14 +367,11 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				var $target = $(".chatlog .chatMessage[rel='"+ candidate +"']", this.$el);
 
 				if ($target.length) { // it was in the DOM, so we can insert the current message after it
-					DEBUG && console.log('target found');
 					$target.last().after($chatMessage); // .last() just in case there can be more than one.... it seems this may have happened once, hopefully by glitch alone
 				} else { // it was the first message OR something went wrong
-					DEBUG && console.log('something went wrong');
 					$chatlog.append($chatMessage);
 				}
 			} else { // if there was no timestamp, assume it's a diagnostic message of some sort that should be displayed at the most recent spot in history
-				DEBUG && console.log("not timestamp");
 				$chatlog.append($chatMessage);
 			}
 			if (OPTIONS['auto_scroll']){
