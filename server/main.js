@@ -16,6 +16,7 @@ var express = require('express'),
 	chatServer = require('./ChatServer.js').ChatServer,
 	codeServer = require('./CodeServer.js').CodeServer,
 	drawServer = require('./DrawingServer.js').DrawingServer,
+	callServer = require('./CallServer.js').CallServer,
 	ROOT_FOLDER = path.dirname(__dirname),
 	PUBLIC_FOLDER = ROOT_FOLDER + '/public',
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
@@ -73,4 +74,5 @@ redisC.select(15, function (err, reply) {
 	chatServer(sio, redisC, EventBus, Channels, ChannelModel); // start up the chat server
 	codeServer(sio, redisC, EventBus, Channels); // start up the code server
 	drawServer(sio, redisC, EventBus, Channels); // start up the code server
+	callServer(sio, redisC, EventBus, Channels);
 });
