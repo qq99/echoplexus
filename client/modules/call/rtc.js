@@ -182,6 +182,7 @@ define(['underscore'],function(_) {
       });
       var socketEvents = {
         'get_peers': function(data){
+          console.log('recieved peers');
           rtc.connections = data.connections;
           rtc._me = data.you;
           if (rtc.offerSent) { // 'ready' was fired before 'get_peers'
@@ -194,13 +195,18 @@ define(['underscore'],function(_) {
           rtc.fire('connections', rtc.connections);
         },
         'receive_ice_candidate': function(data) {
+
+          console.log('recieved ICE');
           var candidate = new nativeRTCIceCandidate(data);
-          rtc.peerConnections[data.socketId].addIceCandidate(candidate);
+          rtc.peerConnections[data.id].addIceCandidate(candidate);
           rtc.fire('receive ice candidate', candidate);
         },
 
         'new_peer_connected': function(data) {
-          var id = data.socketId;
+
+          console.log('New Peer');
+          console.log(rtc.streams.length);
+          var id = data.id;
           rtc.connections.push(id);
           delete rtc.offerSent;
 
@@ -212,7 +218,7 @@ define(['underscore'],function(_) {
         },
 
         'remove_peer_connected':function(data) {
-          var id = data.socketId;
+          var id = data.id;
           rtc.fire('disconnect stream', id);
           if (typeof(rtc.peerConnections[id]) !== 'undefined')
               rtc.peerConnections[id].close();
@@ -222,11 +228,15 @@ define(['underscore'],function(_) {
         },
 
         'receive_offer': function(data) {
-          rtc.receiveOffer(data.socketId, data.sdp);
+
+          console.log('recieved Offer');
+          rtc.receiveOffer(data.id, data.sdp);
           rtc.fire('receive offer', data);
         },
         'receive_answer': function(data) {
-          rtc.receiveAnswer(data.socketId, data.sdp);
+
+          console.log('recieved Answer');
+          rtc.receiveAnswer(data.id, data.sdp);
           rtc.fire('receive answer', data);
         }
       };
@@ -291,7 +301,7 @@ define(['underscore'],function(_) {
     this.connect = function() {
       rtc._socket.emit('subscribe',{
         room: rtc._room
-      });
+      },function(){ rtc.fire('post subscribe'); });
     };
 
 
@@ -322,25 +332,24 @@ define(['underscore'],function(_) {
       var pc = rtc.peerConnections[id] = new PeerConnection(rtc.SERVER(), config);
       pc.onicecandidate = function(event) {
         if (event.candidate) {
-          rtc._socket.send(JSON.stringify({
-            "eventName": "send_ice_candidate",
-            "data": {
-              "label": event.candidate.sdpMLineIndex,
-              "candidate": event.candidate.candidate,
-              "socketId": id
-            }
-          }));
+          rtc._socket.emit("send_ice_candidate:" + rtc._room,{
+            "label": event.candidate.sdpMLineIndex,
+            "candidate": event.candidate.candidate,
+            "id": id
+          });
         }
         rtc.fire('ice candidate', event.candidate);
       };
 
       pc.onopen = function() {
         // TODO: Finalize this API
+        console.log('stream opened');
         rtc.fire('peer connection opened');
       };
 
       pc.onaddstream = function(event) {
         // TODO: Finalize this API
+        console.log('remote stream added');
         rtc.fire('add remote stream', event.stream, id);
       };
 
@@ -376,13 +385,10 @@ define(['underscore'],function(_) {
       pc.createOffer(function(session_description) {
         session_description.sdp = preferOpus(session_description.sdp);
         pc.setLocalDescription(session_description);
-        rtc._socket.send(JSON.stringify({
-          "eventName": "send_offer",
-          "data": {
-            "socketId": socketId,
-            "sdp": session_description
-          }
-        }));
+        rtc._socket.send("send_offer:"+rtc._room,{
+          "id": socketId,
+          "sdp": session_description
+        });
       }, null, sdpConstraints);
     };
 
@@ -396,13 +402,10 @@ define(['underscore'],function(_) {
       pc.setRemoteDescription(new nativeRTCSessionDescription(sdp));
       pc.createAnswer(function(session_description) {
         pc.setLocalDescription(session_description);
-        rtc._socket.send(JSON.stringify({
-          "eventName": "send_answer",
-          "data": {
-            "socketId": socketId,
-            "sdp": session_description
-          }
-        }));
+        rtc._socket.send("send_answer:"+rtc._room,{
+          "id": socketId,
+          "sdp": session_description
+        });
         //TODO Unused variable!?
         var offer = pc.remoteDescription;
       }, null, sdpConstraints);

@@ -24,13 +24,6 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
             if (!PeerConnection)
                 alert('Your browser is not supported or you have to turn on flags. In chrome you go to chrome://flags and turn on Enable PeerConnection remember to restart chrome');
             this.attachEvents();
-            this.socket.emit("subscribe",{
-                room: this.channelName
-            },this.postSubscribe);
-            //this.listen();
-        },
-        postSubscribe: function(){
-
         },
         attachEvents: function(){
             var self = this;
@@ -55,6 +48,8 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
                 //rtc.attachStream(stream, 'you');
                 //subdivideVideos();
             });
+            
+            this.listen();
         },
         listen: function(){
             this.rtc.listen(this.socket, this.channelName);
