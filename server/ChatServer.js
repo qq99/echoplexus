@@ -231,11 +231,12 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			},
 			"chat:edit": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name"),
-					mID = data.mID,
+					mID = parseInt(data.mID, 10),
 					newBody = data.body,
 					alteredMsg;
 
-				if (_.indexOf(client.mIDs, mID)) {
+				console.log(client.mIDs, mID);
+				if (_.indexOf(client.mIDs, mID) !== -1) {
 					// get the pure message
 					redisC.hget("chatlog:" + room, mID, function (err, reply) {
 						if (err) throw err;

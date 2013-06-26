@@ -4,7 +4,7 @@ define(['underscore'],function(_){
 	return function(opts) {
 		"use strict";
 		var latestID = -Infinity,
-			LOG_VERSION = "0.0.1", // update if the server-side changes
+			LOG_VERSION = "0.0.2", // update if the server-side changes
 			log = [], // should always be sorted by timestamp
 			options = {
 				namespace: "default",
