@@ -171,6 +171,7 @@ exports.ChannelStructures = function (redisC, EventBus) {
 					DEBUG && console.log("authSucc", channelName, socket.id);
 
 					client.set("authenticated", true);
+					client.trigger("change:authenticated",client);
 					// console.log(client.get("authenticated"));
 					// socket.join(channelName);
 					// EventBus.trigger("authentication:success", {
