@@ -231,7 +231,10 @@ define(function(require,exports,module){
             }
         });
 
-
+        // fire an event that signals we're no longer idle
+        $(window).on("keydown mousemove", function () {
+            window.events.trigger("unidle");
+        });
 
 
         /*

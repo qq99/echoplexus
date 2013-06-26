@@ -117,10 +117,13 @@ define(['jquery','underscore','backbone','client','regex',
 				//Resend the subscribe event
 				self.socket.emit("subscribe", {
 					room: self.channelName
-				}, self.postSubscribe);
-				if (self.me.get('idle')){
-					self.me.inactive("", self.channelName, self.socket);
-				}
+				}, function () { // server acks and we:
+					// if we were idle on reconnect, report idle immediately after ack
+					if (self.me.get('idle')){
+						self.me.inactive("", self.channelName, self.socket);
+					}
+					self.postSubscribe();
+				});
 			});
 		},
 
@@ -142,6 +145,9 @@ define(['jquery','underscore','backbone','client','regex',
 			$.when(this.autoNick()).done(function () {
 				self.autoIdent();
 			});
+
+			// start the countdown for idle
+			this.startIdleTimer();
 		},
 
 		autoNick: function () {
@@ -331,11 +337,10 @@ define(['jquery','underscore','backbone','client','regex',
 		},
 		attachEvents: function () {
 			var self = this;
-			$("body").on("chatSectionActive",function(){
-				self.show();
-			});
 
-			$(window).on("keydown mousemove", function () {
+
+
+			window.events.on("unidle", function () {
 				if (self.$el.is(":visible")) {
 					if (self.me) {
 						self.me.active(self.channelName, self.socket);
@@ -344,8 +349,6 @@ define(['jquery','underscore','backbone','client','regex',
 					}
 				}
 			});
-
-			this.startIdleTimer();
 
 			window.events.on("beginEdit:" + this.channelName, function (data) {
 				var mID = data.mID,
