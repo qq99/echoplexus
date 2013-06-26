@@ -61,7 +61,6 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
     CallServer.start({
         error: function (err, socket, channel, client) {
-            console.log('ERROR');
             if (err) {
                 console.log("CallServer: ", err);
                 return;
@@ -75,7 +74,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
             });
             // send new peer a list of all prior peers
             socket.in(room).emit("get_peers",{
-                "connections": connectionsId,
+                //"connections": channel.clients.,
                 "you": client.get('id')
             });
         }
