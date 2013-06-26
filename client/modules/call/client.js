@@ -8,7 +8,7 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
             _.bindAll(this);
             this.channel = opts.channel;
             this.channelName = opts.room;
-            this.socket = io.connect('/call');
+            this.socket = io.connect("/call");
             this.config = opts.config;
             this.rtc = new RTC();
             this.render();
@@ -24,7 +24,13 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
             if (!PeerConnection)
                 alert('Your browser is not supported or you have to turn on flags. In chrome you go to chrome://flags and turn on Enable PeerConnection remember to restart chrome');
             this.attachEvents();
-            this.listen();
+            this.socket.emit("subscribe",{
+                room: this.channelName
+            },this.postSubscribe);
+            //this.listen();
+        },
+        postSubscribe: function(){
+
         },
         attachEvents: function(){
             var self = this;
