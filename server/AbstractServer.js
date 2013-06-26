@@ -72,8 +72,6 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 		if (!this.initialized) {
 			throw new Error("Server not yet initialized");
 		}
-
-		console.log(this.SERVER_NAMESPACE);
 		this.serverInstance = sio.of(this.SERVER_NAMESPACE).on('connection', function (socket) {
 			socket.on("subscribe", function (data, subscribeAck) {
 				var channelName = data.room,
