@@ -1,5 +1,8 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Initial WebRTC implementation, still broken
 var PeerConnection = window.PeerConnection || window.webkitPeerConnection00 || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
 define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], function (RTC, callPanelTemplate) {
     return Backbone.View.extend({
@@ -134,6 +137,4 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
             });
         }
     });
-
-
 });
