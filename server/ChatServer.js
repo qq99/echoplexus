@@ -17,7 +17,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 	var DEBUG = config.DEBUG;
 
-	function createEditingToken(room, client) {
+	function setIdentityToken(room, client) {
 		var token,
 			nick = client.get("nick");
 
@@ -37,7 +37,26 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			}
 		});
 	}
+	function updatePersistedMessage(room, mID, newMessage, callback) {
+		var mID = parseInt(mID, 10),
+			newBody = newMessage.body,
+			alteredMsg;
 
+		// get the pure message
+		redisC.hget("chatlog:" + room, mID, function (err, reply) {
+			if (err) throw err;
+
+			alteredMsg = JSON.parse(reply); // parse it
+			alteredMsg.body = newBody; // alter it
+
+			// overwrite the old message with the altered chat message
+			redisC.hset("chatlog:" + room, mID, JSON.stringify(alteredMsg), function (err, reply) {
+				if (err) throw err;
+
+				callback(null, alteredMsg);
+			});
+		});
+	}
 	function urlRoot(){
 		if (config.host.USE_PORT_IN_URL) {
 			return config.host.SCHEME + "://" + config.host.FQDN + ":" + config.host.PORT + "/";
@@ -232,27 +251,24 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"chat:edit": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name"),
 					mID = parseInt(data.mID, 10),
-					newBody = data.body,
-					alteredMsg;
-
-				console.log(client.mIDs, mID);
-				if (_.indexOf(client.mIDs, mID) !== -1) {
-					// get the pure message
-					redisC.hget("chatlog:" + room, mID, function (err, reply) {
+					editResultCallback = function (err, msg) {
 						if (err) throw err;
 
-						alteredMsg = JSON.parse(reply); // parse it
-						alteredMsg.body = newBody; // alter it
+						socket.in(room).broadcast.emit('chat:edit:' + room, msg);
+						socket.in(room).emit('chat:edit:' + room, _.extend(msg, {
+							you: true
+						}));
+					};
 
-						// store the altered chat message
-						redisC.hset("chatlog:" + room, mID, JSON.stringify(alteredMsg), function (err, reply) {
-							if (err) throw err;
+				if (_.indexOf(client.mIDs, mID) !== -1) {
+					updatePersistedMessage(room, mID, data, editResultCallback);
+				} else { // attempt to use the client's identity token, if it exists & if it matches the one stored with the chatlog object
+					redisC.hget("chatlog:identity_tokens:" + room, mID, function (err, reply) {
+						if (err) throw err;
 
-							socket.in(room).broadcast.emit('chat:edit:' + room, alteredMsg);
-							socket.in(room).emit('chat:edit:' + room, _.extend(alteredMsg, {
-								you: true
-							}));
-						});
+						if (client.identity_token === reply) {
+							updatePersistedMessage(room, mID, data, editResultCallback);
+						}
 					});
 				}
 			},
@@ -481,6 +497,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 											class: "identity",
 											body: "You are now identified for " + nick
 										}, room));
+										setIdentityToken(room, client);
 										publishUserList(channel);
 									}
 								});
@@ -515,6 +532,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 									redisC.hset("passwords:" + room, nick, derivedKey.toString(), function (err, reply) {
 										if (err) throw err;
 									});
+
+									setIdentityToken(room, client);
 
 									client.set("identified", true);
 									socket.in(room).emit('chat:' + room, serverSentMessage({
