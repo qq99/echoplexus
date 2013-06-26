@@ -40,6 +40,7 @@ Currently Supported Commands:
 - `/pull [N]`: Sync the N latest chat messages that you've missed while you weren't connected to the channel.  Currently, maximum is set to 100 for UI responsiveness until a more efficient rendering method is added.
 - `[partial nickname]+<TABKEY>`: Autocompletes (based on L-Distance) to the name of somebody in the channel
 - `/color [#FFFFFF]`: Supply a 6-digit hex code with or without the `#`, and change your nickname's color
+- `/edit #[integer] [new body text]`: Changes the body text of a specific message to something else.  Useful for correcting typos and censoring yourself.  Only usable for messages you've posted while identified as the user that sent the chat message.  Also usable any time within the same browser session if not identified (e.g., Anonymous users can edit their own chats until they disconnect).
 
 Nickname registrations are considered on a per-channel basis to increase the available nickspace for all users.
 

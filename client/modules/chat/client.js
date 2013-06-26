@@ -11,6 +11,7 @@ define(['jquery','underscore','backbone','client','regex',
 		ClientModel = Client.ClientModel,
 		ClientsCollection = Client.ClientsCollection,
 		REGEXES = Regex.REGEXES;
+
 	return Backbone.View.extend({
 		className: "chatChannel",
 		template: _.template(chatpanelTemplate),
@@ -68,6 +69,13 @@ define(['jquery','underscore','backbone','client','regex',
 			this.on("show", this.show);
 			this.on("hide", this.hide);
 
+		},
+
+		events: {
+			"click button.syncLogs": "activelySyncLogs",
+			"click button.deleteLocalStorage": "deleteLocalStorage",
+			"click button.clearChatlog": "clearChatlog",
+			"keydown .chatinput textarea": "handleChatInputKeydown"
 		},
 
 		show: function(){
@@ -130,8 +138,6 @@ define(['jquery','underscore','backbone','client','regex',
 		postSubscribe: function (data) {
 			var self = this;
 			
-			DEBUG && console.log("Subscribed", self.channelName);
-
 			// attempt to automatically /nick and /ident
 			$.when(this.autoNick()).done(function () {
 				self.autoIdent();
@@ -142,7 +148,6 @@ define(['jquery','underscore','backbone','client','regex',
 			var acked = $.Deferred();
 			var storedNick = $.cookie("nickname:" + this.channelName);
 			if (storedNick) {
-				DEBUG && console.log("Auto-nicking", this.channelName, storedNick);
 				this.me.setNick(storedNick, this.channelName, acked);
 			} else {
 				acked.reject();
@@ -167,7 +172,6 @@ define(['jquery','underscore','backbone','client','regex',
 			// explicitly with a success event if it is so
 			var storedAuth = $.cookie("channel_pw:" + this.channelName);
 			if (storedAuth) {
-				DEBUG && console.log("Auto-authing", this.channelName, storedAuth);
 				this.me.channelAuth(storedAuth, this.channelName);
 			}
 		},
@@ -195,9 +199,6 @@ define(['jquery','underscore','backbone','client','regex',
 					}
 				}
 
-				// alter the message:
-				DEBUG && console.log("@me", msg.body);
-
 				if (this.channel.isPrivate) {
 					// display more privacy-minded notifications for private channels
 					notifications.notify({
@@ -213,7 +214,7 @@ define(['jquery','underscore','backbone','client','regex',
 						tag: "chatMessage"
 					});
 				}
-				msg.directedAtMe = true;
+				msg.directedAtMe = true; // alter the message
 			}
 			
 			if (msg.type !== "SYSTEM") { // count non-system messages as chat activity
@@ -237,17 +238,14 @@ define(['jquery','underscore','backbone','client','regex',
 		listen: function () {
 			var self = this,
 				socket = this.socket;
-			DEBUG && console.log(self.channelName, "binding socket listeners");
 
 			this.socketEvents = {
 				"chat": function (msg) {
-					DEBUG && console.log("onChat:", self.channelName, msg);
 					window.events.trigger("message",socket,self,msg);
 					switch (msg.class) {
 						case "join":
 							var newClient = new ClientModel(msg.client);
 							self.channel.clients.add(newClient);
-							DEBUG && console.log("users now contains", self.channel.clients);
 							break;
 						case "part":
 							self.channel.clients.remove(msg.id);
@@ -269,8 +267,6 @@ define(['jquery','underscore','backbone','client','regex',
 					}
 				},
 				"private_message": function (msg) {
-					DEBUG && console.log("private_message:", self.channelName, msg);
-
 					msg = self.checkToNotify(msg);
 
 					self.persistentLog.add(msg);
@@ -284,25 +280,21 @@ define(['jquery','underscore','backbone','client','regex',
 					self.postSubscribe();
 				},
 				"chat:idle": function (msg) {
-					DEBUG && console.log(msg);
 					$(".user[rel='"+ msg.id +"']", self.$el).append("<span class='idle' data-timestamp='" + Number(new Date()) +"'>Idle</span>");
 				},
 				"chat:unidle": function (msg) {
 					$(".user[rel='"+ msg.id +"'] .idle", self.$el).remove();
 				},
 				"chat:edit": function (msg) {
-					window.events.trigger("message",socket,self,msg);
+					msg = self.checkToNotify(msg); // the edit might have been to add a "@nickname", so check again to notify
 
-					msg = self.checkToNotify(msg);
-
-					self.persistentLog.replaceMessage(msg);
-					self.chatLog.replaceChatMessage(msg);
+					self.persistentLog.replaceMessage(msg); // replace the message with the edited version in local storage
+					self.chatLog.replaceChatMessage(msg); // replace the message with the edited version in the chat log
 				},
 				"client:id": function (msg) {
 					self.me.set("id", msg.id);
 				},
 				"userlist": function (msg) {
-					DEBUG && console.log("userlist",msg);
 					// update the pool of possible autocompletes
 					self.autocomplete.setPool(_.map(msg.users, function (user) {
 						return user.nick;
@@ -311,7 +303,6 @@ define(['jquery','underscore','backbone','client','regex',
 
 					self.chatLog.renderUserlist(self.channel.clients);
 
-					DEBUG && console.log("and stored users are", self.channel.clients);
 				},
 				"chat:currentID": function (msg) {
 					var missed;
@@ -343,71 +334,6 @@ define(['jquery','underscore','backbone','client','regex',
 			$("body").on("chatSectionActive",function(){
 				self.show();
 			});
-			this.$el.on("keydown", ".chatinput textarea", function (ev) {
-				if (ev.ctrlKey || ev.shiftKey) return; // we don't fire any events when these keys are pressed
-				
-				var $this = $(this);
-				switch (ev.keyCode) {
-					// enter:
-					case 13:
-						ev.preventDefault();
-						var userInput = $this.val();
-						self.scrollback.add(userInput);
-
-						if (userInput.match(REGEXES.commands.join)) { // /join [channel_name]
-							channelName = userInput.replace(REGEXES.commands.join, "").trim();
-							window.events.trigger('joinChannel', channelName);
-						} else {
-							self.me.speak({
-								body: userInput,
-								room: self.channelName
-							}, self.socket);
-						}
-
-						$this.val("");
-						self.scrollback.reset();
-						break;
-					// up:
-					case 38:
-						$this.val(self.scrollback.prev());
-						break;
-					// down
-					case 40:
-						$this.val(self.scrollback.next());
-						break;
-					// escape
-					case 27:
-						self.scrollback.reset();
-						$this.val("");
-						break;
-					 // tab key
-					case 9:
-						ev.preventDefault();
-						var flattext = $(this).val();
-
-						// don't continue to append auto-complete results on the end
-						if (flattext.length >= 1 && 
-							flattext[flattext.length-1] === " ") {
-							
-							return;
-						}
-
-						var text = flattext.split(" ");
-						var stub = text[text.length - 1];				
-						var completion = self.autocomplete.next(stub);
-
-						if (completion !== "") {
-							text[text.length - 1] = completion;
-						}
-						if (text.length === 1) {
-							text[0] = text[0];
-						}
-
-						$(this).val(text.join(" "));
-						break;
-				}
-
-			});
 
 			$(window).on("keydown mousemove", function () {
 				if (self.$el.is(":visible")) {
@@ -420,28 +346,6 @@ define(['jquery','underscore','backbone','client','regex',
 			});
 
 			this.startIdleTimer();
-
-			this.$el.on("click", "button.syncLogs", function (ev) {
-				ev.preventDefault();
-				var missed = self.persistentLog.getMissingIDs(25);
-				if (missed && missed.length) {
-					self.socket.emit("chat:history_request:" + self.channelName, {
-					 	requestRange: missed
-					});
-				}
-			});
-
-			this.$el.on("click", "button.deleteLocalStorage", function (ev) {
-				ev.preventDefault();
-				self.persistentLog.destroy();
-				self.chatLog.clearChat(); // visually reinforce to the user that it deleted them by clearing the chatlog
-				self.chatLog.clearMedia(); // "
-			});
-
-			this.$el.on("click", "button.clearChatlog", function (ev) {
-				ev.preventDefault();
-				self.chatLog.clearChat();
-			});
 
 			window.events.on("beginEdit:" + this.channelName, function (data) {
 				var mID = data.mID,
@@ -457,10 +361,93 @@ define(['jquery','underscore','backbone','client','regex',
 			});
 		},
 
+		handleChatInputKeydown: function (ev) {
+			if (ev.ctrlKey || ev.shiftKey) return; // we don't fire any events when these keys are pressed
+
+			var $this = $(ev.target);
+			switch (ev.keyCode) {
+				// enter:
+				case 13:
+					ev.preventDefault();
+					var userInput = $this.val();
+					this.scrollback.add(userInput);
+
+					if (userInput.match(REGEXES.commands.join)) { // /join [channel_name]
+						channelName = userInput.replace(REGEXES.commands.join, "").trim();
+						window.events.trigger('joinChannel', channelName);
+					} else {
+						this.me.speak({
+							body: userInput,
+							room: this.channelName
+						}, this.socket);
+					}
+
+					$this.val("");
+					this.scrollback.reset();
+					break;
+				// up:
+				case 38:
+					$this.val(this.scrollback.prev());
+					break;
+				// down
+				case 40:
+					$this.val(this.scrollback.next());
+					break;
+				// escape
+				case 27:
+					this.scrollback.reset();
+					$this.val("");
+					break;
+				 // tab key
+				case 9:
+					ev.preventDefault();
+					var flattext = $(this).val();
+
+					// don't continue to append auto-complete results on the end
+					if (flattext.length >= 1 &&
+						flattext[flattext.length-1] === " ") {
+
+						return;
+					}
+
+					var text = flattext.split(" ");
+					var stub = text[text.length - 1];
+					var completion = this.autocomplete.next(stub);
+
+					if (completion !== "") {
+						text[text.length - 1] = completion;
+					}
+					if (text.length === 1) {
+						text[0] = text[0];
+					}
+
+					$(this).val(text.join(" "));
+					break;
+			}
+		},
+
+		activelySyncLogs: function (ev) {
+			var missed = this.persistentLog.getMissingIDs(25);
+			if (missed && missed.length) {
+				this.socket.emit("chat:history_request:" + this.channelName, {
+				 	requestRange: missed
+				});
+			}
+		},
+
+		deleteLocalStorage: function (ev) {
+			this.persistentLog.destroy();
+			this.chatLog.clearChat(); // visually reinforce to the user that it deleted them by clearing the chatlog
+			this.chatLog.clearMedia(); // "
+		},
+
+		clearChatlog: function () {
+			this.chatLog.clearChat();
+		},
+
 		startIdleTimer: function () {
 			var self = this;
 			this.idleTimer = setTimeout(function () {
-				DEBUG && console.log("setting inactive");
 				if (self.me) {
 					self.me.inactive("", self.channelName, self.socket);
 				}
