@@ -889,6 +889,11 @@ $room-specific-height: 30px;
 	}
 }
 body {
+	&.suppress_identity_acknowledgements {
+		.chatMessage.identity.ack {
+			display:none;
+		}
+	}
 	&.suppress_join {
 		.chatMessage.join, .chatMessage.part {
 			display:none;

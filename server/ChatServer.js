@@ -147,12 +147,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			id: client.get("id")
 		});
 
-		// finally, announce to the client that he's now in the room
-		socket.in(room).emit("chat:" + room, serverSentMessage({
-			body: "Talking in channel '" + room + "'",
-			log: false
-		}, room));
-
 		publishUserList(channel);
 	}
 
@@ -235,12 +229,12 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 				client.set("nick", newName);
 				socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
-					class: "identity",
+					class: "identity ack",
 					body: prevName + " is now known as " + newName,
 					log: false
 				}, room));
 				socket.in(room).emit('chat:' + room, serverSentMessage({
-					class: "identity",
+					class: "identity ack",
 					body: "You are now known as " + newName,
 					log: false
 				}, room));
@@ -487,7 +481,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					redisC.sismember("users:" + room, nick, function (err, reply) {
 						if (!reply) {
 							socket.in(room).emit('chat:' + room, serverSentMessage({
-								class: "identity",
+								class: "identity err",
 								body: "There's no registration on file for " + nick
 							}, room));
 						} else {
@@ -506,18 +500,18 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 									if (derivedKey.toString() !== stored.password) { // FAIL
 										client.set("identified", false);
 										socket.in(room).emit('chat:' + room, serverSentMessage({
-											class: "identity",
+											class: "identity err",
 											body: "Wrong password for " + nick
 										}, room));
 										socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
-											class: "identity",
+											class: "identity err",
 											body: nick + " just failed to identify himself"
 										}, room));
 										publishUserList(channel);
 									} else { // ident'd
 										client.set("identified", true);
 										socket.in(room).emit('chat:' + room, serverSentMessage({
-											class: "identity",
+											class: "identity ack",
 											body: "You are now identified for " + nick
 										}, room));
 										setIdentityToken(room, client);

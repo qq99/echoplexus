@@ -142,6 +142,14 @@ define(['jquery','underscore','backbone','client','regex',
 		postSubscribe: function (data) {
 			var self = this;
 			
+			this.chatLog.renderChatMessage({
+				body: 'Connected. Now talking in channel ' + this.channelName,
+				type: 'SYSTEM',
+				timestamp: new Date().getTime(),
+				nickname: '',
+				class: 'client'
+			});
+
 			// attempt to automatically /nick and /ident
 			$.when(this.autoNick()).done(function () {
 				self.autoIdent();
