@@ -199,11 +199,13 @@ define(['jquery','underscore','backbone','client','regex',
 
 		checkToNotify: function (msg) {
 			// scan through the message and determine if we need to notify somebody that was mentioned:
+			var msgBody = msg.body.toLowerCase(),
+				myNick = this.me.get("nick"),
+				atMyNick = "@" + myNick;
 
 			// check to see if me.nick is contained in the msgme.
-			if (msg.body.toLowerCase().indexOf("@" + this.me.get("nick").toLowerCase()) !== -1) {
-
-				var strippedBody = msg.body.replace("@" + this.me.get("nick"), "");
+			if (msgBody.indexOf(atMyNick) !== -1 ||
+				msg.class === "private") {
 
 				// do not alter the message in the following circumstances:
 				if (msg.class) {
@@ -214,7 +216,7 @@ define(['jquery','underscore','backbone','client','regex',
 					}
 				}
 
-				if (this.channel.isPrivate) {
+				if (this.channel.isPrivate || msg.class === "private") {
 					// display more privacy-minded notifications for private channels
 					notifications.notify({
 						title: "echoplexus",
@@ -225,7 +227,7 @@ define(['jquery','underscore','backbone','client','regex',
 					// display a full notification for a public channel
 					notifications.notify({
 						title: msg.nickname + " says:",
-						body: strippedBody,
+						body: msg.body,
 						tag: "chatMessage"
 					});
 				}
