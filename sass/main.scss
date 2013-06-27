@@ -127,6 +127,15 @@ a {
   }
 }
 
+@include keyframes(border-pulse) {
+	100% {
+		border:1px solid #333;
+	}
+	0% {
+		border:1px solid #ddd;
+	}
+}
+
 @include keyframes(wiggle) {
 	100% {
 		@include transform(rotate(0deg));
@@ -917,11 +926,10 @@ body {
 	@include transition(all 0.25s ease-in-out);
 	height:auto;
 	position:relative;
+	margin:0 0 0.25em 0;
 	&.fromlog {
 		opacity:0.5;
 	}
-	overflow: hidden;
-	margin:0 0 0.25em 0;
 	&:nth-child(2n) {
 		background:#2f2f2f;
 		background:rgba(100,100,127,0.1);
@@ -957,6 +965,14 @@ body {
 		width:100%;
 		padding-left:9em;
 		padding-right:8em;
+
+		border:1px solid transparent;
+		@include transition(all 1s ease-in-out);
+		&:focus {
+			@include animation(border-pulse 1.5s 1s linear infinite alternate);
+			border:1px solid #efefef;
+			outline:none;
+		}
 	}
 	.time {
 		color:#666;

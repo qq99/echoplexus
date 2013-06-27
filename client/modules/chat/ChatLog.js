@@ -44,7 +44,8 @@ define(['jquery','backbone', 'underscore','regex','moment',
         	var preferredAutoloadSetting;
 
         	_.bindAll(this);
-        	
+			this.scrollToLatest = _.debounce(this._scrollToLatest, 100); // if we're pulling a batch, do the scroll just once
+
         	if (!options.room) {
         		throw "No channel designated for the chat log";
         	}
@@ -207,10 +208,12 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			});
         },
 
-        scrollToLatest: function () {
-        	var latestMessage = $('.messages .chatMessage:last-child',this.$el)[0];
-			//Get the last message and scroll that into view
+        _scrollToLatest: function () { //Get the last message and scroll that into view
+        	// can't simply use last-child, since the last child may be display:none
+        	// if the user is hiding join/part
+        	var latestMessage = ($('.messages .chatMessage:visible',this.$el).last())[0]; // so we get all visible, then take the last of that
 			if (typeof latestMessage !== "undefined") {
+				console.log("not undefined");
 				latestMessage.scrollIntoView();
 			}
 		},
@@ -352,7 +355,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			if (opts.timestamp) {
 				var timestamps = _.map($(".messages .time", this.$el), function (ele) {
 					return $(ele).data("timestamp");
-				});
+				}); // assumed invariant: timestamps are in ascending order
 
 				var cur = opts.timestamp,
 					candidate = -1;
@@ -365,9 +368,12 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				}
 				// attempt to select this early message:
 				var $target = $(".chatlog .chatMessage[rel='"+ candidate +"']", this.$el);
-
 				if ($target.length) { // it was in the DOM, so we can insert the current message after it
-					$target.last().after($chatMessage); // .last() just in case there can be more than one.... it seems this may have happened once, hopefully by glitch alone
+					if (i === -1) {
+						$target.last().before($chatMessage); // .last() just in case there can be more than one $target
+					} else {
+						$target.last().after($chatMessage); // .last() just in case there can be more than one $target
+					}
 				} else { // it was the first message OR something went wrong
 					$chatlog.append($chatMessage);
 				}
