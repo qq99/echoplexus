@@ -34,8 +34,8 @@ define(['underscore'],function(_){
 					if (obj.log && obj.log === false) return; // don't store things we're explicitly ordered not to
 					if (obj.timestamp === false) return; // don't store things without a timestamp
 
-					if (obj.ID && obj.ID > latestID) { // keep track of highest so far
-						latestID = obj.ID;
+					if (obj.mID && obj.mID > latestID) { // keep track of highest so far
+						latestID = obj.mID;
 					}
 
 					// insert into the log
@@ -53,6 +53,7 @@ define(['underscore'],function(_){
 					window.localStorage.setObj("log:" + options.namespace, log);
 				},
 				destroy: function () {
+					log = [];
 					window.localStorage.setObj("log:" + options.namespace, null);
 				},
 				empty: function () {
@@ -70,7 +71,7 @@ define(['underscore'],function(_){
 				knownIDs: function () {
 					// compile a list of the message IDs we know about
 					var known = _.without(_.map(log, function (obj) {
-						return obj.ID;
+						return obj.mID;
 					}), undefined);
 
 					return known;
@@ -106,6 +107,7 @@ define(['underscore'],function(_){
 						from = latestID,
 						to = Math.max(latestID - sensibleMax, clientLatest + 1);
 
+					console.log(from, latestID - sensibleMax, clientLatest + 1);
 					// if the server is ahead of us
 					if (latestID > clientLatest) {
 						for (var i = from; i >= to; i--) {

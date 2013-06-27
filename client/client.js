@@ -83,8 +83,8 @@
 	function TokenBucket () {
 		// from: http://stackoverflow.com/questions/667508/whats-a-good-rate-limiting-algorithm
 
-		var rate = config.features.CHAT_RATE_LIMITING.rate, // unit: # messages
-			per  = config.features.CHAT_RATE_LIMITING.per, // unit: milliseconds
+		var rate = config.chat.rate_limiting.rate, // unit: # messages
+			per  = config.chat.rate_limiting.per, // unit: milliseconds
 			allowance = rate, // unit: # messages
 			last_check = Number(new Date()); // unit: milliseconds
 
@@ -140,8 +140,9 @@
 
 			// rate limit the client's chat, if it's enabled
 			if (config &&
-				config.features.CHAT_RATE_LIMITING &&
-				config.features.CHAT_RATE_LIMITING.enabled) {
+				config.chat &&
+				config.chat.rate_limiting &&
+				config.chat.rate_limiting.enabled) {
 				
 				this.tokenBucket = new TokenBucket();
 			}

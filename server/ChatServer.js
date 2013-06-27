@@ -47,6 +47,19 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			if (err) throw err;
 
 			alteredMsg = JSON.parse(reply); // parse it
+
+			// is it within an allowable time period?  if not set, allow it
+			if (config.chat &&
+				config.chat.edit &&
+				config.chat.edit.maximum_time_delta) {
+
+				var oldestPossible = Number(new Date()) - config.chat.edit.maximum_time_delta; // now - delta
+				if (alteredMsg.timestamp < oldestPossible) {
+					callback(new Error("Message too old to be edited"));
+				} // trying to edit something too far back in time
+			}
+
+
 			alteredMsg.body = newBody; // alter it
 
 			// overwrite the old message with the altered chat message
@@ -221,11 +234,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				}
 
 				client.set("nick", newName);
-				EventBus && EventBus.trigger("nickset." + socket.id, {
-					nick: newName,
-					color: client.get("color")
-				});
-
 				socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
 					class: "identity",
 					body: prevName + " is now known as " + newName,
@@ -249,10 +257,24 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				}, room));
 			},
 			"chat:edit": function (namespace, socket, channel, client, data) {
+				if (config.chat &&
+					config.chat.edit) {
+
+					if (!config.chat.edit.enabled) return;
+					if (!config.chat.edit.allow_unidentified && !client.get("identified")) return;
+				}
+
 				var room = channel.get("name"),
 					mID = parseInt(data.mID, 10),
 					editResultCallback = function (err, msg) {
-						if (err) throw err;
+						if (err) {
+							socket.in(room).emit('chat:' + room, serverSentMessage({
+								type: "SERVER",
+								body: err.message
+							}, room));
+
+							return;
+						}
 
 						socket.in(room).broadcast.emit('chat:edit:' + room, msg);
 						socket.in(room).emit('chat:edit:' + room, _.extend(msg, {
@@ -349,8 +371,9 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"chat": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
-				if (config.features.CHAT_RATE_LIMITING &&
-					config.features.CHAT_RATE_LIMITING.enabled) {
+				if (config.chat &&
+					config.chat.rate_limiting &&
+					config.chat.rate_limiting.enabled) {
 					
 					if (client.tokenBucket.rateLimit()) return;
 				}
@@ -397,7 +420,9 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 							you: true
 						}));
 
-						if (config.features.PHANTOMJS_SCREENSHOT) {
+						if (config.chat &&
+							config.chat.webshot_previews &&
+							config.chat.webshot_previews.enabled) {
 							// strip out other things the client is doing before we attempt to render the web page
 							var urls = data.body.replace(REGEXES.urls.image, "")
 												.replace(REGEXES.urls.youtube,"")
@@ -413,7 +438,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 										
 										DEBUG && console.log("Processing ", urls[i]);
 										// requires that the phantomjs-screenshot repo is a sibling repo of this one
-										var screenshotter = spawn(config.features.PHANTOMJS_PATH,
+										var screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
 											['../../phantomjs-screenshot/main.js', url, output],
 											{
 												cwd: __dirname
