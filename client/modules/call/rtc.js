@@ -169,7 +169,6 @@ define(['underscore'],function(_) {
     };
 
     this.listen = function(socket,room){
-      console.log('binding rtc events');
       rtc._room = room;
       rtc._socket = socket;
       socket.on('close',function(data){
@@ -183,6 +182,7 @@ define(['underscore'],function(_) {
       var socketEvents = {
         'get_peers': function(data){
           console.log('recieved peers');
+          console.log(data.connections);
           rtc.connections = data.connections;
           rtc._me = data.you;
           if (rtc.offerSent) { // 'ready' was fired before 'get_peers'
@@ -191,10 +191,10 @@ define(['underscore'],function(_) {
             rtc.addDataChannels();
             rtc.sendOffers();
           }
-          // fire connections event and pass peers
+          // fire connections event and partc.offerSentss peers
           rtc.fire('connections', rtc.connections);
         },
-        'receive_ice_candidate': function(data) {
+        'recieve_ice_candidate': function(data) {
 
           console.log('recieved ICE');
           var candidate = new nativeRTCIceCandidate(data);
@@ -227,13 +227,13 @@ define(['underscore'],function(_) {
           delete rtc.connections[id];
         },
 
-        'receive_offer': function(data) {
+        'recieve_offer': function(data) {
 
           console.log('recieved Offer');
           rtc.receiveOffer(data.id, data.sdp);
           rtc.fire('receive offer', data);
         },
-        'receive_answer': function(data) {
+        'recieve_answer': function(data) {
 
           console.log('recieved Answer');
           rtc.receiveAnswer(data.id, data.sdp);
@@ -306,6 +306,7 @@ define(['underscore'],function(_) {
 
 
     this.sendOffers = function() {
+      console.log('Sending offers');
       for (var i = 0, len = rtc.connections.length; i < len; i++) {
         var socketId = rtc.connections[i];
         rtc.sendOffer(socketId);
@@ -385,7 +386,7 @@ define(['underscore'],function(_) {
       pc.createOffer(function(session_description) {
         session_description.sdp = preferOpus(session_description.sdp);
         pc.setLocalDescription(session_description);
-        rtc._socket.send("send_offer:"+rtc._room,{
+        rtc._socket.emit("send_offer:"+rtc._room,{
           "id": socketId,
           "sdp": session_description
         });

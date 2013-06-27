@@ -71,7 +71,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
             });
             // send new peer a list of all prior peers
             socket.in(room).emit("get_peers:"+room,{
-                "connections": _.keys(rtc.clients),
+                "connections": _.without(_.keys(rtc.clients),client.get('id')),
                 "you": client.get('id')
             });
         }
