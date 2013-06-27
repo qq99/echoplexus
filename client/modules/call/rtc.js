@@ -123,6 +123,7 @@ define(['underscore'],function(_) {
 
     // Holds identity for the client.
     this._me = null;
+    this.connected = false;
 
     this.socketEvents = {};
 
@@ -182,7 +183,7 @@ define(['underscore'],function(_) {
         rtc.connections = {};
       });
       rtc.socketEvents = {
-        'get_peers': function(data){
+        "peers": function(data){
           console.log('recieved peers');
           console.log(data.connections);
           rtc.connections = data.connections;
@@ -196,7 +197,7 @@ define(['underscore'],function(_) {
           // fire connections event and partc.offerSentss peers
           rtc.fire('connections', rtc.connections);
         },
-        'recieve_ice_candidate': function(data) {
+        "ice_candidate": function(data) {
 
           console.log('recieved ICE');
           var candidate = new nativeRTCIceCandidate(data);
@@ -204,7 +205,7 @@ define(['underscore'],function(_) {
           rtc.fire('receive ice candidate', candidate);
         },
 
-        'new_peer_connected': function(data) {
+        "new_peer": function(data) {
 
           console.log('New Peer');
           console.log(rtc.streams.length);
@@ -219,7 +220,7 @@ define(['underscore'],function(_) {
           }
         },
 
-        'remove_peer_connected':function(data) {
+        "remove_peer":function(data) {
           console.log('peer left');
           var id = data.id;
           rtc.fire('disconnect stream', id);
@@ -230,13 +231,13 @@ define(['underscore'],function(_) {
           delete rtc.connections[_.indexOf(rtc.connections,id)];
         },
 
-        'recieve_offer': function(data) {
+        "offer": function(data) {
 
           console.log('recieved Offer');
           rtc.receiveOffer(data.id, data.sdp);
           rtc.fire('receive offer', data);
         },
-        'recieve_answer': function(data) {
+        "answer": function(data) {
 
           console.log('recieved Answer');
           rtc.receiveAnswer(data.id, data.sdp);
@@ -302,9 +303,8 @@ define(['underscore'],function(_) {
      * Connects to the websocket server.
      */
     this.connect = function() {
-      rtc._socket.emit('subscribe',{
-        room: rtc._room
-      },function(){ rtc.fire('post subscribe'); });
+      rtc._socket.emit('join:'+rtc._room,{},function(){ rtc.fire('post join'); });
+      this.connected = true;
     };
 
     this.disconnect = function(){
@@ -320,6 +320,7 @@ define(['underscore'],function(_) {
       rtc.dataChannels = {};
       rtc.connections = {};
       rtc.fire('disconnect');
+      this.connected = false;
     };
 
 
@@ -351,7 +352,7 @@ define(['underscore'],function(_) {
       var pc = rtc.peerConnections[id] = new PeerConnection(rtc.SERVER(), config);
       pc.onicecandidate = function(event) {
         if (event.candidate) {
-          rtc._socket.emit("send_ice_candidate:" + rtc._room,{
+          rtc._socket.emit("ice_candidate:" + rtc._room,{
             "label": event.candidate.sdpMLineIndex,
             "candidate": event.candidate.candidate,
             "id": id
@@ -404,7 +405,7 @@ define(['underscore'],function(_) {
       pc.createOffer(function(session_description) {
         session_description.sdp = preferOpus(session_description.sdp);
         pc.setLocalDescription(session_description);
-        rtc._socket.emit("send_offer:"+rtc._room,{
+        rtc._socket.emit("offer:"+rtc._room,{
           "id": socketId,
           "sdp": session_description
         });
@@ -421,7 +422,7 @@ define(['underscore'],function(_) {
       pc.setRemoteDescription(new nativeRTCSessionDescription(sdp));
       pc.createAnswer(function(session_description) {
         pc.setLocalDescription(session_description);
-        rtc._socket.emit("send_answer:"+rtc._room,{
+        rtc._socket.emit("answer:"+rtc._room,{
           "id": socketId,
           "sdp": session_description
         });
