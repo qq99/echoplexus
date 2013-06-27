@@ -107,7 +107,6 @@ define(['underscore'],function(_){
 						from = latestID,
 						to = Math.max(latestID - sensibleMax, clientLatest + 1);
 
-					console.log(from, latestID - sensibleMax, clientLatest + 1);
 					// if the server is ahead of us
 					if (latestID > clientLatest) {
 						for (var i = from; i >= to; i--) {
@@ -128,8 +127,6 @@ define(['underscore'],function(_){
 					}
 					known.unshift(-1); // a default element
 
-					// DEBUG && console.log("we know:", known);
-
 					// compile a list of message IDs we know nothing about:
 					var holes = [];
 					for (var i = known.length - 1; i > 0; i--) {
@@ -137,12 +134,10 @@ define(['underscore'],function(_){
 						for (var j = 1; j < diff; j++) {
 							holes.push(known[i] - j);
 							if (N && (holes.length === N)) { // only get N holes if we were requested to limit ourselves
-								DEBUG && console.log("we don't know:", holes);
 								return holes;
 							}
 						}
 					}
-					// DEBUG && console.log("we don't know:", holes);
 					return holes;
 				}
 			};

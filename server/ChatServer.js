@@ -124,7 +124,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		redisC.hget("channels:currentMessageID", room, function (err, reply) {
 			if (err) throw err;
 			socket.in(room).emit('chat:currentID:' + room, {
-				ID: reply,
+				mID: reply,
 				room: room
 			});
 		});
@@ -329,7 +329,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 				// only send a message if it has a body & is directed at someone
 				if (data.body && data.directedAt) {
-					data.id = client.get("id");
 					data.color = client.get("color").toRGB();
 					data.nickname = client.get("nick");
 					data.timestamp = Number(new Date());
@@ -379,7 +378,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				}
 
 				if (data.body) {
-					data.id = client.get("id");
 					data.color = client.get("color").toRGB();
 					data.nickname = client.get("nick");
 					data.timestamp = Number(new Date());

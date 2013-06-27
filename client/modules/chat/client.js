@@ -314,7 +314,7 @@ define(['jquery','underscore','backbone','client','regex',
 				"chat:currentID": function (msg) {
 					var missed;
 					
-					self.persistentLog.latestIs(msg.ID); // store the server's current sequence number
+					self.persistentLog.latestIs(msg.mID); // store the server's current sequence number
 
 					// find out only what we missed since we were last connected to this channel
 					missed = self.persistentLog.getListOfMissedMessages();
@@ -412,7 +412,7 @@ define(['jquery','underscore','backbone','client','regex',
 				 // tab key
 				case 9:
 					ev.preventDefault();
-					var flattext = $(this).val();
+					var flattext = $this.val();
 
 					// don't continue to append auto-complete results on the end
 					if (flattext.length >= 1 &&
@@ -432,7 +432,7 @@ define(['jquery','underscore','backbone','client','regex',
 						text[0] = text[0];
 					}
 
-					$(this).val(text.join(" "));
+					$this.val(text.join(" "));
 					break;
 			}
 		},
