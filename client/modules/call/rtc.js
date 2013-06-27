@@ -403,7 +403,7 @@ define(['underscore'],function(_) {
       pc.setRemoteDescription(new nativeRTCSessionDescription(sdp));
       pc.createAnswer(function(session_description) {
         pc.setLocalDescription(session_description);
-        rtc._socket.send("send_answer:"+rtc._room,{
+        rtc._socket.emit("send_answer:"+rtc._room,{
           "id": socketId,
           "sdp": session_description
         });
