@@ -49,6 +49,7 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
             }, function (stream) {
                 var you = $('#you',this.$el).get(0);
                 you.src = URL.createObjectURL(stream);
+                you.muted = true;
                 you.play();
                 //videos.push(document.getElementById('you'));
                 //rtc.attachStream(stream, 'you');
@@ -65,6 +66,7 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
                 console.log("ADDING REMOTE STREAM...");
                 var clone = self.cloneVideo('#you', socketId);
                 clone.attr("class", "");
+                clone.get(0).muted = false;
                 self.rtc.attachStream(stream, clone.get(0));
                 self.subdivideVideos();
             });
