@@ -21,27 +21,38 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
             this.on("show", function () {
                 DEBUG && console.log("call_client:show");
                 self.$el.show();
-                self.connect();
             });
             this.on("hide", function () {
                 DEBUG && console.log("call_client:hide");
                 self.$el.hide();
             });
+            this.listen();
             if (!PeerConnection)
                 alert('Your browser is not supported or you have to turn on flags. In chrome you go to chrome://flags and turn on Enable PeerConnection remember to restart chrome');
             this.attachEvents();
+            this.socket.emit('subscribe',{
+                room: this.channelName
+            });
         },
         attachEvents: function(){
             var self = this;
-            window.events.on('sectionActive:'+this.config.section,function(){
-                self.connect();
-            });
             $('.hang-up',this.$el).on('click',function(){
                 self.disconnect();
+                $('.join',this.$el).show();
+                $(this).hide();
             });
+            $('.join',this.$el).on('click',function(){
+                self.connect();
+                $('.hang-up',this.$el).show();
+                $(this).hide();
+            });
+            //On sectionactive, query for updates
+            window.events.on('sectionActive:' + this.config.section,function(){
+                self.socket.emit('update:'+this.channelName,{});
+            });
+
         },
         connect: function(){
-            var self = this;
             if(!this.$el.is(':visible')) return;
             this.rtc.createStream({
                 "video": {
@@ -58,13 +69,11 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
                 //rtc.attachStream(stream, 'you');
                 //subdivideVideos();
             });
-
-            this.listen();
+            this.rtc.connect();
         },
         listen: function(){
             var self = this;
             this.rtc.listen(this.socket, this.channelName);
-            this.rtc.connect();
             this.rtc.on('add remote stream', function(stream, socketId) {
                 console.log("ADDING REMOTE STREAM...");
                 var clone = self.cloneVideo('#you', socketId);
@@ -77,6 +86,17 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
                 console.log('remove ' + data);
                 self.removeVideo(data);
             });
+
+            this.socketEvents = {
+                "status": function(data){
+                    if(data.active) $('.join>.text').text('Join call');
+                    else $('.join>.text').text('Start call');
+                }
+            };
+            _.each(this.socketEvents, function (value, key) {
+                // listen to a subset of event
+                self.socket.on(key + ":" + self.channelName, value);
+            });
         },
         disconnect: function(){
             this.rtc.disconnect();
@@ -85,7 +105,11 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
             });
         },
         kill: function(){
+            var self = this;
             this.disconnect();
+            _.each(this.socketEvents, function (method, key) {
+                self.socket.removeAllListeners(key + ":" + self.channelName);
+            });
         },
         render: function () {
             this.$el.html(this.template());
