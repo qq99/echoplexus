@@ -328,6 +328,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					data.timestamp = Number(new Date());
 					data.type = "private";
 					data.class = "private";
+					data.identified = client.get("identified");
 
 					targetClients = channel.clients.where({nick: data.directedAt}); // returns an array
 					if (typeof targetClients !== "undefined" &&

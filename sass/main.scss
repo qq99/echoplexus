@@ -6,6 +6,7 @@
 
 $active-color: rgba(71,178,250,0.7);
 $pretty-font-family: 'Noto Sans', sans-serif;
+$timestamp-width: 8em;
 
 @mixin clearfix {
 
@@ -979,7 +980,7 @@ body {
 		position:absolute;
 		top:0;
 		right:0;
-		width:8em;
+		width:$timestamp-width;
 		text-align:right;
 	}
 
@@ -993,6 +994,14 @@ body {
 		text-overflow:ellipsis;
 		white-space:nowrap;
 		overflow:hidden;
+		.nick-decorators {
+			@include transition(all 0.5s ease-in-out);
+			padding:0.25em 0.5em;
+			position:absolute;
+			left:0;
+			top:0;
+			opacity:0;
+		}
 		&.system {
 			color:#CC2222;
 		}
@@ -1006,14 +1015,17 @@ body {
 	}
 	.message-options {
 		@include transition(opacity 0.5s ease-in-out);
+		right:$timestamp-width;
 		position:absolute;
 		top:0;
-		left:0;
 		opacity:0;
 		z-index:5;
 	}
 	&:hover {
 		.message-options {
+			opacity:1;
+		}
+		.nick-decorators {
 			opacity:1;
 		}
 	}

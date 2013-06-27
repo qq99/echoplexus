@@ -9,9 +9,11 @@
 	<div data-timestamp="<%= timestamp %>" class="time"><%- humanTime %></div>
 	<div class="nick <%= nickClasses %>" title="<%- nickname %>" style="color: <%= color %>">
 		<%- nickname %>
-		<% if (identified) { %>
-		<i class="icon-lock"></i>
-		<% } %>
+		<div class="nick-decorators">
+			<% if (identified) { %>
+			<i class="icon-lock ident yes"></i>
+			<% } %>
+		</div>
 	</div>
 	<div class="body">
 		<% if (isPrivateMessage) { %>
