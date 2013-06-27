@@ -14,7 +14,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
         name: "CallServer",
         SERVER_NAMESPACE: CALLSPACE,
         events: {
-            "unsubscribe": function (namespace, socket, channel, client, data) {
+            "leave": function (namespace, socket, channel, client, data) {
                 var room = channel.get("name");
                 socket.in(room).broadcast.emit("remove_peer_connected:"+room,{
                     id: client.get("id")

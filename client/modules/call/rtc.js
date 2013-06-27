@@ -124,6 +124,8 @@ define(['underscore'],function(_) {
     // Holds identity for the client.
     this._me = null;
 
+    this.socketEvents = {};
+
     // Holds callbacks for certain events.
     this._events = {};
 
@@ -171,15 +173,15 @@ define(['underscore'],function(_) {
     this.listen = function(socket,room){
       rtc._room = room;
       rtc._socket = socket;
-      socket.on('close',function(data){
-        var id = rtc._me;
-        if (typeof(rtc.peerConnections[id]) !== 'undefined')
-          rtc.peerConnections[id].close();
-        delete rtc.peerConnections[id];
-        delete rtc.dataChannels[id];
-        delete rtc.connections[id];
+      socket.on('disconnect',function(data){
+        _.each(rtc.peerConnections,function(connection){
+          connection.close();
+        });
+        rtc.peerConnections = {};
+        rtc.dataChannels = {};
+        rtc.connections = {};
       });
-      var socketEvents = {
+      rtc.socketEvents = {
         'get_peers': function(data){
           console.log('recieved peers');
           console.log(data.connections);
@@ -218,13 +220,14 @@ define(['underscore'],function(_) {
         },
 
         'remove_peer_connected':function(data) {
+          console.log('peer left');
           var id = data.id;
           rtc.fire('disconnect stream', id);
           if (typeof(rtc.peerConnections[id]) !== 'undefined')
               rtc.peerConnections[id].close();
           delete rtc.peerConnections[id];
           delete rtc.dataChannels[id];
-          delete rtc.connections[id];
+          delete rtc.connections[_.indexOf(rtc.connections,id)];
         },
 
         'recieve_offer': function(data) {
@@ -240,7 +243,7 @@ define(['underscore'],function(_) {
           rtc.fire('receive answer', data);
         }
       };
-      _.each(socketEvents, function (value, key) {
+      _.each(rtc.socketEvents, function (value, key) {
         // listen to a subset of event
         socket.on(key + ":" + room, value);
       });
@@ -302,6 +305,21 @@ define(['underscore'],function(_) {
       rtc._socket.emit('subscribe',{
         room: rtc._room
       },function(){ rtc.fire('post subscribe'); });
+    };
+
+    this.disconnect = function(){
+      rtc._socket.emit('leave:' + rtc._room,{});
+      _.each(rtc.socketEvents, function (method, key) {
+        rtc._socket.removeAllListeners(key + ":" + self.channelName);
+      });
+      _.each(rtc.peerConnections,function(connection,key){
+        connection.close();
+        rtc.fire('disconnect stream', id);
+      });
+      rtc.peerConnections = {};
+      rtc.dataChannels = {};
+      rtc.connections = {};
+      rtc.fire('disconnect');
     };
 
 

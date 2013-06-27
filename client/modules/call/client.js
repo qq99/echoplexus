@@ -11,7 +11,7 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
             this.socket = io.connect("/call");
             this.config = opts.config;
             this.rtc = new RTC();
-            this.videos = [];
+            this.videos = {};
             this.render();
             this.on("show", function () {
                 DEBUG && console.log("call_client:show");
@@ -30,6 +30,9 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
             var self = this;
             window.events.on('sectionActive:'+this.config.section,function(){
                 self.connect();
+            });
+            $('.hang-up',this.$el).on('click',function(){
+                self.disconnect();
             });
         },
         connect: function(){
@@ -70,14 +73,20 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
                 self.removeVideo(data);
             });
         },
+        disconnect: function(){
+            this.rtc.disconnect();
+            this.socket.emit('unsubscribe:'+this.channelName,{
+                room: this.channelName
+            });
+        },
         kill: function(){
-
+            this.disconnect();
         },
         render: function () {
             this.$el.html(this.template());
         },
         getNumPerRow: function () {
-            var len = this.videos.length;
+            var len = _.size(this.videos);
             var biggest;
 
             // Ensure length is even for better division.
@@ -93,18 +102,19 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
         },
 
         subdivideVideos: function () {
+            var videos = _.values(this.videos);
             var perRow = this.getNumPerRow();
             var numInRow = 0;
-            for (var i = 0, len = this.videos.length; i < len; i++) {
-                var video = this.videos[i];
-                this.setWH(video, i);
+            for (var i = 0, len = videos.length; i < len; i++){
+                var video = videos[i];
+                this.setWH(video, i,len);
                 numInRow = (numInRow + 1) % perRow;
             }
         },
 
-        setWH: function (video, i) {
+        setWH: function (video, i,len) {
             var perRow = this.getNumPerRow();
-            var perColumn = Math.ceil(this.videos.length / perRow);
+            var perColumn = Math.ceil(len / perRow);
             var width = Math.floor((window.innerWidth) / perRow);
             var height = Math.floor((window.innerHeight - 190) / perColumn);
             video.css({
@@ -118,16 +128,16 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
 
         cloneVideo: function (domID, clientID) {
             var video = $(domID,this.$el).clone().attr('id','remote'+clientID);
-            this.videos.push(video);
+            this.videos[clientID] = video;
             video.appendTo($('#videos',this.$el));
             return video;
         },
 
         removeVideo: function (id) {
-            var video = document.getElementById('remote' + socketId);
+            var video = this.videos[id];
             if (video) {
-                this.videos.splice(videos.indexOf(video), 1);
-                video.parentNode.removeChild(video);
+                video.remove();
+                delete this.videos[id];
             }
         },
         initFullScreen: function() {
