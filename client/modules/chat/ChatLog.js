@@ -37,7 +37,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			"click .chatMessage-edit": "beginEdit",
 			"blur .body[contenteditable='true']": "stopInlineEdit",
 			"keydown .body[contenteditable='true']": "onInlineEdit",
-			"dblclick .chatMessage.me": "beginInlineEdit"
+			"dblclick .chatMessage.me:not(.private)": "beginInlineEdit"
 		},
 
         initialize: function (options) {
