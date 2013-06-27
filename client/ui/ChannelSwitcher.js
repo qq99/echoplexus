@@ -39,6 +39,9 @@ define(['jquery','backbone','underscore','client', 'loader',
 			window.events.on('joinChannel',function(channel){
 				self.joinAndShowChannel(channel);
 			});
+			window.events.on('leaveChannel', function(channel){
+				self.leaveChannel(channel);
+			});
 			// show an input after clicking "+ Join Channel"
 			this.$el.on("click", ".join", function () {
 				var $input = $(this).siblings("input");
