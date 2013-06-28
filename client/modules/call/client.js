@@ -1,3 +1,4 @@
+
 var PeerConnection = window.PeerConnection || window.webkitPeerConnection00 || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
 define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], function (RTC, callPanelTemplate) {
     return Backbone.View.extend({
@@ -40,10 +41,6 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
                 self.connect();
                 $('.hang-up',this.$el).show();
                 $(this).hide();
-            });
-            //On sectionactive, query for updates
-            window.events.on('sectionActive:' + this.config.section,function(){
-                self.socket.emit('update:'+this.channelName,{});
             });
 
         },
