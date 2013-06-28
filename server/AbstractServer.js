@@ -123,8 +123,8 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 
 
 
-				client.on("change:authenticated", function (result) {
-					DEBUG && console.log("change:authenticated", server.name, client.cid, socket.id, result.attributes.authenticated);
+				client.on("authenticated", function (result) {
+					DEBUG && console.log("authenticated", server.name, client.cid, socket.id, result.attributes.authenticated);
 					if (result.attributes.authenticated) {
 						socket.join(namespace);
 						callback.success(namespace, socket, channel, client);
