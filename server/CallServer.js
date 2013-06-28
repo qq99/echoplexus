@@ -14,6 +14,11 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
         events: {
             "join": function(namespace,socket,channel,client,data){
                 var room = channel.get("name");
+                if(_.isEmpty(rtc)) {
+                    socket.in(room).broadcast.emit("status:"+room,{
+                        "active": true
+                    });
+                }
                 rtc[client.get('id')] = socket;
                 socket.in(room).broadcast.emit("new_peer:"+room,{
                     id: client.get('id')
@@ -30,6 +35,11 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
                     id: client.get("id")
                 });
                 delete rtc[client.get('id')];
+                if(_.isEmpty(rtc)) {
+                    socket.in(room).broadcast.emit("status:"+room,{
+                        "active": false
+                    });
+                }
             },
             "ice_candidate": function(namespace, socket, channel, client, data){
                 var room = channel.get("name");

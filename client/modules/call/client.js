@@ -42,10 +42,6 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
                 $('.hang-up',this.$el).show();
                 $(this).hide();
             });
-            //On sectionactive, query for updates
-            window.events.on('sectionActive:' + this.config.section,function(){
-                self.socket.emit('update:'+this.channelName,{});
-            });
 
         },
         connect: function(){
