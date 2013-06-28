@@ -74,7 +74,6 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 		}
 
 		this.serverInstance = sio.of(this.SERVER_NAMESPACE).on('connection', function (socket) {
-
 			socket.on("subscribe", function (data, subscribeAck) {
 				var channelName = data.room,
 					subchannel = data.subchannel,
@@ -123,7 +122,7 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 
 
 
-				client.on("authenticated", function (result) {
+				client.on("change:authenticated", function (result) {
 					DEBUG && console.log("authenticated", server.name, client.cid, socket.id, result.attributes.authenticated);
 					if (result.attributes.authenticated) {
 						socket.join(namespace);
@@ -138,11 +137,9 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 					} else {
 						socket.leave(namespace);
 					}
-				})
-
+				});
 				// attempt to authenticate on the chanenl
 				channel.authenticate(client, "", function (err, response) {
-
 					server.initializeClientEvents(namespace, socket, channel, client);
 
 					// let any implementing servers handle errors the way they like
