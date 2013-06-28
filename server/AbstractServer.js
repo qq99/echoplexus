@@ -2,7 +2,7 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 
 	var _ = require('underscore'),
 		config = require('./config.js').Configuration,
-		Client = require('../client/client.js').ClientModel,
+		Client = require('./client.js').ClientStructures(redisC, EventBus).ServerClient,
 		Clients = require('../client/client.js').ClientsCollection,
 		Channel = ChannelModel,
 		DEBUG = config.DEBUG;

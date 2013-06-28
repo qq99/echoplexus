@@ -17,6 +17,7 @@ var express = require('express'),
 	codeServer = require('./CodeServer.js').CodeServer,
 	drawServer = require('./DrawingServer.js').DrawingServer,
 	callServer = require('./CallServer.js').CallServer,
+	userServer = require('./UserServer.js').UserServer,
 	ROOT_FOLDER = path.dirname(__dirname),
 	PUBLIC_FOLDER = ROOT_FOLDER + '/public',
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
@@ -78,4 +79,5 @@ redisC.select(15, function (err, reply) {
 	codeServer(sio, redisC, EventBus, Channels); // start up the code server
 	drawServer(sio, redisC, EventBus, Channels); // start up the code server
 	callServer(sio, redisC, EventBus, Channels);
+	userServer(sio, redisC, EventBus, Channels);
 });

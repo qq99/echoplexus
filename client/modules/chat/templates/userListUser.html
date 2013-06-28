@@ -1,4 +1,4 @@
-<div class="user" rel="<%= cid %>">
+<div class="user" rel="<%= id %>">
 	<span class="nick" style="color: <%= color %>"><%- nick %></span>
 	<% if (identified) { %>
 		<span
@@ -17,6 +17,17 @@
 				<i class="icon-unlock-alt"></i>
 		</span>
 	<% } %>
+
+	<% if (me) { %>
+	<span class="edit-profile">
+		<i class='icon-user'></i>
+	</span>
+	<% } else { %>
+	<span class="view-profile">
+		<i class='icon-user'></i>
+	</span>
+	<% } %>
+
 	<% if (idle === true) { %>
 		<span class="idle" data-timestamp="<%= idleSince %>">
 			<span class="zzz">Z

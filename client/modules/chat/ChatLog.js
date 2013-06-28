@@ -37,7 +37,9 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			"click .chatMessage-edit": "beginEdit",
 			"blur .body[contenteditable='true']": "stopInlineEdit",
 			"keydown .body[contenteditable='true']": "onInlineEdit",
-			"dblclick .chatMessage.me:not(.private)": "beginInlineEdit"
+			"dblclick .chatMessage.me:not(.private)": "beginInlineEdit",
+			"click .edit-profile": "editProfile",
+			"click .view-profile": "viewProfile"
 		},
 
         initialize: function (options) {
@@ -50,6 +52,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
         		throw "No channel designated for the chat log";
         	}
         	this.room = options.room;
+        	this.me = options.me;
 
         	this.uniqueURLs = {};
 
@@ -409,21 +412,26 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				$userlist = $(".userlist .body", this.$el);
 
 			if (users) { // if we have users
+				// keep track of what the chat client tells us
+				this.knownUsers = users;
+
 				// clear out the userlist
 				$userlist.html("");
 				var userHTML = "";
 				var nActive = 0;
 				var total = 0;
+
 				_.each(users.models, function (user) {
 					// add him to the visual display
 					var userItem = self.userTemplate({
 						nick: user.get("nick"),
-						cid: user.cid,
+						id: user.id,
 						color: user.get("color").toRGB(),
 						identified: user.get("identified"),
 						idle: user.get("idle"),
 						idleSince: user.get("idleSince"),
-						inCall: user.get("inCall")
+						inCall: user.get("inCall"),
+						me: (user.get("id") === self.me.get("id"))
 					});
 					if (!user.get('idle')) {
 						nActive += 1;
@@ -438,6 +446,26 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			} else {
 				// there's always gonna be someone...
 			}
+		},
+
+		viewProfile: function (ev) {
+			var uID = $(ev.target).parents(".user").attr("rel");
+
+			window.events.trigger("view_profile", {
+				uID: uID,
+				room: this.room,
+				clients: this.knownUsers
+			});
+		},
+
+		editProfile: function (ev) {
+			var uID = $(ev.target).parents(".user").attr("rel");
+
+			window.events.trigger("edit_profile", {
+				uID: uID,
+				room: this.room,
+				clients: this.knownUsers
+			});
 		},
 
 		setTopic: function (msg) {

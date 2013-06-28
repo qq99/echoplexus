@@ -109,12 +109,18 @@
 	}
 
 	exports.ClientModel = Backbone.Model.extend({
+		supported_metadata: ["email", "website_url", "country_code", "gender"],
 		defaults: {
 			nick: "Anonymous",
 			identified: false,
 			idle: false,
 			isServer: false,
-			authenticated: false
+			authenticated: false,
+
+			email: null,
+			country_code: null,
+			gender: null,
+			website_url: null,
 		},
 		toJSON: function() {
 			var json = Backbone.Model.prototype.toJSON.apply(this, arguments);

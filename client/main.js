@@ -25,10 +25,12 @@ define(function(require,exports,module){
         key = require('keymaster'),
         ChannelSwitcher = require('ui/ChannelSwitcher'),
         Notifications = require('ui/Notifications');
+
     require('jquery.cookie');
     require('events');
     require('utility');
     var Tinycon = require('tinycon');
+    require('modules/user_info/UserData');
     $(document).ready(function () {
         // tooltip stuff:s
         $("body").on("mouseenter", ".tooltip-target", function(ev) {
