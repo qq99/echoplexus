@@ -4,7 +4,7 @@ define(['underscore'],function(_){
 	return function(opts) {
 		"use strict";
 		var latestID = -Infinity,
-			LOG_VERSION = "0.0.1", // update if the server-side changes
+			LOG_VERSION = "0.0.2", // update if the server-side changes
 			log = [], // should always be sorted by timestamp
 			options = {
 				namespace: "default",
@@ -34,8 +34,8 @@ define(['underscore'],function(_){
 					if (obj.log && obj.log === false) return; // don't store things we're explicitly ordered not to
 					if (obj.timestamp === false) return; // don't store things without a timestamp
 
-					if (obj.ID && obj.ID > latestID) { // keep track of highest so far
-						latestID = obj.ID;
+					if (obj.mID && obj.mID > latestID) { // keep track of highest so far
+						latestID = obj.mID;
 					}
 
 					// insert into the log
@@ -53,6 +53,7 @@ define(['underscore'],function(_){
 					window.localStorage.setObj("log:" + options.namespace, log);
 				},
 				destroy: function () {
+					log = [];
 					window.localStorage.setObj("log:" + options.namespace, null);
 				},
 				empty: function () {
@@ -70,10 +71,33 @@ define(['underscore'],function(_){
 				knownIDs: function () {
 					// compile a list of the message IDs we know about
 					var known = _.without(_.map(log, function (obj) {
-						return obj.ID;
+						return obj.mID;
 					}), undefined);
 
 					return known;
+				},
+				getMessage: function (byID) {
+					var start = log.length - 1;
+
+					for (var i = start; i > 0; i--) {
+						if (log[i].mID === byID) {
+							return log[i];
+						}
+					}
+					return null;
+				},
+				replaceMessage: function (msg) {
+					var start = log.length - 1;
+
+					for (var i = start; i > 0; i--) {
+						if (log[i].mID === msg.mID) {
+							log[i] = msg;
+
+							// presist to localStorage:
+							window.localStorage.setObj("log:" + options.namespace, log);
+							return;
+						}
+					}
 				},
 				getListOfMissedMessages: function () {
 					var known = this.knownIDs(),
@@ -103,8 +127,6 @@ define(['underscore'],function(_){
 					}
 					known.unshift(-1); // a default element
 
-					// DEBUG && console.log("we know:", known);
-
 					// compile a list of message IDs we know nothing about:
 					var holes = [];
 					for (var i = known.length - 1; i > 0; i--) {
@@ -112,12 +134,10 @@ define(['underscore'],function(_){
 						for (var j = 1; j < diff; j++) {
 							holes.push(known[i] - j);
 							if (N && (holes.length === N)) { // only get N holes if we were requested to limit ourselves
-								DEBUG && console.log("we don't know:", holes);
 								return holes;
 							}
 						}
 					}
-					// DEBUG && console.log("we don't know:", holes);
 					return holes;
 				}
 			};

@@ -73,7 +73,6 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 			throw new Error("Server not yet initialized");
 		}
 		this.serverInstance = sio.of(this.SERVER_NAMESPACE).on('connection', function (socket) {
-
 			socket.on("subscribe", function (data, subscribeAck) {
 				var channelName = data.room,
 					subchannel = data.subchannel,
@@ -121,8 +120,8 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 
 
 
-				client.on("change:authenticated", function (result) {
-					DEBUG && console.log("change:authenticated", server.name, client.cid, socket.id, result.attributes.authenticated);
+				client.once("authenticated", function (result) {
+					DEBUG && console.log("authenticated", server.name, client.cid, socket.id, result.attributes.authenticated);
 					if (result.attributes.authenticated) {
 						socket.join(namespace);
 						callback.success(namespace, socket, channel, client);
@@ -136,11 +135,9 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 					} else {
 						socket.leave(namespace);
 					}
-				})
-
+				});
 				// attempt to authenticate on the chanenl
 				channel.authenticate(client, "", function (err, response) {
-
 					server.initializeClientEvents(namespace, socket, channel, client);
 
 					// let any implementing servers handle errors the way they like

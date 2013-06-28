@@ -66,6 +66,7 @@ define(function(require,exports,module){
             "suppress_join": false,
             "highlight_mine": true,
             "suppress_client": false,
+            "suppress_identity_acknowledgements": false,
             "auto_scroll": true //autoscroll to new chat messages
         };
 
@@ -231,7 +232,10 @@ define(function(require,exports,module){
             }
         });
 
-
+        // fire an event that signals we're no longer idle
+        $(window).on("keydown mousemove", function () {
+            window.events.trigger("unidle");
+        });
 
 
         /*

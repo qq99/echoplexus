@@ -6,6 +6,7 @@
 
 $active-color: rgba(71,178,250,0.7);
 $pretty-font-family: 'Noto Sans', sans-serif;
+$timestamp-width: 8em;
 
 @mixin clearfix {
 
@@ -125,6 +126,15 @@ a {
   0% {
   	background:transparent;
   }
+}
+
+@include keyframes(border-pulse) {
+	100% {
+		border:1px solid #333;
+	}
+	0% {
+		border:1px solid #ddd;
+	}
 }
 
 @include keyframes(wiggle) {
@@ -889,6 +899,11 @@ $room-specific-height: 30px;
 	}
 }
 body {
+	&.suppress_identity_acknowledgements {
+		.chatMessage.identity.ack {
+			display:none;
+		}
+	}
 	&.suppress_join {
 		.chatMessage.join, .chatMessage.part {
 			display:none;
@@ -912,11 +927,10 @@ body {
 	@include transition(all 0.25s ease-in-out);
 	height:auto;
 	position:relative;
+	margin:0 0 0.25em 0;
 	&.fromlog {
 		opacity:0.5;
 	}
-	overflow: hidden;
-	margin:0 0 0.25em 0;
 	&:nth-child(2n) {
 		background:#2f2f2f;
 		background:rgba(100,100,127,0.1);
@@ -952,13 +966,21 @@ body {
 		width:100%;
 		padding-left:9em;
 		padding-right:8em;
+
+		border:1px solid transparent;
+		@include transition(all 1s ease-in-out);
+		&:focus {
+			@include animation(border-pulse 1.5s 1s linear infinite alternate);
+			border:1px solid #efefef;
+			outline:none;
+		}
 	}
 	.time {
 		color:#666;
 		position:absolute;
 		top:0;
 		right:0;
-		width:8em;
+		width:$timestamp-width;
 		text-align:right;
 	}
 
@@ -972,6 +994,14 @@ body {
 		text-overflow:ellipsis;
 		white-space:nowrap;
 		overflow:hidden;
+		.nick-decorators {
+			@include transition(all 0.5s ease-in-out);
+			padding:0.25em 0.5em;
+			position:absolute;
+			left:0;
+			top:0;
+			opacity:0;
+		}
 		&.system {
 			color:#CC2222;
 		}
@@ -982,6 +1012,26 @@ body {
 
 	.mention {
 		font-weight: bold;
+	}
+	.message-options {
+		@include transition(opacity 0.5s ease-in-out);
+		right:$timestamp-width;
+		position:absolute;
+		top:0;
+		opacity:0;
+		z-index:5;
+	}
+	&:hover {
+		.message-options {
+			opacity:1;
+		}
+		.nick-decorators {
+			opacity:1;
+		}
+	}
+	.private-icon {
+		position:absolute;
+		left:7.7em;
 	}
 }
 

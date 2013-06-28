@@ -1,7 +1,19 @@
-<div class="chatMessage <%= classes %>" rel="<%= timestamp %>">
+<div class="chatMessage <%= classes %>" rel="<%= timestamp %>" data-sequence="<%= mID %>">
+	<div class="message-options">
+		<% if (mine && mID) { %>
+		<div class="chatMessage-edit">
+			<i class="icon-pencil"></i>
+		</div>
+		<% } %>
+	</div>
 	<div data-timestamp="<%= timestamp %>" class="time"><%- humanTime %></div>
 	<div class="nick <%= nickClasses %>" title="<%- nickname %>" style="color: <%= color %>">
 		<%- nickname %>
+		<div class="nick-decorators">
+			<% if (identified) { %>
+			<i class="icon-lock ident yes"></i>
+			<% } %>
+		</div>
 	</div>
 	<div class="body">
 		<% if (isPrivateMessage) { %>

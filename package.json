@@ -1,6 +1,6 @@
 {
   "name": "echoplexus",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A modular, anonymous, real-time chatting system.",
   "scripts": {
     "dev": "supervisor -n error -w public/echoplexus.min.js server/main.js",

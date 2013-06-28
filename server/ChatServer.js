@@ -7,6 +7,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		_= require('underscore'),
 		fs = require('fs'),
 		crypto = require('crypto'),
+		uuid = require('node-uuid'),
 		PUBLIC_FOLDER = __dirname + '/../public',
 		SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
 		Client = require('../client/client.js').ClientModel,
@@ -16,6 +17,59 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 	var DEBUG = config.DEBUG;
 
+	function setIdentityToken(room, client) {
+		var token,
+			nick = client.get("nick");
+
+		// check to see if a token already exists for the user
+		redisC.hget("identity_token:" + room, nick, function (err, reply) {
+			if (err) throw err;
+
+			if (!reply) { // if not, make a new one
+				token = uuid.v4();
+				redisC.hset("identity_token:" + room, nick, token, function (err, reply) { // persist it
+					if (err) throw err;
+					client.identity_token = token; // store it on the client object
+				});
+			} else {
+				token = reply;
+				client.identity_token = token; // store it on the client object
+			}
+		});
+	}
+	function updatePersistedMessage(room, mID, newMessage, callback) {
+		var mID = parseInt(mID, 10),
+			newBody = newMessage.body,
+			alteredMsg;
+
+		// get the pure message
+		redisC.hget("chatlog:" + room, mID, function (err, reply) {
+			if (err) throw err;
+
+			alteredMsg = JSON.parse(reply); // parse it
+
+			// is it within an allowable time period?  if not set, allow it
+			if (config.chat &&
+				config.chat.edit &&
+				config.chat.edit.maximum_time_delta) {
+
+				var oldestPossible = Number(new Date()) - config.chat.edit.maximum_time_delta; // now - delta
+				if (alteredMsg.timestamp < oldestPossible) {
+					callback(new Error("Message too old to be edited"));
+				} // trying to edit something too far back in time
+			}
+
+
+			alteredMsg.body = newBody; // alter it
+
+			// overwrite the old message with the altered chat message
+			redisC.hset("chatlog:" + room, mID, JSON.stringify(alteredMsg), function (err, reply) {
+				if (err) throw err;
+
+				callback(null, alteredMsg);
+			});
+		});
+	}
 	function urlRoot(){
 		if (config.host.USE_PORT_IN_URL) {
 			return config.host.SCHEME + "://" + config.host.FQDN + ":" + config.host.PORT + "/";
@@ -23,7 +77,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			return config.host.SCHEME + "://" + config.host.FQDN + "/";
 		}
 	}
-
 	function serverSentMessage (msg, room) {
 		return _.extend(msg, {
 			nickname: config.features.SERVER_NICK,
@@ -32,7 +85,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			room: room
 		});
 	}
-
 	function publishUserList (channel) {
 		var room = channel.get("name"),
 			authenticatedClients = channel.clients.where({authenticated: true}),
@@ -45,7 +97,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			room: room
 		});
 	}
-
 	function userJoined (client, room) {
 		sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
 			body: client.get("nick") + ' has joined the chat.',
@@ -73,7 +124,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		redisC.hget("channels:currentMessageID", room, function (err, reply) {
 			if (err) throw err;
 			socket.in(room).emit('chat:currentID:' + room, {
-				ID: reply,
+				mID: reply,
 				room: room
 			});
 		});
@@ -95,12 +146,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			room: room,
 			id: client.get("id")
 		});
-
-		// finally, announce to the client that he's now in the room
-		socket.in(room).emit("chat:" + room, serverSentMessage({
-			body: "Talking in channel '" + room + "'",
-			log: false
-		}, room));
 
 		publishUserList(channel);
 	}
@@ -183,18 +228,13 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				}
 
 				client.set("nick", newName);
-				EventBus && EventBus.trigger("nickset." + socket.id, {
-					nick: newName,
-					color: client.get("color")
-				});
-
 				socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
-					class: "identity",
+					class: "identity ack",
 					body: prevName + " is now known as " + newName,
 					log: false
 				}, room));
 				socket.in(room).emit('chat:' + room, serverSentMessage({
-					class: "identity",
+					class: "identity ack",
 					body: "You are now known as " + newName,
 					log: false
 				}, room));
@@ -209,6 +249,44 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					body: data.topic,
 					log: false
 				}, room));
+			},
+			"chat:edit": function (namespace, socket, channel, client, data) {
+				if (config.chat &&
+					config.chat.edit) {
+
+					if (!config.chat.edit.enabled) return;
+					if (!config.chat.edit.allow_unidentified && !client.get("identified")) return;
+				}
+
+				var room = channel.get("name"),
+					mID = parseInt(data.mID, 10),
+					editResultCallback = function (err, msg) {
+						if (err) {
+							socket.in(room).emit('chat:' + room, serverSentMessage({
+								type: "SERVER",
+								body: err.message
+							}, room));
+
+							return;
+						}
+
+						socket.in(room).broadcast.emit('chat:edit:' + room, msg);
+						socket.in(room).emit('chat:edit:' + room, _.extend(msg, {
+							you: true
+						}));
+					};
+
+				if (_.indexOf(client.mIDs, mID) !== -1) {
+					updatePersistedMessage(room, mID, data, editResultCallback);
+				} else { // attempt to use the client's identity token, if it exists & if it matches the one stored with the chatlog object
+					redisC.hget("chatlog:identity_tokens:" + room, mID, function (err, reply) {
+						if (err) throw err;
+
+						if (client.identity_token === reply) {
+							updatePersistedMessage(room, mID, data, editResultCallback);
+						}
+					});
+				}
 			},
 			"chat:history_request": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name"),
@@ -245,12 +323,12 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 				// only send a message if it has a body & is directed at someone
 				if (data.body && data.directedAt) {
-					data.id = client.get("id");
 					data.color = client.get("color").toRGB();
 					data.nickname = client.get("nick");
 					data.timestamp = Number(new Date());
 					data.type = "private";
 					data.class = "private";
+					data.identified = client.get("identified");
 
 					targetClients = channel.clients.where({nick: data.directedAt}); // returns an array
 					if (typeof targetClients !== "undefined" &&
@@ -287,17 +365,18 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"chat": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
-				if (config.features.CHAT_RATE_LIMITING &&
-					config.features.CHAT_RATE_LIMITING.enabled) {
+				if (config.chat &&
+					config.chat.rate_limiting &&
+					config.chat.rate_limiting.enabled) {
 					
 					if (client.tokenBucket.rateLimit()) return;
 				}
 
 				if (data.body) {
-					data.id = client.get("id");
 					data.color = client.get("color").toRGB();
 					data.nickname = client.get("nick");
 					data.timestamp = Number(new Date());
+					data.identified = client.get("identified");
 
 					// store in redis
 					redisC.hget("channels:currentMessageID", room, function (err, reply) {
@@ -309,7 +388,20 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 						}
 						redisC.hset("channels:currentMessageID", room, mID+1);
 
-						data.ID = mID;
+						data.mID = mID;
+
+						// store the message ID transiently on the client object itself, for anonymous editing
+						if (!client.mIDs) {
+							client.mIDs = [];
+						}
+						client.mIDs.push(mID);
+
+						// is there an edit token associated with this client?  if so, persist that so he can edit the message later
+						if (client.identity_token) {
+							redisC.hset("chatlog:identity_tokens:" + room, mID, client.identity_token, function (err, reply) {
+								if (err) throw err;
+							});
+						}
 
 						// store the chat message
 						redisC.hset("chatlog:" + room, mID, JSON.stringify(data), function (err, reply) {
@@ -321,7 +413,9 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 							you: true
 						}));
 
-						if (config.features.PHANTOMJS_SCREENSHOT) {
+						if (config.chat &&
+							config.chat.webshot_previews &&
+							config.chat.webshot_previews.enabled) {
 							// strip out other things the client is doing before we attempt to render the web page
 							var urls = data.body.replace(REGEXES.urls.image, "")
 												.replace(REGEXES.urls.youtube,"")
@@ -337,7 +431,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 										
 										DEBUG && console.log("Processing ", urls[i]);
 										// requires that the phantomjs-screenshot repo is a sibling repo of this one
-										var screenshotter = spawn(config.features.PHANTOMJS_PATH,
+										var screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
 											['../../phantomjs-screenshot/main.js', url, output],
 											{
 												cwd: __dirname
@@ -388,7 +482,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					redisC.sismember("users:" + room, nick, function (err, reply) {
 						if (!reply) {
 							socket.in(room).emit('chat:' + room, serverSentMessage({
-								class: "identity",
+								class: "identity err",
 								body: "There's no registration on file for " + nick
 							}, room));
 						} else {
@@ -407,20 +501,21 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 									if (derivedKey.toString() !== stored.password) { // FAIL
 										client.set("identified", false);
 										socket.in(room).emit('chat:' + room, serverSentMessage({
-											class: "identity",
+											class: "identity err",
 											body: "Wrong password for " + nick
 										}, room));
 										socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
-											class: "identity",
+											class: "identity err",
 											body: nick + " just failed to identify himself"
 										}, room));
 										publishUserList(channel);
 									} else { // ident'd
 										client.set("identified", true);
 										socket.in(room).emit('chat:' + room, serverSentMessage({
-											class: "identity",
+											class: "identity ack",
 											body: "You are now identified for " + nick
 										}, room));
+										setIdentityToken(room, client);
 										publishUserList(channel);
 									}
 								});
@@ -455,6 +550,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 									redisC.hset("passwords:" + room, nick, derivedKey.toString(), function (err, reply) {
 										if (err) throw err;
 									});
+
+									setIdentityToken(room, client);
 
 									client.set("identified", true);
 									socket.in(room).emit('chat:' + room, serverSentMessage({

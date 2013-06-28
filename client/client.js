@@ -83,8 +83,8 @@
 	function TokenBucket () {
 		// from: http://stackoverflow.com/questions/667508/whats-a-good-rate-limiting-algorithm
 
-		var rate = config.features.CHAT_RATE_LIMITING.rate, // unit: # messages
-			per  = config.features.CHAT_RATE_LIMITING.per, // unit: milliseconds
+		var rate = config.chat.rate_limiting.rate, // unit: # messages
+			per  = config.chat.rate_limiting.per, // unit: milliseconds
 			allowance = rate, // unit: # messages
 			last_check = Number(new Date()); // unit: milliseconds
 
@@ -140,8 +140,9 @@
 
 			// rate limit the client's chat, if it's enabled
 			if (config &&
-				config.features.CHAT_RATE_LIMITING &&
-				config.features.CHAT_RATE_LIMITING.enabled) {
+				config.chat &&
+				config.chat.rate_limiting &&
+				config.chat.rate_limiting.enabled) {
 				
 				this.tokenBucket = new TokenBucket();
 			}
@@ -196,7 +197,8 @@
 		},
 		speak: function (msg, socket) {
 			var body = msg.body,
-				room = msg.room;
+				room = msg.room,
+				matches;
 			window.events.trigger("speak",socket,this,msg);
 			if (!body) return; // if there's no body, we probably don't want to do anything
 			if (body.match(REGEXES.commands.nick)) { // /nick [nickname]
@@ -284,6 +286,18 @@
 				socket.emit('user:set_color:' + room, {
 					userColorString: body
 				});
+				return;
+			} else if (matches = body.match(REGEXES.commands.edit)) { // editing
+				var mID = matches[2];
+
+				console.log(mID);
+				body = body.replace(REGEXES.commands.edit, "").trim();
+
+				socket.emit('chat:edit:' + room, {
+					mID: mID,
+					body: body
+				});
+
 				return;
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
