@@ -1,0 +1,73 @@
+@include keyframes(ringing) {
+	100% {
+		@include transform(rotate(0deg));
+	}
+	20% {
+		@include transform(rotate(0deg));
+	}
+	15% {
+		@include transform(rotate(-6deg));
+	}
+	10% {
+		@include transform(rotate(6deg));
+	}
+	5% {
+		@include transform(rotate(-6deg));
+	}
+	0% {
+		@include transform(rotate(6deg));
+	}
+}
+
+.callClient {
+	height:100%;
+	width:100%;
+	font-family:$pretty-font-family;
+}
+.no-call {
+	text-align:center;
+	position:absolute;
+	height:100%;
+	width:100%;
+	z-index:10;
+	padding-top:5em;
+	.icon-phone {
+		@include transition(all 1s ease-in-out);
+		display:block;
+		font-size:10em;
+		text-shadow:1px 1px 5px rgba(0,0,0,0.75);
+		&.ringing {
+			color:green;
+			@include animation(ringing 1s infinite);
+		}
+		&.idle {
+			color:#333;
+		}
+	}
+	p {
+		font-size:1.5em;
+		color:#999;
+		text-shadow:1px 1px 0px rgba(0,0,0,0.5);
+	}
+
+	.btn {
+		@include transition(all 0.5s ease-in-out);
+		cursor:pointer;
+		padding:4em;
+		border-radius:1em;
+		width:25em;
+		margin:auto;
+		&:hover {
+			background:rgba(0,0,0,0.3);
+			.icon-phone.idle {
+				color:yellow;
+			}
+		}
+	}
+}
+.icon-phone {
+
+}
+.in-call {
+	display:none;
+}

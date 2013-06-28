@@ -1,11 +1,21 @@
-<div id="videos">
-	<video id="you" class="flip" autoplay width="263" height="200" style="position: absolute; left: 0px; bottom: 0px;"></video>
+<div class="no-call">
+	<div class="btn call-in-progress call-status join">
+		<i class="icon-phone ringing"></i>
+		<p class="explanation">Call in progress.</p>
+		<p class="action">Click to join!</p>
+	</div>
+	<div class="btn no-call-in-progress call-status join">
+		<i class="icon-phone idle"></i>
+		<p class="explanation">No call currently in progress.</p>
+		<p class="action">Click to start one.</p>
+	</div>
 </div>
-<div class="pull-right">
-	<button class="btn hang-up" style="display: none;">
+
+<div class="in-call pull-right">
+	<div id="videos">
+		<video id="you" class="flip" autoplay width="263" height="200" style="position: absolute; left: 0px; bottom: 0px;"></video>
+	</div>
+	<button class="btn hang-up">
 		<i class="icon-off" style="font-size: 200%"></i>Hang up
-	</button>
-	<button class="btn join">
-		<i class="icon-phone" style="font-size: 200%"></i><span class="text">Start call</span>
 	</button>
 </div>

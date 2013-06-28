@@ -1,9 +1,13 @@
-
-var PeerConnection = window.PeerConnection || window.webkitPeerConnection00 || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
-define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], function (RTC, callPanelTemplate) {
+define(['PeerConnection', 'modules/call/rtc', 'text!modules/call/templates/callPanel.html'], function (PeerConnection, RTC, callPanelTemplate) {
     return Backbone.View.extend({
         className: 'callClient',
         template: _.template(callPanelTemplate),
+
+        events: {
+            "click .join": "joinCall",
+            "click .hang-up": "leaveCall"
+        },
+
         initialize: function (opts) {
             var self = this;
             _.bindAll(this);
@@ -14,36 +18,38 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
             this.rtc = new RTC();
             this.videos = {};
             this.render();
+
             this.on("show", function () {
                 DEBUG && console.log("call_client:show");
                 self.$el.show();
             });
+
             this.on("hide", function () {
                 DEBUG && console.log("call_client:hide");
                 self.$el.hide();
             });
             this.listen();
-            if (!PeerConnection)
-                alert('Your browser is not supported or you have to turn on flags. In chrome you go to chrome://flags and turn on Enable PeerConnection remember to restart chrome');
-            this.attachEvents();
+
+            if (!PeerConnection) {
+                alert('Your browser is not supported or you have to turn on flags. In chrome you go to chrome://flags and turn on Enable PeerConnection.  Remember to restart chrome');
+            }
+
             this.socket.emit('subscribe',{
                 room: this.channelName
             });
         },
-        attachEvents: function(){
-            var self = this;
-            $('.hang-up',this.$el).on('click',function(){
-                self.disconnect();
-                $('.join',this.$el).show();
-                $(this).hide();
-            });
-            $('.join',this.$el).on('click',function(){
-                self.connect();
-                $('.hang-up',this.$el).show();
-                $(this).hide();
-            });
 
+        joinCall: function () {
+            $(".no-call", this.$el).hide();
+            this.connect();
         },
+
+        leaveCall: function () {
+            $(".in-call", this.$el).hide();
+            this.disconnect();
+            this.showCallInProgress();
+        },
+
         connect: function(){
             if(!this.$el.is(':visible')) return;
             this.rtc.createStream({
@@ -62,7 +68,20 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
                 //subdivideVideos();
             });
             this.rtc.connect();
+            $(".no-call", this.$el).hide();
+            $(".in-call", this.$el).show();
         },
+
+        showCallInProgress: function () {
+            $(".call-status", this.$el).hide();
+            $(".no-call, .call-in-progress", this.$el).show();
+        },
+
+        showNoCallInProgress: function () {
+            $(".call-status", this.$el).hide();
+            $(".no-call, .no-call-in-progress", this.$el).show();
+        },
+
         listen: function(){
             var self = this;
             this.rtc.listen(this.socket, this.channelName);
@@ -81,8 +100,11 @@ define(['modules/call/rtc', 'text!modules/call/templates/callPanel.html'], funct
 
             this.socketEvents = {
                 "status": function(data){
-                    if(data.active) $('.join>.text').text('Join call');
-                    else $('.join>.text').text('Start call');
+                    if (data.active) {
+                        self.showCallInProgress();
+                    } else {
+                        self.showNoCallInProgress();
+                    }
                 }
             };
             _.each(this.socketEvents, function (value, key) {

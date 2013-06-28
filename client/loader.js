@@ -3,7 +3,7 @@ define(function(require,exports,module){
 		$ = require('jquery'),
 		config = module.config();
 		mods = [];
-	console.log(config);
+
 	var section = _.template($('#sectionTemplate').html()),
 		button = _.template($('#buttonTemplate').html());
 	_.each(config.modules,function(val){
