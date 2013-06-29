@@ -380,6 +380,14 @@ define(['jquery','underscore','backbone','client','regex',
 					body: data.newText
 				});
 			});
+
+			// let the chat server know our call status so we can advertise that to other users
+			window.events.on("in_call:" + this.channelName, function (data) {
+				self.socket.emit('in_call:' + self.channelName);
+			});
+			window.events.on("left_call:" + this.channelName, function (data) {
+				self.socket.emit('left_call:' + self.channelName);
+			});
 		},
 
 		handleChatInputKeydown: function (ev) {

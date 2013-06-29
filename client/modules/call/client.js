@@ -79,8 +79,6 @@ define(['modules/call/rtc',
 
         joinCall: function () {
             this.joiningCall = true;
-            $(".no-call", this.$el).hide();
-            $(".in-call", this.$el).show();
             this.connect();
         },
 
@@ -91,6 +89,21 @@ define(['modules/call/rtc',
             this.disconnect();
             $(".no-call", this.$el).show();
             this.showCallInProgress();
+
+            window.events.trigger("left_call:" + this.channelName);
+        },
+
+        afterConnect: function (stream) {
+            var you = $('#you',this.$el).get(0);
+            this.joiningCall = false;
+            this.inCall = true;
+            you.src = URL.createObjectURL(stream);
+            you.muted = true;
+            you.play();
+            $(".no-call", this.$el).hide();
+            $(".in-call", this.$el).show();
+
+            window.events.trigger("in_call:" + this.channelName);
         },
 
         connect: function(){
@@ -102,20 +115,8 @@ define(['modules/call/rtc',
                     "optional": []
                 },
                 "audio": true
-            }, function (stream) {
-                var you = $('#you',this.$el).get(0);
-                self.joiningCall = false;
-                self.inCall = true;
-                you.src = URL.createObjectURL(stream);
-                you.muted = true;
-                you.play();
-                //videos.push(document.getElementById('you'));
-                //rtc.attachStream(stream, 'you');
-                //subdivideVideos();
-            }, self.showError);
+            }, this.afterConnect, this.showError);
             this.rtc.connect();
-            $(".no-call", this.$el).hide();
-            $(".in-call", this.$el).show();
         },
 
         showCallInProgress: function () {
@@ -133,7 +134,7 @@ define(['modules/call/rtc',
             this.rtc.listen(this.socket, this.channelName);
             // on peer joining the call:
             this.rtc.on('add remote stream', function(stream, socketId) {
-                console.log("ADDING REMOTE STREAM...");
+                console.log("ADDING REMOTE STREAM...", stream, socketId);
                 var clone = self.cloneVideo('#you', socketId);
                 clone.attr("class", "");
                 clone.get(0).muted = false;

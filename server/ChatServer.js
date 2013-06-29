@@ -572,6 +572,14 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					}
 				});
 			},
+			"in_call": function (namespace, socket, channel, client) {
+				client.set("inCall", true);
+				publishUserList(channel);
+			},
+			"left_call": function (namespace, socket, channel, client) {
+				client.set("inCall", false);
+				publishUserList(channel);
+			},
 			"unsubscribe": function (namespace, socket, channel, client) {
 				var room = channel.get("name");
 				userLeft(client, room);

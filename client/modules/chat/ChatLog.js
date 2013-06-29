@@ -413,7 +413,8 @@ define(['jquery','backbone', 'underscore','regex','moment',
 						color: user.get("color").toRGB(),
 						identified: user.get("identified"),
 						idle: user.get("idle"),
-						idleSince: user.get("idleSince")
+						idleSince: user.get("idleSince"),
+						inCall: user.get("inCall")
 					});
 					if (!user.get('idle')) {
 						nActive += 1;
