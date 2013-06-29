@@ -19,6 +19,9 @@
 	}
 }
 
+$active-color: green;
+$inactive-color: rgb(157, 38, 29);
+
 .callClient {
 	height:100%;
 	width:100%;
@@ -29,6 +32,17 @@
 		left:0;
 		width:100%;
 		height:100%;
+	}
+	.icon-phone {
+		&.active {
+			color:$active-color;
+		}
+		&.inactive {
+			color:$inactive-color;
+		}
+	}
+	.error {
+		color:rgb(157, 38, 29);
 	}
 }
 .no-call {
@@ -56,6 +70,7 @@
 	}
 
 	.btn {
+		@include unselectable();
 		@include transition(all 0.5s ease-in-out);
 		cursor:pointer;
 		padding:4em;
@@ -70,6 +85,13 @@
 		}
 	}
 }
+
+.unmuted {
+	.icon-ban-circle {
+		opacity:0;
+	}
+}
+
 .webrtc-error {
 	display:none;
 	text-align:center;
@@ -84,10 +106,63 @@
 	.base {
 		color:#ccc;
 	}
-	.error {
-		color:rgb(157, 38, 29);
-	}
 }
 .in-call {
 	display:none;
+}
+
+$call-button-height:5em;
+$call-button-width:6em;
+.call-controls {
+	position:absolute;
+	width:100%;
+	bottom:0;
+	.icon-ban-circle, .icon-phone {
+		@include transition(all 0.5s ease-in-out);
+	}
+	.buttons.three {
+		margin: auto;
+		width: 3 * $call-button-width;
+		height: $call-button-height;
+	}
+	button {
+		@include unselectable();
+		@include transition(all 0.5s ease-in-out);
+		box-shadow: -2px -2px 3px rgba(0,0,0,0.5);
+		cursor:pointer;
+		font-size:1em;
+		display:block;
+		height: $call-button-height;
+		width: $call-button-width;
+		float:left;
+		background:#111;
+		color:#aaa;
+		border:0px;
+		border-right:1px solid #1f1f1f;
+		&:first-child {
+			border-top-left-radius:10px;
+		}
+		&:last-child {
+			border-top-right-radius:10px;
+			border-right:0;
+		}
+
+		&:hover {
+			background:#1f1f1f;
+			.icon-phone {
+				color:$inactive-color;
+			}
+			&.unmuted {
+				.icon-ban-circle { // show post-click state on hover
+					opacity:1;
+				}
+			}
+		}
+	}
+	.mute-audio, .mute-video {
+		> span {
+			font-size: 1.8em;
+			line-height: 1.8em;
+		}
+	}
 }

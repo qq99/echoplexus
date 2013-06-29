@@ -10,7 +10,9 @@ define(['modules/call/PeerConnection',
 
         events: {
             "click .join": "joinCall",
-            "click .hang-up": "leaveCall"
+            "click .hang-up": "leaveCall",
+            "click .mute-audio": "toggleMuteAudio",
+            "click .mute-video": "toggleMuteVideo",
         },
 
         initialize: function (opts) {
@@ -43,6 +45,28 @@ define(['modules/call/PeerConnection',
             this.socket.emit('subscribe',{
                 room: this.channelName
             });
+        },
+
+        toggleMuteAudio: function (ev) {
+            var $this = $(ev.currentTarget);
+
+            if ($this.hasClass("unmuted")) {
+                this.rtc.muteAudio();
+            } else {
+                this.rtc.unmuteAudio();
+            }
+            $this.toggleClass("unmuted");
+        },
+
+        toggleMuteVideo: function (ev) {
+            var $this = $(ev.currentTarget);
+
+            if ($this.hasClass("unmuted")) {
+                this.rtc.muteVideo();
+            } else {
+                this.rtc.unmuteVideo();
+            }
+            $this.toggleClass("unmuted");
         },
 
         showError: function (err, errMsg) {
