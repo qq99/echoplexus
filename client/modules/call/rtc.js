@@ -5,7 +5,7 @@
 
 var PeerConnection = window.PeerConnection = (window.PeerConnection || window.webkitPeerConnection00 || window.webkitRTCPeerConnection || window.mozRTCPeerConnection);
 var URL = window.URL = (window.URL || window.webkitURL || window.msURL || window.oURL);
-var getUserMedia = window.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+var getUserMedia = navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
 var nativeRTCIceCandidate = window.nativeRTCIceCandidate = (window.mozRTCIceCandidate || window.RTCIceCandidate);
 var nativeRTCSessionDescription = window.nativeRTCSessionDescription  = (window.mozRTCSessionDescription || window.RTCSessionDescription); // order is very important: "RTCSessionDescription" defined in Nighly but useless
 

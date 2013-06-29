@@ -35,7 +35,7 @@ define(['modules/call/rtc',
             this.listen();
 
             if (!window.PeerConnection ||
-                !window.getUserMedia) {
+                !navigator.getUserMedia) {
                 $(".webrtc-error .no-webrtc", this.$el).show();
             }else {
                 $(".webrtc-error .no-webrtc", this.$el).hide();
