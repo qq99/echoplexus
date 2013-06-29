@@ -449,6 +449,7 @@ define(['underscore'], function(_) {
             if (getUserMedia) {
                 rtc.numStreams++;
                 getUserMedia.call(navigator, options, function(stream) {
+                    console.log(stream.getAudioTracks());
                     rtc.streams.push(stream);
                     rtc.initializedStreams++;
                     onSuccess(stream);
@@ -461,6 +462,42 @@ define(['underscore'], function(_) {
             } else {
                 onFail(error, "WebRTC is not yet supported in this browser.");
             }
+        };
+
+        this.muteAudio = function(){
+            _.each(rtc.streams,function(stream){
+                stream.actualAudioTracks = stream.getAudioTracks();
+                _.each(stream.getAudioTracks(),function(track){
+                    stream.removeTrack(track);
+                });
+            });
+        };
+
+        this.unmuteAudio = function(){
+            _.each(rtc.streams,function(stream){
+                _.each(stream.actualAudioTracks,function(track){
+                    stream.addTrack(track);
+                });
+                delete stream.actualAudioTracks;
+            });
+        };
+
+        this.muteVideo = function(){
+            _.each(rtc.streams,function(stream){
+                stream.actualVideoTracks = stream.getVideoTracks();
+                _.each(stream.getVideoTracks(),function(track){
+                    stream.removeTrack(track);
+                });
+            });
+        };
+
+        this.unmuteVideo = function(){
+            _.each(rtc.streams,function(stream){
+                _.each(stream.actualVideoTracks,function(track){
+                    stream.addTrack(track);
+                });
+                delete stream.actualVideoTracks;
+            });
         };
 
         this.addStreams = function() {
