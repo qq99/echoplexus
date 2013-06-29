@@ -3,11 +3,11 @@
 
 // Fallbacks for vendor-specific variables until the spec is finalized.
 
-var PeerConnection = (window.PeerConnection || window.webkitPeerConnection00 || window.webkitRTCPeerConnection || window.mozRTCPeerConnection);
-var URL = (window.URL || window.webkitURL || window.msURL || window.oURL);
-var getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
-var nativeRTCIceCandidate = (window.mozRTCIceCandidate || window.RTCIceCandidate);
-var nativeRTCSessionDescription = (window.mozRTCSessionDescription || window.RTCSessionDescription); // order is very important: "RTCSessionDescription" defined in Nighly but useless
+var PeerConnection = window.PeerConnection = (window.PeerConnection || window.webkitPeerConnection00 || window.webkitRTCPeerConnection || window.mozRTCPeerConnection);
+var URL = window.URL = (window.URL || window.webkitURL || window.msURL || window.oURL);
+var getUserMedia = window.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+var nativeRTCIceCandidate = window.nativeRTCIceCandidate = (window.mozRTCIceCandidate || window.RTCIceCandidate);
+var nativeRTCSessionDescription = window.nativeRTCSessionDescription  = (window.mozRTCSessionDescription || window.RTCSessionDescription); // order is very important: "RTCSessionDescription" defined in Nighly but useless
 
 var sdpConstraints = {
     'mandatory': {
@@ -308,7 +308,7 @@ define(['underscore'], function(_) {
             });
             _.each(rtc.peerConnections, function(connection, key) {
                 connection.close();
-                rtc.fire('disconnect stream', id);
+                rtc.fire('disconnect stream', key);
             });
             _.each(rtc.streams,function(stream,key){
                 if(_.isFunction(stream.stop)) stream.stop();

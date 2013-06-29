@@ -1,8 +1,6 @@
-define(['modules/call/PeerConnection',
-        'modules/call/getUserMedia',
-        'modules/call/rtc',
+define(['modules/call/rtc',
         'text!modules/call/templates/callPanel.html'
-        ], function (PeerConnection, getUserMedia, RTC, callPanelTemplate) {
+        ], function (RTC, callPanelTemplate) {
     return Backbone.View.extend({
         className: 'callClient',
         template: _.template(callPanelTemplate),
@@ -36,8 +34,8 @@ define(['modules/call/PeerConnection',
             });
             this.listen();
 
-            if (!PeerConnection ||
-                !getUserMedia) {
+            if (!window.PeerConnection ||
+                !window.getUserMedia) {
                 $(".webrtc-error .no-webrtc", this.$el).show();
             }else {
                 $(".webrtc-error .no-webrtc", this.$el).hide();
@@ -88,6 +86,7 @@ define(['modules/call/PeerConnection',
         leaveCall: function () {
             $(".in-call", this.$el).hide();
             this.disconnect();
+            $(".no-call", this.$el).show();
             this.showCallInProgress();
         },
 
@@ -156,15 +155,15 @@ define(['modules/call/PeerConnection',
         },
         disconnect: function(){
             this.rtc.disconnect();
-            this.socket.emit('unsubscribe:'+this.channelName,{
-                room: this.channelName
-            });
         },
         kill: function(){
             var self = this;
             this.disconnect();
             _.each(this.socketEvents, function (method, key) {
                 self.socket.removeAllListeners(key + ":" + self.channelName);
+            });
+            this.socket.emit('unsubscribe:'+this.channelName,{
+                room: this.channelName
             });
         },
         render: function () {
