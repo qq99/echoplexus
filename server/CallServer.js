@@ -7,13 +7,14 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
     var DEBUG = config.DEBUG;
     var CallServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, Channels, ChannelModel);
-    var rtc = {};
+    var connections = {};
     CallServer.initialize({
         name: "CallServer",
         SERVER_NAMESPACE: CALLSPACE,
         events: {
             "join": function(namespace,socket,channel,client,data){
                 var room = channel.get("name");
+                var rtc = connections[room] = (connections[room] || {});
                 if(_.isEmpty(rtc)) {
                     var status = {"active":true};
                     socket.in(room).broadcast.emit("status:"+room,status);
@@ -31,6 +32,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
             },
             "leave": function (namespace, socket, channel, client, data) {
                 var room = channel.get("name");
+                var rtc = connections[room] = (connections[room] || {});
                 socket.in(room).broadcast.emit("remove_peer:"+room,{
                     id: client.get("id")
                 });
@@ -43,6 +45,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
             },
             "ice_candidate": function(namespace, socket, channel, client, data){
                 var room = channel.get("name");
+                var rtc = connections[room] = (connections[room] || {});
                 var targetClient = rtc[data.id];
                 if (typeof targetClient !== "undefined") {
                     targetClient.in(room).emit("ice_candidate:"+room,{
@@ -54,6 +57,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
             },
             "offer": function(namespace, socket, channel, client, data){
                 var room = channel.get("name");
+                var rtc = connections[room] = (connections[room] || {});
                 var targetClient = rtc[data.id];
                 if (targetClient) {
                     targetClient.in(room).emit("offer:" + room,{
@@ -64,6 +68,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
             },
             "answer": function(namespace, socket, channel, client, data){
                 var targetClient = rtc[data.id];
+                var rtc = connections[room] = (connections[room] || {});
                 var room = channel.get("name");
                 if (targetClient) {
                     targetClient.in(room).emit("answer:"+room,{
@@ -74,6 +79,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
             },
             "update": function(namespace, socket, channel, client, data){
                 var room = channel.get('name');
+                var rtc = connections[room] = (connections[room] || {});
                 socket.emit("status:"+room,{
                     "active": !_.isEmpty(rtc)
                 });
