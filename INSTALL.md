@@ -1,5 +1,21 @@
 #Installation
+
 So you like the idea of this and want to give it a go? Here's how.
+
+###Security:
+
+It is recommended to setup a non-privileged user for `echoplexus` and run `node.js`
+as this user on a non-privileged port (default is `8080`).
+
+    $ adduser --disabled-login --gecos 'Sandbox' $SANDBOX_USERNAME
+    $ cd /home/$SANDBOX_USERNAME
+    $ sudo -u $SANDBOX_USERNAME git clone git://github.com/qq99/echoplexus.git
+    ...continue similarly to the steps below, prefixing 'sudo -u $SANDBOX_USERNAME' if appropriate ...
+
+From there, you may do one of the following, depending on your needs:
+
+
+
 ##Dependencies:
 
 ### node.js 
@@ -79,6 +95,18 @@ Run `npm start` or just start `server/main.js` with your favorite process manage
 
 If you want to host behind nginx, you will have to get a build with WebSockets enabled.
 
+###Web Server Proxying:
+
+You have at least too options in exposing your deployment.  We recommend:
+
+1. Pro: Proxy echoplexus behind nginx v1.3.13 or later (requires WebSocket
+   support). We've attached a [sample configuration](https://github.com/qq99/echoplexus/blob/master/server/samples/echoplexus.site "Sample Echoplexus nginx configuration). You may also use HAProxy.
+2. Git'r done: Update iptables to redirect port 80 or 443 to the port of your
+   choice. *Remember to save and test your rules!*
+
+Example:
+
+    $ iptables  -t nat -I PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 8080
 
 ###Issues
 Please report all issues to the github issue tracker.
