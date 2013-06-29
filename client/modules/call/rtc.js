@@ -459,8 +459,6 @@ define(['underscore'], function(_) {
                 }, function(error) {
                     onFail(error, "Could not connect to stream");
                 });
-            } else {
-                onFail(error, "WebRTC is not yet supported in this browser.");
             }
         };
 

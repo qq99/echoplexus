@@ -1,4 +1,9 @@
-define(['PeerConnection', 'modules/call/rtc', 'text!modules/call/templates/callPanel.html'], function (PeerConnection, RTC, callPanelTemplate) {
+define(['modules/call/PeerConnection',
+        'modules/call/getUserMedia',
+        'modules/call/rtc',
+        'text!modules/call/templates/callPanel.html'
+        ], function (getUserMedia, PeerConnection, RTC, callPanelTemplate) {
+
     return Backbone.View.extend({
         className: 'callClient',
         template: _.template(callPanelTemplate),
@@ -30,7 +35,8 @@ define(['PeerConnection', 'modules/call/rtc', 'text!modules/call/templates/callP
             });
             this.listen();
 
-            if (!PeerConnection) {
+            if (!PeerConnection ||
+                !getUserMedia) {
                 $(".webrtc-error, no-webrtc", this.$el).show();
             }
 
