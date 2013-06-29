@@ -2,8 +2,7 @@ define(['modules/call/PeerConnection',
         'modules/call/getUserMedia',
         'modules/call/rtc',
         'text!modules/call/templates/callPanel.html'
-        ], function (getUserMedia, PeerConnection, RTC, callPanelTemplate) {
-
+        ], function (PeerConnection, getUserMedia, RTC, callPanelTemplate) {
     return Backbone.View.extend({
         className: 'callClient',
         template: _.template(callPanelTemplate),
@@ -12,7 +11,7 @@ define(['modules/call/PeerConnection',
             "click .join": "joinCall",
             "click .hang-up": "leaveCall",
             "click .mute-audio": "toggleMuteAudio",
-            "click .mute-video": "toggleMuteVideo",
+            "click .mute-video": "toggleMuteVideo"
         },
 
         initialize: function (opts) {
@@ -39,7 +38,9 @@ define(['modules/call/PeerConnection',
 
             if (!PeerConnection ||
                 !getUserMedia) {
-                $(".webrtc-error, no-webrtc", this.$el).show();
+                $(".webrtc-error .no-webrtc", this.$el).show();
+            }else {
+                $(".webrtc-error .no-webrtc", this.$el).hide();
             }
 
             this.socket.emit('subscribe',{
@@ -49,7 +50,7 @@ define(['modules/call/PeerConnection',
 
         toggleMuteAudio: function (ev) {
             var $this = $(ev.currentTarget);
-
+            console.log('Muting audio');
             if ($this.hasClass("unmuted")) {
                 this.rtc.muteAudio();
             } else {
@@ -79,6 +80,7 @@ define(['modules/call/PeerConnection',
         },
 
         joinCall: function () {
+
             $(".no-call", this.$el).hide();
             this.connect();
         },
@@ -91,6 +93,7 @@ define(['modules/call/PeerConnection',
 
         connect: function(){
             if(!this.$el.is(':visible')) return;
+            console.log('Creating stream');
             this.rtc.createStream({
                 "video": {
                     "mandatory": {},

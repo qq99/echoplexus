@@ -464,37 +464,33 @@ define(['underscore'], function(_) {
 
         this.muteAudio = function(){
             _.each(rtc.streams,function(stream){
-                stream.actualAudioTracks = stream.getAudioTracks();
                 _.each(stream.getAudioTracks(),function(track){
-                    stream.removeTrack(track);
+                    track.enabled = false;
                 });
             });
         };
 
         this.unmuteAudio = function(){
             _.each(rtc.streams,function(stream){
-                _.each(stream.actualAudioTracks,function(track){
-                    stream.addTrack(track);
+                _.each(stream.getAudioTracks(),function(track){
+                    track.enabled = true;
                 });
-                delete stream.actualAudioTracks;
             });
         };
 
         this.muteVideo = function(){
             _.each(rtc.streams,function(stream){
-                stream.actualVideoTracks = stream.getVideoTracks();
                 _.each(stream.getVideoTracks(),function(track){
-                    stream.removeTrack(track);
+                    track.enabled = false;
                 });
             });
         };
 
         this.unmuteVideo = function(){
             _.each(rtc.streams,function(stream){
-                _.each(stream.actualVideoTracks,function(track){
-                    stream.addTrack(track);
+                _.each(stream.getVideoTracks(),function(track){
+                    track.enabled = true;
                 });
-                delete stream.actualVideoTracks;
             });
         };
 
