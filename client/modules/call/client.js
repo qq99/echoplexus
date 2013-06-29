@@ -78,12 +78,15 @@ define(['modules/call/rtc',
         },
 
         joinCall: function () {
-
+            this.joiningCall = true;
             $(".no-call", this.$el).hide();
+            $(".in-call", this.$el).show();
             this.connect();
         },
 
         leaveCall: function () {
+            this.inCall = false;
+
             $(".in-call", this.$el).hide();
             this.disconnect();
             $(".no-call", this.$el).show();
@@ -101,6 +104,8 @@ define(['modules/call/rtc',
                 "audio": true
             }, function (stream) {
                 var you = $('#you',this.$el).get(0);
+                self.joiningCall = false;
+                self.inCall = true;
                 you.src = URL.createObjectURL(stream);
                 you.muted = true;
                 you.play();
@@ -126,6 +131,7 @@ define(['modules/call/rtc',
         listen: function(){
             var self = this;
             this.rtc.listen(this.socket, this.channelName);
+            // on peer joining the call:
             this.rtc.on('add remote stream', function(stream, socketId) {
                 console.log("ADDING REMOTE STREAM...");
                 var clone = self.cloneVideo('#you', socketId);
@@ -134,16 +140,25 @@ define(['modules/call/rtc',
                 self.rtc.attachStream(stream, clone.get(0));
                 self.subdivideVideos();
             });
+            // on peer leaving the call:
             this.rtc.on('disconnect stream', function(data) {
                 console.log('remove ' + data);
                 self.removeVideo(data);
             });
+            // politely hang up before closing the tab/window
+            $(window).on("unload", function () {
+                self.disconnect();
+            });
 
             this.socketEvents = {
                 "status": function(data){
-                    if (data.active) {
+                    if (data.active &&
+                        !self.inCall &&
+                        !self.joiningCall) {
+
+                        // show the ringing phone if we're not in/joinin a call & a call starts
                         self.showCallInProgress();
-                    } else {
+                    } else if (!data.active) {
                         self.showNoCallInProgress();
                     }
                 }
