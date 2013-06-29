@@ -452,11 +452,10 @@ define(['underscore'], function(_) {
                         rtc.fire('ready');
                     }
                 }, function(error) {
-                    alert("Could not connect stream.");
-                    onFail(error);
+                    onFail(error, "Could not connect to stream");
                 });
             } else {
-                alert('webRTC is not yet supported in this browser.');
+                onFail(error, "WebRTC is not yet supported in this browser.");
             }
         };
 

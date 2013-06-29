@@ -31,12 +31,21 @@ define(['PeerConnection', 'modules/call/rtc', 'text!modules/call/templates/callP
             this.listen();
 
             if (!PeerConnection) {
-                alert('Your browser is not supported or you have to turn on flags. In chrome you go to chrome://flags and turn on Enable PeerConnection.  Remember to restart chrome');
+                $(".webrtc-error, no-webrtc", this.$el).show();
             }
 
             this.socket.emit('subscribe',{
                 room: this.channelName
             });
+        },
+
+        showError: function (err, errMsg) {
+            $(".no-call, .in-call", this.$el).hide();
+            $(".webrtc-error, .reason.generic", this.$el).show();
+
+            $(".reason.generic", this.$el).html("");
+            $(".reason.generic", this.$el).append("<p>WebRTC failed!</p>");
+            $(".reason.generic", this.$el).append("<p>" + errMsg + "</p>");
         },
 
         joinCall: function () {
@@ -66,7 +75,7 @@ define(['PeerConnection', 'modules/call/rtc', 'text!modules/call/templates/callP
                 //videos.push(document.getElementById('you'));
                 //rtc.attachStream(stream, 'you');
                 //subdivideVideos();
-            });
+            }, self.showError);
             this.rtc.connect();
             $(".no-call", this.$el).hide();
             $(".in-call", this.$el).show();

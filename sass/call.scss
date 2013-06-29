@@ -23,12 +23,17 @@
 	height:100%;
 	width:100%;
 	font-family:$pretty-font-family;
+	.no-call, .in-call, .loading {
+		position:absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height:100%;
+	}
 }
 .no-call {
 	text-align:center;
-	position:absolute;
-	height:100%;
-	width:100%;
+	display:none;
 	z-index:10;
 	padding-top:5em;
 	.icon-phone {
@@ -65,8 +70,23 @@
 		}
 	}
 }
-.icon-phone {
-
+.webrtc-error {
+	display:none;
+	text-align:center;
+	margin:auto;
+	padding-top:5em;
+	.reason {
+		display:none;
+	}
+	.icon-stack {
+		font-size:10em;
+	}
+	.base {
+		color:#ccc;
+	}
+	.error {
+		color:rgb(157, 38, 29);
+	}
 }
 .in-call {
 	display:none;
