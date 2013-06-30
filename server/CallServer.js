@@ -96,6 +96,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
         },
         success: function (namespace, socket, channel, client) {
             var room = channel.get('name');
+            var rtc = connections[room] = (connections[room] || {});
             socket.emit("status:"+room,{
                 "active": !_.isEmpty(rtc)
             });
