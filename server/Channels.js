@@ -28,6 +28,7 @@ exports.ChannelStructures = function (redisC, EventBus) {
 			
 			this.clients = new Clients();
 			this.replay = [];
+			this.call = {};
 
 			this.codeCaches = {};
 		},
