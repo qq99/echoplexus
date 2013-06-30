@@ -316,7 +316,7 @@ define(['underscore'], function(_) {
             });
             rtc.peerConnections = {};
             rtc.dataChannels = {};
-            rtc.connections = {};
+            rtc.connections = [];
             rtc.fire('disconnect');
             this.connected = false;
         };
