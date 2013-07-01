@@ -591,14 +591,17 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 	});
 
 	ChatServer.start({
-		error: function (err, socket, channel, client) {
+		error: function (err, socket, channel, client, data) {
 			var room = channel.get("name");
 
 			if (err) {
 				if (err instanceof ApplicationError.Authentication) {
-					socket.in(room).emit("chat:" + room, serverSentMessage({
-						body: "This channel is private.  Please type /password [channel password] to join"
-					}, room));
+					if(!data.reconnect) 
+					{
+						socket.in(room).emit("chat:" + room, serverSentMessage({
+							body: "This channel is private.  Please type /password [channel password] to join"
+						}, room));
+					}
 					socket.in(room).emit("private:" + room);
 				} else {
 					socket.in(room).emit("chat:" + room, serverSentMessage({
@@ -610,7 +613,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				return;
 			}
 		},
-		success: function (namespace, socket, channel, client) {
+		success: function (namespace, socket, channel, client,data) {
 			DEBUG && console.log("Client joined ", channel.get("name"));
 			subscribeSuccess(socket, client, channel);
 		}

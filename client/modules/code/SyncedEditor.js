@@ -171,7 +171,8 @@ define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client)
 					//Resend the subscribe event
 					socket.emit("subscribe", {
 						room: self.channelName,
-						subchannel: self.subchannelName
+						subchannel: self.subchannelName,
+						reconnect: true
 					});
 				});
 			},

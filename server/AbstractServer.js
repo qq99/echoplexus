@@ -124,7 +124,7 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 					DEBUG && console.log("authenticated", server.name, client.cid, socket.id, result.attributes.authenticated);
 					if (result.attributes.authenticated) {
 						socket.join(namespace);
-						callback.success(namespace, socket, channel, client);
+						callback.success(namespace, socket, channel, client, data);
 
 						if (subscribeAck !== null &&
 							typeof (subscribeAck) !== "undefined") {
@@ -142,7 +142,7 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 
 					// let any implementing servers handle errors the way they like
 					if (err) {
-						callback.error(err, socket, channel, client);
+						callback.error(err, socket, channel, client, data);
 					}
 					
 				});

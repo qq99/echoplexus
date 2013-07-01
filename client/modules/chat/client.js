@@ -117,7 +117,8 @@ define(['jquery','underscore','backbone','client','regex',
 			self.socket.on("reconnect",function(){
 				//Resend the subscribe event
 				self.socket.emit("subscribe", {
-					room: self.channelName
+					room: self.channelName,
+					reconnect: true
 				}, function () { // server acks and we:
 					// if we were idle on reconnect, report idle immediately after ack
 					if (self.me.get('idle')){

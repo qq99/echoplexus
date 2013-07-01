@@ -304,7 +304,8 @@ define(['jquery','underscore','backbone','client','keymaster',
             socket.on("reconnect",function(){
                 //Resend the subscribe event
                 socket.emit("subscribe", {
-                    room: self.channelName
+                    room: self.channelName,
+                    reconnect: true
                 }, this.postSubscribe);
             });
         },
