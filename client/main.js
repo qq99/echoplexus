@@ -28,7 +28,7 @@ define(function(require,exports,module){
     require('jquery.cookie');
     require('events');
     require('utility');
-    require('tinycon');
+    var Tinycon = require('tinycon');
     $(document).ready(function () {
         // tooltip stuff:s
         $("body").on("mouseenter", ".tooltip-target", function(ev) {

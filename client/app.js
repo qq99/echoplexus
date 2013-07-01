@@ -37,6 +37,9 @@
             'codemirror': {
                 exports: 'CodeMirror'
             },
+            'tinycon': {
+                exports: 'Tinycon'
+            },
             'codemirror-js': ['codemirror'],
             'codemirror-html': ['codemirror'],
             'codemirror-xml': ['codemirror'],
