@@ -26,7 +26,9 @@ define(function(require,exports,module){
         ChannelSwitcher = require('ui/ChannelSwitcher'),
         Notifications = require('ui/Notifications');
     require('jquery.cookie');
-    require('events'); require('utility');
+    require('events');
+    require('utility');
+    require('tinycon');
     $(document).ready(function () {
         // tooltip stuff:s
         $("body").on("mouseenter", ".tooltip-target", function(ev) {
@@ -117,6 +119,7 @@ define(function(require,exports,module){
         }).on("focus mouseenter", function () {
             $("body").removeClass("blurred");
             document.title = "echoplexus";
+            Tinycon.setBubble(''); // remove bubbles
         });
 
         io.connect(window.location.origin,{
@@ -228,6 +231,10 @@ define(function(require,exports,module){
                 $(".button[data-target='#chatting']").addClass("activity");
             }
             if (!document.hasFocus()) {
+                Tinycon.setOptions({
+                    background: "#00aa00"
+                });
+                Tinycon.setBubble('!');
                 document.title = "!echoplexus";
             }
         });
