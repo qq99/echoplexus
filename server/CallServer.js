@@ -12,6 +12,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
         SERVER_NAMESPACE: CALLSPACE,
         events: {
             "join": function(namespace,socket,channel,client,data){
+                DEBUG && console.log('Client joined');
                 var room = channel.get("name");
                 if(_.isEmpty(channel.call)) {
                     var status = {"active":true};
@@ -29,6 +30,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
                 });
             },
             "leave": function (namespace, socket, channel, client, data) {
+                DEBUG && console.log('Client left');
                 var room = channel.get("name");
                 socket.in(room).broadcast.emit("remove_peer:"+room,{
                     id: client.get("id")
@@ -41,6 +43,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
                 }
             },
             "ice_candidate": function(namespace, socket, channel, client, data){
+                DEBUG && console.log('Ice Candidate recieved from ' + client.get('id') + ' for ' + data.id);
                 var room = channel.get("name");
                 var targetClient = channel.call[data.id];
                 if (typeof targetClient !== "undefined") {
@@ -52,6 +55,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
                 }
             },
             "offer": function(namespace, socket, channel, client, data){
+                DEBUG && console.log('Offer recieved from ' + client.get('id') + ' for ' + data.id);
                 var room = channel.get("name");
                 var targetClient = channel.call[data.id];
                 if (targetClient) {
@@ -62,6 +66,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
                 }
             },
             "answer": function(namespace, socket, channel, client, data){
+                DEBUG && console.log('Answer recieved from ' + client.get('id') + ' for ' + data.id);
                 var targetClient = channel.call[data.id];
                 var room = channel.get("name");
                 if (targetClient) {
