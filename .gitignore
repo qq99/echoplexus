@@ -13,3 +13,5 @@ public/sandbox
 server/config.js
 *.sublime-*
 client/lib/*
+Vagrantfile
+.vagrant
