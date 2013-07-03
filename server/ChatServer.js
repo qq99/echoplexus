@@ -423,7 +423,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 							if (urls) {
 								for (var i = 0; i < urls.length; i++) {
 									
-									var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg";
+									var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg"; // also guarantees we store no more than 9000 webshots at any time
 									
 									(function (url, fileName) { // run our screenshotting routine in a self-executing closure so we can keep the current filename & url
 										var output = SANDBOXED_FOLDER + "/" + fileName,
@@ -434,7 +434,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 										var screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
 											['../../phantomjs-screenshot/main.js', url, output],
 											{
-												cwd: __dirname
+												cwd: __dirname,
+												timeout: 30*1000 // after 30s, we'll consider phantomjs to have failed to screenshot and kill it
 											});
 
 										screenshotter.stdout.on('data', function (data) {
