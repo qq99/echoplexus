@@ -301,8 +301,17 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			body = body.replace(REGEXES.urls.all_others,'<a target="_blank" href="$1">$1</a>');
 			body = body.replace(REGEXES.users.mentions,'<span class="mention">$1</span>');
 			if (body.length) { // if there's anything left in the body, 
-				var chatMessageClasses = "";
-				var nickClasses = "";
+				var chatMessageClasses = "",
+					nickClasses = "",
+					humanTime;
+
+				// render the msg's sent time:
+				if (OPTIONS['prefer_24hr_clock']) {
+					humanTime = moment(msg.timestamp).format('H:mm:ss');
+				} else {
+					humanTime = moment(msg.timestamp).format('hh:mm:ss a');
+				}
+
 				// special styling of chat
 				if (msg.directedAtMe) {
 					chatMessageClasses += "highlight ";
@@ -323,7 +332,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 					mID: msg.mID,
 					color: msg.color,
 					body: body,
-					humanTime: moment(msg.timestamp).format('hh:mm:ss'),
+					humanTime: humanTime,
 					timestamp: msg.timestamp,
 					classes: chatMessageClasses,
 					nickClasses: nickClasses,

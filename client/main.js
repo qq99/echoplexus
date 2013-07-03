@@ -67,11 +67,11 @@ define(function(require,exports,module){
             "show_growl": true,
             "suppress_join": false,
             "highlight_mine": true,
+            "prefer_24hr_clock": true,
             "suppress_client": false,
             "suppress_identity_acknowledgements": false,
             "auto_scroll": true //autoscroll to new chat messages
         };
-
 
         function updateOption (value, option) {
             var $option = $("#" + option);
