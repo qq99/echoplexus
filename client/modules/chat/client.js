@@ -270,6 +270,12 @@ define(['jquery','underscore','backbone','client','regex',
 							break;
 					}
 
+					// update our scrollback buffer so that we can quickly edit the message by pressing up/down
+					// https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
+					if (msg.you === true) {
+						self.scrollback.replace(msg.body, "/edit #" + msg.mID + " " + msg.body);
+					}
+
 					msg = self.checkToNotify(msg);
 
 					self.persistentLog.add(msg); 
