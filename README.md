@@ -1,4 +1,4 @@
-[echoplexus](https://echoplex.us) (v0.2.0)
+[echoplexus](https://echoplex.us) (v0.2.1)
 ==================
 
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
@@ -71,6 +71,7 @@ Currently Supported Commands:
 - `@[nickname]`: Gets the attention of the user in question
 - `/color [#FFFFFF]`: Supply a 6-digit hex code with or without the `#`, and change your nickname's color
 - `/edit #[integer] [new body text]`: Changes the body text of a specific message to something else.  Useful for correcting typos and censoring yourself.  You can also double click on a chat message to edit inline-- press enter to confirm, escape or click elsewhere to cancel.
+- `>>[integer]`: Quotes a specific chat message.  Clicking the Reply icon on the chat message will automatically add this for you.
 
 *Note:* Nickname registrations are considered on a per-channel basis to increase the available nickspace for all users.  Thus, you will have to register for a specific nickname many times across each channel you join.
 
