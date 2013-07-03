@@ -33,6 +33,8 @@ define(['jquery','backbone','underscore','client', 'loader',
 				self.showChannel("/"); // show the default
 			}
 			this.attachEvents();
+
+			$(window).on("unload", this.quickKill);
 		},
 		attachEvents: function () {
 			var self = this;
@@ -86,6 +88,17 @@ define(['jquery','backbone','underscore','client', 'loader',
 
 			window.events.on("chat:activity", function (data) {
 				self.channelActivity(data);
+			});
+		},
+
+		quickKill: function () {
+			// https://github.com/qq99/echoplexus/issues/118
+			// so the server doesn't attempt to keep them alive for any more than necessary, the client should be nice and tell us it's leaving
+
+			_.each(this.channels, function (channel) {
+				_.each(channel.modules, function (module) {
+					module.view.kill();
+				});
 			});
 		},
 
