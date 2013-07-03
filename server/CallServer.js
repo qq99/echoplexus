@@ -14,73 +14,40 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
             "join": function(namespace,socket,channel,client,data){
                 DEBUG && console.log('Client joined');
                 var room = channel.get("name");
-                if(_.isEmpty(channel.call)) {
-                    var status = {"active":true};
-                    socket.in(room).broadcast.emit("status:"+room,status);
-                    socket.in(room).emit("status:"+room,status);
-                }
-                channel.call[client.get('id')] = socket;
-                socket.in(room).broadcast.emit("new_peer:"+room,{
-                    id: client.get('id')
-                });
-                // send new peer a list of all prior peers
-                socket.in(room).emit("peers:"+room,{
-                    "connections": _.without(_.keys(channel.call),client.get('id')),
-                    "you": client.get('id')
-                });
+                if(channel.call.roomdata)
+                    socket.in(room).emit("negotiate:"+room,channel.call.roomdata);
+                // _.each(_.without(_.keys(channel.call.participants),channel.call.roomdata.userid,client.get('id')),function(key){
+                //     channel.call.participants[key].emit("negotiate:"+ room,{
+                //         participationRequest: true,
+                //         to: key,
+                //         userid: client.get('id')
+                //     });
+                // });
             },
-            "leave": function (namespace, socket, channel, client, data) {
-                DEBUG && console.log('Client left');
-                var room = channel.get("name");
-                socket.in(room).broadcast.emit("remove_peer:"+room,{
-                    id: client.get("id")
-                });
-                delete channel.call[client.get('id')];
-                if(_.isEmpty(channel.call)) {
-                    var status = {"active":false};
-                    socket.in(room).broadcast.emit("status:"+room,status);
-                    socket.in(room).emit("status:"+room,status);
-                }
-            },
-            "ice_candidate": function(namespace, socket, channel, client, data){
-                DEBUG && console.log('Ice Candidate recieved from ' + client.get('id') + ' for ' + data.id);
-                var room = channel.get("name");
-                var targetClient = channel.call[data.id];
-                if (typeof targetClient !== "undefined") {
-                    targetClient.in(room).emit("ice_candidate:"+room,{
-                        label: data.label,
-                        candidate: data.candidate,
-                        id: client.get('id')
-                    });
-                }
-            },
-            "offer": function(namespace, socket, channel, client, data){
-                DEBUG && console.log('Offer recieved from ' + client.get('id') + ' for ' + data.id);
-                var room = channel.get("name");
-                var targetClient = channel.call[data.id];
-                if (targetClient) {
-                    targetClient.in(room).emit("offer:" + room,{
-                        sdp: data.sdp,
-                        id: client.get('id')
-                    });
-                }
-            },
-            "answer": function(namespace, socket, channel, client, data){
-                DEBUG && console.log('Answer recieved from ' + client.get('id') + ' for ' + data.id);
-                var targetClient = channel.call[data.id];
-                var room = channel.get("name");
-                if (targetClient) {
-                    targetClient.in(room).emit("answer:"+room,{
-                        sdp: data.sdp,
-                        id: client.get('id')
-                    });
-                }
-            },
-            "update": function(namespace, socket, channel, client, data){
+            "negotiate": function(namespace, socket, channel, client, data){
                 var room = channel.get('name');
-                socket.emit("status:"+room,{
-                    "active": !_.isEmpty(channel.call)
-                });
+                if (data.participant || data.sessionid)
+                {
+                    if(data.sessionid) channel.call.roomdata = data;
+                    if(_.isEmpty(channel.call.participants)) {
+                        var status = {"active":true};
+                        socket.in(room).broadcast.emit("status:"+room,status);
+                        socket.in(room).emit("status:"+room,status);
+                    }
+
+                    channel.call.participants[client.get('id')] = socket;
+                } else if (data.left){
+                    delete channel.call.participants[client.get('id')];
+                    if(_.isEmpty(channel.call.participants)) {
+                        var status = {"active":true};
+                        socket.in(room).broadcast.emit("status:"+room,status);
+                        socket.in(room).emit("status:"+room,status);
+                    }
+                }
+                if (!!data.targetUser && !!channel.call.participants[data.targetUser]) 
+                    channel.call.participants[data.targetUser].in(room).emit("negotiate:" + room, data);
+                else socket.in(room).broadcast.emit("negotiate:" + room,data);
+
             }
         }
     });
@@ -94,9 +61,13 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
         },
         success: function (namespace, socket, channel, client) {
             var room = channel.get('name');
-            socket.emit("status:"+room,{
-                "active": !_.isEmpty(channel.call)
+            socket.in(room).emit("status:"+room,{
+                "active": !_.isEmpty(channel.call.participants)
             });
+            socket.in(room).emit("your_id:"+room,{
+                "id": client.get('id')
+            });
+            
         }
     });
 

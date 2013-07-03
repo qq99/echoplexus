@@ -1,12 +1,13 @@
 define(['modules/call/rtc',
         'text!modules/call/templates/callPanel.html'
-        ], function (RTC, callPanelTemplate) {
+        ], function (RTCMultiConnection, callPanelTemplate) {
     return Backbone.View.extend({
         className: 'callClient',
         template: _.template(callPanelTemplate),
 
         events: {
             "click .join": "joinCall",
+            "click .create": "createCall",
             "click .hang-up": "leaveCall",
             "click .mute-audio": "toggleMuteAudio",
             "click .mute-video": "toggleMuteVideo"
@@ -19,8 +20,9 @@ define(['modules/call/rtc',
             this.channelName = opts.room;
             this.socket = io.connect("/call");
             this.config = opts.config;
-            this.rtc = new RTC();
+            this.rtc = new RTCMultiConnection();
             this.videos = {};
+            this._mystreamid = null;
             this.render();
 
             this.on("show", function () {
@@ -50,9 +52,13 @@ define(['modules/call/rtc',
             var $this = $(ev.currentTarget);
             console.log('Muting audio');
             if ($this.hasClass("unmuted")) {
-                this.rtc.muteAudio();
+                this.rtc.streams[this._mystreamid].mute({
+                    audio: true
+                });
             } else {
-                this.rtc.unmuteAudio();
+                this.rtc.streams[this._mystreamid].unmute({
+                    audio: true
+                });
             }
             $this.toggleClass("unmuted");
         },
@@ -61,9 +67,13 @@ define(['modules/call/rtc',
             var $this = $(ev.currentTarget);
 
             if ($this.hasClass("unmuted")) {
-                this.rtc.muteVideo();
+                this.rtc.streams[this._mystreamid].mute({
+                    video: true
+                });
             } else {
-                this.rtc.unmuteVideo();
+                this.rtc.streams[this._mystreamid].unmute({
+                    video: true
+                });
             }
             $this.toggleClass("unmuted");
         },
@@ -82,6 +92,14 @@ define(['modules/call/rtc',
             this.connect();
         },
 
+        createCall: function(){
+            this.joiningCall = true;
+            if(!this.$el.is(':visible')) return;
+            console.log('Creating call');
+            this.rtc.open(this.channelName);
+
+        },
+
         leaveCall: function () {
             this.inCall = false;
 
@@ -93,13 +111,10 @@ define(['modules/call/rtc',
             window.events.trigger("left_call:" + this.channelName);
         },
 
-        afterConnect: function (stream) {
-            var you = $('#you',this.$el).get(0);
+        afterConnect: function (el) {
+            var you = $('#you',this.$el);
             this.joiningCall = false;
             this.inCall = true;
-            you.src = URL.createObjectURL(stream);
-            you.muted = true;
-            you.play();
             $(".no-call", this.$el).hide();
             $(".in-call", this.$el).show();
 
@@ -109,14 +124,8 @@ define(['modules/call/rtc',
         connect: function(){
             if(!this.$el.is(':visible')) return;
             console.log('Creating stream');
-            this.rtc.createStream({
-                "video": {
-                    "mandatory": {},
-                    "optional": []
-                },
-                "audio": true
-            }, this.afterConnect, this.showError);
-            this.rtc.connect();
+            this.socket.emit('join:'+this.channelName);
+            this.rtc.connect(this.channelName);
         },
 
         showCallInProgress: function () {
@@ -131,26 +140,58 @@ define(['modules/call/rtc',
 
         listen: function(){
             var self = this;
-            this.rtc.listen(this.socket, this.channelName);
+            this.rtc.session = {
+                audio: true,
+                video: true
+            };
+            this.rtc.transmitRoomOnce = true;
+            this.rtc.openSignalingChannel = function(config) {
+
+               var channel = config.channel || this.channel || self.channelName;
+                self.socket.on('negotiate:'+self.channelName,function(data){
+                    console.log('Recieved data');
+                    console.log(data);
+                    config.onmessage(data);
+                });
+                var socket = {
+                    send: function(data){
+                        console.log("Sending data");
+                        console.log( data);
+                        //if (data.conferencing) return;
+                        self.socket.emit('negotiate:'+self.channelName,data);
+                    },
+                    channel: self.channelName
+                };
+                if(config.callback) config.callback(socket);
+                return socket;
+            };
+
             // on peer joining the call:
-            this.rtc.on('add remote stream', function(stream, socketId) {
-                console.log("ADDING REMOTE STREAM...", stream, socketId);
-                var clone = self.cloneVideo('#you', socketId);
-                clone.attr("class", "");
-                clone.get(0).muted = false;
-                self.rtc.attachStream(stream, clone.get(0));
-                self.subdivideVideos();
-            });
+            this.rtc.onstream = function (e) {
+                console.log(e);
+                if (e.type === 'local') {
+                    self.afterConnect($(e.mediaElement));
+                    self._mystreamid = e.streamid;
+                    return;
+                }else if (e.type !== 'remote') return;
+                var el = $(e.mediaElement);
+                el[0].controls = false;
+                self.videos[e.userid] = el;
+                $('#videos',self.$el).append(el);
+                //self.subdivideVideos();
+            };
             // on peer leaving the call:
-            this.rtc.on('disconnect stream', function(data) {
-                console.log('remove ' + data);
-                self.removeVideo(data);
-            });
+            this.rtc.onstreamended = function(e) {
+                console.log('remove ' + e.userid);
+                self.removeVideo(e.userid);
+            };
             // politely hang up before closing the tab/window
             $(window).on("unload", function () {
                 self.disconnect();
             });
-
+            this.rtc.onerror = function(e){
+                console.err(e);
+            };
             this.socketEvents = {
                 "status": function(data){
                     if (data.active &&
@@ -162,6 +203,9 @@ define(['modules/call/rtc',
                     } else if (!data.active) {
                         self.showNoCallInProgress();
                     }
+                },
+                "your_id": function(data){
+                    self.rtc.userid = data.id;
                 }
             };
             _.each(this.socketEvents, function (value, key) {
@@ -170,7 +214,7 @@ define(['modules/call/rtc',
             });
         },
         disconnect: function(){
-            this.rtc.disconnect();
+            this.rtc.close();
         },
         kill: function(){
             var self = this;
@@ -224,13 +268,6 @@ define(['modules/call/rtc',
                 left: (i % perRow) * width + "px",
                 top: Math.floor(i / perRow) * height + "px"
             });
-        },
-
-        cloneVideo: function (domID, clientID) {
-            var video = $(domID,this.$el).clone().attr('id','remote'+clientID);
-            this.videos[clientID] = video;
-            video.appendTo($('#videos',this.$el));
-            return video;
         },
 
         removeVideo: function (id) {
