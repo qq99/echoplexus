@@ -455,20 +455,18 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 										});
 										screenshotter.on("exit", function (data) {
 											DEBUG && console.log('screenshotter exit: ' + data);
-											if (config.chat.webshot_previews.verbose) {
-												if (pageData.title && pageData.excerpt) {
-													sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
-														body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
-													}, room));
-												} else if (pageData.title) {
-													sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
-														body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
-													}, room));
-												} else {
-													sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
-														body: urlRoot() + 'sandbox/' + fileName
-													}, room));
-												}
+											if (config.chat.webshot_previews.verbose && pageData.title && pageData.excerpt) {
+												sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
+													body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
+												}, room));
+											} else if (config.chat.webshot_previews.verbose && pageData.title) {
+												sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
+													body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
+												}, room));
+											} else {
+												sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
+													body: urlRoot() + 'sandbox/' + fileName
+												}, room));
 											}
 										});
 									})(urls[i], randomFilename); // call our closure with our random filename
