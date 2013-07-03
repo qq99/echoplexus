@@ -20,18 +20,21 @@ var express = require('express'),
 	ROOT_FOLDER = path.dirname(__dirname),
 	PUBLIC_FOLDER = ROOT_FOLDER + '/public',
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
-	CLIENT_FOLDER = ROOT_FOLDER + '/client';
+	CLIENT_FOLDER = ROOT_FOLDER + '/client',
+	protocol, server;
 
-var protocol = require(config.host.SCHEME);
-
-if (config.host.SCHEME === 'https') {
+// if we're using node's ssl, we must supply it the certs and create the server as https
+if (config.ssl.USE_NODE_SSL) {
+	protocol = require("https");
 	var privateKey  = fs.readFileSync(config.ssl.PRIVATE_KEY).toString();
 	var certificate = fs.readFileSync(config.ssl.CERTIFICATE).toString();
 	var credentials = { key: privateKey, cert: certificate };
-	var server = protocol.createServer(credentials, app); 
-} else {
-	var server = protocol.createServer(app);
+	server = protocol.createServer(credentials, app);
+} else { // proxying via nginx allows us to use a simple http server (and connections will be upgraded)
+	protocol = require("http");
+	server = protocol.createServer(app);
 }
+
 var index = "public/index.dev.html";
 if(fs.existsSync(PUBLIC_FOLDER+'/index.build.html'))
 	index = "public/index.build.html";

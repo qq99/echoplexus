@@ -3,12 +3,13 @@
 	// customize me:
 	exports.Configuration = {
 		host: {
-			SCHEME: "http",
+			SCHEME: "http", // used in generating URLs
 			FQDN: "chat.echoplex.us",
 			PORT: 8080,
 			USE_PORT_IN_URL: true,
 		},
 		ssl: {
+			USE_NODE_SSL: false, // only necessary if you're not having nginx proxy through to node
 			PRIVATE_KEY: '/path/to/server.key',
 			CERTIFICATE: '/path/to/certificate.crt'
 		},
