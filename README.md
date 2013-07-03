@@ -56,6 +56,7 @@ When you join a channel, you'll automatically sync some of the most recent chat 
 
 Currently Supported Commands:
 - `/join [channel_name]`: Join a channel
+- `/leave`: Leaves the current channel
 - `/nick [your_nickname]`: Changes your name from Anonymous; this preference is stored in a cookie on a per channel basis
 - `/register [some_password]`: Facilitates linkable anonymity; people talking to you yesterday can rest assured you're the same person today (and not an impersonator trying to steal your nickname) by registering and identifying.
 - `/identify [your_password]`: Assume command of your nickname, and get a green lock icon beside it (signifying to others that you are identified).

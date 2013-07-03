@@ -33,6 +33,7 @@
 			password: /^\/(password|pw)/,
 			private_message: /^\/(pm|w|whisper|t|tell) /,
 			join: /^\/(join|j)/,
+			leave: /^\/leave/,
 			pull_logs: /^\/(pull|p|sync|s) /,
 			set_color: /^\/(color|c) /,
 			edit: /^(\/edit) #?(\d*) /

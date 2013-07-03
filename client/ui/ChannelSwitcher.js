@@ -258,6 +258,11 @@ define(['jquery','backbone','underscore','client', 'loader',
 			});
 			this.sortedChannelNames = _.uniq(this.sortedChannelNames);
 
+			// listen for leave events for the newly created channel
+			window.events.on("leave:" + channelName, function () {
+				self.leaveChannel(channelName);
+			});
+
 			// update stored channels for revisit/refresh
 			window.localStorage.setObj("joined_channels", this.sortedChannelNames);
 		},

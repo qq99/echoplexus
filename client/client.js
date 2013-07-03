@@ -299,6 +299,9 @@
 				});
 
 				return;
+			} else if (body.match(REGEXES.commands.leave)) { // leaving
+				window.events.trigger('leave:' + room);
+				return;
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!
