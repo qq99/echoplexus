@@ -123,7 +123,7 @@ define(['underscore'],function(_){
 					var known = this.knownIDs();
 					// if we don't know about the server-sent latest ID, add it to the list:
 					if (known[known.length-1] !== latestID) {
-						known.push(latestID);
+						known.push(latestID + 1);
 					}
 					known.unshift(-1); // a default element
 
