@@ -145,25 +145,17 @@ define(['modules/call/rtc',
                 video: true
             };
             this.rtc.transmitRoomOnce = true;
-            this.rtc.openSignalingChannel = function(config) {
-
-               var channel = config.channel || this.channel || self.channelName;
+            this.rtc.openSignalingChannel = function(callback) {
                 self.socket.on('negotiate:'+self.channelName,function(data){
-                    console.log('Recieved data');
-                    console.log(data);
-                    config.onmessage(data);
+                    callback(JSON.stringify(data));
                 });
-                var socket = {
+                return {
                     send: function(data){
-                        console.log("Sending data");
-                        console.log( data);
+                        data = JSON.parse(data);
                         //if (data.conferencing) return;
                         self.socket.emit('negotiate:'+self.channelName,data);
-                    },
-                    channel: self.channelName
-                };
-                if(config.callback) config.callback(socket);
-                return socket;
+                    }
+                }
             };
 
             // on peer joining the call:
@@ -175,6 +167,7 @@ define(['modules/call/rtc',
                     return;
                 }else if (e.type !== 'remote') return;
                 var el = $(e.mediaElement);
+                el[0].muted = false;
                 el[0].controls = false;
                 self.videos[e.userid] = el;
                 $('#videos',self.$el).append(el);
@@ -189,9 +182,7 @@ define(['modules/call/rtc',
             $(window).on("unload", function () {
                 self.disconnect();
             });
-            this.rtc.onerror = function(e){
-                console.err(e);
-            };
+
             this.socketEvents = {
                 "status": function(data){
                     if (data.active &&

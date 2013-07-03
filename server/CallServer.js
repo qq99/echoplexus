@@ -26,9 +26,9 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
             },
             "negotiate": function(namespace, socket, channel, client, data){
                 var room = channel.get('name');
-                if (data.participant || data.sessionid)
+                if (data.participationRequest || data.roomid)
                 {
-                    if(data.sessionid) channel.call.roomdata = data;
+                    if(data.roomid) channel.call.roomdata = data;
                     if(_.isEmpty(channel.call.participants)) {
                         var status = {"active":true};
                         socket.in(room).broadcast.emit("status:"+room,status);
@@ -36,7 +36,7 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
                     }
 
                     channel.call.participants[client.get('id')] = socket;
-                } else if (data.left){
+                } else if (data.leaving){
                     delete channel.call.participants[client.get('id')];
                     if(_.isEmpty(channel.call.participants)) {
                         var status = {"active":true};
@@ -44,8 +44,8 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
                         socket.in(room).emit("status:"+room,status);
                     }
                 }
-                if (!!data.targetUser && !!channel.call.participants[data.targetUser]) 
-                    channel.call.participants[data.targetUser].in(room).emit("negotiate:" + room, data);
+                if (!!data.to && !!channel.call.participants[data.to]) 
+                    channel.call.participants[data.to].in(room).emit("negotiate:" + room, data);
                 else socket.in(room).broadcast.emit("negotiate:" + room,data);
 
             }
