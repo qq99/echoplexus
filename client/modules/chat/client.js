@@ -76,6 +76,7 @@ define(['jquery','underscore','backbone','client','regex',
 			"click button.syncLogs": "activelySyncLogs",
 			"click button.deleteLocalStorage": "deleteLocalStorage",
 			"click button.clearChatlog": "clearChatlog",
+			"click .icon-reply": "reply",
 			"keydown .chatinput textarea": "handleChatInputKeydown"
 		},
 
@@ -474,6 +475,24 @@ define(['jquery','underscore','backbone','client','regex',
 				 	requestRange: missed
 				});
 			}
+		},
+
+		reply: function (ev) {
+			ev.preventDefault();
+
+			var $this = $(ev.currentTarget),
+				mID = $this.parents(".chatMessage").data("sequence"),
+				$textarea = $(".chatinput textarea", this.$el),
+				curVal;
+
+			curVal = $textarea.val();
+
+			if (curVal.length) {
+				$textarea.val(curVal + " >>" + mID);
+			} else {
+				$textarea.val(">>" + mID);
+			}
+			$textarea.focus();
 		},
 
 		deleteLocalStorage: function (ev) {

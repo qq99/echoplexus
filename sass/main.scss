@@ -914,7 +914,7 @@ body {
 	}
 	&.highlight_mine {
 		.chatMessage.me {
-			background:rgba(120,120,220,0.1)
+			background:rgba(120,120,220,0.1);
 		}
 		.chatMessage.private {
 			background:rgba(0,0,30,0.5);
@@ -971,7 +971,6 @@ body {
 		padding-right:8em;
 
 		border:1px solid transparent;
-		@include transition(all 1s ease-in-out);
 		&:focus {
 			@include animation(border-pulse 1.5s 1s linear infinite alternate);
 			border:1px solid #efefef;
@@ -1036,10 +1035,20 @@ body {
 		position:absolute;
 		left:7.7em;
 	}
+
+	&.context {
+		opacity:1 !important;
+		background: rgba(120,120,220,0.3) !important;
+		color: rgb(120, 153, 34);
+	}
 }
 
 #ghetto_templates {
 	display:none;
+}
+.quotation {
+	cursor:help;
+	color:rgb(120, 153, 34); // 4chan greentext color
 }
 .clearfix {
 	display:block !important;

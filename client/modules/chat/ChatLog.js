@@ -35,6 +35,8 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			"click .media-opt-in .opt-in": "allowMedia",
 			"click .media-opt-in .opt-out": "disallowMedia",
 			"click .chatMessage-edit": "beginEdit",
+			"mouseenter .quotation": "showQuotationContext",
+			"mouseleave .quotation": "hideQuotationContext",
 			"blur .body[contenteditable='true']": "stopInlineEdit",
 			"keydown .body[contenteditable='true']": "onInlineEdit",
 			"dblclick .chatMessage.me:not(.private)": "beginInlineEdit"
@@ -297,6 +299,9 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				});
 			}
 
+			// format >>quotations:
+			body = body.replace(REGEXES.commands.reply, '<span class="quotation" rel="$2">&gt;&gt;$2</span>');
+
 			// hyperify hyperlinks for the chatlog:
 			body = body.replace(REGEXES.urls.all_others,'<a target="_blank" href="$1">$1</a>');
 			body = body.replace(REGEXES.users.mentions,'<span class="mention">$1</span>');
@@ -442,6 +447,27 @@ define(['jquery','backbone', 'underscore','regex','moment',
 
 		setTopic: function (msg) {
 			$(".channel-topic .value", this.$el).html(msg.body);
+		},
+
+		showQuotationContext: function (ev) {
+			var $this = $(ev.currentTarget),
+				quoting = $this.attr("rel"),
+				$quoted = $(".chatMessage[data-sequence='" + quoting + "']"),
+				excerpt;
+
+			excerpt = $quoted.find(".nick").text().trim() + ": " +
+						$quoted.find(".body").text().trim();
+
+			$this.attr("title", excerpt);
+			$quoted.addClass("context");
+		},
+
+		hideQuotationContext: function (ev) {
+			var $this = $(ev.currentTarget),
+				quoting = $this.attr("rel"),
+				$quoted = $(".chatMessage[data-sequence='" + quoting + "']");
+
+			$quoted.removeClass("context");
 		}
 	});
 	return ChatLogView;
