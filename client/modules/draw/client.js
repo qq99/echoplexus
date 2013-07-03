@@ -36,15 +36,6 @@ define(['jquery','underscore','backbone','client','keymaster',
 
             _.bindAll(this);
 
-            this.socket = io.connect("/draw");
-            this.channelName = opts.room;
-
-            //Initialize a path variable to hold the paths buffer as we recieve it from other clients
-            this.paths = {};
-
-            this.listen();
-            this.render();
-
             //The current canvas style
             this.style = {
                 tool: TOOLS.PEN,
@@ -55,6 +46,15 @@ define(['jquery','underscore','backbone','client','keymaster',
                 lineCap: "round",
                 lineJoin: "round"
             };
+
+            this.socket = io.connect("/draw");
+            this.channelName = opts.room;
+
+            //Initialize a path variable to hold the paths buffer as we recieve it from other clients
+            this.paths = {};
+
+            this.listen();
+            this.render();
 
             this.attachEvents();
 
