@@ -302,6 +302,12 @@
 			} else if (body.match(REGEXES.commands.leave)) { // leaving
 				window.events.trigger('leave:' + room);
 				return;
+			} else if (body.match(REGEXES.commands.broadcast)) { // broadcast to speak to all open channels at once
+				body = body.replace(REGEXES.commands.broadcast, "").trim();
+				window.events.trigger('chat:broadcast', {
+					body: body
+				});
+				return;
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!

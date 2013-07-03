@@ -356,7 +356,12 @@ define(['jquery','underscore','backbone','client','regex',
 		attachEvents: function () {
 			var self = this;
 
-
+			window.events.on("chat:broadcast", function (data) {
+				self.me.speak({
+					body: data.body,
+					room: self.channelName
+				}, self.socket);
+			});
 
 			window.events.on("unidle", function () {
 				if (self.$el.is(":visible")) {

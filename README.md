@@ -57,6 +57,8 @@ When you join a channel, you'll automatically sync some of the most recent chat 
 Currently Supported Commands:
 - `/join [channel_name]`: Join a channel
 - `/leave`: Leaves the current channel
+- `/topic [topic string]`: Set the topic of conversation for the channel (the message that sits visible at all times at the top)
+- `/broadcast [a chat message]`: Send the message to every channels that you're connected to.  Alias: `/bc`
 - `/nick [your_nickname]`: Changes your name from Anonymous; this preference is stored in a cookie on a per channel basis
 - `/register [some_password]`: Facilitates linkable anonymity; people talking to you yesterday can rest assured you're the same person today (and not an impersonator trying to steal your nickname) by registering and identifying.
 - `/identify [your_password]`: Assume command of your nickname, and get a green lock icon beside it (signifying to others that you are identified).
