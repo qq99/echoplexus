@@ -20,7 +20,7 @@
 			webshot_previews: { // requires phantomjs to be installed
 				enabled: true, // http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
 				PHANTOMJS_PATH: '/opt/bin/phantomjs',
-				verbos: true, // send page information back to client
+				verbose: true, // send page information back to client
 			},
 			rate_limiting: { // slows down spammers
 				enabled: true,
