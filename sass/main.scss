@@ -6,6 +6,7 @@
 
 $active-color: rgba(71,178,250,0.7);
 $pretty-font-family: 'Noto Sans', sans-serif;
+$monospace:'Droid Sans Mono', monospace;
 $timestamp-width: 8em;
 
 @mixin clearfix {
@@ -54,6 +55,9 @@ pre {
 	margin:0px;
 	padding:0px;
 }
+textarea {
+	font-family:$monospace;
+}
 html, body {
 	text-shadow:1px 1px 1px #151515;
 	background: {
@@ -62,7 +66,7 @@ html, body {
 		repeat: repeat;
 	}
 	color:#dfdfdf;
-	font-family:monospace;
+	font-family:$monospace;
 	height:100%;
 	width:100%;
 	margin:0;
