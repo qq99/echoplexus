@@ -1,6 +1,6 @@
-define(['jquery','backbone','underscore','client', 'loader',
+define(['require','jquery','backbone','underscore','client', 'loader',
 		'text!templates/channelSelector.html'
-	],function($,Backbone, _,Client,Modules,channelSelectorTemplate){
+	],function(require,$,Backbone, _,Client,Modules,channelSelectorTemplate){
 		var modules = _.map(Modules,function(module){return module.view;}),
 			ClientModel = Client.ClientModel,
 			ClientsCollection = Client.ClientsCollection;
