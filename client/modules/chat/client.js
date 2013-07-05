@@ -3,10 +3,10 @@ define(['jquery','underscore','backbone','client','regex',
 		'modules/chat/Scrollback',
 		'modules/chat/Log',
 		'modules/chat/ChatLog',
-		'ui/Growl',
+		'ui/Mewl',
 		'text!modules/chat/templates/chatPanel.html'
 	],
-	function($,_,Backbone,Client,Regex,Autocomplete,Scrollback,Log,ChatLog,Growl,chatpanelTemplate){
+	function($,_,Backbone,Client,Regex,Autocomplete,Scrollback,Log,ChatLog,Mewl,chatpanelTemplate){
 	var ColorModel = Client.ColorModel,
 		ClientModel = Client.ClientModel,
 		ClientsCollection = Client.ClientsCollection,
@@ -204,7 +204,7 @@ define(['jquery','underscore','backbone','client','regex',
 		checkToNotify: function (msg) {
 			// scan through the message and determine if we need to notify somebody that was mentioned:
 			var msgBody = msg.body.toLowerCase(),
-				myNick = this.me.get("nick"),
+				myNick = this.me.get("nick").toLowerCase(),
 				atMyNick = "@" + myNick;
 
 			// check to see if me.nick is contained in the msgme.
@@ -244,9 +244,9 @@ define(['jquery','underscore','backbone','client','regex',
 				});
 
 				// do not show a growl for this channel's chat if we're looking at it
-				if (OPTIONS.show_growl &&
+				if (OPTIONS.show_mewl &&
 					(this.hidden || !chatModeActive())) {
-					var growl = new Growl({
+					var mewl = new Mewl({
 						title: this.channelName + ":  " + msg.nickname,
 						body: msg.body
 					});

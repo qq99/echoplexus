@@ -114,6 +114,7 @@ module.exports = function(grunt) {
       		mode: 'zip'
       	},
       	files: [
+          {expand: true, src: ['node_modules/growl/**']},
       		{expand: true, src: ['**/*'], cwd: '<%= public_dir %>'},
       		{
             expand: true, 

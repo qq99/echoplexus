@@ -5,6 +5,7 @@ define(['underscore'],function(_){
 		"use strict";
 		var _permission = "default", // not granted nor denied
 			enabled = false,
+			_growl = null,
 			_notificationProvider = null,
 			defaults = {
 				title: "Echoplexus",
@@ -42,7 +43,11 @@ define(['underscore'],function(_){
 			}
 		}
 
-		
+		if (window.ua.node_webkit) {
+			_permission = "granted";
+			_growl = window.requireNode('growl');
+		}
+
 		/*
 		Polyfill to present an OS-level notification:
 		options: {
@@ -58,7 +63,9 @@ define(['underscore'],function(_){
 
 			if (!enabled) return;
 
-			if (!document.hasFocus() && _permission === "granted") {
+			if (!document.hasFocus() &&
+				_permission === "granted" &&
+				window.OPTIONS["show_OS_notifications"]) {
 				
 				var title,
 					opts = _.clone(defaults);
@@ -68,7 +75,14 @@ define(['underscore'],function(_){
 				title = opts.title;
 				delete opts.title;
 
-				if (window.Notification) { // Standards
+				if (window.ua.node_webkit) { // Application
+					if (process.platform === 'linux') {
+						console.log(process.cwd() + '/echoplexus-logo.png');
+						_growl(opts.body, {
+							image: process.cwd() + '/echoplexus-logo.png'
+						});
+					}
+				} else if (window.Notification) { // Standards
 					var notification = new Notification(title, opts);
 
 					// TODO: figure out how to close the notification :/

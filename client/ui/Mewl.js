@@ -1,9 +1,9 @@
 define(['jquery','underscore','backbone',
-		"text!templates/GrowlNotification.html"],
+		"text!templates/MewlNotification.html"],
 	function($, _, Backbone, growlTemplate){
 
 	// Displays a little modal-like alert box with
-	var GrowlNotification = Backbone.View.extend({
+	var MewlNotification = Backbone.View.extend({
 
 		template: _.template(growlTemplate),
 
@@ -94,6 +94,6 @@ define(['jquery','underscore','backbone',
 
 	});
 
-	return GrowlNotification;
+	return MewlNotification;
 
 });
