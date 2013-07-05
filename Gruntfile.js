@@ -99,7 +99,11 @@ module.exports = function(grunt) {
     },
     exec: {
       launch_app: {
-        cmd: './nw app.nw',
+        cmd: function() {
+          if (require('os').platform() === "win32")
+            return 'nw.exe app.nw';
+          return './nw app.nw';
+        },
         cwd: 'nw/'
       }
     },
