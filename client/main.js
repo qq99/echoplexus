@@ -34,7 +34,6 @@ define(function(require,exports,module){
     require('jquery.cookie');
     require('events');
     require('utility');
-    // var Tinycon = require('tinycon');
     $(document).ready(function () {
         // tooltip stuff:s
         $("body").on("mouseenter", ".tooltip-target", function(ev) {
@@ -125,7 +124,6 @@ define(function(require,exports,module){
         }).on("focus mouseenter", function () {
             $("body").removeClass("blurred");
             document.title = "echoplexus";
-            // Tinycon.setBubble(''); // remove bubbles
         });
 
         io.connect(window.SOCKET_HOST,{
@@ -237,10 +235,6 @@ define(function(require,exports,module){
                 $(".button[data-target='#chatting']").addClass("activity");
             }
             if (!document.hasFocus()) {
-                // Tinycon.setOptions({
-                    // background: "#00aa00"
-                // });
-                // Tinycon.setBubble('!');
                 document.title = "!echoplexus";
             }
         });
