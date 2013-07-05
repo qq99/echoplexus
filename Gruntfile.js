@@ -97,6 +97,12 @@ module.exports = function(grunt) {
         ]
       }
     },
+    exec: {
+      launch_app: {
+        cmd: './nw app.nw',
+        cwd: 'nw/'
+      }
+    },
     compress: {
       pack_app: {
       	options: {
@@ -132,13 +138,14 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-htmlmin');
   grunt.loadNpmTasks('grunt-usemin');
-  //grunt.loadNpmTasks('grunt-exec');
+  grunt.loadNpmTasks('grunt-exec');
   grunt.loadNpmTasks('grunt-contrib-compress');
 
   // Default task.
   grunt.registerTask('default', ['clean','copy','useminPrepare','requirejs','strip','usemin','htmlmin','sass','cssmin']);
   grunt.registerTask('dev', ['clean','sass']);
   grunt.registerTask('nw', ['clean', 'sass', 'compress:pack_app']);
+  grunt.registerTask('nw_launch', ['nw', 'exec:launch_app']);
 
   //TODO: developer task
 };

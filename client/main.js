@@ -24,7 +24,13 @@ define(function(require,exports,module){
     if (window.location.protocol === "https:") {
         window.COOKIE_OPTIONS.secure = true;
     }
-    if (ua.node_webkit) window.SOCKET_HOST = "https://chat.echoplex.us"; //Default host
+    if (ua.node_webkit) {
+        if (DEBUG) {
+            window.SOCKET_HOST = "http://localhost:8080"; //Default host
+        } else {
+            window.SOCKET_HOST = "https://chat.echoplex.us"; //Default host
+        }
+    }
     else window.SOCKET_HOST = window.location.origin;
     var $ = require('jquery'),
         _ = require('underscore'),
