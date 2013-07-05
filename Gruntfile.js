@@ -105,7 +105,17 @@ module.exports = function(grunt) {
       	},
       	files: [
       		{expand: true, src: ['**/*'], cwd: '<%= public_dir %>'},
-      		{expand: true, src: ['<%= client_dir %>**']},
+      		{
+            expand: true, 
+            src: _.union([
+                '<%= client_dir %>**',
+                '!<%= client_dir %>lib/**',
+                '<%= client_dir %>lib/requirejs/require.js'
+              ],_.map(config.paths,function(path){
+                return '<%= client_dir %>' + path + '.js'
+              })
+            )
+          },
       		{expand: true, src: ['package.json']}
       	]
       }
