@@ -88,4 +88,11 @@
         //Bootstrap our main application, and start
         require(['main']);
     }
+
+    // revert (for node-webkit)
+    if (typeof window !== 'undefined' &&
+        window.requireNode) {
+
+        window.require = window.requireNode;
+    }
 })();

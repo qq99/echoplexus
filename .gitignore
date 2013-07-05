@@ -15,3 +15,5 @@ server/config.js
 client/lib/*
 Vagrantfile
 .vagrant
+nw-build/
+app.nw

@@ -15,17 +15,26 @@ module.exports = function(grunt) {
       ' Licensed under <%= pkg.licenses.type %> */\n',
     public_dir: 'public/',
     client_dir: 'client/',
+    packaged_app_dir: 'nw-build/',
     // Task configuration.
     // HTML
     index:{
       build: '<%= public_dir %>index.build.html',
-      dev: '<%= public_dir %>index.dev.html'
+      dev: '<%= public_dir %>index.dev.html',
+      nw: '<%= public_dir %>index.nw.html'
     },
     copy:{
       dist: {
         files: {
           '<%= index.build %>': '<%= index.dev %>'
         }
+      },
+      packaged_app: {
+        files: [
+          {expand: true, src: ['<%= client_dir %>/**'], dest: '<%= packaged_app_dir %>client'},
+          {expand: true, src: ['**'], dest: '<%= packaged_app_dir %>', cwd: '<%= public_dir %>'},
+          {expand: true, src: ['package.json'], dest: '<%= packaged_app_dir %>'}
+        ]
       }
     },
     'useminPrepare':{
@@ -86,6 +95,17 @@ module.exports = function(grunt) {
           "<%= public_dir %>css/",
           "<%= public_dir %>index.build.html"
         ]
+      },
+      nw: {
+        src: [
+          "<%= packaged_app_dir %>**"
+        ]
+      }
+    },
+    exec: {
+      pack_app: {
+        command: 'cd <%= packaged_app_dir %> && zip -r ../app.nw *',
+        stdout: false
       }
     }
   });
@@ -100,10 +120,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-htmlmin');
   grunt.loadNpmTasks('grunt-usemin');
+  grunt.loadNpmTasks('grunt-exec');
 
   // Default task.
   grunt.registerTask('default', ['clean','copy','useminPrepare','requirejs','strip','usemin','htmlmin','sass','cssmin']);
   grunt.registerTask('dev', ['clean','sass']);
+  grunt.registerTask('nw', ['clean', 'sass', 'copy:packaged_app', 'exec:pack_app']);
 
   //TODO: developer task
 };
