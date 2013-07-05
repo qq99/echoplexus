@@ -16,8 +16,8 @@ define(function(require,exports,module){
         expires: 14
     };
     var ua = window.ua = {
-        firefox: !!navigator.mozGetUserMedia,
-        chrome: !!navigator.webkitGetUserMedia,
+        firefox: !!navigator.mozConnection, //Firefox 12+
+        chrome: !!window.chrome,
         node_webkit: typeof process !== "undefined" && process.versions && !!process.versions['node-webkit'] 
     }
     // require secure cookies if the protocol is https
