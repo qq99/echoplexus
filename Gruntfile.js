@@ -88,6 +88,9 @@ module.exports = function(grunt) {
     },
     //Clean
     clean: {
+      options: {
+      	force: true
+      },
       build: {
         src: [
           "<%= client_dir %>app.min.js",
@@ -102,10 +105,15 @@ module.exports = function(grunt) {
         ]
       }
     },
-    exec: {
+    compress: {
       pack_app: {
-        command: 'cd <%= packaged_app_dir %> && zip -r ../app.nw *',
-        stdout: false
+      	options: {
+      		archive: 'app.nw',
+      		mode: 'zip'
+      	},
+      	files: [
+      		{expand: true, src: ['**/*'], cwd: '<%= packaged_app_dir %>'}
+      	]
       }
     }
   });
@@ -120,12 +128,13 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-htmlmin');
   grunt.loadNpmTasks('grunt-usemin');
-  grunt.loadNpmTasks('grunt-exec');
+  //grunt.loadNpmTasks('grunt-exec');
+  grunt.loadNpmTasks('grunt-contrib-compress');
 
   // Default task.
   grunt.registerTask('default', ['clean','copy','useminPrepare','requirejs','strip','usemin','htmlmin','sass','cssmin']);
   grunt.registerTask('dev', ['clean','sass']);
-  grunt.registerTask('nw', ['clean', 'sass', 'copy:packaged_app', 'exec:pack_app']);
+  grunt.registerTask('nw', ['clean', 'sass', 'copy:packaged_app', 'compress:pack_app']);
 
   //TODO: developer task
 };
