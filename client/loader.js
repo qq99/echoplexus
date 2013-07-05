@@ -17,7 +17,6 @@ define(function(require,exports,module){
 		}));
 	});
 	//Preload modules
-	console.log(_.map(mods,function(mod){ return mod.view; }));
 	require(_.map(mods,function(mod){ return mod.view; }),function(){});
 	return mods;
 });

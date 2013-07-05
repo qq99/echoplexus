@@ -15,11 +15,16 @@ define(function(require,exports,module){
         path: '/',
         expires: 14
     };
+    var ua = window.ua = {
+        firefox: !!navigator.mozGetUserMedia,
+        chrome: !!navigator.webkitGetUserMedia,
+        node_webkit: typeof process !== "undefined" && process.versions && !!process.versions['node-webkit'] 
+    }
     // require secure cookies if the protocol is https
     if (window.location.protocol === "https:") {
         window.COOKIE_OPTIONS.secure = true;
     }
-    if (typeof process !== "undefined") window.SOCKET_HOST = "https://chat.echoplex.us"; //Default host
+    if (ua.node_webkit) window.SOCKET_HOST = "https://chat.echoplex.us"; //Default host
     else window.SOCKET_HOST = window.location.origin;
     var $ = require('jquery'),
         _ = require('underscore'),

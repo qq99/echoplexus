@@ -23,7 +23,7 @@ define(['require','jquery','backbone','underscore','client', 'loader',
 				joinChannels = []
 			}
 			joinChannels.push('/');
-			if(typeof process === "undefined") joinChannels.push(window.location.pathname);
+			if(!window.ua.node_webkit) joinChannels.push(window.location.pathname);
 			_.each(_.uniq(joinChannels),function(chan){
 				self.joinChannel(chan);
 			});
@@ -214,7 +214,7 @@ define(['require','jquery','backbone','underscore','client', 'loader',
 			this.activeChannel = channelName;
 
 			// allow the user to know that his channel can be joined via URL slug by updating the URL
-			if (typeof process === "undefined" && history.replaceState) {
+			if (!window.ua.node_webkit && history.replaceState) {
 				// replaceState rather than pushing to keep Back/Forward intact && because we have no other option to perform here atm
 				history.replaceState(null,"",channelName);
 			}
