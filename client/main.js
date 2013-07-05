@@ -124,6 +124,10 @@ define(function(require,exports,module){
         }).on("focus mouseenter", function () {
             $("body").removeClass("blurred");
             document.title = "echoplexus";
+            if(ua.node_webkit){
+                var win = gui.Window.get();
+                win.requestAttention(false);
+            }
         });
 
         io.connect(window.SOCKET_HOST,{
@@ -236,6 +240,10 @@ define(function(require,exports,module){
             }
             if (!document.hasFocus()) {
                 document.title = "!echoplexus";
+                if(ua.node_webkit){
+                    var win = gui.Window.get();
+                    win.requestAttention(true);
+                }
             }
         });
 
