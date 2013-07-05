@@ -40,6 +40,10 @@
   "bugs": {
     "url": "https://github.com/qq99/echoplexus/issues"
   },
+  "window": {
+     "icon": "favicon.png",
+     "toolbar": false
+  },
   "dependencies": {
     "node-uuid": "~1.4.0",
     "express": "~3.2.5",

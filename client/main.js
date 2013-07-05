@@ -201,10 +201,14 @@ define(function(require,exports,module){
 
             return false; // don't trigger browser's autoreload
         });
+        if(ua.node_webkit){
+            key('f2',function(){
+                window.gui.Window.get().showDevTools('');
+            })
+        }
 
         // change tabs:
         var tabs = $('#buttons').children();
-        console.log(tabs.length);
         var activeTabIndex = $('#buttons .active').index();
         key('alt+shift+right, alt+shift+k, alt+shift+d', function () {
             activeTabIndex += 1;
