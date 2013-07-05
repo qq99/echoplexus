@@ -15,7 +15,6 @@ module.exports = function(grunt) {
       ' Licensed under <%= pkg.licenses.type %> */\n',
     public_dir: 'public/',
     client_dir: 'client/',
-    packaged_app_dir: 'nw-build/',
     // Task configuration.
     // HTML
     index:{
@@ -28,13 +27,6 @@ module.exports = function(grunt) {
         files: {
           '<%= index.build %>': '<%= index.dev %>'
         }
-      },
-      packaged_app: {
-        files: [
-          {expand: true, src: ['<%= client_dir %>/**'], dest: '<%= packaged_app_dir %>client'},
-          {expand: true, src: ['**'], dest: '<%= packaged_app_dir %>', cwd: '<%= public_dir %>'},
-          {expand: true, src: ['package.json'], dest: '<%= packaged_app_dir %>'}
-        ]
       }
     },
     'useminPrepare':{
@@ -101,7 +93,7 @@ module.exports = function(grunt) {
       },
       nw: {
         src: [
-          "<%= packaged_app_dir %>**"
+          "app.nw"
         ]
       }
     },
@@ -112,7 +104,9 @@ module.exports = function(grunt) {
       		mode: 'zip'
       	},
       	files: [
-      		{expand: true, src: ['**/*'], cwd: '<%= packaged_app_dir %>'}
+      		{expand: true, src: ['**/*'], cwd: '<%= public_dir %>'},
+      		{expand: true, src: ['<%= client_dir %>**']},
+      		{expand: true, src: ['package.json']}
       	]
       }
     }
@@ -134,7 +128,7 @@ module.exports = function(grunt) {
   // Default task.
   grunt.registerTask('default', ['clean','copy','useminPrepare','requirejs','strip','usemin','htmlmin','sass','cssmin']);
   grunt.registerTask('dev', ['clean','sass']);
-  grunt.registerTask('nw', ['clean', 'sass', 'copy:packaged_app', 'compress:pack_app']);
+  grunt.registerTask('nw', ['clean', 'sass', 'compress:pack_app']);
 
   //TODO: developer task
 };
