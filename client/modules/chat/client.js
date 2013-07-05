@@ -22,7 +22,9 @@ define(['jquery','underscore','backbone','client','regex',
 			_.bindAll(this);
 
 			this.hidden = true;
-			this.socket = io.connect("/chat");
+			this.config = opts.config;
+            this.module = opts.module;
+			this.socket = io.connect(this.config.host + "/chat");
 			this.channel = opts.channel;
 			this.channel.clients.model = ClientModel;
 

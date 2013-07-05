@@ -22,7 +22,7 @@ define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client)
 				this.channelName = opts.room;
 				this.subchannelName = opts.subchannel;
 				this.channelKey = this.channelName + ":" + this.subchannelName;
-				this.socket = io.connect("/code");
+				this.socket = io.connect(opts.host + "/code");
 
 				this.active = false;
 				this.listen();

@@ -1,6 +1,5 @@
 if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 
-
 function codingModeActive () { // sloppy, forgive me
     return $("#coding").is(":visible");
 }
@@ -20,6 +19,8 @@ define(function(require,exports,module){
     if (window.location.protocol === "https:") {
         window.COOKIE_OPTIONS.secure = true;
     }
+    if (typeof process !== "undefined") window.SOCKET_HOST = "https://chat.echoplex.us"; //Default host
+    else window.SOCKET_HOST = window.location.origin;
     var $ = require('jquery'),
         _ = require('underscore'),
         key = require('keymaster'),
@@ -28,7 +29,7 @@ define(function(require,exports,module){
     require('jquery.cookie');
     require('events');
     require('utility');
-    var Tinycon = require('tinycon');
+    // var Tinycon = require('tinycon');
     $(document).ready(function () {
         // tooltip stuff:s
         $("body").on("mouseenter", ".tooltip-target", function(ev) {
@@ -119,10 +120,10 @@ define(function(require,exports,module){
         }).on("focus mouseenter", function () {
             $("body").removeClass("blurred");
             document.title = "echoplexus";
-            Tinycon.setBubble(''); // remove bubbles
+            // Tinycon.setBubble(''); // remove bubbles
         });
 
-        io.connect(window.location.origin,{
+        io.connect(window.SOCKET_HOST,{
             'connect timeout': 1000,
             'reconnect': true,
             'reconnection delay': 2000,
@@ -231,10 +232,10 @@ define(function(require,exports,module){
                 $(".button[data-target='#chatting']").addClass("activity");
             }
             if (!document.hasFocus()) {
-                Tinycon.setOptions({
-                    background: "#00aa00"
-                });
-                Tinycon.setBubble('!');
+                // Tinycon.setOptions({
+                    // background: "#00aa00"
+                // });
+                // Tinycon.setBubble('!');
                 document.title = "!echoplexus";
             }
         });

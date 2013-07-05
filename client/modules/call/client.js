@@ -17,8 +17,9 @@ define(['modules/call/rtc',
             _.bindAll(this);
             this.channel = opts.channel;
             this.channelName = opts.room;
-            this.socket = io.connect("/call");
             this.config = opts.config;
+            this.module = opts.module;
+            this.socket = io.connect(this.config.host + "/call");
             this.rtc = new RTC();
             this.videos = {};
             this.render();

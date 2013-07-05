@@ -93,14 +93,14 @@ module.exports = function(grunt) {
       },
       nw: {
         src: [
-          "app.nw"
+          "nw/app.nw"
         ]
       }
     },
     compress: {
       pack_app: {
       	options: {
-      		archive: 'app.nw',
+      		archive: 'nw/app.nw',
       		mode: 'zip'
       	},
       	files: [

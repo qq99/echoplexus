@@ -17,3 +17,4 @@ Vagrantfile
 .vagrant
 nw-build/
 app.nw
+nw/
