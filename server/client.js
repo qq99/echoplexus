@@ -1,5 +1,6 @@
 exports.ClientStructures = function (redisC, EventBus) {
 	var _ = require('underscore'),
+		uuid = require('node-uuid'),
 		config = require('../server/config.js').Configuration,
 		Client = require('../client/client.js').ClientModel;
 
@@ -43,6 +44,11 @@ exports.ClientStructures = function (redisC, EventBus) {
 			});
 
 			Client.prototype.initialize.apply(this, arguments);
+
+			// set a good global identifier
+			if (typeof uuid !== "undefined") {
+				this.set("id", uuid.v4());
+			}
 
 			// rate limit the client's chat, if it's enabled
 			if (config &&
