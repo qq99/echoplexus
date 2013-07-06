@@ -174,10 +174,11 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					perms = data.body.substring(0, (startOfUsername === -1) ? data.body.length : startOfUsername);
 
 				if (startOfUsername !== -1) {
-					username = data.body.substring(startOfUsername, data.body.length);
+					username = data.body.substring(startOfUsername, data.body.length).trim();
 				} else {
 					username = null;
 				}
+				console.log(username);
 
 				if (!bestowables) {
 					emitGenericPermissionsError(socket, client);
@@ -206,24 +207,40 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				}
 
 				if (username) { // we're setting a perm on the user object
-					// TODO
+					var targetClients = channel.clients.where({nick: username}); // returns an array
+					if (typeof targetClients !== "undefined" &&
+						targetClients.length) {
+
+						// send the pm to each client matching the name
+						_.each(targetClients, function (targetClient) {
+							targetClient.get("permissions").set(permsToSave);
+							targetClient.socketRef.in(room).emit('chat:' + room, serverSentMessage({
+								body: client.get("nick") + " has set your permissions to [" + successes + "]."
+							}, room));
+						});
+
+						socket.in(room).emit('chat:' + room, serverSentMessage({
+							body: "You've successfully set [" + successes + "] on " + username
+						}, room));
+					} else {
+						// some kind of error message
+					}
 				} else { // we're setting a channel perm
 					channel.permissions.set(permsToSave);
-					// TODO: persist them
+
+					if (successes.length) {
+						socket.in(room).emit('chat:' + room, serverSentMessage({
+							body: "You've successfully set [" + successes + "] on the channel."
+						}, room));
+						socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
+							body: client.get("nick") + " has set [" + successes + "] on the channel."
+						}, room));
+					}
 				}
 
 				if (errors.length) {
 					socket.in(room).emit('chat:' + room, serverSentMessage({
 						body: "The permissions [" + errors + "] don't exist or you can't bestow them."
-					}, room));
-				}
-
-				if (successes.length) {
-					socket.in(room).emit('chat:' + room, serverSentMessage({
-						body: "You've successfully set [" + successes + "] on the channel."
-					}, room));
-					socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
-						body: client.get("nick") + " has set [" + successes + "] on the channel."
 					}, room));
 				}
 			},
@@ -265,6 +282,9 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					}
 					
 					socket.in(room).emit('chat:' + room, serverSentMessage({
+						body: "This channel is now private.  Please remember your password."
+					}, room));
+					socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
 						body: "This channel is now private.  Please remember your password."
 					}, room));
 				});
@@ -332,6 +352,10 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 				redisC.hset('topic', room, data.topic);
 				socket.in(room).emit('topic:' + room, serverSentMessage({
+					body: data.topic,
+					log: false
+				}, room));
+				socket.in(room).broadcast.emit('topic:' + room, serverSentMessage({
 					body: data.topic,
 					log: false
 				}, room));
