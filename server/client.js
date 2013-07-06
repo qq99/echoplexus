@@ -88,10 +88,7 @@ exports.ClientStructures = function (redisC, EventBus) {
 			});
 		},
 		hasPermission: function (permName) {
-			// first we check their user-local perms
 			return this.get("permissions").get(permName);
-
-			// then check the channel-wide perms
 		},
 		becomeChannelOwner: function () {
 			this.get("permissions").upgradeToOperator();

@@ -98,7 +98,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		var room = client.get("room");
 
 		socket.in(room).emit('chat:' + room, serverSentMessage({
-			body: "I can't let you do that, " + client.get("nick")
+			body: "I can't let you do that, " + client.get("nick"),
+			log: false
 		}, room));
 	}
 
@@ -147,6 +148,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"chown": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
+				if (typeof data.key === "undefined") return;
+
 				channel.assumeOwnership(client, data.key, function (err, response) {
 					if (err) {
 						socket.in(room).emit('chat:' + room, serverSentMessage({
@@ -163,10 +166,71 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					publishUserList(channel);
 				});
 			},
+			"chmod": function (namespace, socket, channel, client, data) {
+				var room = channel.get("name"),
+					bestowables = client.get("permissions").canBestow,
+					startOfUsername = data.body.indexOf(' '),
+					username,
+					perms = data.body.substring(0, (startOfUsername === -1) ? data.body.length : startOfUsername);
+
+				if (startOfUsername !== -1) {
+					username = data.body.substring(startOfUsername, data.body.length);
+				} else {
+					username = null;
+				}
+
+				if (!bestowables) {
+					emitGenericPermissionsError(socket, client);
+					return;
+				}
+
+				perms = _.compact(_.uniq(perms.replace(/([+-])/g, " $1").split(' ')));
+
+				var errors = [],
+					successes = [],
+					permsToSave = {};
+				for (var i = 0; i < perms.length; i++) {
+					var perm = perms[i],
+						permValue = (perm.charAt(0) === "+"),
+						permName = perm.replace(/[+-]/g, '');
+
+					// we can't bestow it, continue to next perm
+					if (!bestowables[permName]) {
+						errors.push(perm);
+						continue;
+					} else {
+						successes.push(perm);
+					}
+
+					permsToSave[permName] = permValue;
+				}
+
+				if (username) { // we're setting a perm on the user object
+					// TODO
+				} else { // we're setting a channel perm
+					channel.permissions.set(permsToSave);
+					// TODO: persist them
+				}
+
+				if (errors.length) {
+					socket.in(room).emit('chat:' + room, serverSentMessage({
+						body: "The permissions [" + errors + "] don't exist or you can't bestow them."
+					}, room));
+				}
+
+				if (successes.length) {
+					socket.in(room).emit('chat:' + room, serverSentMessage({
+						body: "You've successfully set [" + successes + "] on the channel."
+					}, room));
+					socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
+						body: client.get("nick") + " has set [" + successes + "] on the channel."
+					}, room));
+				}
+			},
 			"make_public": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
-				if (!client.hasPermission("canMakePublic")) {
+				if (!channel.hasPermission(client, "canMakePublic")) {
 					emitGenericPermissionsError(socket, client);
 					return;
 				}
@@ -187,7 +251,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"make_private": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
-				if (!client.hasPermission("canMakePrivate")) {
+				if (!channel.hasPermission(client, "canMakePrivate")) {
 					emitGenericPermissionsError(socket, client);
 					return;
 				}
@@ -261,7 +325,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"topic": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
-				if (!client.hasPermission("canSetTopic")) {
+				if (!channel.hasPermission(client, "canSetTopic")) {
 					emitGenericPermissionsError(socket, client);
 					return;
 				}
@@ -314,7 +378,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				var room = channel.get("name"),
 					jsonArray = [];
 
-				if (!client.hasPermission("canPullLogs")) {
+				if (!channel.hasPermission(client, "canPullLogs")) {
 					emitGenericPermissionsError(socket, client);
 					return;
 				}
@@ -348,7 +412,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				var targetClients;
 				var room = channel.get("name");
 
-				if (!client.hasPermission("canSpeak")) {
+				if (!channel.hasPermission(client, "canSpeak")) {
 					emitGenericPermissionsError(socket, client);
 					return;
 				}
@@ -397,7 +461,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"chat": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
-				if (!client.hasPermission("canSpeak")) {
+				if (!channel.hasPermission(client, "canSpeak")) {
 					emitGenericPermissionsError(socket, client);
 					return;
 				}

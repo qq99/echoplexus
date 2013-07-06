@@ -275,6 +275,12 @@
 					key: body
 				});
 				return;
+			} else if (body.match(REGEXES.commands.chmod)) { // change permissions
+				body = body.replace(REGEXES.commands.chmod, "").trim();
+				socket.emit('chmod:' + room, {
+					body: body
+				});
+				return;
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!

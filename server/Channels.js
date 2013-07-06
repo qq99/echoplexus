@@ -9,6 +9,7 @@ exports.ChannelStructures = function (redisC, EventBus) {
 		Client = ClientStructures.ServerClient,
 		Clients = require('../client/client.js').ClientsCollection,
 		config = require('./config.js').Configuration,
+		PermissionModel = require('./PermissionModel').ServerPermissionModel,
 		DEBUG = config.DEBUG;
 
 
@@ -36,13 +37,44 @@ exports.ChannelStructures = function (redisC, EventBus) {
 			this.codeCaches = {};
 
 			this.getOwner();
+
+			this.permissions = new PermissionModel();
+
+			this.getPermissions();
+		},
+		hasPermission: function (client, permName) {
+			var perm;
+
+			perm = client.hasPermission(permName);
+
+			console.log(permName, perm);
+			if (!perm) {
+				perm = this.permissions.get(permName);
+				console.log(permName, perm);
+			}
+
+			return perm;
+		},
+		getPermissions: function () {
+			var room = this.get("name");
+
+			redisC.hget("permissions:" + room, "channel_perms", function (err, reply) {
+				if (err) throw err;
+
+				console.log("permissions were",reply);
+				if (reply) {
+					var stored_permissions = JSON.parse(reply);
+
+					this.get("permissions").set(stored_permissions);
+				}
+			});
 		},
 		getOwner: function () {
 			var self = this,
 				channelName = this.get("name");
 
 			// only query the hasOwner once per lifetime
-			redisC.hget("channels:" + channelName, "owner", function (err, reply) {
+			redisC.hget("channels:" + channelName, "owner_derivedKey", function (err, reply) {
 				if (reply) { // channel has an owner
 					console.log("owner existed", reply);
 					self.set("hasOwner", true);
