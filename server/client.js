@@ -39,8 +39,12 @@ exports.ClientStructures = function (redisC, EventBus) {
 			console.log("ServerClient initialize");
 
 			this.on("change:identified", function (data) {
+				console.log("changed:identified");
 				self.loadMetadata();
-				self.getPermissions();
+				self.setIdentityToken(function (err) {
+					if (err) throw err;
+					self.getPermissions();
+				});
 			});
 
 			Client.prototype.initialize.apply(this, arguments);
@@ -60,8 +64,56 @@ exports.ClientStructures = function (redisC, EventBus) {
 			}
 
 		},
-		getPermissions: function () {
+		setIdentityToken: function (callback) {
+			var token,
+				room = this.get("room"),
+				nick = this.get("nick");
 
+			// check to see if a token already exists for the user
+			redisC.hget("identity_token:" + room, nick, function (err, reply) {
+				if (err) callback(err);
+
+				if (!reply) { // if not, make a new one
+					token = uuid.v4();
+					redisC.hset("identity_token:" + room, nick, token, function (err, reply) { // persist it
+						if (err) throw err;
+						this.identity_token = token; // store it on the client object
+						callback(null);
+					});
+				} else {
+					token = reply;
+					this.identity_token = token; // store it on the client object
+					callback(null);
+				}
+			});
+		},
+		hasPermission: function (permName) {
+			// first we check their user-local perms
+			return this.get("permissions").get(permName);
+
+			// then check the channel-wide perms
+		},
+		becomeChannelOwner: function () {
+			this.get("permissions").upgradeToOperator();
+			console.log(this.get("permissions"));
+		},
+		getPermissions: function () {
+			var room = this.get("room"),
+				nick = this.get("nick"),
+				identity_token = this.identity_token;
+
+			console.log("getting permissions");
+
+			redisC.hget("permissions:" + room, nick + ":" + identity_token, function (err, reply) {
+				if (err) throw err;
+
+				console.log("permissions were",reply);
+				if (reply) {
+					var stored_permissions = JSON.parse(reply);
+
+					this.get("permissions").set(stored_permissions);
+				}
+			});
 		},
 		metadataToArray: function () {
 			var self = this,

@@ -17,26 +17,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 	var DEBUG = config.DEBUG;
 
-	function setIdentityToken(room, client) {
-		var token,
-			nick = client.get("nick");
-
-		// check to see if a token already exists for the user
-		redisC.hget("identity_token:" + room, nick, function (err, reply) {
-			if (err) throw err;
-
-			if (!reply) { // if not, make a new one
-				token = uuid.v4();
-				redisC.hset("identity_token:" + room, nick, token, function (err, reply) { // persist it
-					if (err) throw err;
-					client.identity_token = token; // store it on the client object
-				});
-			} else {
-				token = reply;
-				client.identity_token = token; // store it on the client object
-			}
-		});
-	}
 	function updatePersistedMessage(room, mID, newMessage, callback) {
 		var mID = parseInt(mID, 10),
 			newBody = newMessage.body,
@@ -114,6 +94,14 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		}, room));
 	}
 
+	function emitGenericPermissionsError (socket, client) {
+		var room = client.get("room");
+
+		socket.in(room).emit('chat:' + room, serverSentMessage({
+			body: "I can't let you do that, " + client.get("nick")
+		}, room));
+	}
+
 	function subscribeSuccess (socket, client, channel) {
 		var room = channel.get("name");
 
@@ -164,13 +152,19 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 						body: "This channel already has an owner."
 					}, room));
 				} else {
-
-
-
+					client.becomeChannelOwner();
+					socket.in(room).emit('chat:' + room, serverSentMessage({
+						body: "You are now the channel owner."
+					}, room));
 				}
 			},
 			"make_public": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
+
+				if (!client.hasPermission("canMakePublic")) {
+					emitGenericPermissionsError(socket, client);
+					return;
+				}
 
 				channel.makePublic(function (err, response) {
 					if (err) {
@@ -187,6 +181,11 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			},
 			"make_private": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
+
+				if (!client.hasPermission("canMakePrivate")) {
+					emitGenericPermissionsError(socket, client);
+					return;
+				}
 
 				channel.makePrivate(data.password, function (err, response) {
 					if (err) {
@@ -256,6 +255,11 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			},
 			"topic": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
+
+				if (!client.hasPermission("canSetTopic")) {
+					emitGenericPermissionsError(socket, client);
+					return;
+				}
 
 				redisC.hset('topic', room, data.topic);
 				socket.in(room).emit('topic:' + room, serverSentMessage({
@@ -529,7 +533,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 											class: "identity ack",
 											body: "You are now identified for " + nick
 										}, room));
-										setIdentityToken(room, client);
+
 										publishUserList(channel);
 									}
 								});
@@ -565,7 +569,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 										if (err) throw err;
 									});
 
-									setIdentityToken(room, client);
 
 									client.set("identified", true);
 									socket.in(room).emit('chat:' + room, serverSentMessage({

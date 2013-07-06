@@ -13,9 +13,9 @@
 		},
 		upgradeToOperator: function () {
 			this.set({
-				canTopic: true,
-				canPrivate: true,
-				canPublic: true,
+				canSetTopic: true,
+				canMakePrivate: true,
+				canMakePublic: true,
 				canKick: true,
 				canMute: true,
 				canBan: true

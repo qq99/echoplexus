@@ -36,7 +36,8 @@
 			leave: /^\/leave/,
 			pull_logs: /^\/(pull|p|sync|s) /,
 			set_color: /^\/(color|c) /,
-			edit: /^(\/edit) #?(\d*) /
+			edit: /^(\/edit) #?(\d*) /,
+			chown: /^\/chown /,
 		},
 		colors: {
 			hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i, // matches 3 and 6-digit hex colour codes, optional #

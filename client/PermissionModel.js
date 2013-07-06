@@ -22,9 +22,9 @@
 
 	exports.PermissionModel = Backbone.Model.extend({
 		defaults: {
-			canTopic: false,
-			canPrivate: false,
-			canPublic: false,
+			canSetTopic: false,
+			canMakePrivate: false,
+			canMakePublic: false,
 			canKick: false,
 			canMute: false,
 			canBan: false

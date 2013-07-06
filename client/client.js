@@ -269,6 +269,9 @@
 			} else if (body.match(REGEXES.commands.leave)) { // leaving
 				window.events.trigger('leave:' + room);
 				return;
+			} else if (body.match(REGEXES.commands.chown)) { // match all
+				socket.emit('chown:' + room);
+				return;
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!
