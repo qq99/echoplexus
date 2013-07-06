@@ -156,6 +156,19 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		name: "ChatServer",
 		SERVER_NAMESPACE: CHATSPACE,
 		events: {
+			"chown": function (namespace, socket, channel, client, data) {
+				var room = channel.get("name");
+
+				if (channel.get("hasOwner")) {
+					socket.in(room).emit('chat:' + room, serverSentMessage({
+						body: "This channel already has an owner."
+					}, room));
+				} else {
+
+
+
+				}
+			},
 			"make_public": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 

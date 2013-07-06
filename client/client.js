@@ -2,16 +2,17 @@
   // Set up Backbone appropriately for the environment.
   if (typeof exports !== 'undefined') {
     // Node/CommonJS, no need for jQuery in that case.
-    factory(exports,require('backbone'),require('underscore'),require('../client/regex.js').REGEXES, require('node-uuid'), require('../server/config.js').Configuration);
+    factory(exports,require('backbone'),require('underscore'),require('../server/PermissionModel.js').ServerPermissionModel,require('../client/regex.js').REGEXES, require('node-uuid'), require('../server/config.js').Configuration);
   } else if (typeof define === 'function' && define.amd) {
     // AMD
-    define(['underscore', 'backbone', 'regex', 'exports'], function(_, Backbone,Regex,exports) {
+    define(['underscore', 'backbone', 'PermissionModel', 'regex', 'exports'],
+    	function(_, Backbone,PermissionModel,Regex,exports) {
       // Export global even in AMD case in case this script is loaded with
       // others that may still expect a global Backbone.
-      return factory(exports, Backbone, _,Regex.REGEXES);
+      return factory(exports, Backbone, _, PermissionModel.PermissionModel, Regex.REGEXES);
     });
   }
-})(this,function(exports,Backbone,_,REGEXES, uuid, config) {
+})(this,function(exports,Backbone,_, PermissionModel, REGEXES, uuid, config) {
 
 	exports.ColorModel = Backbone.Model.extend({
 		defaults: {
@@ -80,34 +81,6 @@
 		model: exports.ClientModel
 	});
 
-	function TokenBucket () {
-		// from: http://stackoverflow.com/questions/667508/whats-a-good-rate-limiting-algorithm
-
-		var rate = config.chat.rate_limiting.rate, // unit: # messages
-			per  = config.chat.rate_limiting.per, // unit: milliseconds
-			allowance = rate, // unit: # messages
-			last_check = Number(new Date()); // unit: milliseconds
-
-		this.rateLimit = function () {
-			var current = Number(new Date()),
-				time_passed = current - last_check;
-			
-			last_check = current;
-			allowance += time_passed * (rate / per);
-
-			if (allowance > rate) {
-				allowance = rate; // throttle
-			}
-			
-			if (allowance < 1.0) {
-				return true; // discard message, "true" to rate limiting
-			} else {
-				allowance -= 1.0;
-				return false; // allow message, "false" to rate limiting
-			}
-		};
-	}
-
 	exports.ClientModel = Backbone.Model.extend({
 		supported_metadata: ["email", "website_url", "country_code", "gender"],
 		defaults: {
@@ -144,14 +117,7 @@
 				this.set("id", uuid.v4());
 			}
 
-			// rate limit the client's chat, if it's enabled
-			if (config &&
-				config.chat &&
-				config.chat.rate_limiting &&
-				config.chat.rate_limiting.enabled) {
-				
-				this.tokenBucket = new TokenBucket();
-			}
+			this.set("permissions", new PermissionModel());
 		},
 		channelAuth: function (pw, room) {
 			$.cookie("channel_pw:" + room, pw, window.COOKIE_OPTIONS);

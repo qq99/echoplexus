@@ -21,7 +21,9 @@ exports.ChannelStructures = function (redisC, EventBus) {
 
 	var ServerChannelModel = ChannelModel.extend({
 		defaults: {
-			name: ""
+			name: "",
+			private: null,
+			hasOwner: null // no one can become an owner until the status of this is resolved
 		},
 		initialize: function (properties, options) {
 			_.bindAll(this);
@@ -32,12 +34,30 @@ exports.ChannelStructures = function (redisC, EventBus) {
 			this.call = {};
 
 			this.codeCaches = {};
+
+			this.getOwner();
+		},
+		getOwner: function () {
+			var self = this,
+				channelName = this.get("name");
+
+			// only query the hasOwner once per lifetime
+			redisC.hget("channels:" + channelName, "owner", function (err, reply) {
+				if (reply) { // channel has an owner
+					DEBUG && console.log("owner existed", reply);
+					self.set("hasOwner", true);
+					self.set("owner", reply);
+				} else { // no owner
+					DEBUG && console.log("no owner existed");
+					self.set("private", false);
+				}
+			});
 		},
 		isPrivate: function (callback) {
 			var self = this,
 				channelName = this.get("name");
 			// if we've cached the redis result, return that
-			if (false) {
+			if (this.get("private") !== null) {
 				callback(null, this.get("private"));
 			} else { // otherwise we don't know the state of isPrivate, so we query the db
 				// only query the isPrivate once per lifetime
