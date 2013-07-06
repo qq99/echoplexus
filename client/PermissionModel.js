@@ -27,7 +27,9 @@
 			canMakePublic: false,
 			canKick: false,
 			canMute: false,
-			canBan: false
+			canBan: false,
+			canSpeak: true,
+			canPullLogs: true
 		},
 		canBestow: null, // eventually a map of bestowable permissions
 		initialize: function (modelAttributes, options) {

@@ -147,16 +147,21 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"chown": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
-				if (channel.get("hasOwner")) {
-					socket.in(room).emit('chat:' + room, serverSentMessage({
-						body: "This channel already has an owner."
-					}, room));
-				} else {
+				channel.assumeOwnership(client, data.key, function (err, response) {
+					if (err) {
+						socket.in(room).emit('chat:' + room, serverSentMessage({
+							body: err.message
+						}, room));
+						return;
+					}
+
 					client.becomeChannelOwner();
+
 					socket.in(room).emit('chat:' + room, serverSentMessage({
-						body: "You are now the channel owner."
+						body: response
 					}, room));
-				}
+					publishUserList(channel);
+				});
 			},
 			"make_public": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
@@ -309,6 +314,11 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				var room = channel.get("name"),
 					jsonArray = [];
 
+				if (!client.hasPermission("canPullLogs")) {
+					emitGenericPermissionsError(socket, client);
+					return;
+				}
+
 				redisC.hmget("chatlog:" + room, data.requestRange, function (err, reply) {
 					if (err) throw err;
 					// emit the logged replies to the client requesting them
@@ -337,6 +347,11 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"private_message": function (namespace, socket, channel, client, data) {
 				var targetClients;
 				var room = channel.get("name");
+
+				if (!client.hasPermission("canSpeak")) {
+					emitGenericPermissionsError(socket, client);
+					return;
+				}
 
 				// only send a message if it has a body & is directed at someone
 				if (data.body && data.directedAt) {
@@ -381,6 +396,11 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			},
 			"chat": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
+
+				if (!client.hasPermission("canSpeak")) {
+					emitGenericPermissionsError(socket, client);
+					return;
+				}
 
 				if (config.chat &&
 					config.chat.rate_limiting &&

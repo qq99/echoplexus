@@ -430,6 +430,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 						identified: user.get("identified"),
 						idle: user.get("idle"),
 						idleSince: user.get("idleSince"),
+						operator: user.get("operator"),
 						inCall: user.get("inCall"),
 						me: (user.get("id") === self.me.get("id"))
 					});

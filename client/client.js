@@ -269,8 +269,11 @@
 			} else if (body.match(REGEXES.commands.leave)) { // leaving
 				window.events.trigger('leave:' + room);
 				return;
-			} else if (body.match(REGEXES.commands.chown)) { // match all
-				socket.emit('chown:' + room);
+			} else if (body.match(REGEXES.commands.chown)) { // become owner
+				body = body.replace(REGEXES.commands.chown, "").trim();
+				socket.emit('chown:' + room, {
+					key: body
+				});
 				return;
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;

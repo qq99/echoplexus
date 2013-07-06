@@ -95,7 +95,7 @@ exports.ClientStructures = function (redisC, EventBus) {
 		},
 		becomeChannelOwner: function () {
 			this.get("permissions").upgradeToOperator();
-			console.log(this.get("permissions"));
+			this.set("operator", true); // TODO: add a way to send client data on change events
 		},
 		getPermissions: function () {
 			var room = this.get("room"),

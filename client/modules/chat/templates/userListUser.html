@@ -18,6 +18,12 @@
 		</span>
 	<% } %>
 
+	<% if (operator) { %>
+	<span class="operator" title="This user is the channel operator.">
+		<i class="icon-legal"></i>
+	</span>
+	<% } %>
+
 	<% if (me) { %>
 	<span class="edit-profile">
 		<i class='icon-user'></i>

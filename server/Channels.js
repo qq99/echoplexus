@@ -44,14 +44,82 @@ exports.ChannelStructures = function (redisC, EventBus) {
 			// only query the hasOwner once per lifetime
 			redisC.hget("channels:" + channelName, "owner", function (err, reply) {
 				if (reply) { // channel has an owner
-					DEBUG && console.log("owner existed", reply);
+					console.log("owner existed", reply);
 					self.set("hasOwner", true);
-					self.set("owner", reply);
 				} else { // no owner
-					DEBUG && console.log("no owner existed");
-					self.set("private", false);
+					console.log("no owner existed");
+					self.set("hasOwner", false);
 				}
 			});
+		},
+		assumeOwnership: function (client, key, callback) {
+			var self = this,
+				channelName = this.get("name");
+
+			console.log("key", key);
+			if (this.get("hasOwner") === false) {
+				this.setOwner(key, function (err, result) {
+					if (err) throw err;
+
+					callback(null, result);
+				});
+			} else if (this.get("hasOwner") === true) {
+				// get the salt and salted+hashed password
+				async.parallel({
+					salt: function (callback) {
+						redisC.hget("channels:" + channelName, "owner_salt", callback);
+					},
+					password: function (callback) {
+						redisC.hget("channels:" + channelName, "owner_derivedKey", callback);
+					}
+				}, function (err, stored) {
+					if (err) callback(err);
+
+					crypto.pbkdf2(key, stored.salt, 4096, 256, function (err, derivedKey) {
+						if (err) callback(err);
+
+						if (derivedKey.toString() !== stored.password) { // auth failure
+							callback(new ApplicationError.Authentication("Incorrect password."));
+						} else { // auth success
+							callback(null, "You have proven that you are the channel owner.");
+						}
+					});
+				});
+			}
+		},
+		setOwner: function (key, callback) {
+			var self = this,
+				channelName = this.get("name");
+
+			// attempt to make the channel private with the supplied password
+			try {
+				// generate 256 random bytes to salt the password
+				crypto.randomBytes(256, function (err, buf) {
+					if (err) throw err; // crypto failed
+					var salt = buf.toString();
+
+					// run 4096 iterations producing a 256 byte key
+					crypto.pbkdf2(key, salt, 4096, 256, function (err, derivedKey) {
+						if (err) throw err; // crypto failed
+
+						async.parallel([
+							function (callback) {
+								redisC.hset("channels:" + channelName, "owner_salt", salt, callback);
+							}, function (callback) {
+								redisC.hset("channels:" + channelName, "owner_derivedKey", derivedKey.toString(), callback);
+							}
+						], function (err, reply) {
+							if (err) throw err;
+
+							self.set("hasOwner", true);
+							callback(null, "You are now the channel owner."); // everything worked and the room is now private
+						});
+
+					});
+				});
+			} catch (e) { // catch any crypto or persistence error, and return a general error string
+				callback(new Error("An error occured while attempting to set a channel owner."));
+			}
 		},
 		isPrivate: function (callback) {
 			var self = this,
