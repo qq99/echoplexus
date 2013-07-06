@@ -39,7 +39,9 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			"mouseleave .quotation": "hideQuotationContext",
 			"blur .body[contenteditable='true']": "stopInlineEdit",
 			"keydown .body[contenteditable='true']": "onInlineEdit",
-			"dblclick .chatMessage.me:not(.private)": "beginInlineEdit"
+			"dblclick .chatMessage.me:not(.private)": "beginInlineEdit",
+			"mouseover .chatMessage": "showSentAgo",
+			"mouseover .user": "showIdleAgo"
 		},
 
         initialize: function (options) {
@@ -495,6 +497,22 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				$quoted = $(".chatMessage[data-sequence='" + quoting + "']");
 
 			$quoted.removeClass("context");
+		},
+
+        showIdleAgo: function (ev) {
+            var $idle = $(ev.currentTarget).find(".idle");
+
+            if ($idle.length) {
+            	var timestamp = parseInt($idle.attr("data-timestamp"), 10);
+                $(ev.currentTarget).attr("title", "Idle since " + moment(timestamp).fromNow());
+            }
+        },
+
+		showSentAgo: function (ev) {
+            var $time = $(".time", ev.currentTarget),
+            	timestamp = parseInt($time.attr("data-timestamp"), 10);
+
+            $(ev.currentTarget).attr("title", "sent " + moment(timestamp).fromNow());
 		}
 	});
 	return ChatLogView;
