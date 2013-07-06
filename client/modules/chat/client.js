@@ -288,6 +288,8 @@ define(['jquery','underscore','backbone','client','regex',
 						msg = JSON.parse(msgs[i]);
 
 						self.persistentLog.add(msg);
+
+						msg.fromBatch = true;
 						self.chatLog.renderChatMessage(msg);
 					}
 				},

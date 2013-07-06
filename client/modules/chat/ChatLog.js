@@ -43,7 +43,8 @@ define(['jquery','backbone', 'underscore','regex','moment',
 		},
 
         initialize: function (options) {
-        	var preferredAutoloadSetting;
+        	var self = this,
+        		preferredAutoloadSetting;
 
         	_.bindAll(this);
 			this.scrollToLatest = _.debounce(this._scrollToLatest, 100); // if we're pulling a batch, do the scroll just once
@@ -65,6 +66,10 @@ define(['jquery','backbone', 'underscore','regex','moment',
 					this.autoloadMedia = false;
 				}
 			}
+
+			this.timeFormatting = setInterval(function () {
+				self.reTimeFormatNthLastMessage(1,true);
+			}, 30*1000);
 
         	this.render();
         	this.attachEvents();
@@ -215,7 +220,6 @@ define(['jquery','backbone', 'underscore','regex','moment',
         	// if the user is hiding join/part
         	var latestMessage = ($('.messages .chatMessage:visible',this.$el).last())[0]; // so we get all visible, then take the last of that
 			if (typeof latestMessage !== "undefined") {
-				console.log("not undefined");
 				latestMessage.scrollIntoView();
 			}
 		},
@@ -310,11 +314,10 @@ define(['jquery','backbone', 'underscore','regex','moment',
 					nickClasses = "",
 					humanTime;
 
-				// render the msg's sent time:
-				if (OPTIONS['prefer_24hr_clock']) {
-					humanTime = moment(msg.timestamp).format('H:mm:ss');
+				if (!opts.delayInsert && !msg.fromBatch) {
+					humanTime = moment(msg.timestamp).fromNow();
 				} else {
-					humanTime = moment(msg.timestamp).format('hh:mm:ss a');
+					humanTime = this.renderPreferredTimestamp(msg.timestamp);
 				}
 
 				// special styling of chat
@@ -396,6 +399,30 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			}
 			if (OPTIONS['auto_scroll']){
 				this.scrollToLatest();
+			}
+
+			this.reTimeFormatNthLastMessage(2); // rewrite the timestamp on the message before the one we just inserted
+		},
+
+		renderPreferredTimestamp: function (timestamp) {
+			if (OPTIONS['prefer_24hr_clock']) { // TODO; abstract this check to be listening for an event
+				return moment(timestamp).format('H:mm:ss');
+			} else {
+				return moment(timestamp).format('hh:mm:ss a');
+			}
+		},
+
+		reTimeFormatNthLastMessage: function (n, fromNow) {
+			var $chatMessages = $(".chatMessage", this.$el),
+				nChats = $chatMessages.length,
+				$previousMessage = $($chatMessages[nChats - n]),
+				prevTimestamp = parseInt($previousMessage.find(".time").attr("data-timestamp"), 10);
+
+			// overwrite the old timestamp's humanValue
+			if (fromNow) {
+				$previousMessage.find(".time").text(moment(prevTimestamp).fromNow());
+			} else {
+				$previousMessage.find(".time").text(this.renderPreferredTimestamp(prevTimestamp));
 			}
 		},
 
