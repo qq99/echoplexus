@@ -35,15 +35,20 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			"click .media-opt-in .opt-in": "allowMedia",
 			"click .media-opt-in .opt-out": "disallowMedia",
 			"click .chatMessage-edit": "beginEdit",
+			"mouseenter .quotation": "showQuotationContext",
+			"mouseleave .quotation": "hideQuotationContext",
 			"blur .body[contenteditable='true']": "stopInlineEdit",
 			"keydown .body[contenteditable='true']": "onInlineEdit",
 			"dblclick .chatMessage.me:not(.private)": "beginInlineEdit",
 			"click .edit-profile": "editProfile",
-			"click .view-profile": "viewProfile"
+			"click .view-profile": "viewProfile",
+			"mouseover .chatMessage": "showSentAgo",
+			"mouseover .user": "showIdleAgo"
 		},
 
         initialize: function (options) {
-        	var preferredAutoloadSetting;
+        	var self = this,
+        		preferredAutoloadSetting;
 
         	_.bindAll(this);
 			this.scrollToLatest = _.debounce(this._scrollToLatest, 100); // if we're pulling a batch, do the scroll just once
@@ -66,6 +71,10 @@ define(['jquery','backbone', 'underscore','regex','moment',
 					this.autoloadMedia = false;
 				}
 			}
+
+			this.timeFormatting = setInterval(function () {
+				self.reTimeFormatNthLastMessage(1,true);
+			}, 30*1000);
 
         	this.render();
         	this.attachEvents();
@@ -216,7 +225,6 @@ define(['jquery','backbone', 'underscore','regex','moment',
         	// if the user is hiding join/part
         	var latestMessage = ($('.messages .chatMessage:visible',this.$el).last())[0]; // so we get all visible, then take the last of that
 			if (typeof latestMessage !== "undefined") {
-				console.log("not undefined");
 				latestMessage.scrollIntoView();
 			}
 		},
@@ -300,6 +308,9 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				});
 			}
 
+			// format >>quotations:
+			body = body.replace(REGEXES.commands.reply, '<span class="quotation" rel="$2">&gt;&gt;$2</span>');
+
 			// hyperify hyperlinks for the chatlog:
 			body = body.replace(REGEXES.urls.all_others,'<a target="_blank" href="$1">$1</a>');
 			body = body.replace(REGEXES.users.mentions,'<span class="mention">$1</span>');
@@ -308,11 +319,10 @@ define(['jquery','backbone', 'underscore','regex','moment',
 					nickClasses = "",
 					humanTime;
 
-				// render the msg's sent time:
-				if (OPTIONS['prefer_24hr_clock']) {
-					humanTime = moment(msg.timestamp).format('H:mm:ss');
+				if (!opts.delayInsert && !msg.fromBatch) {
+					humanTime = moment(msg.timestamp).fromNow();
 				} else {
-					humanTime = moment(msg.timestamp).format('hh:mm:ss a');
+					humanTime = this.renderPreferredTimestamp(msg.timestamp);
 				}
 
 				// special styling of chat
@@ -395,6 +405,30 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			if (OPTIONS['auto_scroll']){
 				this.scrollToLatest();
 			}
+
+			this.reTimeFormatNthLastMessage(2); // rewrite the timestamp on the message before the one we just inserted
+		},
+
+		renderPreferredTimestamp: function (timestamp) {
+			if (OPTIONS['prefer_24hr_clock']) { // TODO; abstract this check to be listening for an event
+				return moment(timestamp).format('H:mm:ss');
+			} else {
+				return moment(timestamp).format('hh:mm:ss a');
+			}
+		},
+
+		reTimeFormatNthLastMessage: function (n, fromNow) {
+			var $chatMessages = $(".chatMessage", this.$el),
+				nChats = $chatMessages.length,
+				$previousMessage = $($chatMessages[nChats - n]),
+				prevTimestamp = parseInt($previousMessage.find(".time").attr("data-timestamp"), 10);
+
+			// overwrite the old timestamp's humanValue
+			if (fromNow) {
+				$previousMessage.find(".time").text(moment(prevTimestamp).fromNow());
+			} else {
+				$previousMessage.find(".time").text(this.renderPreferredTimestamp(prevTimestamp));
+			}
 		},
 
 		clearChat: function () {
@@ -471,6 +505,43 @@ define(['jquery','backbone', 'underscore','regex','moment',
 
 		setTopic: function (msg) {
 			$(".channel-topic .value", this.$el).html(msg.body);
+		},
+
+		showQuotationContext: function (ev) {
+			var $this = $(ev.currentTarget),
+				quoting = $this.attr("rel"),
+				$quoted = $(".chatMessage[data-sequence='" + quoting + "']"),
+				excerpt;
+
+			excerpt = $quoted.find(".nick").text().trim() + ": " +
+						$quoted.find(".body").text().trim();
+
+			$this.attr("title", excerpt);
+			$quoted.addClass("context");
+		},
+
+		hideQuotationContext: function (ev) {
+			var $this = $(ev.currentTarget),
+				quoting = $this.attr("rel"),
+				$quoted = $(".chatMessage[data-sequence='" + quoting + "']");
+
+			$quoted.removeClass("context");
+		},
+
+        showIdleAgo: function (ev) {
+            var $idle = $(ev.currentTarget).find(".idle");
+
+            if ($idle.length) {
+            	var timestamp = parseInt($idle.attr("data-timestamp"), 10);
+                $(ev.currentTarget).attr("title", "Idle since " + moment(timestamp).fromNow());
+            }
+        },
+
+		showSentAgo: function (ev) {
+            var $time = $(".time", ev.currentTarget),
+            	timestamp = parseInt($time.attr("data-timestamp"), 10);
+
+            $(ev.currentTarget).attr("title", "sent " + moment(timestamp).fromNow());
 		}
 	});
 	return ChatLogView;

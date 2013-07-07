@@ -177,7 +177,6 @@ define(['underscore'], function(_) {
             rtc.socketEvents = {
                 "peers": function(data) {
                     console.log('recieved peers');
-                    console.log(data.connections);
                     rtc.connections = data.connections;
                     rtc._me = data.you;
                     if (rtc.offerSent) { // 'ready' was fired before 'get_peers'
@@ -200,7 +199,6 @@ define(['underscore'], function(_) {
                 "new_peer": function(data) {
 
                     console.log('New Peer');
-                    console.log(rtc.streams.length);
                     var id = data.id;
                     rtc.connections.push(id);
                     delete rtc.offerSent;

@@ -584,11 +584,11 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 										});
 										screenshotter.on("exit", function (data) {
 											DEBUG && console.log('screenshotter exit: ' + data);
-											if (pageData.title && pageData.excerpt) {
+											if (config.chat.webshot_previews.verbose && pageData.title && pageData.excerpt) {
 												sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
 													body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
 												}, room));
-											} else if (pageData.title) {
+											} else if (config.chat.webshot_previews.verbose && pageData.title) {
 												sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
 													body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
 												}, room));

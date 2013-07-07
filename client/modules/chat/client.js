@@ -77,6 +77,7 @@ define(['jquery','underscore','backbone','client','regex',
 			"click button.syncLogs": "activelySyncLogs",
 			"click button.deleteLocalStorage": "deleteLocalStorage",
 			"click button.clearChatlog": "clearChatlog",
+			"click .icon-reply": "reply",
 			"keydown .chatinput textarea": "handleChatInputKeydown"
 		},
 
@@ -288,6 +289,8 @@ define(['jquery','underscore','backbone','client','regex',
 						msg = JSON.parse(msgs[i]);
 
 						self.persistentLog.add(msg);
+
+						msg.fromBatch = true;
 						self.chatLog.renderChatMessage(msg);
 					}
 				},
@@ -357,7 +360,12 @@ define(['jquery','underscore','backbone','client','regex',
 		attachEvents: function () {
 			var self = this;
 
-
+			window.events.on("chat:broadcast", function (data) {
+				self.me.speak({
+					body: data.body,
+					room: self.channelName
+				}, self.socket);
+			});
 
 			window.events.on("unidle", function () {
 				if (self.$el.is(":visible")) {
@@ -470,6 +478,24 @@ define(['jquery','underscore','backbone','client','regex',
 				 	requestRange: missed
 				});
 			}
+		},
+
+		reply: function (ev) {
+			ev.preventDefault();
+
+			var $this = $(ev.currentTarget),
+				mID = $this.parents(".chatMessage").data("sequence"),
+				$textarea = $(".chatinput textarea", this.$el),
+				curVal;
+
+			curVal = $textarea.val();
+
+			if (curVal.length) {
+				$textarea.val(curVal + " >>" + mID);
+			} else {
+				$textarea.val(">>" + mID);
+			}
+			$textarea.focus();
 		},
 
 		deleteLocalStorage: function (ev) {
