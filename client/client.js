@@ -2,7 +2,7 @@
   // Set up Backbone appropriately for the environment.
   if (typeof exports !== 'undefined') {
     // Node/CommonJS, no need for jQuery in that case.
-    factory(exports,require('backbone'),require('underscore'),require('../server/PermissionModel.js').ServerPermissionModel,require('../client/regex.js').REGEXES, require('../server/config.js').Configuration);
+    factory(exports,require('backbone'),require('underscore'),require('../server/PermissionModel.js').ClientPermissionModel,require('../client/regex.js').REGEXES, require('../server/config.js').Configuration);
   } else if (typeof define === 'function' && define.amd) {
     // AMD
     define(['underscore', 'backbone', 'PermissionModel', 'regex', 'exports'],

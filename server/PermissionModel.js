@@ -3,7 +3,7 @@
 	var _ = require('underscore'),
 		PermissionModel = require('../client/PermissionModel.js').PermissionModel;
 
-	exports.ServerPermissionModel = PermissionModel.extend({
+	exports.ClientPermissionModel = PermissionModel.extend({
 		initialize: function () {
 			var self = this;
 
@@ -18,9 +18,24 @@
 				canMakePublic: true,
 				canKick: true,
 				canMute: true,
-				canBan: true
+				canBan: true,
+				canSpeak: true,
+				canPullLogs: true
 			});
 			this.canBestow = this.attributes;
+		}
+	});
+
+	exports.ChannelPermissionModel = PermissionModel.extend({
+		defaults: {
+			canSetTopic: null, // null represents no particular privilege or inhibition
+			canMakePrivate: null,
+			canMakePublic: null,
+			canKick: null,
+			canMute: null,
+			canBan: null,
+			canSpeak: true,
+			canPullLogs: true
 		}
 	});
 

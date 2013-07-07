@@ -36,10 +36,7 @@ exports.ClientStructures = function (redisC, EventBus) {
 		initialize: function () {
 			var self = this;
 
-			console.log("ServerClient initialize");
-
 			this.on("change:identified", function (data) {
-				console.log("changed:identified");
 				self.loadMetadata();
 				self.setIdentityToken(function (err) {
 					if (err) throw err;
@@ -65,7 +62,8 @@ exports.ClientStructures = function (redisC, EventBus) {
 
 		},
 		setIdentityToken: function (callback) {
-			var token,
+			var self = this,
+				token,
 				room = this.get("room"),
 				nick = this.get("nick");
 
@@ -77,12 +75,12 @@ exports.ClientStructures = function (redisC, EventBus) {
 					token = uuid.v4();
 					redisC.hset("identity_token:" + room, nick, token, function (err, reply) { // persist it
 						if (err) throw err;
-						this.identity_token = token; // store it on the client object
+						self.identity_token = token; // store it on the client object
 						callback(null);
 					});
 				} else {
 					token = reply;
-					this.identity_token = token; // store it on the client object
+					self.identity_token = token; // store it on the client object
 					callback(null);
 				}
 			});
@@ -95,22 +93,31 @@ exports.ClientStructures = function (redisC, EventBus) {
 			this.set("operator", true); // TODO: add a way to send client data on change events
 		},
 		getPermissions: function () {
-			var room = this.get("room"),
+			var self = this,
+				room = this.get("room"),
 				nick = this.get("nick"),
 				identity_token = this.identity_token;
 
-			console.log("getting permissions");
+			if (typeof identity_token === undefined) return;
 
 			redisC.hget("permissions:" + room, nick + ":" + identity_token, function (err, reply) {
 				if (err) throw err;
 
-				console.log("permissions were",reply);
 				if (reply) {
 					var stored_permissions = JSON.parse(reply);
 
-					this.get("permissions").set(stored_permissions);
+					self.get("permissions").set(stored_permissions);
 				}
 			});
+		},
+		persistPermissions: function () {
+			if (!this.get("identified")) return;
+
+			var room = this.get("room"),
+				nick = this.get("nick"),
+				identity_token = this.identity_token;
+
+			redisC.hset("permissions:" + room, nick + ":" + identity_token, JSON.stringify(this.get("permissions").toJSON()));
 		},
 		metadataToArray: function () {
 			var self = this,
@@ -146,12 +153,12 @@ exports.ClientStructures = function (redisC, EventBus) {
 				redisC.hmget("users:room:" + nick, this.supported_metadata, function (err, reply) {
 					if (err) throw err;
 
-					console.log("metadata:", reply);
+					// console.log("metadata:", reply);
 
 					for (var i = 0; i < reply.length; i++) {
 						fields[self.supported_metadata[i]] = reply[i];
 					}
-					console.log(fields);
+					// console.log(fields);
 					self.set(fields, {trigger: true});
 
 					return reply; // just in case

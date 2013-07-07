@@ -178,7 +178,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				} else {
 					username = null;
 				}
-				console.log(username);
 
 				if (!bestowables) {
 					emitGenericPermissionsError(socket, client);
@@ -206,29 +205,34 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					permsToSave[permName] = permValue;
 				}
 
-				if (username) { // we're setting a perm on the user object
-					var targetClients = channel.clients.where({nick: username}); // returns an array
-					if (typeof targetClients !== "undefined" &&
-						targetClients.length) {
+				if (successes.length) {
+					if (username) { // we're setting a perm on the user object
+						var targetClients = channel.clients.where({nick: username}); // returns an array
+						if (typeof targetClients !== "undefined" &&
+							targetClients.length) {
 
-						// send the pm to each client matching the name
-						_.each(targetClients, function (targetClient) {
-							targetClient.get("permissions").set(permsToSave);
-							targetClient.socketRef.in(room).emit('chat:' + room, serverSentMessage({
-								body: client.get("nick") + " has set your permissions to [" + successes + "]."
+							// send the pm to each client matching the name
+							_.each(targetClients, function (targetClient) {
+								console.log("currently",targetClient.get("permissions").toJSON());
+								console.log("setting", permsToSave);
+								targetClient.get("permissions").set(permsToSave);
+								console.log("now",targetClient.get("permissions").toJSON());
+								targetClient.persistPermissions();
+								targetClient.socketRef.in(room).emit('chat:' + room, serverSentMessage({
+									body: client.get("nick") + " has set your permissions to [" + successes + "]."
+								}, room));
+							});
+
+							socket.in(room).emit('chat:' + room, serverSentMessage({
+								body: "You've successfully set [" + successes + "] on " + username
 							}, room));
-						});
+						} else {
+							// some kind of error message
+						}
+					} else { // we're setting a channel perm
+						channel.permissions.set(permsToSave);
+						channel.persistPermissions();
 
-						socket.in(room).emit('chat:' + room, serverSentMessage({
-							body: "You've successfully set [" + successes + "] on " + username
-						}, room));
-					} else {
-						// some kind of error message
-					}
-				} else { // we're setting a channel perm
-					channel.permissions.set(permsToSave);
-
-					if (successes.length) {
 						socket.in(room).emit('chat:' + room, serverSentMessage({
 							body: "You've successfully set [" + successes + "] on the channel."
 						}, room));

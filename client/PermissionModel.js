@@ -22,14 +22,14 @@
 
 	exports.PermissionModel = Backbone.Model.extend({
 		defaults: {
-			canSetTopic: false,
-			canMakePrivate: false,
-			canMakePublic: false,
-			canKick: false,
-			canMute: false,
-			canBan: false,
-			canSpeak: true,
-			canPullLogs: true
+			canSetTopic: null, // null represents no particular privilege or inhibition
+			canMakePrivate: null,
+			canMakePublic: null,
+			canKick: null,
+			canMute: null,
+			canBan: null,
+			canSpeak: null,
+			canPullLogs: null
 		},
 		canBestow: null, // eventually a map of bestowable permissions
 		initialize: function (modelAttributes, options) {

@@ -9,7 +9,7 @@ exports.ChannelStructures = function (redisC, EventBus) {
 		Client = ClientStructures.ServerClient,
 		Clients = require('../client/client.js').ClientsCollection,
 		config = require('./config.js').Configuration,
-		PermissionModel = require('./PermissionModel').ServerPermissionModel,
+		PermissionModel = require('./PermissionModel').ChannelPermissionModel,
 		DEBUG = config.DEBUG;
 
 
@@ -45,29 +45,33 @@ exports.ChannelStructures = function (redisC, EventBus) {
 		hasPermission: function (client, permName) {
 			var perm;
 
+			// first check user perms
 			perm = client.hasPermission(permName);
-
-			console.log(permName, perm);
-			if (!perm) {
+			if (perm === null) {
+				// if not set, check channel perms
 				perm = this.permissions.get(permName);
-				console.log(permName, perm);
+				if (perm === null) perm = false; // if not set, default is deny
 			}
 
 			return perm;
 		},
 		getPermissions: function () {
-			var room = this.get("name");
+			var self = this,
+				room = this.get("name");
 
 			redisC.hget("permissions:" + room, "channel_perms", function (err, reply) {
 				if (err) throw err;
 
-				console.log("permissions were",reply);
 				if (reply) {
 					var stored_permissions = JSON.parse(reply);
-
-					this.get("permissions").set(stored_permissions);
+					self.permissions.set(stored_permissions);
 				}
 			});
+		},
+		persistPermissions: function () {
+			var room = this.get("name");
+
+			redisC.hset("permissions:" + room, "channel_perms", JSON.stringify(this.permissions.toJSON()));
 		},
 		getOwner: function () {
 			var self = this,
@@ -76,10 +80,8 @@ exports.ChannelStructures = function (redisC, EventBus) {
 			// only query the hasOwner once per lifetime
 			redisC.hget("channels:" + channelName, "owner_derivedKey", function (err, reply) {
 				if (reply) { // channel has an owner
-					console.log("owner existed", reply);
 					self.set("hasOwner", true);
 				} else { // no owner
-					console.log("no owner existed");
 					self.set("hasOwner", false);
 				}
 			});
@@ -88,7 +90,6 @@ exports.ChannelStructures = function (redisC, EventBus) {
 			var self = this,
 				channelName = this.get("name");
 
-			console.log("key", key);
 			if (this.get("hasOwner") === false) {
 				this.setOwner(key, function (err, result) {
 					if (err) throw err;
@@ -294,12 +295,6 @@ exports.ChannelStructures = function (redisC, EventBus) {
 
 					client.set("authenticated", true);
 					client.trigger("authenticated",client);
-					// console.log(client.get("authenticated"));
-					// socket.join(channelName);
-					// EventBus.trigger("authentication:success", {
-					// 	socket: socket,
-					// 	channelName: channelName
-					// });
 				});
 			});
 		},
