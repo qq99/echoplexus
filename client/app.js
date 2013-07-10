@@ -18,9 +18,18 @@
             'codemirror-js': 'lib/codemirror/mode/javascript/javascript',
             'codemirror-html': 'lib/codemirror/mode/htmlmixed/htmlmixed',
             'codemirror-xml': 'lib/codemirror/mode/xml/xml',
-            'codemirror-css': 'lib/codemirror/mode/css/css'
+            'codemirror-css': 'lib/codemirror/mode/css/css',
+            'AES': 'CryptoJS-3.1.2/rollups/aes',
         },
         shim: {
+            'AES': {
+                deps: [
+                    'CryptoJS-3.1.2/components/core',
+                    'CryptoJS-3.1.2/components/enc-base64',
+                    'CryptoJS-3.1.2/components/enc-utf16',
+                    'CryptoJS-3.1.2/components/pbkdf2'
+                ]
+            },
             'underscore': {
                 exports: '_'
             },

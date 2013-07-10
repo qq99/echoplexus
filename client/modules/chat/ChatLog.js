@@ -241,6 +241,11 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			var self = this;
 			var body = msg.body;
 
+			if (typeof msg.encrypted !== "undefined") {
+				var deciphered = CryptoJS.AES.decrypt(JSON.stringify(msg.encrypted), "testing", { format: JsonFormatter });
+				body = deciphered.toString(CryptoJS.enc.Utf8);
+			}
+
 			if (typeof opts === "undefined") {
 				opts = {};
 			}
