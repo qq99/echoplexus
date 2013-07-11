@@ -41,6 +41,8 @@ define(['jquery','underscore','backbone','client','regex',
 				this.$el.html(this.template(opts));
 
 				$("body").append(this.$el);
+
+				$("input", this.$el).focus();
 			},
 
 			checkToSetKey: function (e) {
@@ -598,14 +600,17 @@ define(['jquery','underscore','backbone','client','regex',
 			modal.on("setKey", function (data) {
 				if (data.key !== "") {
 					self.me.cryptokey = data.key;
+					window.localStorage.setItem("chat:cryptokey:" + self.channelName, data.key);
 				}
 				self.rerenderInputBox();
+				$(".chatinput textarea", self.$el).focus();
 			});
 		},
 
 		clearCryptoKey: function () {
 			this.me.cryptokey = null;
 			this.rerenderInputBox();
+			window.localStorage.setItem("chat:cryptokey:" + this.channelName, null);
 		}
 	});
 });
