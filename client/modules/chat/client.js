@@ -328,7 +328,6 @@ define(['jquery','underscore','backbone','client','regex',
 					// attempt to decrypt the result:
 					if (typeof msg.encrypted !== "undefined") {
 						try {
-							console.log("received", msg.encrypted, "my key is", self.me.cryptokey);
 							var deciphered = CryptoJS.AES.decrypt(JSON.stringify(msg.encrypted), self.me.cryptokey, { format: JsonFormatter });
 							msg.body = deciphered.toString(CryptoJS.enc.Utf8);
 						} catch (e) {

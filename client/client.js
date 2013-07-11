@@ -133,7 +133,6 @@
 		},
 		active: function (room, socket) {
 			if (this.get('idle')) { // only send over wire if we're inactive
-				DEBUG && console.log("sending active msg");
 				socket.emit("chat:unidle:" + room);
 				this.set('idle',false);
 			}
@@ -257,7 +256,6 @@
 			} else if (matches = body.match(REGEXES.commands.edit)) { // editing
 				var mID = matches[2];
 
-				console.log(mID);
 				body = body.replace(REGEXES.commands.edit, "").trim();
 
 				socket.emit('chat:edit:' + room, {
@@ -289,12 +287,11 @@
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!
-				console.log("pre-key", this.cryptokey);
+
 				if (this.cryptokey) {
-					var enciphered = CryptoJS.AES.encrypt(msg.body, "testing", { format: JsonFormatter });
+					var enciphered = CryptoJS.AES.encrypt(msg.body, this.cryptokey, { format: JsonFormatter });
 					msg.body = "-";
 					msg.encrypted = JSON.parse(enciphered.toString());
-					console.log(msg.encrypted);
 				}
 				socket.emit('chat:' + room, msg);
 			}
