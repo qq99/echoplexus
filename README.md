@@ -4,6 +4,8 @@
 
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
 
+[Parler français?  Regardez ici](https://github.com/tetalab/echoplexus/)
+
 Join the developer chat @ [chat.echoplex.us/echodev](https://chat.echoplex.us/echodev "Echoplexus Developer Chat")
 
 In a nutshell
