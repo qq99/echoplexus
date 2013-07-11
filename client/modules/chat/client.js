@@ -126,7 +126,8 @@ define(['jquery','underscore','backbone','client','regex',
 			"click button.clearChatlog": "clearChatlog",
 			"click .icon-reply": "reply",
 			"keydown .chatinput textarea": "handleChatInputKeydown",
-			"click button.not-encrypted": "showCryptoModal"
+			"click button.not-encrypted": "showCryptoModal",
+			"click button.encrypted": "clearCryptoKey"
 		},
 
 		show: function(){
@@ -327,6 +328,7 @@ define(['jquery','underscore','backbone','client','regex',
 					// attempt to decrypt the result:
 					if (typeof msg.encrypted !== "undefined") {
 						try {
+							console.log("received", msg.encrypted, "my key is", self.me.cryptokey);
 							var deciphered = CryptoJS.AES.decrypt(JSON.stringify(msg.encrypted), self.me.cryptokey, { format: JsonFormatter });
 							msg.body = deciphered.toString(CryptoJS.enc.Utf8);
 						} catch (e) {
@@ -579,6 +581,14 @@ define(['jquery','underscore','backbone','client','regex',
 			}, 1000*30);
 		},
 
+		rerenderInputBox: function () {
+			$(".chatinput", this.$el).remove(); // remove old
+			// re-render the chat input area now that we've encrypted:
+			this.$el.append(this.inputTemplate({
+				encrypted: (this.me.cryptokey !== null)
+			}));
+		},
+
 		showCryptoModal: function () {
 			var self = this;
 
@@ -590,12 +600,13 @@ define(['jquery','underscore','backbone','client','regex',
 				if (data.key !== "") {
 					self.me.cryptokey = data.key;
 				}
-				$(".chatinput", self.$el).remove(); // remove old
-				// re-render the chat input area now that we've encrypted:
-				self.$el.append(self.inputTemplate({
-					encrypted: (self.me.cryptokey !== null)
-				}));
+				self.rerenderInputBox();
 			});
+		},
+
+		clearCryptoKey: function () {
+			this.me.cryptokey = null;
+			this.rerenderInputBox();
 		}
 	});
 });

@@ -289,10 +289,12 @@
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!
+				console.log("pre-key", this.cryptokey);
 				if (this.cryptokey) {
 					var enciphered = CryptoJS.AES.encrypt(msg.body, "testing", { format: JsonFormatter });
 					msg.body = "-";
 					msg.encrypted = JSON.parse(enciphered.toString());
+					console.log(msg.encrypted);
 				}
 				socket.emit('chat:' + room, msg);
 			}

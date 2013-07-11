@@ -664,6 +664,7 @@ $supportbar-width: 300px;
 		}
 		button {
 			@include transition(all 0.25s ease-in-out);
+			cursor:pointer;
 			text-transform: uppercase;
 			color:white;
 			box-shadow:inset 1px 2px 5px rgba(0, 0, 0, 0.55), inset -2px -2px 1px -1px rgba(0, 0, 0, 0.3);
