@@ -291,7 +291,7 @@
 			} else { // send it out to the world!
 				if (this.cryptokey) {
 					var enciphered = CryptoJS.AES.encrypt(msg.body, "testing", { format: JsonFormatter });
-					msg.body = "encrypted";
+					msg.body = "-";
 					msg.encrypted = JSON.parse(enciphered.toString());
 				}
 				socket.emit('chat:' + room, msg);

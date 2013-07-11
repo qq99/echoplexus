@@ -5,9 +5,13 @@ define(['jquery','underscore','backbone','client','regex',
 		'modules/chat/ChatLog',
 		'ui/Growl',
 		'text!modules/chat/templates/chatPanel.html',
-		'text!modules/chat/templates/chatInput.html'
+		'text!modules/chat/templates/chatInput.html',
+		'text!modules/chat/templates/channelCryptokeyModal.html',
 	],
-	function($,_,Backbone,Client,Regex,Autocomplete,Scrollback,Log,ChatLog,Growl,chatpanelTemplate,chatinputTemplate){
+	function($, _, Backbone,
+		Client, Regex, Autocomplete, Scrollback, Log, ChatLog, Growl,
+		chatpanelTemplate, chatinputTemplate, cryptoModalTemplate) {
+
 	var ColorModel = Client.ColorModel,
 		ClientModel = Client.ClientModel,
 		ClientsCollection = Client.ClientsCollection,
@@ -17,6 +21,45 @@ define(['jquery','underscore','backbone','client','regex',
 		className: "chatChannel",
 		template: _.template(chatpanelTemplate),
 		inputTemplate: _.template(chatinputTemplate),
+
+		cryptoModal: Backbone.View.extend({
+
+			className: "backdrop",
+
+			template: _.template(cryptoModalTemplate),
+
+			events: {
+				"keydown input.crypto-key": "checkToSetKey",
+				"click .set-encryption-key": "setCryptoKey",
+				"click .cancel": "remove"
+			},
+
+			initialize: function (opts) {
+				_.bindAll(this);
+				_.extend(this, opts);
+
+				this.$el.html(this.template(opts));
+
+				$("body").append(this.$el);
+			},
+
+			checkToSetKey: function (e) {
+				if (e.keyCode === 13) {
+					this.setKey($(".crypto-key", this.$el).val());
+				}
+			},
+
+			setCryptoKey: function (e) {
+				this.setKey($(".crypto-key", this.$el).val());
+			},
+
+			setKey: function (key) {
+				this.trigger("setKey", {
+					key: key
+				});
+				this.remove();
+			}
+		}),
 
 		initialize: function (opts) {
 			var self = this;
@@ -82,7 +125,8 @@ define(['jquery','underscore','backbone','client','regex',
 			"click button.deleteLocalStorage": "deleteLocalStorage",
 			"click button.clearChatlog": "clearChatlog",
 			"click .icon-reply": "reply",
-			"keydown .chatinput textarea": "handleChatInputKeydown"
+			"keydown .chatinput textarea": "handleChatInputKeydown",
+			"click button.not-encrypted": "showCryptoModal"
 		},
 
 		show: function(){
@@ -280,6 +324,7 @@ define(['jquery','underscore','backbone','client','regex',
 							break;
 					}
 
+					// attempt to decrypt the result:
 					if (typeof msg.encrypted !== "undefined") {
 						try {
 							var deciphered = CryptoJS.AES.decrypt(JSON.stringify(msg.encrypted), self.me.cryptokey, { format: JsonFormatter });
@@ -360,7 +405,7 @@ define(['jquery','underscore','backbone','client','regex',
 					// then pull it, if there was anything
 					if (missed && missed.length) {
 						socket.emit("chat:history_request:" + self.channelName, {
-						 	requestRange: missed
+							requestRange: missed
 						});
 					}
 				},
@@ -492,7 +537,7 @@ define(['jquery','underscore','backbone','client','regex',
 			var missed = this.persistentLog.getMissingIDs(25);
 			if (missed && missed.length) {
 				this.socket.emit("chat:history_request:" + this.channelName, {
-				 	requestRange: missed
+					requestRange: missed
 				});
 			}
 		},
@@ -535,7 +580,22 @@ define(['jquery','underscore','backbone','client','regex',
 		},
 
 		showCryptoModal: function () {
+			var self = this;
 
+			var modal = new this.cryptoModal({
+				channelName: this.channelName
+			});
+
+			modal.on("setKey", function (data) {
+				if (data.key !== "") {
+					self.me.cryptokey = data.key;
+				}
+				$(".chatinput", self.$el).remove(); // remove old
+				// re-render the chat input area now that we've encrypted:
+				self.$el.append(self.inputTemplate({
+					encrypted: (self.me.cryptokey !== null)
+				}));
+			});
 		}
 	});
 });

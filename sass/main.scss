@@ -8,6 +8,14 @@ $active-color: rgba(71,178,250,0.7);
 $pretty-font-family: 'Noto Sans', sans-serif;
 $timestamp-width: 12em;
 
+.death-warning {
+	color:red;
+}
+
+span.channelName {
+	color:green;
+}
+
 @mixin clearfix {
 
 	&:before, &:after {
@@ -1310,8 +1318,9 @@ body {
 	height:30em;
 	overflow:hidden;
 	&.centered {
-		top:10em;
+		top:50%;
 		margin:auto;
+		margin-top:-15em;
 	}
 
 	> .field {
@@ -1341,5 +1350,37 @@ body {
 		left: 0;
 		top: 0;
 		text-shadow:-1px -1px 0px rgba(255,255,255,0.1);
+	}
+}
+
+.crypto-key-popup {
+	z-index:2;
+	.anti-surveillance {
+		@include unselectable();
+		float:left;
+		margin:0 0.25em 0 0;
+		font-size: 6em;
+		color: #1a1a1a;
+		text-align: center;
+		.icon-ban-circle {
+			color:rgba(157, 38, 29,0.85);
+		}
+		.icon-eye-open {
+			color:yellow;
+		}
+	}
+	.field {
+		margin:1em 0 ;
+	}
+	input {
+		@include cool-button;
+		min-height:2em;
+		height:2em;
+		width:100%;
+		padding:0.25em 1em;
+	}
+	button {
+		@include fancyButton;
+		text-transform: none;
 	}
 }
