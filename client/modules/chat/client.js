@@ -4,9 +4,10 @@ define(['jquery','underscore','backbone','client','regex',
 		'modules/chat/Log',
 		'modules/chat/ChatLog',
 		'ui/Growl',
-		'text!modules/chat/templates/chatPanel.html'
+		'text!modules/chat/templates/chatPanel.html',
+		'text!modules/chat/templates/chatInput.html'
 	],
-	function($,_,Backbone,Client,Regex,Autocomplete,Scrollback,Log,ChatLog,Growl,chatpanelTemplate){
+	function($,_,Backbone,Client,Regex,Autocomplete,Scrollback,Log,ChatLog,Growl,chatpanelTemplate,chatinputTemplate){
 	var ColorModel = Client.ColorModel,
 		ClientModel = Client.ClientModel,
 		ClientsCollection = Client.ClientsCollection,
@@ -15,6 +16,7 @@ define(['jquery','underscore','backbone','client','regex',
 	return Backbone.View.extend({
 		className: "chatChannel",
 		template: _.template(chatpanelTemplate),
+		inputTemplate: _.template(chatinputTemplate),
 
 		initialize: function (opts) {
 			var self = this;
@@ -41,6 +43,8 @@ define(['jquery','underscore','backbone','client','regex',
 				persistentLog: this.persistentLog,
 				me: this.me
 			});
+
+			this.me.cryptokey = window.localStorage.getItem("chat:cryptokey:" + this.channelName);
 
 			this.me.persistentLog = this.persistentLog;
 
@@ -198,6 +202,10 @@ define(['jquery','underscore','backbone','client','regex',
 			this.$el.html(this.template());
 			$(".chatarea", this.$el).html(this.chatLog.$el);
 			this.$el.attr("data-channel", this.channelName);
+
+			this.$el.append(this.inputTemplate({
+				encrypted: (this.me.cryptokey !== null)
+			}));
 		},
 
 		checkToNotify: function (msg) {
@@ -270,6 +278,15 @@ define(['jquery','underscore','backbone','client','regex',
 						case "part":
 							self.channel.clients.remove(msg.id);
 							break;
+					}
+
+					if (typeof msg.encrypted !== "undefined") {
+						try {
+							var deciphered = CryptoJS.AES.decrypt(JSON.stringify(msg.encrypted), self.me.cryptokey, { format: JsonFormatter });
+							msg.body = deciphered.toString(CryptoJS.enc.Utf8);
+						} catch (e) {
+							msg.body = msg.encrypted.ct;
+						}
 					}
 
 					// update our scrollback buffer so that we can quickly edit the message by pressing up/down
@@ -515,6 +532,10 @@ define(['jquery','underscore','backbone','client','regex',
 					self.me.inactive("", self.channelName, self.socket);
 				}
 			}, 1000*30);
+		},
+
+		showCryptoModal: function () {
+
 		}
 	});
 });

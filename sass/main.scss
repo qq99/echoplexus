@@ -613,33 +613,66 @@ $supportbar-width: 300px;
 		left:0;
 		height:$chatinput-height;
 		padding-right:$supportbar-width;
-		textarea, input {
-			resize: none;
-			background:rgba(0,0,0,0.5);
-			outline:none;
+
+		$chat-input-roundness:8em;
+		$crypto-button-width:12em;
+		.chat-input-control {
+			@include transition(background 0.25s ease-out, color 0.75s ease-out);
+			position:relative;
 			width:100%;
 			height:100%;
-			max-width:100%;
-			max-height:100%;
-			min-width:100%;
-			min-height:100%;
-			padding:0.25em 2em;
-			border-radius:10em;
-			border:none;
+			background:rgba(0,0,0,0.5);
+			border-radius:$chat-input-roundness;
 			box-shadow:inset 2px 2px 1px rgba(0,0,0,0.55),inset -2px -2px 1px -1px rgba(0,0,0,0.3);
-			position:relative;
-			@include transition(background 0.25s ease-out, color 0.75s ease-out);
-			&:focus {
+			overflow:hidden;
+			&.focus {
 				background:rgba(0,0,0,0.30);
 				color:#efefef;
 			}
+		}
+		textarea {
+			@include transition(background 0.25s ease-out, color 0.75s ease-out);
+			&:focus {
+				color:#efefef;
+			}
+			overflow:hidden;
+			padding-left:2em;
+			position:absolute;
+			top:0;
+			left:0;
+			padding-right:$crypto-button-width;
+			outline:none;
+			border:none;
+			background:transparent;
+			border:none;
+			padding-top:0.85em;
+			resize: none;
+			width:100%;
+			height:100%;
 			&::-webkit-input-placeholder { color:silver; }
 			&::-moz-placeholder { color:silver; } /* firefox 19+ */
 			&:-ms-input-placeholder { color:silver; } /* ie */
 			&:-moz-placeholder { color:silver; }
 		}
-		textarea {
-			padding-top:0.85em;
+		button {
+			@include transition(all 0.25s ease-in-out);
+			text-transform: uppercase;
+			color:white;
+			box-shadow:inset 1px 2px 5px rgba(0, 0, 0, 0.55), inset -2px -2px 1px -1px rgba(0, 0, 0, 0.3);
+			text-shadow:1px 1px 4px rgba(0,0,0,0.9);
+			border:none;
+			outline:none;
+			background:linear-gradient(to bottom, #aa6804 0%,#836303 50%,#644e00 51%,#8f6a03 100%);
+			width:$crypto-button-width;
+			position:absolute;
+			top:0;
+			right:0;
+			height:100%;
+			border-top-right-radius:$chat-input-roundness;
+			border-bottom-right-radius:$chat-input-roundness;
+			&.encrypted {
+				background:linear-gradient(to bottom, #91a905 0%,#5d8303 50%,#436400 51%,#678f03 100%);
+			}
 		}
 	}
 

@@ -289,7 +289,7 @@
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				return;
 			} else { // send it out to the world!
-				if (true) {
+				if (this.cryptokey) {
 					var enciphered = CryptoJS.AES.encrypt(msg.body, "testing", { format: JsonFormatter });
 					msg.body = "encrypted";
 					msg.encrypted = JSON.parse(enciphered.toString());
