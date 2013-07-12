@@ -141,10 +141,15 @@
 			var nick = this.get("nick"),
 				encrypted_nick = this.get("encrypted_nick");
 
-			if ((typeof cryptoKey !== "undefined") &&
-				(cryptoKey !== "") &&
-				(typeof encrypted_nick !== "undefined")) {
-				nick = crypto.decryptObject(encrypted_nick, cryptoKey);
+			if (typeof encrypted_nick !== "undefined") {
+
+				if ((typeof cryptoKey !== "undefined") &&
+					(cryptoKey !== "")) {
+
+					nick = crypto.decryptObject(encrypted_nick, cryptoKey);
+				} else {
+					nick = encrypted_nick.ct;
+				}
 			}
 
 			return nick;
@@ -157,7 +162,6 @@
 				nick = "-";
 			}
 
-			this.set("nick", nick);
 			this.socket.emit('nickname:' + room, {
 				nick: nick,
 				encrypted_nick: this.get("encrypted_nick")
@@ -176,8 +180,8 @@
 				ack.resolve();
 			});
 		},
-		is: function (cid) {
-			return (this.cid === cid);
+		is: function (otherModel) {
+			return (this.attributes.id === otherModel.attributes.id);
 		},
 		speak: function (msg, socket) {
 			var body = msg.body,

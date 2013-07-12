@@ -140,6 +140,49 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 			this.on("show", this.show);
 			this.on("hide", this.hide);
 
+			this.channel.clients.on("change:nick change:encrypted_nick", function (model,changedAttributes) {
+				var prevName,
+					currentName = model.getNick(self.me.cryptokey);
+
+				if (self.me.is(model)) {
+					prevName = "You are"
+				} else {
+					var prevClient = new ClientModel(model.previousAttributes())
+					prevName = prevClient.getNick(self.me.cryptokey);
+					prevName += " is";
+				}
+
+				self.chatLog.renderChatMessage(new self.chatMessage({
+					body: prevName + " now known as " + currentName,
+					type: 'SYSTEM',
+					timestamp: new Date().getTime(),
+					nickname: '',
+					class: 'client'
+				}));
+			});
+
+
+			this.channel.clients.on("add", function (model) {
+				self.chatLog.renderChatMessage(new self.chatMessage({
+					body: model.getNick(self.me.cryptokey) + " has joined the room.",
+					type: 'SYSTEM',
+					timestamp: new Date().getTime(),
+					nickname: '',
+					class: 'client'
+				}));
+			});
+
+			this.channel.clients.on("remove", function (model) {
+				self.chatLog.renderChatMessage(new self.chatMessage({
+					body: model.getNick(self.me.cryptokey) + " has left the room.",
+					type: 'SYSTEM',
+					timestamp: new Date().getTime(),
+					nickname: '',
+					class: 'client'
+				}));
+			});
+
+
 		},
 
 		events: {
@@ -371,6 +414,28 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 						msg.fromBatch = true;
 						self.chatLog.renderChatMessage(new self.chatMessage(msg));
 					}
+				},
+				"client:changed": function (alteredClient) {
+					var prevClient = self.channel.clients.findWhere({
+						id: alteredClient.id
+					});
+
+					alteredClient.color = new ColorModel(alteredClient.color);
+
+					if (prevClient) {
+						prevClient.set(alteredClient);
+					} else { // there was no previous client by this id
+						self.channel.clients.add(alteredClient);
+					}
+					self.chatLog.renderUserlist(self.channel.clients);
+				},
+				"client:removed": function (alteredClient) {
+					console.log(alteredClient);
+					var prevClient = self.channel.clients.remove({
+						id: alteredClient.id
+					});
+
+					self.chatLog.renderUserlist(self.channel.clients);
 				},
 				"private_message": function (msg) {
 

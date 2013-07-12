@@ -28,9 +28,6 @@ define(['jquery','underscore','backbone','client'],function($,_,Backbone,Client)
 				this.listen();
 				this.attachEvents();
 
-				this.users = new ClientsCollection();
-				this.users.model = ClientModel;
-
 				// initialize the channel
 				this.socket.emit("subscribe", {
 					room: this.channelName,

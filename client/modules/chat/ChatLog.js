@@ -354,6 +354,7 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 
 				var chat = self.chatMessageTemplate({
 					nickname: nickname,
+					is_encrypted: (typeof msg.get("encrypted") !== "undefined"),
 					mID: msg.get("mID"),
 					color: msg.get("color"),
 					body: body,
@@ -473,6 +474,7 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 					// add him to the visual display
 					var userItem = self.userTemplate({
 						nick: nickname,
+						using_encryption: (typeof user.get("encrypted_nick") !== "undefined"),
 						id: user.id,
 						color: user.get("color").toRGB(),
 						identified: user.get("identified"),

@@ -73,28 +73,23 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			authenticatedClients = channel.clients.where({authenticated: true}),
 			clientsJson;
 
-		// console.log(authenticatedClients.hasOwnProperty("toJSON"));
-		
+
 		sio.of(CHATSPACE).in(room).emit('userlist:' + room, {
 			users: authenticatedClients,
 			room: room
 		});
 	}
-	function userJoined (client, room) {
-		sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
-			body: client.get("nick") + ' has joined the chat.',
-			client: client.toJSON(),
-			class: "join",
-			log: false
-		}, room));
+
+	function clientChanged (socket, channel, changedClient) {
+		var room = channel.get("name");
+
+		sio.of(CHATSPACE).in(room).emit('client:changed:' + room, changedClient.toJSON());
 	}
-	function userLeft (client, room) {
-		sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
-			body: client.get("nick") + ' has left the chat.',
-			id: client.get("id"),
-			class: "part",
-			log: false
-		}, room));
+
+	function clientRemoved (socket, channel, changedClient) {
+		var room = channel.get("name");
+
+		sio.of(CHATSPACE).in(room).emit('client:removed:' + room, changedClient.toJSON());
 	}
 
 	function emitGenericPermissionsError (socket, client) {
@@ -129,9 +124,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				log: false,
 			}, room));
 		});
-
-		// tell everyone about the new client in the room
-		userJoined(client, room);
 
 		// let the knewly joined know their ID
 		socket.in(room).emit("client:id:" + room, {
@@ -342,20 +334,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					return;
 				}
 
-				console.log(newName);
-
 				client.set("nick", newName);
-				socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
-					class: "identity ack",
-					body: prevName + " is now known as " + newName,
-					log: false
-				}, room));
-				socket.in(room).emit('chat:' + room, serverSentMessage({
-					class: "identity ack",
-					body: "You are now known as " + newName,
-					log: false
-				}, room));
-				publishUserList(channel);
+
 				ack();
 			},
 			"topic": function (namespace, socket, channel, client, data) {
@@ -436,7 +416,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				client.set("idleSince", Number(new Date()));
 				data.id = client.get("id");
 				sio.of(CHATSPACE).in(room).emit('chat:idle:' + room, data);
-				publishUserList(channel);
+
 			},
 			"chat:unidle": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
@@ -446,7 +426,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				sio.of(CHATSPACE).in(room).emit('chat:unidle:' + room, {
 					id: client.get("id")
 				});
-				publishUserList(channel);
+
 			},
 			"private_message": function (namespace, socket, channel, client, data) {
 				var targetClients;
@@ -496,7 +476,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 						return;
 					}
 
-					publishUserList(channel);
 				});
 			},
 			"chat": function (namespace, socket, channel, client, data) {
@@ -652,7 +631,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 											class: "identity err",
 											body: nick + " just failed to identify himself"
 										}, room));
-										publishUserList(channel);
+
 									} else { // ident'd
 										client.set("identified", true);
 										socket.in(room).emit('chat:' + room, serverSentMessage({
@@ -660,7 +639,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 											body: "You are now identified for " + nick
 										}, room));
 
-										publishUserList(channel);
+										setIdentityToken(room, client);
 									}
 								});
 							});
@@ -700,7 +679,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 									socket.in(room).emit('chat:' + room, serverSentMessage({
 										body: "You have registered your nickname.  Please remember your password."
 									}, room));
-									publishUserList(channel);
+
 								});
 							});
 						} catch (e) {
@@ -717,17 +696,16 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			},
 			"in_call": function (namespace, socket, channel, client) {
 				client.set("inCall", true);
-				publishUserList(channel);
+
 			},
 			"left_call": function (namespace, socket, channel, client) {
 				client.set("inCall", false);
-				publishUserList(channel);
+
 			},
 			"unsubscribe": function (namespace, socket, channel, client) {
 				var room = channel.get("name");
-				userLeft(client, room);
 				channel.clients.remove(client);
-				publishUserList(channel);
+
 			}
 		},
 		unauthenticatedEvents: ["join_private"]
@@ -759,6 +737,14 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		success: function (namespace, socket, channel, client,data) {
 			DEBUG && console.log("Client joined ", channel.get("name"));
 			subscribeSuccess(socket, client, channel);
+
+			channel.clients.on("change", function (changed) {
+				console.log(changed.toJSON());
+				clientChanged(socket, channel, changed);
+			});
+			channel.clients.on("remove", function (removed) {
+				clientRemoved(socket, channel, removed);
+			});
 		}
 	});
 };
