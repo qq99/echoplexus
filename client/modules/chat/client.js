@@ -1,4 +1,4 @@
-define(['jquery','underscore','backbone','client','regex',
+define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 		'modules/chat/Autocomplete',
 		'modules/chat/Scrollback',
 		'modules/chat/Log',
@@ -9,7 +9,7 @@ define(['jquery','underscore','backbone','client','regex',
 		'text!modules/chat/templates/channelCryptokeyModal.html',
 	],
 	function($, _, Backbone,
-		Client, Regex, Autocomplete, Scrollback, Log, ChatLog, Growl,
+		Client, Regex, crypto, Autocomplete, Scrollback, Log, ChatLog, Growl,
 		chatpanelTemplate, chatinputTemplate, cryptoModalTemplate) {
 
 	var ColorModel = Client.ColorModel,
@@ -64,27 +64,6 @@ define(['jquery','underscore','backbone','client','regex',
 		}),
 
 		chatMessage: Backbone.Model.extend({
-			decryptObject: function (encipheredObj, key) {
-				if (typeof encipheredObj !== "undefined") {
-					var decipheredString, decipheredObj;
-
-					// attempt to decrypt the result:
-					try {
-						decipheredObj = CryptoJS.AES.decrypt(JSON.stringify(encipheredObj), key, { format: JsonFormatter });
-						decipheredString = decipheredObj.toString(CryptoJS.enc.Utf8);
-					} catch (e) {
-						decipheredString = encipheredObj.ct;
-					}
-
-					if (decipheredString === "") {
-						decipheredString = encipheredObj.ct;
-					}
-
-					return decipheredString;
-				} else {
-					return "Unknown";
-				}
-			},
 			getBody: function (cryptoKey) {
 				var body = this.get("body"),
 					encrypted_body = this.get("encrypted");
@@ -92,7 +71,7 @@ define(['jquery','underscore','backbone','client','regex',
 				if ((typeof cryptoKey !== "undefined") &&
 					(cryptoKey !== "") &&
 					(typeof encrypted_body !== "undefined")) {
-					body = this.decryptObject(encrypted_body, cryptoKey);
+					body = crypto.decryptObject(encrypted_body, cryptoKey);
 				}
 
 				return body;
@@ -129,8 +108,6 @@ define(['jquery','underscore','backbone','client','regex',
 			if (this.me.cryptokey === "") {
 				delete this.me.cryptokey;
 			}
-
-			console.log(this.me.cryptokey);
 
 			this.me.persistentLog = this.persistentLog;
 
@@ -305,13 +282,16 @@ define(['jquery','underscore','backbone','client','regex',
 				myNick = this.me.getNick(this.me.cryptokey),
 				msgClass = msg.get("class"),
 				fromNick = msg.get("nickname"),
-				atMyNick = "@" + myNick;
+				atMyNick = "@" + myNick,
+				encrypted_nick = msg.get("encrypted_nick");
+
+			if (encrypted_nick) {
+				fromNick = crypto.decryptObject(encrypted_nick, this.me.cryptokey);
+			}
 
 			// check to see if me.nick is contained in the msgme.
 			if (msgBody.toLowerCase().indexOf(atMyNick.toLowerCase()) !== -1 ||
 				msgClass === "private") {
-
-				console.log(msgBody, atMyNick);
 
 				// do not alter the message in the following circumstances:
 				if (msgClass) {
@@ -377,8 +357,6 @@ define(['jquery','underscore','backbone','client','regex',
 						);
 					}
 
-					console.log(message.getBody(self.me.cryptokey));
-
 					self.checkToNotify(message);
 					self.persistentLog.add(message.toJSON());
 					self.chatLog.renderChatMessage(message);
@@ -418,8 +396,6 @@ define(['jquery','underscore','backbone','client','regex',
 				},
 				"chat:edit": function (msg) {
 					var message = new self.chatMessage(msg);
-
-					console.log(msg);
 
 					msg = self.checkToNotify(message); // the edit might have been to add a "@nickname", so check again to notify
 

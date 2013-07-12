@@ -1,11 +1,11 @@
 
-define(['jquery','backbone', 'underscore','regex','moment',
+define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 	'text!modules/chat/templates/chatArea.html',
 	'text!modules/chat/templates/chatMessage.html',
 	'text!modules/chat/templates/linkedImage.html',
 	'text!modules/chat/templates/userListUser.html',
 	'text!modules/chat/templates/youtube.html'
-],function($, Backbone, _, Regex, moment,
+],function($, Backbone, _, Regex, moment, crypto,
 	chatareaTemplate,
 	chatMessageTemplate,
 	linkedImageTemplate,
@@ -229,23 +229,6 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			}
 		},
 
-		decryptObject: function (encipheredObj) {
-			if (typeof encipheredObj !== "undefined") {
-				var decipheredString, decipheredObj;
-
-				// attempt to decrypt the result:
-				try {
-					decipheredObj = CryptoJS.AES.decrypt(JSON.stringify(encipheredObj), this.me.cryptokey, { format: JsonFormatter });
-					decipheredString = decipheredObj.toString(CryptoJS.enc.Utf8);
-				} catch (e) {
-					decipheredString = encipheredObj.ct;
-				}
-				return decipheredString;
-			} else {
-				return "Unknown";
-			}
-		},
-
         replaceChatMessage: function (msg) {
         	var msgHtml = this.renderChatMessage(msg, {delayInsert: true}), // render the altered message, but don't insert it yet
         		$oldMsg = $(".chatMessage[data-sequence='" + msg.get("mID") + "']", this.$el);
@@ -259,18 +242,16 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				body, nickname;
 
 			if (typeof msg.get("encrypted_nick") !== "undefined") {
-				nickname = this.decryptObject(msg.get("encrypted_nick"));
+				nickname = crypto.decryptObject(msg.get("encrypted_nick"), this.me.cryptokey);
 			} else {
 				nickname = msg.get("nickname");
 			}
 
 			if (typeof msg.get("encrypted") !== "undefined") {
-				body = this.decryptObject(msg.get("encrypted"));
+				body = crypto.decryptObject(msg.get("encrypted"), this.me.cryptokey);
 			} else {
 				body = msg.get("body");
 			}
-
-			console.log("body", body);
 
 			if (typeof opts === "undefined") {
 				opts = {};

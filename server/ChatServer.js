@@ -327,12 +327,11 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					prevName = client.get("nick");
 
 				client.set("identified", false);
-				client.set("encrypted_nick", null);
 				client.unset("encrypted_nick");
 
-				if (typeof data.encrypted !== "undefined") {
+				if (typeof data.encrypted_nick !== "undefined") {
 					newName = "-";
-					client.set("encrypted_nick", data.encrypted);
+					client.set("encrypted_nick", data.encrypted_nick);
 				}
 
 				if (newName === "") {
