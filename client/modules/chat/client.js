@@ -63,6 +63,42 @@ define(['jquery','underscore','backbone','client','regex',
 			}
 		}),
 
+		chatMessage: Backbone.Model.extend({
+			decryptObject: function (encipheredObj, key) {
+				if (typeof encipheredObj !== "undefined") {
+					var decipheredString, decipheredObj;
+
+					// attempt to decrypt the result:
+					try {
+						decipheredObj = CryptoJS.AES.decrypt(JSON.stringify(encipheredObj), key, { format: JsonFormatter });
+						decipheredString = decipheredObj.toString(CryptoJS.enc.Utf8);
+					} catch (e) {
+						decipheredString = encipheredObj.ct;
+					}
+
+					if (decipheredString === "") {
+						decipheredString = encipheredObj.ct;
+					}
+
+					return decipheredString;
+				} else {
+					return "Unknown";
+				}
+			},
+			getBody: function (cryptoKey) {
+				var body = this.get("body"),
+					encrypted_body = this.get("encrypted");
+
+				if ((typeof cryptoKey !== "undefined") &&
+					(cryptoKey !== "") &&
+					(typeof encrypted_body !== "undefined")) {
+					body = this.decryptObject(encrypted_body, cryptoKey);
+				}
+
+				return body;
+			}
+		}),
+
 		initialize: function (opts) {
 			var self = this;
 
@@ -90,6 +126,11 @@ define(['jquery','underscore','backbone','client','regex',
 			});
 
 			this.me.cryptokey = window.localStorage.getItem("chat:cryptokey:" + this.channelName);
+			if (this.me.cryptokey === "") {
+				delete this.me.cryptokey;
+			}
+
+			console.log(this.me.cryptokey);
 
 			this.me.persistentLog = this.persistentLog;
 
@@ -108,9 +149,11 @@ define(['jquery','underscore','backbone','client','regex',
 				var entries = this.persistentLog.all();
 				var renderedEntries = [];
 				for (var i = 0, l = entries.length; i < l; i++) {
-					var entry = this.chatLog.renderChatMessage(entries[i], {
-						delayInsert: true
-					});
+					var model = new this.chatMessage(entries[i]),
+						entry = this.chatLog.renderChatMessage(model, {
+							delayInsert: true
+						});
+
 					renderedEntries.push(entry);
 				}
 				this.chatLog.insertBatch(renderedEntries);
@@ -148,23 +191,23 @@ define(['jquery','underscore','backbone','client','regex',
 			var self = this;
 			//Bind the disconnnections, send message on disconnect
 			self.socket.on("disconnect",function(){
-				self.chatLog.renderChatMessage({
+				self.chatLog.renderChatMessage(new self.chatMessage({
 					body: 'Disconnected from the server',
 					type: 'SYSTEM',
 					timestamp: new Date().getTime(),
 					nickname: '',
 					class: 'client'
-				});
+				}));
 			});
 			//On reconnection attempts, print out the retries
 			self.socket.on("reconnecting",function(nextRetry){
-				self.chatLog.renderChatMessage({
+				self.chatLog.renderChatMessage(new self.chatMessage({
 					body: 'Connection lost, retrying in ' + nextRetry/1000.0 + ' seconds',
 					type: 'SYSTEM',
 					timestamp: new Date().getTime(),
 					nickname: '',
 					class: 'client'
-				});
+				}));
 			});
 			//On successful reconnection, render the chatmessage, and emit a subscribe event
 			self.socket.on("reconnect",function(){
@@ -196,13 +239,13 @@ define(['jquery','underscore','backbone','client','regex',
 		postSubscribe: function (data) {
 			var self = this;
 			
-			this.chatLog.renderChatMessage({
+			this.chatLog.renderChatMessage(new self.chatMessage({
 				body: 'Connected. Now talking in channel ' + this.channelName,
 				type: 'SYSTEM',
 				timestamp: new Date().getTime(),
 				nickname: '',
 				class: 'client'
-			});
+			}));
 
 			// attempt to automatically /nick and /ident
 			$.when(this.autoNick()).done(function () {
@@ -251,30 +294,35 @@ define(['jquery','underscore','backbone','client','regex',
 			this.$el.attr("data-channel", this.channelName);
 
 			this.$el.append(this.inputTemplate({
-				encrypted: (this.me.cryptokey !== null)
+				encrypted: (typeof this.me.cryptokey !== "undefined")
 			}));
 		},
 
 		checkToNotify: function (msg) {
 			// scan through the message and determine if we need to notify somebody that was mentioned:
-			var msgBody = msg.body.toLowerCase(),
-				myNick = this.me.get("nick"),
+
+			var msgBody = msg.getBody(this.me.cryptokey), // is '-' when encrypted. TODO
+				myNick = this.me.getNick(this.me.cryptokey),
+				msgClass = msg.get("class"),
+				fromNick = msg.get("nickname"),
 				atMyNick = "@" + myNick;
 
 			// check to see if me.nick is contained in the msgme.
-			if (msgBody.indexOf(atMyNick) !== -1 ||
-				msg.class === "private") {
+			if (msgBody.toLowerCase().indexOf(atMyNick.toLowerCase()) !== -1 ||
+				msgClass === "private") {
+
+				console.log(msgBody, atMyNick);
 
 				// do not alter the message in the following circumstances:
-				if (msg.class) {
-					if ((msg.class.indexOf("part") !== -1) ||
-						(msg.class.indexOf("join") !== -1)) { // don't notify for join/part; it's annoying when anonymous
+				if (msgClass) {
+					if ((msgClass.indexOf("part") !== -1) ||
+						(msgClass.indexOf("join") !== -1)) { // don't notify for join/part; it's annoying when anonymous
 
 						return msg; // short circuit
 					}
 				}
 
-				if (this.channel.isPrivate || msg.class === "private") {
+				if (this.channel.isPrivate || msgClass === "private") {
 					// display more privacy-minded notifications for private channels
 					notifications.notify({
 						title: "echoplexus",
@@ -284,15 +332,15 @@ define(['jquery','underscore','backbone','client','regex',
 				} else {
 					// display a full notification for a public channel
 					notifications.notify({
-						title: msg.nickname + " says:",
-						body: msg.body,
+						title: fromNick + " says:",
+						body: msgBody,
 						tag: "chatMessage"
 					});
 				}
-				msg.directedAtMe = true; // alter the message
+				msg.set("directedAtMe", true); // alter the message
 			}
 			
-			if (msg.type !== "SYSTEM") { // count non-system messages as chat activity
+			if (msg.get("type") !== "SYSTEM") { // count non-system messages as chat activity
 				window.events.trigger("chat:activity", {
 					channelName: this.channelName
 				});
@@ -302,7 +350,7 @@ define(['jquery','underscore','backbone','client','regex',
 					(this.hidden || !chatModeActive())) {
 					var growl = new Growl({
 						title: this.channelName + ":  " + msg.nickname,
-						body: msg.body
+						body: msgBody
 					});
 				}
 			}
@@ -317,36 +365,23 @@ define(['jquery','underscore','backbone','client','regex',
 			this.socketEvents = {
 				"chat": function (msg) {
 					window.events.trigger("message",socket,self,msg);
-					switch (msg.class) {
-						case "join":
-							var newClient = new ClientModel(msg.client);
-							self.channel.clients.add(newClient);
-							break;
-						case "part":
-							self.channel.clients.remove(msg.id);
-							break;
-					}
 
-					// attempt to decrypt the result:
-					if (typeof msg.encrypted !== "undefined") {
-						try {
-							var deciphered = CryptoJS.AES.decrypt(JSON.stringify(msg.encrypted), self.me.cryptokey, { format: JsonFormatter });
-							msg.body = deciphered.toString(CryptoJS.enc.Utf8);
-						} catch (e) {
-							msg.body = msg.encrypted.ct;
-						}
-					}
+					var message = new self.chatMessage(msg);
 
 					// update our scrollback buffer so that we can quickly edit the message by pressing up/down
 					// https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
-					if (msg.you === true) {
-						self.scrollback.replace(msg.body, "/edit #" + msg.mID + " " + msg.body);
+					if (message.get("you") === true) {
+						self.scrollback.replace(
+							message.getBody(self.me.cryptokey),
+							"/edit #" + message.get("mID") + " " + message.getBody(self.me.cryptokey)
+						);
 					}
 
-					msg = self.checkToNotify(msg);
+					console.log(message.getBody(self.me.cryptokey));
 
-					self.persistentLog.add(msg); 
-					self.chatLog.renderChatMessage(msg);
+					self.checkToNotify(message);
+					self.persistentLog.add(message.toJSON());
+					self.chatLog.renderChatMessage(message);
 				},
 				"chat:batch": function (msgs) {
 					var msg;
@@ -356,14 +391,17 @@ define(['jquery','underscore','backbone','client','regex',
 						self.persistentLog.add(msg);
 
 						msg.fromBatch = true;
-						self.chatLog.renderChatMessage(msg);
+						self.chatLog.renderChatMessage(new self.chatMessage(msg));
 					}
 				},
 				"private_message": function (msg) {
-					msg = self.checkToNotify(msg);
 
-					self.persistentLog.add(msg);
-					self.chatLog.renderChatMessage(msg);
+					var message = self.chatMessage(msg);
+
+					msg = self.checkToNotify(message);
+
+					self.persistentLog.add(message.toJSON());
+					self.chatLog.renderChatMessage(message);
 				},
 				"private": function () {
 					self.channel.isPrivate = true;
@@ -379,20 +417,25 @@ define(['jquery','underscore','backbone','client','regex',
 					$(".user[rel='"+ msg.id +"'] .idle", self.$el).remove();
 				},
 				"chat:edit": function (msg) {
-					msg = self.checkToNotify(msg); // the edit might have been to add a "@nickname", so check again to notify
+					var message = new self.chatMessage(msg);
 
-					self.persistentLog.replaceMessage(msg); // replace the message with the edited version in local storage
-					self.chatLog.replaceChatMessage(msg); // replace the message with the edited version in the chat log
+					console.log(msg);
+
+					msg = self.checkToNotify(message); // the edit might have been to add a "@nickname", so check again to notify
+
+					self.persistentLog.replaceMessage(message.toJSON()); // replace the message with the edited version in local storage
+					self.chatLog.replaceChatMessage(message); // replace the message with the edited version in the chat log
 				},
 				"client:id": function (msg) {
 					self.me.set("id", msg.id);
 				},
 				"userlist": function (msg) {
 					// update the pool of possible autocompletes
-					self.autocomplete.setPool(_.map(msg.users, function (user) {
-						return user.nick;
+					self.channel.clients.reset(msg.users);
+
+					self.autocomplete.setPool(_.map(self.channel.clients.models, function (user) {
+						return user.getNick(self.me.cryptokey);
 					}));
-					self.channel.clients.set(msg.users);
 
 					self.chatLog.renderUserlist(self.channel.clients);
 
@@ -586,7 +629,7 @@ define(['jquery','underscore','backbone','client','regex',
 			$(".chatinput", this.$el).remove(); // remove old
 			// re-render the chat input area now that we've encrypted:
 			this.$el.append(this.inputTemplate({
-				encrypted: (this.me.cryptokey !== null)
+				encrypted: (typeof this.me.cryptokey !== "undefined")
 			}));
 		},
 
@@ -604,13 +647,15 @@ define(['jquery','underscore','backbone','client','regex',
 				}
 				self.rerenderInputBox();
 				$(".chatinput textarea", self.$el).focus();
+				self.me.setNick(self.me.get("nick"), self.channelName);
 			});
 		},
 
 		clearCryptoKey: function () {
-			this.me.cryptokey = null;
+			delete this.me.cryptokey;
 			this.rerenderInputBox();
-			window.localStorage.setItem("chat:cryptokey:" + this.channelName, null);
+			window.localStorage.setItem("chat:cryptokey:" + this.channelName, "");
+			this.me.setNick("Anonymous", this.channelName);
 		}
 	});
 });

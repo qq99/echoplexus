@@ -137,12 +137,55 @@
 				this.set('idle',false);
 			}
 		},
+		decryptObject: function (encipheredObj, key) {
+			if (typeof encipheredObj !== "undefined") {
+				var decipheredString, decipheredObj;
+
+				// attempt to decrypt the result:
+				try {
+					decipheredObj = CryptoJS.AES.decrypt(JSON.stringify(encipheredObj), key, { format: JsonFormatter });
+					decipheredString = decipheredObj.toString(CryptoJS.enc.Utf8);
+				} catch (e) {
+					decipheredString = encipheredObj.ct;
+				}
+
+				if (decipheredString === "") {
+					decipheredString = encipheredObj.ct;
+				}
+
+				return decipheredString;
+			} else {
+				return "Unknown";
+			}
+		},
+		getNick: function (cryptoKey) {
+			var nick = this.get("nick"),
+				encrypted_nick = this.get("encrypted_nick");
+
+			if ((typeof cryptoKey !== "undefined") &&
+				(cryptoKey !== "") &&
+				(typeof encrypted_nick !== "undefined")) {
+				nick = this.decryptObject(encrypted_nick, cryptoKey);
+			}
+
+			return nick;
+		},
 		setNick: function (nick, room, ack) {
+			var encipheredNick;
+
 			$.cookie("nickname:" + room, nick, window.COOKIE_OPTIONS);
+
+			if (this.cryptokey) {
+				var enciphered = CryptoJS.AES.encrypt(nick, this.cryptokey, { format: JsonFormatter });
+				nick = "-";
+				encipheredNick = JSON.parse(enciphered.toString());
+				this.set("encrypted_nick", encipheredNick);
+			}
 
 			this.set("nick", nick);
 			this.socket.emit('nickname:' + room, {
-				nickname: nick
+				nick: nick,
+				encrypted: encipheredNick
 			}, function () {
 				if (ack) {
 					ack.resolve();
@@ -254,14 +297,22 @@
 				});
 				return;
 			} else if (matches = body.match(REGEXES.commands.edit)) { // editing
-				var mID = matches[2];
+				var mID = matches[2], data;
 
 				body = body.replace(REGEXES.commands.edit, "").trim();
 
-				socket.emit('chat:edit:' + room, {
+				data = {
 					mID: mID,
-					body: body
-				});
+					body: body,
+				};
+
+				if (this.cryptokey) {
+					var enciphered = CryptoJS.AES.encrypt(data.body, this.cryptokey, { format: JsonFormatter });
+					data.body = "-";
+					data.encrypted = JSON.parse(enciphered.toString());
+				}
+
+				socket.emit('chat:edit:' + room, data);
 
 				return;
 			} else if (body.match(REGEXES.commands.leave)) { // leaving

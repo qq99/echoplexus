@@ -229,24 +229,55 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			}
 		},
 
+		decryptObject: function (encipheredObj) {
+			if (typeof encipheredObj !== "undefined") {
+				var decipheredString, decipheredObj;
+
+				// attempt to decrypt the result:
+				try {
+					decipheredObj = CryptoJS.AES.decrypt(JSON.stringify(encipheredObj), this.me.cryptokey, { format: JsonFormatter });
+					decipheredString = decipheredObj.toString(CryptoJS.enc.Utf8);
+				} catch (e) {
+					decipheredString = encipheredObj.ct;
+				}
+				return decipheredString;
+			} else {
+				return "Unknown";
+			}
+		},
+
         replaceChatMessage: function (msg) {
         	var msgHtml = this.renderChatMessage(msg, {delayInsert: true}), // render the altered message, but don't insert it yet
-        		$oldMsg = $(".chatMessage[data-sequence='" + msg.mID + "']", this.$el);
+        		$oldMsg = $(".chatMessage[data-sequence='" + msg.get("mID") + "']", this.$el);
 
         	$oldMsg.after(msgHtml);
         	$oldMsg.remove();
         },
 
 		renderChatMessage: function (msg, opts) {
-			var self = this;
-			var body = msg.body;
+			var self = this,
+				body, nickname;
+
+			if (typeof msg.get("encrypted_nick") !== "undefined") {
+				nickname = this.decryptObject(msg.get("encrypted_nick"));
+			} else {
+				nickname = msg.get("nickname");
+			}
+
+			if (typeof msg.get("encrypted") !== "undefined") {
+				body = this.decryptObject(msg.get("encrypted"));
+			} else {
+				body = msg.get("body");
+			}
+
+			console.log("body", body);
 
 			if (typeof opts === "undefined") {
 				opts = {};
 			}
 			
 			if (this.autoloadMedia &&
-				msg.class !== "identity") { // setting nick to a image URL or youtube URL should not update media bar
+				msg.get("class") !== "identity") { // setting nick to a image URL or youtube URL should not update media bar
 				// put image links on the side:
 				var images;
 				if (images = body.match(REGEXES.urls.image)) {
@@ -257,7 +288,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 						if (self.uniqueURLs[href] === undefined) {
 							var img = self.linkedImageTemplate({
 								url: href,
-								linker: msg.nickname
+								linker: nickname
 							});
 							$(".linklog .body", this.$el).prepend(img);
 							self.uniqueURLs[href] = true;
@@ -319,45 +350,45 @@ define(['jquery','backbone', 'underscore','regex','moment',
 					nickClasses = "",
 					humanTime;
 
-				if (!opts.delayInsert && !msg.fromBatch) {
-					humanTime = moment(msg.timestamp).fromNow();
+				if (!opts.delayInsert && !msg.get("fromBatch")) {
+					humanTime = moment(msg.get("timestamp")).fromNow();
 				} else {
 					humanTime = this.renderPreferredTimestamp(msg.timestamp);
 				}
 
 				// special styling of chat
-				if (msg.directedAtMe) {
+				if (msg.get("directedAtMe")) {
 					chatMessageClasses += "highlight ";
 				}
-				if (msg.type === "SYSTEM") {
+				if (msg.get("type") === "SYSTEM") {
 					nickClasses += "system ";
 				}
-				if (msg.class) {
-					chatMessageClasses += msg.class;
+				if (msg.get("class")) {
+					chatMessageClasses += msg.get("class");
 				}
 				// special styling of nickname depending on who you are:
-				if (msg.you) { // if it's me!
+				if (msg.get("you")) { // if it's me!
 					chatMessageClasses += " me ";
 				}
 
 				var chat = self.chatMessageTemplate({
-					nickname: msg.nickname,
-					mID: msg.mID,
-					color: msg.color,
+					nickname: nickname,
+					mID: msg.get("mID"),
+					color: msg.get("color"),
 					body: body,
 					humanTime: humanTime,
-					timestamp: msg.timestamp,
+					timestamp: msg.get("timestamp"),
 					classes: chatMessageClasses,
 					nickClasses: nickClasses,
-					isPrivateMessage: (msg.type && msg.type === "private"),
-					directedAt: msg.directedAt,
-					mine: (msg.you ? true : false),
-					identified: (msg.identified ? true : false)
+					isPrivateMessage: (msg.get("type") && msg.get("type") === "private"),
+					directedAt: msg.get("directedAt"),
+					mine: (msg.get("you") ? true : false),
+					identified: (msg.get("identified") ? true : false)
 				});
 
 				if (!opts.delayInsert) {
 					self.insertChatMessage({
-						timestamp: msg.timestamp,
+						timestamp: msg.get("timestamp"),
 						html: chat
 					});
 				}
@@ -456,9 +487,11 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				var total = 0;
 
 				_.each(users.models, function (user) {
+					var nickname = user.getNick(self.me.cryptokey);
+
 					// add him to the visual display
 					var userItem = self.userTemplate({
-						nick: user.get("nick"),
+						nick: nickname,
 						id: user.id,
 						color: user.get("color").toRGB(),
 						identified: user.get("identified"),
