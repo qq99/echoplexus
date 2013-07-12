@@ -140,7 +140,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 			this.on("show", this.show);
 			this.on("hide", this.hide);
 
-			this.channel.clients.on("change:nick change:encrypted_nick", function (model,changedAttributes) {
+			this.channel.clients.on("change:nick", function (model,changedAttributes) {
 				var prevName,
 					currentName = model.getNick(self.me.cryptokey);
 
@@ -420,17 +420,20 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 						id: alteredClient.id
 					});
 
-					alteredClient.color = new ColorModel(alteredClient.color);
-
+					if (alteredClient.color) {
+						alteredClient.color = new ColorModel(alteredClient.color);
+					}
 					if (prevClient) {
 						prevClient.set(alteredClient);
+						if (typeof alteredClient.encrypted_nick === "undefined") {
+							prevClient.unset("encrypted_nick");
+						} // backbone won't unset undefined
 					} else { // there was no previous client by this id
 						self.channel.clients.add(alteredClient);
 					}
 					self.chatLog.renderUserlist(self.channel.clients);
 				},
 				"client:removed": function (alteredClient) {
-					console.log(alteredClient);
 					var prevClient = self.channel.clients.remove({
 						id: alteredClient.id
 					});
@@ -696,6 +699,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 			delete this.me.cryptokey;
 			this.rerenderInputBox();
 			window.localStorage.setItem("chat:cryptokey:" + this.channelName, "");
+			this.me.unset("encrypted_nick");
 			this.me.setNick("Anonymous", this.channelName);
 		}
 	});

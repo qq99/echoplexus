@@ -15,7 +15,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		ApplicationError = require('./Error'),
 		REGEXES = require('../client/regex.js').REGEXES;
 
-	var DEBUG = config.DEBUG;
+	var DEBUG = config.DEBUG,
+		initialized = false;
 
 	function updatePersistedMessage(room, mID, newMessage, callback) {
 		var mID = parseInt(mID, 10),
@@ -318,7 +319,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				var newName = data.nick,
 					prevName = client.get("nick");
 
-				client.set("identified", false);
+				client.set("identified", false, {silent: true});
 				client.unset("encrypted_nick");
 
 				if (typeof data.encrypted_nick !== "undefined") {
@@ -738,13 +739,17 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			DEBUG && console.log("Client joined ", channel.get("name"));
 			subscribeSuccess(socket, client, channel);
 
-			channel.clients.on("change", function (changed) {
-				console.log(changed.toJSON());
-				clientChanged(socket, channel, changed);
-			});
-			channel.clients.on("remove", function (removed) {
-				clientRemoved(socket, channel, removed);
-			});
+
+			if (initialized === false) {
+				// only bind these once *ever*
+				channel.clients.on("change", function (changed) {
+					clientChanged(socket, channel, changed);
+				});
+				channel.clients.on("remove", function (removed) {
+					clientRemoved(socket, channel, removed);
+				});
+				initialized = true;
+			}
 		}
 	});
 };

@@ -158,7 +158,7 @@
 			$.cookie("nickname:" + room, nick, window.COOKIE_OPTIONS);
 
 			if (this.cryptokey) {
-				this.set("encrypted_nick", crypto.encryptObject(nick, this.cryptokey));
+				this.set("encrypted_nick", crypto.encryptObject(nick, this.cryptokey), {silent: true});
 				nick = "-";
 			}
 
