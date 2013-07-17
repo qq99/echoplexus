@@ -18,9 +18,12 @@
 
 
 		<%- nickname %>
+
+		<% if (mID) { %>
 		<div class="nick-decorators">
 			<i class="icon-reply"></i>
 		</div>
+		<% } %>
 	</div>
 	<div class="body">
 		<% if (isPrivateMessage) { %>

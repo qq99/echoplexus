@@ -698,6 +698,9 @@ $room-specific-height: 30px;
 		float:left;
 		button {
 			border-right:0px;
+			&:hover {
+				border-right:0px;
+			}
 		}
 	}
 	div:first-child {
@@ -770,6 +773,13 @@ $room-specific-height: 30px;
 	width:100%;
 	overflow-y:auto;
 	font-family: $pretty-font-family;
+	.nick {
+		display:inline-block;
+		max-width:12em;
+		text-overflow:ellipsis;
+		white-space:nowrap;
+		overflow:hidden;
+	}
 	.body {
 		font-size:1em;
 		i {

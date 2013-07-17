@@ -99,6 +99,14 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		socket.in(room).emit('chat:' + room, serverSentMessage({
 			body: "I can't let you do that, " + client.get("nick"),
 			log: false
+		});
+	}
+
+	function broadcast (socket, channel, message) {
+		var room = channel.get("name");
+
+		sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
+			body: message
 		}, room));
 	}
 
@@ -260,9 +268,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 						return;
 					}
 					
-					socket.in(room).emit('chat:' + room, serverSentMessage({
-						body: "This channel is now public."
-					}, room));
+					broadcast(socket, channel, "This channel is now public.");
 				});
 			},
 			"make_private": function (namespace, socket, channel, client, data) {
@@ -281,12 +287,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 						return;
 					}
 					
-					socket.in(room).emit('chat:' + room, serverSentMessage({
-						body: "This channel is now private.  Please remember your password."
-					}, room));
-					socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
-						body: "This channel is now private.  Please remember your password."
-					}, room));
+					broadcast(socket, channel, "This channel is now private.  Please remember your password.");
 				});
 
 			},
@@ -578,18 +579,19 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 										});
 										screenshotter.on("exit", function (data) {
 											DEBUG && console.log('screenshotter exit: ' + data);
-											if (config.chat.webshot_previews.verbose && pageData.title && pageData.excerpt) {
-												sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
-													body: '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
-												}, room));
-											} else if (config.chat.webshot_previews.verbose && pageData.title) {
-												sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
-													body: '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName
-												}, room));
+
+											if (config.chat.webshot_previews.verbose &&
+												pageData.title &&
+												pageData.excerpt) {
+
+												broadcast(socket, channel, '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName);
+											} else if (config.chat.webshot_previews.verbose &&
+												pageData.title) {
+
+												broadcast(socket, channel, '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName);
 											} else {
-												sio.of(CHATSPACE).in(room).emit('chat:' + room, serverSentMessage({
-													body: urlRoot() + 'sandbox/' + fileName
-												}, room));
+
+												broadcast(socket, channel, urlRoot() + 'sandbox/' + fileName);
 											}
 										});
 									})(urls[i], randomFilename); // call our closure with our random filename
@@ -622,6 +624,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 								crypto.pbkdf2(data.password, stored.salt, 4096, 256, function (err, derivedKey) {
 									if (err) throw err;
 
+									// TODO: does not output the right nick while encrypted, may not be necessary as this functionality might change (re: GPG/PGP)
 									if (derivedKey.toString() !== stored.password) { // FAIL
 										client.set("identified", false);
 										socket.in(room).emit('chat:' + room, serverSentMessage({

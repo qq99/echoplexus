@@ -321,7 +321,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 		checkToNotify: function (msg) {
 			// scan through the message and determine if we need to notify somebody that was mentioned:
 
-			var msgBody = msg.getBody(this.me.cryptokey), // is '-' when encrypted. TODO
+			var msgBody = msg.getBody(this.me.cryptokey),
 				myNick = this.me.getNick(this.me.cryptokey),
 				msgClass = msg.get("class"),
 				fromNick = msg.get("nickname"),

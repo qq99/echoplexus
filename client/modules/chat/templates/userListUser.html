@@ -32,22 +32,6 @@
 	</span>
 	<% } %>
 
-	<% if (me) { %>
-	<span
-		data-tooltip-title="Edit Profile"
-		data-tooltip-body="Edit your profile.  Doesn't work yet; WIP"
-		class="tooltip-target edit-profile">
-		<i class='icon-user'></i>
-	</span>
-	<% } else { %>
-	<span
-		data-tooltip-title="View Profile"
-		data-tooltip-body="View this user's profile.  Doesn't work yet; WIP"
-		class="tooltip-target view-profile">
-		<i class='icon-user'></i>
-	</span>
-	<% } %>
-
 	<% if (idle === true) { %>
 		<span class="idle" data-timestamp="<%= idleSince %>">
 			<span class="zzz">Z
