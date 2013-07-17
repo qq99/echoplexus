@@ -99,7 +99,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		socket.in(room).emit('chat:' + room, serverSentMessage({
 			body: "I can't let you do that, " + client.get("nick"),
 			log: false
-		});
+		}));
 	}
 
 	function broadcast (socket, channel, message) {
@@ -642,8 +642,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 											class: "identity ack",
 											body: "You are now identified for " + nick
 										}, room));
-
-										setIdentityToken(room, client);
 									}
 								});
 							});
