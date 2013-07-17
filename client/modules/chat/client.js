@@ -314,7 +314,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 			this.$el.attr("data-channel", this.channelName);
 
 			this.$el.append(this.inputTemplate({
-				encrypted: (typeof this.me.cryptokey !== "undefined")
+				encrypted: (typeof this.me.cryptokey !== "undefined" && this.me.cryptokey !== null)
 			}));
 		},
 
