@@ -1,7 +1,10 @@
+[![Stories in Ready](http://badge.waffle.io/qq99/echoplexus.png)](http://waffle.io/qq99/echoplexus)  
 [echoplexus](https://echoplex.us) (v0.2.1)
 ==================
 
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
+
+[Parlez-vous français? Continuez ici](https://github.com/tetalab/echoplexus/)
 
 Join the developer chat @ [chat.echoplex.us/echodev](https://chat.echoplex.us/echodev "Echoplexus Developer Chat")
 
