@@ -737,8 +737,10 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			DEBUG && console.log("Client joined ", channel.get("name"));
 			subscribeSuccess(socket, client, channel);
 
-
-			if (initialized === false) {
+			// channel.initialized is inelegant (since it clearly has been)
+			// and other modules might use it.
+			// hotfix for now, real fix later
+			if (channel.initialized === false) {
 				// only bind these once *ever*
 				channel.clients.on("change", function (changed) {
 					clientChanged(socket, channel, changed);
@@ -746,7 +748,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				channel.clients.on("remove", function (removed) {
 					clientRemoved(socket, channel, removed);
 				});
-				initialized = true;
+				channel.initialized = true;
 			}
 		}
 	});

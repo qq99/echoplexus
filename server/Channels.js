@@ -12,8 +12,6 @@ exports.ChannelStructures = function (redisC, EventBus) {
 		PermissionModel = require('./PermissionModel').ChannelPermissionModel,
 		DEBUG = config.DEBUG;
 
-
-
 	var ChannelModel = Backbone.Model.extend({
 		isPrivate: function (callback) {
 			return this.get("private");
@@ -28,7 +26,8 @@ exports.ChannelStructures = function (redisC, EventBus) {
 		},
 		initialize: function (properties, options) {
 			_.bindAll(this);
-			// _.extend(this, options); // overwrite any collection methods
+
+			this.initialized = false;
 			
 			this.clients = new Clients();
 			this.replay = [];
