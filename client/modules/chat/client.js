@@ -6,7 +6,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 		'ui/Growl',
 		'text!modules/chat/templates/chatPanel.html',
 		'text!modules/chat/templates/chatInput.html',
-		'text!modules/chat/templates/channelCryptokeyModal.html',
+		'text!modules/chat/templates/channelCryptokeyModal.html'
 	],
 	function($, _, Backbone,
 		Client, Regex, crypto, Autocomplete, Scrollback, Log, ChatLog, Growl,
@@ -182,6 +182,10 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 				}));
 			});
 
+			this.channel.clients.on("add reset change", function (model) {
+				console.log("clients changed:", model);
+				self.chatLog.renderUserlist(self.channel.clients);
+			});
 
 		},
 
@@ -431,14 +435,11 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 					} else { // there was no previous client by this id
 						self.channel.clients.add(alteredClient);
 					}
-					self.chatLog.renderUserlist(self.channel.clients);
 				},
 				"client:removed": function (alteredClient) {
 					var prevClient = self.channel.clients.remove({
 						id: alteredClient.id
 					});
-
-					self.chatLog.renderUserlist(self.channel.clients);
 				},
 				"private_message": function (msg) {
 
@@ -455,12 +456,6 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 				},
 				"subscribed": function () {
 					self.postSubscribe();
-				},
-				"chat:idle": function (msg) {
-					$(".user[rel='"+ msg.id +"']", self.$el).append("<span class='idle' data-timestamp='" + Number(new Date()) +"'>Idle</span>");
-				},
-				"chat:unidle": function (msg) {
-					$(".user[rel='"+ msg.id +"'] .idle", self.$el).remove();
 				},
 				"chat:edit": function (msg) {
 					var message = new self.chatMessage(msg);
@@ -480,9 +475,6 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 					self.autocomplete.setPool(_.map(self.channel.clients.models, function (user) {
 						return user.getNick(self.me.cryptokey);
 					}));
-
-					self.chatLog.renderUserlist(self.channel.clients);
-
 				},
 				"chat:currentID": function (msg) {
 					var missed;

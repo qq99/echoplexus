@@ -414,21 +414,18 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			"chat:idle": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
-				client.set("idle", true);
-				client.set("idleSince", Number(new Date()));
-				data.id = client.get("id");
-				sio.of(CHATSPACE).in(room).emit('chat:idle:' + room, data);
-
+				client.set({
+					idle: true,
+					idleSince: Number(new Date())
+				});
 			},
 			"chat:unidle": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
-				client.set("idle", false);
-				client.unset("idleSince");
-				sio.of(CHATSPACE).in(room).emit('chat:unidle:' + room, {
-					id: client.get("id")
+				client.set({
+					idle: false,
+					idleSince: null
 				});
-
 			},
 			"private_message": function (namespace, socket, channel, client, data) {
 				var targetClients;
