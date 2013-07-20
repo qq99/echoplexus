@@ -13,6 +13,7 @@ define(['jquery','underscore','backbone','client','keymaster',
         PEN: 1,
         ERASER: 2
     };
+
     function TimeCapsule() {
         var time = 0;
         this.getLapse = function() {
@@ -234,7 +235,8 @@ define(['jquery','underscore','backbone','client','keymaster',
 
         drawLine: function(ctx, path){
             var self = this;
-            window.requestAnimationFrame(function(){
+            // commenting out to test Issue #141 (seems data is lost while drawing, dashed lines)
+            // window.requestAnimationFrame(function(){
                 ctx.save();
                 //Load the style
                 _.extend(ctx,path[0].style);
@@ -246,7 +248,7 @@ define(['jquery','underscore','backbone','client','keymaster',
                 //Draw the path
                 self.catmull(path.slice(Math.max(0,path.length - 4), path.length),ctx);
                 ctx.restore();
-            });
+            // });
         },
 
         listen: function () {
