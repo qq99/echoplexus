@@ -343,8 +343,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 			}
 
 			// check to see if me.nick is contained in the msgme.
-			if (msgBody.toLowerCase().indexOf(atMyNick.toLowerCase()) !== -1 ||
-				msgClass === "private") {
+			if (msgBody.toLowerCase().indexOf(atMyNick.toLowerCase()) !== -1) {
 
 				// do not alter the message in the following circumstances:
 				if (msgClass) {
@@ -363,7 +362,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 						tag: "chatMessage"
 					});
 				} else {
-					// display a full notification for a public channel
+					// display a full notification
 					notifications.notify({
 						title: fromNick + " says:",
 						body: msgBody,
@@ -438,6 +437,15 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 						if (typeof alteredClient.encrypted_nick === "undefined") {
 							prevClient.unset("encrypted_nick");
 						} // backbone won't unset undefined
+
+						// check to see if it's ME that's being updated
+						// TODO: this is hacky, but it fixes notification nick checking :s
+						if (prevClient.get("id") === self.me.get("id")) {
+							self.me.set(alteredClient);
+							if (typeof alteredClient.encrypted_nick === "undefined") {
+								self.me.unset("encrypted_nick");
+							} // backbone won't unset undefined
+						}
 					} else { // there was no previous client by this id
 						self.channel.clients.add(alteredClient);
 					}
