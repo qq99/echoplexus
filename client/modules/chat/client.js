@@ -279,7 +279,7 @@ define(['jquery','underscore','backbone','client','regex',
 
 					msg = self.checkToNotify(msg);
 
-					self.persistentLog.add(msg); 
+					self.persistentLog.add(msg);
 					self.chatLog.renderChatMessage(msg);
 				},
 				"chat:batch": function (msgs) {
@@ -302,6 +302,9 @@ define(['jquery','underscore','backbone','client','regex',
 				"private": function () {
 					self.channel.isPrivate = true;
 					self.autoAuth();
+				},
+				"webshot": function (msg) {
+					self.chatLog.renderWebshot(msg);
 				},
 				"subscribed": function () {
 					self.postSubscribe();
