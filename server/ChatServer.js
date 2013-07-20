@@ -437,7 +437,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				}
 
 				// only send a message if it has a body & is directed at someone
-				if (data.body && data.directedAt) {
+				if (data.body) {
 					data.color = client.get("color").toRGB();
 					data.nickname = client.get("nick");
 					data.encrypted_nick = client.get("encrypted_nick");
@@ -446,7 +446,29 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					data.class = "private";
 					data.identified = client.get("identified");
 
-					targetClients = channel.clients.where({nick: data.directedAt}); // returns an array
+					// find the sockets of the clients matching the nick in question
+					// we must do more work to match ciphernicks
+					if (data.encrypted || data.ciphernicks) {
+						targetClients = [];
+
+						// O(nm) if pm'ing everyone, most likely O(n) in the average case
+						_.each(data.ciphernicks, function (ciphernick) {
+							for (var i = 0; i < channel.clients.length; i++) {
+								var encryptedNick = channel.clients.at(i).get("encrypted_nick");
+
+								if (encryptedNick &&
+									encryptedNick["ct"] === ciphernick) {
+
+									targetClients.push(channel.clients.at(i));
+								}
+							}
+						});
+
+						delete data.ciphernicks; // no use sending this to other clients
+					} else { // it wasn't encrypted, just find the regular directedAt
+						targetClients = channel.clients.where({nick: data.directedAt}); // returns an array
+					}
+
 					if (typeof targetClients !== "undefined" &&
 						targetClients.length) {
 

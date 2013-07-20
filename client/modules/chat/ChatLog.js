@@ -363,7 +363,6 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 					classes: chatMessageClasses,
 					nickClasses: nickClasses,
 					isPrivateMessage: (msg.get("type") && msg.get("type") === "private"),
-					directedAt: msg.get("directedAt"),
 					mine: (msg.get("you") ? true : false),
 					identified: (msg.get("identified") ? true : false)
 				});

@@ -98,6 +98,8 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 			this.me = new ClientModel({
 				socket: this.socket
 			});
+			this.me.peers = this.channel.clients; // let the client have access to all the users in the channel
+
 			this.chatLog = new ChatLog({
 				room: this.channelName,
 				persistentLog: this.persistentLog,
@@ -447,7 +449,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 				},
 				"private_message": function (msg) {
 
-					var message = self.chatMessage(msg);
+					var message = new self.chatMessage(msg);
 
 					msg = self.checkToNotify(message);
 

@@ -184,7 +184,8 @@
 			return (this.attributes.id === otherModel.attributes.id);
 		},
 		speak: function (msg, socket) {
-			var body = msg.body,
+			var self = this,
+				body = msg.body,
 				room = msg.room,
 				matches;
 			window.events.trigger("speak",socket,this,msg);
@@ -237,18 +238,53 @@
 
 				var targetNick = body.split(" "); // take the first token to mean the
 
-				if (targetNick.length) {
+				if (targetNick.length) { // only do something if they've specified a target
 					targetNick = targetNick[0];
-					body = body.replace(targetNick, "").trim();
-					if (targetNick.charAt(0) === "@") { // remove the leading "@" symbol; TODO: validate username characters not to include special symbols
+
+					if (targetNick.charAt(0) === "@") { // remove the leading "@" symbol while we match against it; TODO: validate username characters not to include special symbols
 						targetNick = targetNick.substring(1);
 					}
 
-					socket.emit('private_message:' + room, {
-						body: body,
-						room: room,
-						directedAt: targetNick
-					});
+					/*
+						check to see if we're in encrypted mode;
+						if we are, then we probably don't care about pm'ing a non-encrypted
+						user, and so we'll pm their ciphernick instead
+					*/
+					if (this.cryptokey) {
+						// decrypt the list of our peers (we don't have their unencrypted stored in plaintext anywhere)
+						var peerNicks = _.map(this.peers.models, function (peer) {
+							return peer.getNick(self.cryptokey);
+						}), ciphernicks = []; // we could potentially be targeting multiple people with the same nick in our whisper
+
+						// check this decrypted list for the target nick
+						for (var i = 0; i < peerNicks.length; i++) {
+							// if it matches, we'll keep track of their ciphernick to send to the server
+							if (peerNicks[i] === targetNick) {
+								ciphernicks.push(this.peers.at(i).get("encrypted_nick")["ct"]);
+							}
+						}
+
+						// if anyone was actually a recipient, we'll encrypt the message and send it
+						if (ciphernicks.length) {
+
+							// encrypt the body text
+							var encrypted = crypto.encryptObject(body, this.cryptokey);
+							body = "-"; // clean it immediately after encrypting it
+
+							socket.emit('private_message:' + room, {
+								encrypted: encrypted,
+								ciphernicks: ciphernicks,
+								body: body,
+								room: room
+							});
+						} // else we just do nothing.
+					} else { // it wasn't sent while encrypted, the simple case
+						socket.emit('private_message:' + room, {
+							body: body,
+							room: room,
+							directedAt: targetNick
+						});
+					}
 				}
 				return;
 			} else if (body.match(REGEXES.commands.pull_logs)) { // pull

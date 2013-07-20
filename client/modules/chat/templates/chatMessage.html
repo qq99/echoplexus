@@ -27,12 +27,9 @@
 	</div>
 	<div class="body">
 		<% if (isPrivateMessage) { %>
-			<span class="private-icon" title="This is a private message">
+			<span class="private-icon" title="This is a private message.  Only people who had your nickname at the time of sending have received it.">
 				<i class="icon-long-arrow-right"></i>
 			</span>
-			<span class="message-recepient">
-				<%- directedAt %>
-			</span>:
 		<% } %>
 
 		<%= body %>
