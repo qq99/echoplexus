@@ -61,7 +61,6 @@ Download from http://phantomjs.org/
 Install the binary to `/opt/bin/phantomjs`
 
 If you don't want to do this step, set "phantomjs_screenshot" to false in `server/config.js`. 
-This step also requires cloning the [phantomjs-screenshot](https://github.com/qq99/phantomjs-screenshot) repository beside this repo.
 
 ###Building
 

@@ -468,6 +468,9 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 					self.channel.isPrivate = true;
 					self.autoAuth();
 				},
+				"webshot": function (msg) {
+					self.chatLog.renderWebshot(msg);
+				},
 				"subscribed": function () {
 					self.postSubscribe();
 				},

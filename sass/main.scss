@@ -323,6 +323,37 @@ nav {
 	clear:both;
 }
 
+.webshot-badge {
+	display:inline;
+	margin:0 0.5em;
+	font-family:$pretty-font-family;
+	.information {
+		display:none;
+		background:rgba(0,0,0,0.25);
+	}
+	.badge-title, .information {
+		font-size:0.8em;
+		padding:0.3em 1em;
+	}
+	.badge-title {
+		display:inline;
+		cursor:pointer;
+		background:green;
+		color:white;
+		border-radius:5px;
+		box-shadow:inset 1px 1px 0px rgba(255,255,255,0.25), 2px 2px 0px rgba(0, 0, 0, 0.6);
+	}
+	&.active {
+		.information {
+			display:inline;
+		}
+		.badge-title {
+			border-top-right-radius:0;
+			border-bottom-right-radius:0;
+			box-shadow:inset -1px -1px 1px rgba(0,0,0,0.75), inset 1px 1px 1px rgba(0,0,0,0.75);
+		}
+	}
+}
 
 header {
 	@include unselectable;

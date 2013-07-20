@@ -575,43 +575,27 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 										DEBUG && console.log("Processing ", urls[i]);
 										// requires that the phantomjs-screenshot repo is a sibling repo of this one
 										var screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
-											['../../phantomjs-screenshot/main.js', url, output],
+											['./PhantomJS-Screenshot.js', url, output],
 											{
 												cwd: __dirname,
 												timeout: 30*1000 // after 30s, we'll consider phantomjs to have failed to screenshot and kill it
 											});
 
 										screenshotter.stdout.on('data', function (data) {
-											DEBUG && console.log('screenshotter stdout: ' + data);
-											data = data.toString(); // explicitly cast it, who knows what type it is having come from a process
-
-											// attempt to extract any parameters phantomjs might expose via stdout
-											var tmp = data.match(REGEXES.phantomjs.parameter);
-											if (tmp && tmp.length) {
-												var key = tmp[0].replace(REGEXES.phantomjs.delimiter, "").trim();
-												var value = data.replace(REGEXES.phantomjs.parameter, "").trim();
-												pageData[key] = value;
-											}
+											DEBUG && console.log('screenshotter stdout: ' + data.toString());
+											pageData = JSON.parse(data.toString()); // explicitly cast it, who knows what type it is having come from a process
 										});
 										screenshotter.stderr.on('data', function (data) {
-											DEBUG && console.log('screenshotter stderr: ' + data);
+											DEBUG && console.log('screenshotter stderr: ' + data.toString());
 										});
 										screenshotter.on("exit", function (data) {
-											DEBUG && console.log('screenshotter exit: ' + data);
+											DEBUG && console.log('screenshotter exit: ' + data.toString());
 
-											if (config.chat.webshot_previews.verbose &&
-												pageData.title &&
-												pageData.excerpt) {
+											pageData.webshot = urlRoot() + 'sandbox/' + fileName;
+											pageData.original_url = url;
+											pageData.from_mID = mID;
 
-												broadcast(socket, channel, '<<' + pageData.title + '>>: "'+ pageData.excerpt +'" (' + url + ') ' + urlRoot() + 'sandbox/' + fileName);
-											} else if (config.chat.webshot_previews.verbose &&
-												pageData.title) {
-
-												broadcast(socket, channel, '<<' + pageData.title + '>> (' + url + ') ' + urlRoot() + 'sandbox/' + fileName);
-											} else {
-
-												broadcast(socket, channel, urlRoot() + 'sandbox/' + fileName);
-											}
+											sio.of(CHATSPACE).in(room).emit('webshot:' + room, pageData);
 										});
 									})(urls[i], randomFilename); // call our closure with our random filename
 								}

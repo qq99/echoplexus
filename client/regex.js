@@ -44,10 +44,6 @@
 		},
 		colors: {
 			hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i, // matches 3 and 6-digit hex colour codes, optional #
-		},
-		phantomjs: {
-			delimiter: /!!!/g,
-			parameter: /!!!\w+!!!/,
 		}
 	};
 

@@ -19,8 +19,7 @@
 		chat: {
 			webshot_previews: { // requires phantomjs to be installed
 				enabled: true, // http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
-				PHANTOMJS_PATH: '/opt/bin/phantomjs',
-				verbose: true, // send page information back to client
+				PHANTOMJS_PATH: '/opt/bin/phantomjs'
 			},
 			rate_limiting: { // slows down spammers
 				enabled: true,

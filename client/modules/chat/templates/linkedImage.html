@@ -1,6 +1,6 @@
 <div class="media-item imageThumbnail">
 	<div class="media-buttons">
-		<a class="to-external" href="<%= url %>" target="_blank">
+		<a class="to-external" href="<%= url %>" title="<%- title %>" target="_blank">
 			<span class="explanatory-text">Direct</span>
 			<i class="icon-external-link"></i>
 		</a>
@@ -14,12 +14,12 @@
 	</div>
 	<div class="media-object">
 		<div class="max">
-			<a href="<%= url %>" target="_blank" title="Linked by <%- linker %>">
-				<img src="<%= url %>" target="_blank" />
+			<a href="<%= url %>" target="_blank" title="<%- title %>">
+				<img src="<%= image_url %>" target="_blank" />
 			</a>
 		</div>
 		<div class="min">
-			<a href="<%= url %>" target="_blank" title="Linked by <%- linker %>">
+			<a href="<%= url %>" target="_blank" title="<%- title %>">
 				<%= url %>
 			</a>
 		</div>

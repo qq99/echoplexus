@@ -4,13 +4,15 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 	'text!modules/chat/templates/chatMessage.html',
 	'text!modules/chat/templates/linkedImage.html',
 	'text!modules/chat/templates/userListUser.html',
-	'text!modules/chat/templates/youtube.html'
+	'text!modules/chat/templates/youtube.html',
+	'text!modules/chat/templates/webshotBadge.html'
 ],function($, Backbone, _, Regex, moment, crypto,
 	chatareaTemplate,
 	chatMessageTemplate,
 	linkedImageTemplate,
 	userListUserTemplate,
-	youtubeTemplate){
+	youtubeTemplate,
+	webshotBadge){
 	var REGEXES = Regex.REGEXES;
 	function makeYoutubeURL(s) {
 		var matches = REGEXES.urls.youtube.exec(s);
@@ -27,6 +29,7 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 		linkedImageTemplate: _.template(linkedImageTemplate),
 		userTemplate: _.template(userListUserTemplate),
 		youtubeTemplate: _.template(youtubeTemplate),
+		webshotBadgeTemplate: _.template(webshotBadge),
 
 		events: {
 			"click .clearMediaLog": "clearMedia",
@@ -43,7 +46,8 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 			"click .edit-profile": "editProfile",
 			"click .view-profile": "viewProfile",
 			"mouseover .chatMessage": "showSentAgo",
-			"mouseover .user": "showIdleAgo"
+			"mouseover .user": "showIdleAgo",
+			"click .webshot-badge .badge-title": "toggleBadge"
 		},
 
         initialize: function (options) {
@@ -82,7 +86,11 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 
         beginInlineEdit: function (ev) {
         	var $chatMessage = $(ev.target).parents(".chatMessage"),
-        		oldText = $chatMessage.find(".body").text().trim();
+        		oldText;
+
+        	$chatMessage.find(".webshot-badge").remove();
+
+        	oldText = $chatMessage.find(".body").text().trim();
 
         	// store the old text with the node
         	$chatMessage.data('oldText', oldText);
@@ -237,6 +245,42 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
         	$oldMsg.remove();
         },
 
+        renderWebshot: function (msg) {
+        	var $targetChat = this.$el.find(".chatMessage[data-sequence='"+ msg.from_mID +"']"),
+        		targetContent = $targetChat.find(".body").html().trim(),
+        		urlLocation = targetContent.indexOf(msg.original_url), // find position in text
+        		badgeLocation = targetContent.indexOf(" ", urlLocation); // insert badge after that
+
+        	var badge = this.webshotBadgeTemplate(msg);
+
+        	if (badgeLocation === -1) {
+        		targetContent += badge;
+        	} else {
+        		var pre = targetContent.slice(0,badgeLocation),
+        			post = targetContent.slice(badgeLocation);
+
+        		targetContent = pre + badge + post;
+        	}
+
+			if (this.autoloadMedia) {
+	        	// insert image into media pane
+				var img = this.linkedImageTemplate({
+					url: msg.original_url,
+					image_url: msg.webshot,
+					title: msg.title
+				});
+				$(".linklog .body", this.$el).prepend(img);
+			}
+
+			// modify content of user-sent chat message
+        	$targetChat.find(".body").html(targetContent);
+        },
+
+        toggleBadge: function (ev) {
+        	// show hide page title/excerpt
+        	$(ev.currentTarget).parents(".webshot-badge").toggleClass("active");
+        },
+
 		renderChatMessage: function (msg, opts) {
 			var self = this,
 				body, nickname;
@@ -269,7 +313,8 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 						if (self.uniqueURLs[href] === undefined) {
 							var img = self.linkedImageTemplate({
 								url: href,
-								linker: nickname
+								image_url: href,
+								title: "Linked by " + msg.nickname
 							});
 							$(".linklog .body", this.$el).prepend(img);
 							self.uniqueURLs[href] = true;
