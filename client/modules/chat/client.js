@@ -381,7 +381,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 				if (OPTIONS.show_growl &&
 					(this.hidden || !chatModeActive())) {
 					var growl = new Growl({
-						title: this.channelName + ":  " + msg.nickname,
+						title: this.channelName + ":  " + fromNick,
 						body: msgBody
 					});
 				}
