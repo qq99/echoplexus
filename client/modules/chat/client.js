@@ -185,6 +185,10 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 			this.channel.clients.on("add reset change", function (model) {
 				console.log("clients changed:", model);
 				self.chatLog.renderUserlist(self.channel.clients);
+
+				self.autocomplete.setPool(_.map(self.channel.clients.models, function (user) {
+					return user.getNick(self.me.cryptokey);
+				}));
 			});
 
 		},
@@ -471,10 +475,6 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 				"userlist": function (msg) {
 					// update the pool of possible autocompletes
 					self.channel.clients.reset(msg.users);
-
-					self.autocomplete.setPool(_.map(self.channel.clients.models, function (user) {
-						return user.getNick(self.me.cryptokey);
-					}));
 				},
 				"chat:currentID": function (msg) {
 					var missed;
