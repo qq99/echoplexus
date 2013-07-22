@@ -45,7 +45,8 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			"dblclick .chatMessage.me:not(.private)": "beginInlineEdit",
 			"mouseover .chatMessage": "showSentAgo",
 			"mouseover .user": "showIdleAgo",
-			"click .webshot-badge .badge-title": "toggleBadge"
+			"click .webshot-badge .badge-title": "toggleBadge",
+			"click .quotation": "addQuotationHighlight"
 		},
 
         initialize: function (options) {
@@ -351,7 +352,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			}
 
 			// format >>quotations:
-			body = body.replace(REGEXES.commands.reply, '<span class="quotation" rel="$2">&gt;&gt;$2</span>');
+			body = body.replace(REGEXES.commands.reply, '<a rel="$2" class="quotation" href="#'+ this.room + '$2">&gt;&gt;$2</a>');
 
 			// hyperify hyperlinks for the chatlog:
 			body = body.replace(REGEXES.urls.all_others,'<a target="_blank" href="$1">$1</a>');
@@ -387,6 +388,7 @@ define(['jquery','backbone', 'underscore','regex','moment',
 					mID: msg.mID,
 					color: msg.color,
 					body: body,
+					room: self.room,
 					humanTime: humanTime,
 					timestamp: msg.timestamp,
 					classes: chatMessageClasses,
@@ -542,6 +544,14 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				$quoted = $(".chatMessage[data-sequence='" + quoting + "']");
 
 			$quoted.removeClass("context");
+		},
+
+		addQuotationHighlight: function (ev) {
+			var quoting = $(ev.target).attr("rel"),
+				$quoted = $(".chatMessage[data-sequence='" + quoting + "']");
+
+			$(".chatMessage", this.$el).removeClass("context-persistent");
+			$quoted.addClass("context-persistent");
 		},
 
         showIdleAgo: function (ev) {
