@@ -1122,7 +1122,7 @@ body {
 		left:7.7em;
 	}
 
-	&.context {
+	&.context, &.context-persistent {
 		opacity:1 !important;
 		background: rgba(120,120,220,0.3) !important;
 		color: rgb(120, 153, 34);
@@ -1133,8 +1133,11 @@ body {
 	display:none;
 }
 .quotation {
-	cursor:help;
+	cursor:pointer;
 	color:rgb(120, 153, 34); // 4chan greentext color
+	&:visited {
+		color:rgb(100, 103, 14); // 4chan greentext color
+	}
 }
 .clearfix {
 	display:block !important;

@@ -1,4 +1,5 @@
 <div class="chatMessage <%= classes %>" rel="<%= timestamp %>" data-sequence="<%= mID %>">
+	<a name="<%- room + mID %>"></a>
 	<div class="message-options">
 		<% if (mine && mID) { %>
 		<div class="chatMessage-edit">
