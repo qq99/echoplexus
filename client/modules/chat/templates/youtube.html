@@ -14,20 +14,26 @@
 	</div>
 	<div class="media-object">
 		<div class="max">
-			<object width="254" height="200">
-            	<param name="movie" value="<%= src %>&wmode=gpu"></param>
-            	<param name="allowFullScreen" value="true"></param>
-                <param name="allowscriptaccess" value="always"></param>
-                <param name="wMode" value="gpu"></param>
-                <embed
-                	src="<%= src %>&wmode=gpu"
-                	type="application/x-shockwave-flash"
-                	allowscriptaccess="always"
-                	allowfullscreen="true"
-                	width="254"
-                	height="200">
-                </embed>
-            </object>
+			<div class="video">
+				<object width="254" height="200">
+	            	<param name="movie" value="<%= src %>&wmode=gpu"></param>
+	            	<param name="allowFullScreen" value="true"></param>
+	                <param name="allowscriptaccess" value="always"></param>
+	                <param name="wMode" value="gpu"></param>
+	                <embed
+	                	src="<%= src %>&wmode=gpu"
+	                	type="application/x-shockwave-flash"
+	                	allowscriptaccess="always"
+	                	allowfullscreen="true"
+	                	width="254"
+	                	height="200">
+	                </embed>
+	            </object>
+	        </div>
+	        <div class="youtube imageThumbnail">
+	        	<i class="icon-youtube-play"></i>
+	        	<img src="<%= img_src %>">
+	        </div>
         </div>
 		<div class="min">
 			<a href="<%= originalSrc %>" target="_blank">

@@ -14,11 +14,13 @@ define(['jquery','backbone', 'underscore','regex','moment',
 	youtubeTemplate,
 	webshotBadge){
 	var REGEXES = Regex.REGEXES;
-	function makeYoutubeURL(s) {
-		var matches = REGEXES.urls.youtube.exec(s);
-		REGEXES.urls.youtube.exec("");
-		//If this function was called, the regex will have matched (aka it must have a v= match)
-		return window.location.protocol + "//youtube.com/v/" + matches[5];
+
+
+	function makeYoutubeThumbnailURL(vID) {
+		return window.location.protocol + "//img.youtube.com/vi/" + vID + "/0.jpg";
+	}
+	function makeYoutubeURL(vID) {
+		return window.location.protocol + "//youtube.com/v/" + vID;
 	}
 
 	var ChatLogView = Backbone.View.extend({
@@ -46,7 +48,8 @@ define(['jquery','backbone', 'underscore','regex','moment',
 			"mouseover .chatMessage": "showSentAgo",
 			"mouseover .user": "showIdleAgo",
 			"click .webshot-badge .badge-title": "toggleBadge",
-			"click .quotation": "addQuotationHighlight"
+			"click .quotation": "addQuotationHighlight",
+			"click .youtube.imageThumbnail": "showYoutubeVideo"
 		},
 
         initialize: function (options) {
@@ -314,8 +317,16 @@ define(['jquery','backbone', 'underscore','regex','moment',
 				var youtubes;
 				if (youtubes = body.match(REGEXES.urls.youtube)) {
 					for (var i = 0, l = youtubes.length; i < l; i++) {
-						var src = makeYoutubeURL(youtubes[i]),
+						var vID = (REGEXES.urls.youtube.exec(youtubes[i]))[5],
+							src, img_src, yt;
+
+							REGEXES.urls.youtube.exec(""); // clear global state
+
+							src = makeYoutubeURL(vID);
+							img_src = makeYoutubeThumbnailURL(vID);
 							yt = self.youtubeTemplate({
+								vID: vID,
+								img_src: img_src,
 								src: src,
 								originalSrc: youtubes[i]
 							});
@@ -568,6 +579,11 @@ define(['jquery','backbone', 'underscore','regex','moment',
             	timestamp = parseInt($time.attr("data-timestamp"), 10);
 
             $(ev.currentTarget).attr("title", "sent " + moment(timestamp).fromNow());
+		},
+
+		showYoutubeVideo: function (ev) {
+			$(ev.currentTarget).hide();
+			$(ev.currentTarget).siblings(".video").show();
 		}
 	});
 	return ChatLogView;
