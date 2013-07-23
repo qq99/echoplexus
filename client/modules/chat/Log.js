@@ -8,7 +8,7 @@ define(['underscore'],function(_){
 			log = [], // should always be sorted by timestamp
 			options = {
 				namespace: "default",
-				logMax: 512
+				logMax: 256
 			};
 
 		// extend defaults with any custom paramters
@@ -21,13 +21,15 @@ define(['underscore'],function(_){
 				window.localStorage.setObj("log:" + options.namespace, null);
 				window.localStorage.setItem("logVersion:" + options.namespace, LOG_VERSION);
 			}
-			var prevLog = window.localStorage.getObj("log:" + options.namespace);
+			var prevLog = window.localStorage.getObj("log:" + options.namespace) || [];
 			
-			if (log.length > options.logMax) { // kill the previous log, getting too big; TODO: make this smarter
-				window.localStorage.setObj("log:" + options.namespace, null);
-			} else if (prevLog) {
-				log = prevLog;
+			if (prevLog.length > options.logMax) { // kill the previous log, getting too big
+
+				prevLog = prevLog.slice(prevLog.length - options.logMax);
+				window.localStorage.setObj("log:" + options.namespace, prevLog);
 			}
+
+			log = prevLog;
 
 			return {
 				add: function (obj) {
