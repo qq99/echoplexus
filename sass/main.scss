@@ -943,6 +943,21 @@ $room-specific-height: 30px;
 	}
 }
 
+.youtubeEmbed {
+	.imageThumbnail {
+		@include transition(all 0.5s ease-in-out);
+		opacity:0.55;
+	}
+	&:hover {
+		.imageThumbnail {
+			opacity:1;
+		}
+	}
+	.video {
+		display:none;
+	}
+}
+
 .media-item {
 	width:100%;
 	max-width:100%;
@@ -976,6 +991,22 @@ $room-specific-height: 30px;
 	margin-bottom:1em;
 	position:relative;
 
+	.icon-youtube-play {
+		@include transition(all 0.5s ease-in-out);
+		font-size:5em;
+		cursor:pointer;
+		position: absolute;
+		height: 100%;
+		text-align: center;
+		width: 100%;
+		vertical-align: middle;
+		padding-top: 25%;
+		color:white;
+		text-shadow: 3px 3px 1px rgba(0,0,0,0.85);
+		&:hover {
+			color:#CD332D;
+		}
+	}
 	.media-object > a {
 		display:block;
 	}
