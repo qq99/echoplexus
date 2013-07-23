@@ -159,7 +159,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 					type: 'SYSTEM',
 					timestamp: new Date().getTime(),
 					nickname: '',
-					class: 'client'
+					class: 'identity ack'
 				}));
 			});
 
@@ -170,7 +170,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 					type: 'SYSTEM',
 					timestamp: new Date().getTime(),
 					nickname: '',
-					class: 'client'
+					class: 'join'
 				}));
 			});
 
@@ -180,7 +180,7 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 					type: 'SYSTEM',
 					timestamp: new Date().getTime(),
 					nickname: '',
-					class: 'client'
+					class: 'part'
 				}));
 			});
 
