@@ -94,7 +94,7 @@ define(['modules/call/rtc',
         },
 
         afterConnect: function (stream) {
-            var you = $('#you',this.$el).get(0);
+            var you = $('.you',this.$el).get(0);
             this.joiningCall = false;
             this.inCall = true;
             you.src = URL.createObjectURL(stream);
@@ -102,6 +102,10 @@ define(['modules/call/rtc',
             you.play();
             $(".no-call", this.$el).hide();
             $(".in-call", this.$el).show();
+
+            this.rtc.connect();
+            this.rtc.unmuteAudio();
+            this.rtc.unmuteVideo();
 
             window.events.trigger("in_call:" + this.channelName);
         },
@@ -116,7 +120,6 @@ define(['modules/call/rtc',
                 },
                 "audio": true
             }, this.afterConnect, this.showError);
-            this.rtc.connect();
         },
 
         showCallInProgress: function () {
@@ -135,7 +138,7 @@ define(['modules/call/rtc',
             // on peer joining the call:
             this.rtc.on('add remote stream', function(stream, socketId) {
                 console.log("ADDING REMOTE STREAM...", stream, socketId);
-                var clone = self.cloneVideo('#you', socketId);
+                var clone = self.cloneVideo('.you', socketId);
                 clone.attr("class", "");
                 clone.get(0).muted = false;
                 self.rtc.attachStream(stream, clone.get(0));
@@ -170,6 +173,10 @@ define(['modules/call/rtc',
             });
         },
         disconnect: function(){
+            $(".videos", this.$el).html("");
+            this.videos = [];
+            this.rtc.muteAudio();
+            this.rtc.muteVideo();
             this.rtc.disconnect();
         },
         kill: function(){
@@ -226,10 +233,11 @@ define(['modules/call/rtc',
             });
         },
 
-        cloneVideo: function (domID, clientID) {
-            var video = $(domID,this.$el).clone().attr('id','remote'+clientID);
+        cloneVideo: function (cssSelector, clientID) {
+            console.log("cloneVideo called");
+            var video = $(cssSelector, this.$el).clone().attr('id','remote'+clientID);
             this.videos[clientID] = video;
-            video.appendTo($('#videos',this.$el));
+            video.appendTo($('.videos', this.$el));
             return video;
         },
 

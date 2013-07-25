@@ -308,10 +308,8 @@ define(['underscore'], function(_) {
                 connection.close();
                 rtc.fire('disconnect stream', key);
             });
-            _.each(rtc.streams,function(stream,key){
-                if(_.isFunction(stream.stop)) stream.stop();
-                delete stream[key];
-            });
+
+            rtc.streams = [];
             rtc.peerConnections = {};
             rtc.dataChannels = {};
             rtc.connections = [];
