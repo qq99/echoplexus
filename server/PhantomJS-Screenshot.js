@@ -36,15 +36,23 @@ var page = require('webpage').create(),
 
                 // extract some data from the page:
         		var data = page.evaluate(function () {
-        		    return {
-                        excerpt: document.getElementsByTagName("p")[0].textContent
-        		    };
+                    var firstParagraph = document.getElementsByTagName("p");
+                    if (firstParagraph && firstParagraph.length) {
+                        firstParagraph = firstParagraph[0].textContent;
+                        return {
+                            excerpt: document.getElementsByTagName("p")[0].textContent
+                        };
+                    } else {
+                        return {
+                            excerpt: ""
+                        };
+                    }
         		});
 
         		if (typeof data.excerpt !== "undefined") {
                     data.excerpt = data.excerpt.trim().replace(/\n/g, "");
-                    if (data.excerpt.length > 512) {
-                        data.excerpt = data.excerpt.substring(0,512) + "...";
+                    if (data.excerpt.length > 1024) {
+                        data.excerpt = data.excerpt.substring(0,1024) + "...";
                     }
                     extracted_information.excerpt = data.excerpt;
         		}
