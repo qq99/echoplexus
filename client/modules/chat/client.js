@@ -343,7 +343,8 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 			}
 
 			// check to see if me.nick is contained in the msgme.
-			if (msgBody.toLowerCase().indexOf(atMyNick.toLowerCase()) !== -1) {
+			if ((msgBody.toLowerCase().indexOf(atMyNick.toLowerCase()) !== -1) ||
+				(msgBody.toLowerCase().indexOf("@all") !== -1)) {
 
 				// do not alter the message in the following circumstances:
 				if (msgClass) {
