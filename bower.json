@@ -16,7 +16,6 @@
     "moment": "~2.0.0",
     "keymaster": "latest",
     "requirejs-text": "~2.0.7",
-    "backbone": "~1.0.0",
-    "tinycon": "latest"
+    "backbone": "~1.0.0"
   }
 }
