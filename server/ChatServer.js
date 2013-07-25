@@ -91,7 +91,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			clientsJson;
 
 		// console.log(authenticatedClients.hasOwnProperty("toJSON"));
-		
+
 		sio.of(CHATSPACE).in(room).emit('userlist:' + room, {
 			users: authenticatedClients,
 			room: room
@@ -214,6 +214,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			},
 			"nickname": function (namespace, socket, channel, client, data, ack) {
 				var room = channel.get("name");
+
+				if (typeof data.nickname === "undefined") return;
 
 				var newName = data.nickname.replace(REGEXES.commands.nick, "").trim(),
 					prevName = client.get("nick");
