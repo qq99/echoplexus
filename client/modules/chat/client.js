@@ -206,8 +206,8 @@ define(['jquery','underscore','backbone','client','regex',
 				atMyNick = "@" + myNick;
 
 			// check to see if me.nick is contained in the msgme.
-			if (msgBody.indexOf(atMyNick) !== -1 ||
-				msg.class === "private") {
+			if ((msgBody.toLowerCase().indexOf(atMyNick.toLowerCase()) !== -1) ||
+				(msgBody.toLowerCase().indexOf("@all") !== -1)) {
 
 				// do not alter the message in the following circumstances:
 				if (msg.class) {
