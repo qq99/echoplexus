@@ -24,14 +24,15 @@ define(function(require,exports,module){
 		_ = require('underscore'),
 		key = require('keymaster'),
 		ChannelSwitcher = require('ui/ChannelSwitcher'),
-		Notifications = require('ui/Notifications');
+		Notifications = require('ui/Notifications'),
+		faviconizer = require('ui/Faviconizer');
+
 	require('jquery.cookie');
 	require('events');
 	require('utility');
 	require('AES');
     require('modules/user_info/UserData');
 
-	var Tinycon = require('tinycon');
 	$(document).ready(function () {
 		// tooltip stuff:s
 		$("body").on("mouseenter", ".tooltip-target", function(ev) {
@@ -122,7 +123,12 @@ define(function(require,exports,module){
 		}).on("focus mouseenter", function () {
 			$("body").removeClass("blurred");
 			document.title = "echoplexus";
-			Tinycon.setBubble(''); // remove bubbles
+
+			if (typeof window.disconnected === "undefined" ||
+				!window.disconnected) {
+
+				faviconizer.setConnected();
+			}
 		});
 
 		io.connect(window.location.origin,{
@@ -222,10 +228,7 @@ define(function(require,exports,module){
 				$(".button[data-target='#chatting']").addClass("activity");
 			}
 			if (!document.hasFocus()) {
-				Tinycon.setOptions({
-					background: "#00aa00"
-				});
-				Tinycon.setBubble('!');
+				faviconizer.setActivity();
 				document.title = "!echoplexus";
 			}
 		});

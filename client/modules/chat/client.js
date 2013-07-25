@@ -1,4 +1,4 @@
-define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
+define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','CryptoWrapper',
 		'modules/chat/Autocomplete',
 		'modules/chat/Scrollback',
 		'modules/chat/Log',
@@ -8,8 +8,9 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 		'text!modules/chat/templates/chatInput.html',
 		'text!modules/chat/templates/channelCryptokeyModal.html'
 	],
+
 	function($, _, Backbone,
-		Client, Regex, crypto, Autocomplete, Scrollback, Log, ChatLog, Growl,
+		Client, Regex, faviconizer, crypto, Autocomplete, Scrollback, Log, ChatLog, Growl,
 		chatpanelTemplate, chatinputTemplate, cryptoModalTemplate) {
 
 	var ColorModel = Client.ColorModel,
@@ -228,6 +229,10 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 					nickname: '',
 					class: 'client'
 				}));
+
+				window.disconnected = true;
+				faviconizer.setDisconnected();
+
 			});
 			//On reconnection attempts, print out the retries
 			self.socket.on("reconnecting",function(nextRetry){
@@ -284,6 +289,9 @@ define(['jquery','underscore','backbone','client','regex','CryptoWrapper',
 
 			// start the countdown for idle
 			this.startIdleTimer();
+
+			window.disconnected = false;
+			faviconizer.setConnected();
 		},
 
 		autoNick: function () {
