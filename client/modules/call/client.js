@@ -95,9 +95,13 @@ define(['modules/call/rtc',
 
         afterConnect: function (stream) {
             var you = $('.you',this.$el).get(0);
+
+            this.localStream = stream;
+
             this.joiningCall = false;
             this.inCall = true;
             you.src = URL.createObjectURL(stream);
+            // you.mozSrcObject = URL.createObjectURL(stream);
             you.muted = true;
             you.play();
             $(".no-call", this.$el).hide();
@@ -174,6 +178,7 @@ define(['modules/call/rtc',
         },
         disconnect: function(){
             $(".videos", this.$el).html("");
+            this.localStream.stop();
             this.videos = [];
             this.rtc.muteAudio();
             this.rtc.muteVideo();
