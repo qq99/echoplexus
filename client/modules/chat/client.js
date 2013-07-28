@@ -290,10 +290,10 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			// create a new XHR request
 			var oReq = new XMLHttpRequest();
 			oReq.open("POST", window.location.origin);
-			oReq.setRequestHeader('using_permission', "canUploadFile");
-			oReq.setRequestHeader('channel', this.channelName);
-			oReq.setRequestHeader('from_user', this.me.get("id"));
-			oReq.setRequestHeader('antiforgery_token', this.me.antiforgery_token);
+			oReq.setRequestHeader('Using-Permission', "canUploadFile");
+			oReq.setRequestHeader('Channel', this.channelName);
+			oReq.setRequestHeader('From-User', this.me.get("id"));
+			oReq.setRequestHeader('Antiforgery-Token', this.me.antiforgery_token);
 			oReq.send(oForm); // send it
 
 			this.clearUploadStaging();

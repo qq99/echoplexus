@@ -89,10 +89,10 @@ function authMW (req, res, next) {
 	}
 
 	EventBus.trigger("has_permission", {
-		permission: req.get("using_permission"),
-		channel: req.get("channel"),
-		from_user: req.get("from_user"),
-		antiforgery_token: req.get("antiforgery_token")
+		permission: req.get("Using-Permission"),
+		channel: req.get("Channel"),
+		from_user: req.get("From-User"),
+		antiforgery_token: req.get("Antiforgery-Token")
 	}, function (err, message) {
 		if (err) {
 			res.send(err, message);
@@ -113,8 +113,8 @@ app.post('/*', authMW, bodyParser, function(req, res, next){
 		serverPath = urlRoot() + "sandbox/" + newFilename;
 
 	// delete the file immediately if the message was malformed
-	if (typeof req.get("from_user") === "undefined" ||
-		typeof req.get("channel") === "undefined") {
+	if (typeof req.get("From-User") === "undefined" ||
+		typeof req.get("Channel") === "undefined") {
 
 		fs.unlink(uploadPath, function (error) {
 			if (error) {
@@ -135,8 +135,8 @@ app.post('/*', authMW, bodyParser, function(req, res, next){
 		res.send({
 			path: serverPath
 		});
-		EventBus.trigger("file_uploaded:" + req.get("channel"), {
-			from_user: req.get("from_user"),
+		EventBus.trigger("file_uploaded:" + req.get("Channel"), {
+			from_user: req.get("From-User"),
 			path: serverPath
 		});
 	});
