@@ -194,7 +194,6 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			});
 
 			this.channel.clients.on("add reset change", function (model) {
-				console.log("clients changed:", model);
 				self.chatLog.renderUserlist(self.channel.clients);
 
 				self.autocomplete.setPool(_.map(self.channel.clients.models, function (user) {
@@ -221,14 +220,12 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		},
 
 		showDragUIHelper: function (ev) {
-			console.log("dragover");
 			this.noop(ev);
 			$(".linklog", this.$el).addClass("drag-into");
 			$(".drag-mask, .drag-staging", this.$el).show();
 		},
 
 		hideDragUIHelper: function (ev) {
-			console.log("dragleave");
 			this.noop(ev);
 			$(".linklog", this.$el).removeClass("drag-into");
 			$(".drag-mask, .drag-staging", this.$el).hide();
@@ -289,12 +286,10 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			var oForm = new FormData();
 			// add the file to the form
 			oForm.append("user_upload", this.file);
-			oForm.append("channel", this.channelName);
-			oForm.append("from_user", this.me.get("id"));
-			oForm.append("antiforgery_token", this.me.antiforgery_token);
 			// create a new XHR request
 			var oReq = new XMLHttpRequest();
 			oReq.open("POST", window.location.origin);
+			oReq.setRequestHeader('using_permission', "canUploadFile");
 			oReq.setRequestHeader('channel', this.channelName);
 			oReq.setRequestHeader('from_user', this.me.get("id"));
 			oReq.setRequestHeader('antiforgery_token', this.me.antiforgery_token);
@@ -616,7 +611,6 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 					self.chatLog.setTopic(msg);
 				},
 				"antiforgery_token": function (msg) {
-					console.log(msg);
 					if (msg.antiforgery_token) {
 						self.me.antiforgery_token = msg.antiforgery_token;
 					}

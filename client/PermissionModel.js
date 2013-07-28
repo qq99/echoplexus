@@ -29,7 +29,8 @@
 			canMute: null,
 			canBan: null,
 			canSpeak: null,
-			canPullLogs: null
+			canPullLogs: null,
+			canUploadFile: null
 		},
 		canBestow: null, // eventually a map of bestowable permissions
 		initialize: function (modelAttributes, options) {

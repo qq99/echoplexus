@@ -391,7 +391,7 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 				if (!opts.delayInsert && !msg.get("fromBatch")) {
 					humanTime = moment(msg.get("timestamp")).fromNow();
 				} else {
-					humanTime = this.renderPreferredTimestamp(msg.timestamp);
+					humanTime = this.renderPreferredTimestamp(msg.get("timestamp"));
 				}
 
 				// special styling of chat

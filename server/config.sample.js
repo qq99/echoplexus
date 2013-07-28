@@ -32,6 +32,10 @@
 				maximum_time_delta: (1000*60*60*2) // after 2 hours, chat messages will not be editable, delete property to enable indefinitely
 			}
 		},
+		server_hosted_file_transfer: {
+			enabled: false,
+			size_limit: '10mb' // nginx user? make sure this matches
+		},
 		DEBUG: false
 	};
 

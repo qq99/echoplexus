@@ -20,7 +20,8 @@
 				canMute: true,
 				canBan: true,
 				canSpeak: true,
-				canPullLogs: true
+				canPullLogs: true,
+				canUploadFile: true
 			});
 			this.canBestow = this.attributes;
 		}
@@ -35,7 +36,8 @@
 			canMute: null,
 			canBan: null,
 			canSpeak: true,
-			canPullLogs: true
+			canPullLogs: true,
+			canUploadFile: false
 		}
 	});
 

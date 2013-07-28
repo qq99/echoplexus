@@ -347,15 +347,50 @@ exports.ChannelStructures = function (redisC, EventBus) {
 			_.bindAll(this);
 			_.extend(this, options);
 
+			var self = this;
+
 			// since we're also the authentication provider, we must
 			// respond to any requests that wish to know if our client (HTTP/XHR)
 			// has successfully authenticated
-			EventBus.on("has_permission", function (clientQuery) {
+			EventBus.on("has_permission", function (clientQuery, callback) {
 				// find the room he's purportedly in
+				var inChannel = self.findWhere({name: clientQuery.channel});
+				if (typeof inChannel === "undefined" ||
+					inChannel === null) {
 
+					callback(403, "That channel does not exist.");
+					return;
+				}
 				// find the client matching the ID he purports to be
+				var fromClient = inChannel.clients.findWhere({id: clientQuery.from_user});
+				if (typeof fromClient === "undefined" ||
+					fromClient === null) {
 
+					callback(403, "You are not a member of that channel.");
+					return;
+				}
 				// find whether his antiforgery token matches
+				if (fromClient.antiforgery_token !== clientQuery.antiforgery_token) {
+					callback(403, "Please don't spoof requests.");
+					return;
+				}
+				// find whether he's authenticated for the channel in question
+				if (!fromClient.get("authenticated")) {
+					callback(403, "You are not authenticated for that channel.");
+					return;
+				}
+
+				if (config.channel_perm)
+
+
+				// finally, find whether he has permission to perform the requested operation:
+				if (!fromClient.hasPermission(clientQuery.permission)) {
+					callback(403, "You do not have permission to perform this operation.");
+					return;
+				}
+
+				// he passed all auth checks:
+				callback(null);
 			});
 		},
 		listPublicActive: function () {

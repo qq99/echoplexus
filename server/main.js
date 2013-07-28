@@ -59,19 +59,48 @@ function urlRoot(){
 // Web server init:
 app.use('/client',express.static(CLIENT_FOLDER));
 
+
+// xferc means 'transfer config'
+var xferc = config.server_hosted_file_transfer;
+
+if (xferc &&
+	xferc.enabled &&
+	xferc.size_limit) {
+
+	app.use(express.limit(xferc.size_limit));
+}
+
+app.use(express.limit('2mb'));
 app.use(express.static(PUBLIC_FOLDER));
 
 var bodyParser = express.bodyParser({
 	uploadDir: SANDBOXED_FOLDER
 });
 
+
+// MW: MiddleWare
 function authMW (req, res, next) {
-	console.log(req.get("channel"));
-	console.log(req.get("from_user"));
-	console.log(req.get("antiforgery_token"));
-	// res.send(403, "nope"); // TODO: query channels obj
-	// return;
-	next();
+	console.log(req.get("channel"), req.get("from_user"), req.get("antiforgery_token"), req.get("using_permission"));
+
+	if (!xferc ||
+		!xferc.enabled) {
+
+		res.send(500, "Not enabled.");
+		return;
+	}
+
+	EventBus.trigger("has_permission", {
+		permission: req.get("using_permission"),
+		channel: req.get("channel"),
+		from_user: req.get("from_user"),
+		antiforgery_token: req.get("antiforgery_token")
+	}, function (err, message) {
+		if (err) {
+			res.send(err, message);
+			return;
+		}
+		next();
+	});
 }
 // always server up the index
 // 
@@ -85,8 +114,8 @@ app.post('/*', authMW, bodyParser, function(req, res, next){
 		serverPath = urlRoot() + "sandbox/" + newFilename;
 
 	// delete the file immediately if the message was malformed
-	if (typeof req.body.from_user === "undefined" ||
-		typeof req.body.channel === "undefined") {
+	if (typeof req.get("from_user") === "undefined" ||
+		typeof req.get("channel") === "undefined") {
 
 		fs.unlink(uploadPath, function (error) {
 			if (error) {
@@ -107,8 +136,8 @@ app.post('/*', authMW, bodyParser, function(req, res, next){
 		res.send({
 			path: serverPath
 		});
-		EventBus.trigger("file_uploaded:" + req.body.channel, {
-			from_user: req.body.from_user,
+		EventBus.trigger("file_uploaded:" + req.get("channel"), {
+			from_user: req.get("from_user"),
 			path: serverPath
 		});
 	});
