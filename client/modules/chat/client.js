@@ -249,6 +249,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			if (typeof file === "undefined" ||
 				file === null) {
 
+				this.clearUploadStaging();
 				return;
 			}
 
@@ -276,7 +277,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		},
 
 		clearUploadStaging: function () {
-			$(".drag-staging", this.$el).hide();
+			$(".drag-staging, .drag-mask", this.$el).hide();
 			$(".staging-area", this.$el).html("");
 			delete this.file;
 		},
