@@ -17,7 +17,6 @@ Future Goals
 ------------
 
 - Peer2Peer file transfer via WebRTC
-- Server hosted file transfer (for when WebRTC is unavailable, for more persistent logs of files)
 - Peer2Peer chat, boostrapped by Echoplexus (to facilitate off-the-record communication)
 - End2End encryption
 - Increased selection of languages for the real-time collaborative REPL
@@ -53,7 +52,7 @@ The most important part of echoplexus is the support for anonymity.  Users hate 
 
 echoplexus will attempt to embed any image URLs directly into the Media bar on the right side.  Similarly, it will attempt to parse YouTube URLs and embed an object.  When the server encounters a URL, it can take a screenshot of the page in question along and attempt to provide a short excerpt to the user.  To protect your privacy, media embedding is disabled for the client by default.
 
-You can edit any message you've sent up to 2 hours ago, as long as you haven't lost your connection.  You can edit across connections if you were identified when you sent the message.  You can do this by double clicking the message, or clicking the pencil icon that appears while hovering the message.
+You can edit any message you've sent up to 2 hours ago, as long as you haven't lost your connection.  This duration is configurable by server operators.  You can edit across connections (regardless of time elapsed) if you were identified when you sent the message.  You can do this by double clicking the message, or clicking the pencil icon that appears while hovering the message.
 
 When you join a channel, you'll automatically sync some of the most recent chat history you may have missed while you were away.  At any time, you can pull the chatlog history for that channel.  Messages sent by identified users will have a green lock icon while hovering the chat message, allowing you to protect your identity throughout history.
 
@@ -75,8 +74,44 @@ Currently Supported Commands:
 - `/color [#FFFFFF]`: Supply a 6-digit hex code with or without the `#`, and change your nickname's color
 - `/edit #[integer] [new body text]`: Changes the body text of a specific message to something else.  Useful for correcting typos and censoring yourself.  You can also double click on a chat message to edit inline-- press enter to confirm, escape or click elsewhere to cancel.
 - `>>[integer]`: Quotes a specific chat message.  Clicking the Reply icon on the chat message will automatically add this for you.
+- `/chown [password]`: Become the channel owner.  This gives you all permissions in the channel and allows you to `/chmod`
+- `/chmod [optional username] [(+|-)permissionName]`:  This allows you to selectively toggle on/off certain permissions for the particular channel or user.  User permissions are checked first, and if not set, then channel permissions are checked.  If a username is not supplied, then the permission is specified at the channel level.
+
+Example:
+  - `/chmod -canSpeak`: now everyone in the channel can't speak unless you do `/chmod [username] +canSpeak` to selectively enable it for a specific user.
+
+The currently implemented list of permissions (and their defaults) includes:
+  - canSetTopic: null
+  - canMakePrivate: null
+  - canMakePublic: null
+  - canSpeak: true
+  - canPullLogs: true
+  - canUploadFile: null
 
 *Note:* Nickname registrations are considered on a per-channel basis to increase the available nickspace for all users.  Thus, you will have to register for a specific nickname many times across each channel you join.
+
+Server-hosted file upload
+-------------------------
+
+You can upload a file by dragging it onto the "Media & Links" panel.  From there, you'll have the option of confirming the upload, as well as an image preview (if it is an image).
+
+For server operators, this must be enabled in `config.js` (see `config.sample.js`).  You have the option of setting a max file size limit.  Further, it must be enabled on a per-channel basis by the channel operator.  If there is not yet a channel operator, you will need to `/chown [operator password]` to become it (see `Commands` above).
+
+Encryption
+----------
+
+You'll notice the `Not Encrypted` button on the chat input area when you first join a channel.  When you click this button, you'll have the option of providing a shared secret (*you should negotiate this through a secure side channel, not on echoplexus*).  Once supplied, the button will change to `Encrypted`.  Encryption is performed with the `Crypto-JS` library (256-bit AES).
+
+Things that are currently encrypted:
+  - Nickname
+  - Chat messages
+  - Private messages
+
+Things that will not work as a result:
+  - Permissions set on a specific user (since the server doesn't know their nickname)
+  - PhantomJS webshot previews (since the server can't read the body text to screenshot the URL)
+
+With encryption, not even the server operators of echoplexus will be able to read your chats.  A standalone pre-packaged application is in the works (via `node-webkit`) for those wary that the operator might corrupt the encryption JS supplied to the user.
 
 Code
 ----
