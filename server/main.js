@@ -108,9 +108,11 @@ app.post('/*', authMW, bodyParser, function(req, res, next){
 
 	var file = req.files.user_upload,
 		uploadPath = file.path,
-		newFilename = uuid.v4() + "." + file.name,
+		newFilename = uuid.v4() + "." + file.name.replace(/ /g, "_"),
 		finalPath = SANDBOXED_FOLDER + "/" + newFilename,
 		serverPath = urlRoot() + "sandbox/" + newFilename;
+
+	console.log(newFilename);
 
 	// delete the file immediately if the message was malformed
 	if (typeof req.get("From-User") === "undefined" ||
