@@ -34,7 +34,7 @@
 		},
 		server_hosted_file_transfer: {
 			enabled: false,
-			size_limit: '10mb' // nginx user? make sure this matches
+			size_limit: '10mb' // nginx user? make sure this matches e.g., `client_max_body_size 10M;`
 		},
 		DEBUG: false
 	};
