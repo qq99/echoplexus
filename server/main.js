@@ -70,7 +70,6 @@ if (xferc &&
 	app.use(express.limit(xferc.size_limit));
 }
 
-app.use(express.limit('2mb'));
 app.use(express.static(PUBLIC_FOLDER));
 
 var bodyParser = express.bodyParser({
