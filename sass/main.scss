@@ -897,6 +897,82 @@ $room-specific-height: 30px;
 			display:none;
 		}
 	}
+
+	$upload-button-height: 15em;
+	$cancel-button-height: 3em;
+	.drag-mask {
+		position: absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height:100%;
+		z-index:99;
+		display: none;
+	}
+	.drag-staging {
+		font-family: $pretty-font-family;
+		p {
+			margin-top:0;
+			font-size:1.25em;
+		}
+		position: absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height:100%;
+		z-index:95;
+		display: none;
+		background:rgba(0,0,0,0.95);
+		text-align: center;
+		.icon-upload {
+			font-size:10em;
+		}
+		.staging-area {
+			position:absolute;
+			top:0;
+			left:0;
+			height:100%;
+			width:100%;
+			padding-bottom:$upload-button-height + $cancel-button-height;
+			overflow:hidden;
+			padding:1em;
+			img {
+				width:100%;
+				height:auto;
+			}
+		}
+		.fileName {
+			color:green;
+		}
+		.cancel-upload {
+			@include transition(all 0.5s ease-in-out);
+			box-shadow:inset 1px 1px 0px rgba(255, 255, 255, 0.25), inset -1px -1px 0px rgba(0, 0, 0, 1);
+			position:absolute;
+			cursor:pointer;
+			bottom:$upload-button-height;
+			width:100%;
+			height:$cancel-button-height;
+			background:rgba(157,38,29,0.75);
+			padding-top:0.5em;
+			&:hover {
+				background:rgba(157,38,29,1.0);
+			}
+		}
+		.upload {
+			@include transition(all 0.5s ease-in-out);
+			box-shadow:inset 1px 1px 0px rgba(255, 255, 255, 0.25), inset -1px -1px 0px rgba(0, 0, 0, 1);
+			padding:1em;
+			background:rgba(70, 80, 150, 0.75);
+			cursor:pointer;
+			position:absolute;
+			width:100%;
+			bottom:0;
+			height:$upload-button-height;
+			&:hover {
+				background:rgba(70, 80, 150, 1.0);
+			}
+		}
+	}
 }
 
 .close-button {

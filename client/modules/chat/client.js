@@ -6,12 +6,19 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		'ui/Growl',
 		'text!modules/chat/templates/chatPanel.html',
 		'text!modules/chat/templates/chatInput.html',
-		'text!modules/chat/templates/channelCryptokeyModal.html'
+		'text!modules/chat/templates/channelCryptokeyModal.html',
+		'text!modules/chat/templates/fileUpload.html'
 	],
 
 	function($, _, Backbone,
 		Client, Regex, faviconizer, crypto, Autocomplete, Scrollback, Log, ChatLog, Growl,
-		chatpanelTemplate, chatinputTemplate, cryptoModalTemplate) {
+		chatpanelTemplate, chatinputTemplate, cryptoModalTemplate, fileUploadTemplate) {
+
+	function readablizeBytes (bytes) {
+	    var s = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
+	    var e = Math.floor(Math.log(bytes) / Math.log(1024));
+	    return (bytes / Math.pow(1024, e)).toFixed(2) + " " + s[e];
+	}
 
 	var ColorModel = Client.ColorModel,
 		ClientModel = Client.ClientModel,
@@ -22,6 +29,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		className: "chatChannel",
 		template: _.template(chatpanelTemplate),
 		inputTemplate: _.template(chatinputTemplate),
+		fileUploadTemplate: _.template(fileUploadTemplate),
 
 		cryptoModal: Backbone.View.extend({
 
@@ -204,9 +212,26 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			"keydown .chatinput textarea": "handleChatInputKeydown",
 			"click button.not-encrypted": "showCryptoModal",
 			"click button.encrypted": "clearCryptoKey",
-			"drop .chat-input-control": "dropObject",
-			"dragover .chat-input-control": "noop",
-			"dragenter .chat-input-control": "noop"
+
+			"dragover .linklog": "showDragUIHelper",
+			"dragleave .drag-mask": "hideDragUIHelper",
+			"drop .drag-mask": "dropObject",
+			"click .cancel-upload": "clearUploadStaging",
+			"click .upload": "uploadFile"
+		},
+
+		showDragUIHelper: function (ev) {
+			console.log("dragover");
+			this.noop(ev);
+			$(".linklog", this.$el).addClass("drag-into");
+			$(".drag-mask, .drag-staging", this.$el).show();
+		},
+
+		hideDragUIHelper: function (ev) {
+			console.log("dragleave");
+			this.noop(ev);
+			$(".linklog", this.$el).removeClass("drag-into");
+			$(".drag-mask, .drag-staging", this.$el).hide();
 		},
 
 		noop: function (ev) {
@@ -216,8 +241,9 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		},
 
 		dropObject: function (ev) {
-			ev.preventDefault();
-			ev.stopPropagation();
+			var self = this;
+
+			this.noop(ev);
 			console.log(ev.originalEvent.dataTransfer); // will report .files.length => 0 (it's just a console bug though!)
 			console.log(ev.originalEvent.dataTransfer.files[0]);  // it actually exists :o
 
@@ -229,10 +255,40 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 				return;
 			}
 
+			this.file = file;
+
+			var reader = new FileReader();
+			reader.addEventListener("loadend", function (e) {
+
+				var data = {
+					fileName: self.file.name,
+					fileSize: readablizeBytes(self.file.size),
+					img: null
+				};
+
+				if (e.target.result.match(/^data:image/)) { // show img preview
+					data.img = e.target.result
+              	}
+
+				$(".staging-area", this.$el).html(self.fileUploadTemplate(data));
+
+			}, false);
+            reader.readAsDataURL(file);
+
+            $(".drag-mask", this.$el).hide();
+		},
+
+		clearUploadStaging: function () {
+			$(".drag-staging", this.$el).hide();
+			$(".staging-area", this.$el).html("");
+			delete this.file;
+		},
+
+		uploadFile: function () {
 			// construct a new form to send the data via
 			var oForm = new FormData();
 			// add the file to the form
-			oForm.append("user_upload", file);
+			oForm.append("user_upload", this.file);
 			oForm.append("channel", this.channelName);
 			oForm.append("from_user", this.me.get("id"));
 			oForm.append("antiforgery_token", this.me.antiforgery_token);
@@ -243,6 +299,8 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			oReq.setRequestHeader('from_user', this.me.get("id"));
 			oReq.setRequestHeader('antiforgery_token', this.me.antiforgery_token);
 			oReq.send(oForm); // send it
+
+			this.clearUploadStaging();
 
 			return false;
 		},
