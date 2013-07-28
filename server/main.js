@@ -5,6 +5,7 @@ var express = require('express'),
 	Backbone = require('backbone'),
 	crypto = require('crypto'),
 	fs = require('fs'),
+	uuid = require('node-uuid'),
 	redis = require('redis'),
 	sio = require('socket.io'),
 	app = express(),
@@ -46,19 +47,76 @@ var Client = require('../client/client.js').ClientModel,
 	Clients = require('../client/client.js').ClientsCollection,
 	REGEXES = require('../client/regex.js').REGEXES;
 
-// Web server init:
 
+function urlRoot(){
+	if (config.host.USE_PORT_IN_URL) {
+		return config.host.SCHEME + "://" + config.host.FQDN + ":" + config.host.PORT + "/";
+	} else {
+		return config.host.SCHEME + "://" + config.host.FQDN + "/";
+	}
+}
+
+// Web server init:
 app.use('/client',express.static(CLIENT_FOLDER));
 
 app.use(express.static(PUBLIC_FOLDER));
+
+var bodyParser = express.bodyParser({
+	uploadDir: SANDBOXED_FOLDER
+});
+
+function authMW (req, res, next) {
+	console.log(req.get("channel"));
+	console.log(req.get("from_user"));
+	console.log(req.get("antiforgery_token"));
+	res.send(403, "nope"); // TODO: query channels obj
+	return;
+}
 // always server up the index
 // 
-app.use('/',function(req,res){
-	res.sendfile(index);
+// receive files
+app.post('/*', authMW, bodyParser, function(req, res, next){
+
+	var file = req.files.user_upload,
+		uploadPath = file.path,
+		newFilename = uuid.v4() + "." + file.name,
+		finalPath = SANDBOXED_FOLDER + "/" + newFilename,
+		serverPath = urlRoot() + "sandbox/" + newFilename;
+
+	// delete the file immediately if the message was malformed
+	if (typeof req.body.from_user === "undefined" ||
+		typeof req.body.channel === "undefined") {
+
+		fs.unlink(uploadPath, function (error) {
+			if (error) {
+				console.log(error.message);
+			}
+		});
+		return;
+	}
+
+	// rename it with a uuid + the user's filename
+	fs.rename(uploadPath, finalPath, function(error) {
+		if(error) {
+			res.send({
+				error: 'Ah crap! Something bad happened'
+			});
+			return;
+		}
+		res.send({
+			path: serverPath
+		});
+		EventBus.trigger("file_uploaded:" + req.body.channel, {
+			from_user: req.body.from_user,
+			path: serverPath
+		});
+	});
 });
+
 app.get("/*", function (req, res) {
 	res.sendfile(index);
 });
+
 server.listen(config.host.PORT);
 
 console.log('Listening on port', config.host.PORT);

@@ -140,6 +140,11 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			id: client.get("id")
 		});
 
+		client.antiforgery_token = uuid.v4();
+		socket.in(room).emit("antiforgery_token:" + room, {
+			antiforgery_token: client.antiforgery_token
+		});
+
 		publishUserList(channel);
 	}
 
@@ -740,7 +745,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			}
 		},
 		success: function (namespace, socket, channel, client,data) {
-			DEBUG && console.log("Client joined ", channel.get("name"));
+			var room = channel.get("name");
+			DEBUG && console.log("Client joined ", room);
 			subscribeSuccess(socket, client, channel);
 
 			// channel.initialized is inelegant (since it clearly has been)
@@ -755,6 +761,21 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					clientRemoved(socket, channel, removed);
 				});
 				channel.initialized = true;
+
+				// listen for file upload events
+				EventBus.on("file_uploaded:" + room, function (data) {
+					// check to see that the uploader someone actually in the channel
+					var fromClient = channel.clients.findWhere({id: data.from_user});
+
+					if (typeof fromClient !== "undefined" &&
+						fromClient !== null) {
+
+						sio.of(CHATSPACE).in(room).emit("file_uploaded:" + room, serverSentMessage({
+							path: data.path,
+							from_user: data.from_user
+						}, room));
+					}
+				});
 			}
 		}
 	});

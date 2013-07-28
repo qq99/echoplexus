@@ -346,6 +346,17 @@ exports.ChannelStructures = function (redisC, EventBus) {
 		initialize: function (instances, options) {
 			_.bindAll(this);
 			_.extend(this, options);
+
+			// since we're also the authentication provider, we must
+			// respond to any requests that wish to know if our client (HTTP/XHR)
+			// has successfully authenticated
+			EventBus.on("has_permission", function (clientQuery) {
+				// find the room he's purportedly in
+
+				// find the client matching the ID he purports to be
+
+				// find whether his antiforgery token matches
+			});
 		},
 		listPublicActive: function () {
 

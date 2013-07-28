@@ -203,7 +203,48 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			"click .icon-reply": "reply",
 			"keydown .chatinput textarea": "handleChatInputKeydown",
 			"click button.not-encrypted": "showCryptoModal",
-			"click button.encrypted": "clearCryptoKey"
+			"click button.encrypted": "clearCryptoKey",
+			"drop .chat-input-control": "dropObject",
+			"dragover .chat-input-control": "noop",
+			"dragenter .chat-input-control": "noop"
+		},
+
+		noop: function (ev) {
+			ev.stopPropagation();
+			ev.preventDefault();
+			// return false;
+		},
+
+		dropObject: function (ev) {
+			ev.preventDefault();
+			ev.stopPropagation();
+			console.log(ev.originalEvent.dataTransfer); // will report .files.length => 0 (it's just a console bug though!)
+			console.log(ev.originalEvent.dataTransfer.files[0]);  // it actually exists :o
+
+			var file = ev.originalEvent.dataTransfer.files[0];
+
+			if (typeof file === "undefined" ||
+				file === null) {
+
+				return;
+			}
+
+			// construct a new form to send the data via
+			var oForm = new FormData();
+			// add the file to the form
+			oForm.append("user_upload", file);
+			oForm.append("channel", this.channelName);
+			oForm.append("from_user", this.me.get("id"));
+			oForm.append("antiforgery_token", this.me.antiforgery_token);
+			// create a new XHR request
+			var oReq = new XMLHttpRequest();
+			oReq.open("POST", window.location.origin);
+			oReq.setRequestHeader('channel', this.channelName);
+			oReq.setRequestHeader('from_user', this.me.get("id"));
+			oReq.setRequestHeader('antiforgery_token', this.me.antiforgery_token);
+			oReq.send(oForm); // send it
+
+			return false;
 		},
 
 		show: function(){
@@ -515,6 +556,37 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 				},
 				"topic": function (msg) {
 					self.chatLog.setTopic(msg);
+				},
+				"antiforgery_token": function (msg) {
+					console.log(msg);
+					if (msg.antiforgery_token) {
+						self.me.antiforgery_token = msg.antiforgery_token;
+					}
+				},
+				"file_uploaded": function (msg) {
+					var fromClient = self.channel.clients.findWhere({id: msg.from_user});
+
+					if (typeof fromClient === "undefined" ||
+						fromClient === null) {
+
+						return;
+					}
+
+					var nick;
+					if (self.me.is(fromClient)) {
+						nick = "You";
+					} else {
+						nick = fromClient.getNick(self.me.cryptokey);
+					}
+
+					var chatMessage = new self.chatMessage({
+						body: nick + " uploaded a file: " + msg.path,
+						timestamp: new Date().getTime(),
+						nickname: ''
+					});
+
+					self.chatLog.renderChatMessage(chatMessage);
+					self.persistentLog.add(chatMessage.toJSON());
 				}
 			};
 

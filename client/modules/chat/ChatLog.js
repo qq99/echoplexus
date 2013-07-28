@@ -325,7 +325,7 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 						}
 					}
 
-					body = body.replace(REGEXES.urls.image, "").trim(); // remove the URLs
+					// body = body.replace(REGEXES.urls.image, "").trim(); // remove the URLs
 				}
 
 				// put youtube linsk on the side:
