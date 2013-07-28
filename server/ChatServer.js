@@ -148,6 +148,79 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		publishUserList(channel);
 	}
 
+	function storePersistent (msg, room, callback) {
+		// store in redis
+		redisC.hget("channels:currentMessageID", room, function (err, reply) {
+			if (err) callback(err);
+
+			// update where we keep track of the sequence number:
+			var mID = 0;
+			if (reply) {
+				mID = parseInt(reply, 10);
+			}
+			redisC.hset("channels:currentMessageID", room, mID+1);
+
+			// alter the message object itself
+			msg.mID = mID;
+
+			// store the message
+			redisC.hset("chatlog:" + room, mID, JSON.stringify(msg), function (err, reply) {
+				if (err) callback(err);
+
+				// return the altered message object
+				callback(null, msg);
+			});
+		});
+	}
+
+	function createWebshot (data, room) {
+		if (config.chat &&
+			config.chat.webshot_previews &&
+			config.chat.webshot_previews.enabled) {
+			// strip out other things the client is doing before we attempt to render the web page
+			var urls = data.body.replace(REGEXES.urls.image, "")
+								.replace(REGEXES.urls.youtube,"")
+								.match(REGEXES.urls.all_others);
+			if (urls) {
+				for (var i = 0; i < urls.length; i++) {
+
+					var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg"; // also guarantees we store no more than 9000 webshots at any time
+
+					(function (url, fileName) { // run our screenshotting routine in a self-executing closure so we can keep the current filename & url
+						var output = SANDBOXED_FOLDER + "/" + fileName,
+							pageData = {};
+
+						DEBUG && console.log("Processing ", urls[i]);
+						// requires that the phantomjs-screenshot repo is a sibling repo of this one
+						var screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
+							['./PhantomJS-Screenshot.js', url, output],
+							{
+								cwd: __dirname,
+								timeout: 30*1000 // after 30s, we'll consider phantomjs to have failed to screenshot and kill it
+							});
+
+						screenshotter.stdout.on('data', function (data) {
+							DEBUG && console.log('screenshotter stdout: ' + data.toString());
+							pageData = JSON.parse(data.toString()); // explicitly cast it, who knows what type it is having come from a process
+						});
+						screenshotter.stderr.on('data', function (data) {
+							DEBUG && console.log('screenshotter stderr: ' + data.toString());
+						});
+						screenshotter.on("exit", function (data) {
+							DEBUG && console.log('screenshotter exit: ' + data.toString());
+
+							pageData.webshot = urlRoot() + 'sandbox/' + fileName;
+							pageData.original_url = url;
+							pageData.from_mID = mID;
+
+							sio.of(CHATSPACE).in(room).emit('webshot:' + room, pageData);
+						});
+					})(urls[i], randomFilename); // call our closure with our random filename
+				}
+			}
+		}
+	}
+
 	var ChatServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, Channels, ChannelModel);
 
 	ChatServer.initialize({
@@ -527,16 +600,19 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					data.identified = client.get("identified");
 
 					// store in redis
-					redisC.hget("channels:currentMessageID", room, function (err, reply) {
-						if (err) throw err;
+					storePersistent(data, room, function (err, msg) {
+						var mID = msg.mID;
 
-						var mID = 0;
-						if (reply) {
-							mID = parseInt(reply, 10);
+						socket.in(room).broadcast.emit('chat:' + room, msg);
+						socket.in(room).emit('chat:' + room, _.extend(msg, {
+							you: true
+						}));
+
+						createWebshot(msg, room);
+
+						if (err) {
+							console.log("Was unable to persist a chat message", err.message, msg);
 						}
-						redisC.hset("channels:currentMessageID", room, mID+1);
-
-						data.mID = mID;
 
 						// store the message ID transiently on the client object itself, for anonymous editing
 						if (!client.mIDs) {
@@ -549,62 +625,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 							redisC.hset("chatlog:identity_tokens:" + room, mID, client.identity_token, function (err, reply) {
 								if (err) throw err;
 							});
-						}
-
-						// store the chat message
-						redisC.hset("chatlog:" + room, mID, JSON.stringify(data), function (err, reply) {
-							if (err) throw err;
-						});
-
-						socket.in(room).broadcast.emit('chat:' + room, data);
-						socket.in(room).emit('chat:' + room, _.extend(data, {
-							you: true
-						}));
-
-						if (config.chat &&
-							config.chat.webshot_previews &&
-							config.chat.webshot_previews.enabled) {
-							// strip out other things the client is doing before we attempt to render the web page
-							var urls = data.body.replace(REGEXES.urls.image, "")
-												.replace(REGEXES.urls.youtube,"")
-												.match(REGEXES.urls.all_others);
-							if (urls) {
-								for (var i = 0; i < urls.length; i++) {
-									
-									var randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg"; // also guarantees we store no more than 9000 webshots at any time
-									
-									(function (url, fileName) { // run our screenshotting routine in a self-executing closure so we can keep the current filename & url
-										var output = SANDBOXED_FOLDER + "/" + fileName,
-											pageData = {};
-										
-										DEBUG && console.log("Processing ", urls[i]);
-										// requires that the phantomjs-screenshot repo is a sibling repo of this one
-										var screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
-											['./PhantomJS-Screenshot.js', url, output],
-											{
-												cwd: __dirname,
-												timeout: 30*1000 // after 30s, we'll consider phantomjs to have failed to screenshot and kill it
-											});
-
-										screenshotter.stdout.on('data', function (data) {
-											DEBUG && console.log('screenshotter stdout: ' + data.toString());
-											pageData = JSON.parse(data.toString()); // explicitly cast it, who knows what type it is having come from a process
-										});
-										screenshotter.stderr.on('data', function (data) {
-											DEBUG && console.log('screenshotter stderr: ' + data.toString());
-										});
-										screenshotter.on("exit", function (data) {
-											DEBUG && console.log('screenshotter exit: ' + data.toString());
-
-											pageData.webshot = urlRoot() + 'sandbox/' + fileName;
-											pageData.original_url = url;
-											pageData.from_mID = mID;
-
-											sio.of(CHATSPACE).in(room).emit('webshot:' + room, pageData);
-										});
-									})(urls[i], randomFilename); // call our closure with our random filename
-								}
-							}
 						}
 					});
 				}
@@ -770,10 +790,19 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					if (typeof fromClient !== "undefined" &&
 						fromClient !== null) {
 
-						sio.of(CHATSPACE).in(room).emit("file_uploaded:" + room, serverSentMessage({
-							path: data.path,
-							from_user: data.from_user
-						}, room));
+						var uploadedFile = serverSentMessage({
+							body: fromClient.get("nick") + " just uploaded: " + data.path
+						}, room);
+
+						storePersistent(uploadedFile, room, function (err, msg) {
+							if (err) {
+								console.log("Error persisting a file upload notification to redis", err.message, msg);
+							}
+
+							sio.of(CHATSPACE).in(room).emit("chat:" + room, msg);
+						});
+
+
 					}
 				});
 			}

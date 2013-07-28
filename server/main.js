@@ -69,8 +69,9 @@ function authMW (req, res, next) {
 	console.log(req.get("channel"));
 	console.log(req.get("from_user"));
 	console.log(req.get("antiforgery_token"));
-	res.send(403, "nope"); // TODO: query channels obj
-	return;
+	// res.send(403, "nope"); // TODO: query channels obj
+	// return;
+	next();
 }
 // always server up the index
 // 
