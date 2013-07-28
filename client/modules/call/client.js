@@ -178,7 +178,9 @@ define(['modules/call/rtc',
         },
         disconnect: function(){
             $(".videos", this.$el).html("");
-            this.localStream.stop();
+            if (this.localStream) {
+                this.localStream.stop();
+            }
             this.videos = [];
             this.rtc.muteAudio();
             this.rtc.muteVideo();
