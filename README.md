@@ -97,22 +97,6 @@ You can upload a file by dragging it onto the "Media & Links" panel.  From there
 
 For server operators, this must be enabled in `config.js` (see `config.sample.js`).  You have the option of setting a max file size limit.  Further, it must be enabled on a per-channel basis by the channel operator.  If there is not yet a channel operator, you will need to `/chown [operator password]` to become it (see `Commands` above).
 
-Encryption
-----------
-
-You'll notice the `Not Encrypted` button on the chat input area when you first join a channel.  When you click this button, you'll have the option of providing a shared secret (*you should negotiate this through a secure side channel, not on echoplexus*).  Once supplied, the button will change to `Encrypted`.  Encryption is performed with the `Crypto-JS` library (256-bit AES).
-
-Things that are currently encrypted:
-  - Nickname
-  - Chat messages
-  - Private messages
-
-Things that will not work as a result:
-  - Permissions set on a specific user (since the server doesn't know their nickname)
-  - PhantomJS webshot previews (since the server can't read the body text to screenshot the URL)
-
-With encryption, not even the server operators of echoplexus will be able to read your chats.  A standalone pre-packaged application is in the works (via `node-webkit`) for those wary that the operator might corrupt the encryption JS supplied to the user.
-
 Code
 ----
 
@@ -133,11 +117,29 @@ Make a secure Peer2Peer audio & video call with everyone in the same channel as 
 Security
 --------
 
-*echoplexus is not completely secure, but it's getting there.*
+*echoplexus is not completely secure, but it's getting there.*  You should rest assured that this project will take security very seriously.
 
-Your registration, identification, and private channel passwords are first salted with 256 random bytes from node's `crypto.randomBytes`.  Then, they are run through 4096 iterations of `crypto.pbkdf2` with a key length of 256 bytes before the is stored in Redis.  The channel passwords for private channels are treated similarly.  In your deployment, these measures can be considered meaningless if you do not use HTTPS.
+### Registration / Identification / Private Channels
 
-I'd especially appreciate any input in securing echoplexus.  You should rest assured that this project will take security very seriously.  *Currently, the chatlogs of a private channel are not encrypted!*
+Your registration, identification, and private channel passwords are first salted with 256 random bytes from node's `crypto.randomBytes`.  Then, they are run through 4096 iterations of `crypto.pbkdf2` with a key length of 256 bytes before the is stored in Redis.  In your deployment, these measures can be considered meaningless if you do not use HTTPS.
+
+### Encryption
+
+You'll notice the `Not Encrypted` button on the chat input area when you first join a channel.  When you click this button, you'll have the option of providing a shared secret (*you should negotiate this through a secure side channel, not on echoplexus*).  Once supplied, the button will change to `Encrypted`.  Encryption is performed with the `Crypto-JS` library (256-bit AES).
+
+Things that are currently encrypted:
+  - Nickname
+  - Chat messages
+  - Private messages
+
+Everything else is transmitted in plaintext at the moment.
+
+Specific things that will not work as a result:
+  - Permissions set on a specific user (since the server doesn't know their nickname)
+  - PhantomJS webshot previews (since the server can't read the body text to screenshot the URL)
+  - Identity (since the server doesn't know your nickname)
+
+With encryption, not even the server operators of echoplexus will be able to read your chats.  A standalone pre-packaged application is in the works (via `node-webkit`) for those wary that the operator might corrupt the encryption JS supplied to the user.
 
 Install
 -------
