@@ -381,7 +381,7 @@ exports.ChannelStructures = function (redisC, EventBus) {
 				}
 
 				// finally, find whether he has permission to perform the requested operation:
-				if (!fromClient.hasPermission(clientQuery.permission)) {
+				if (!inChannel.hasPermission(fromClient, clientQuery.permission)) {
 					callback(403, "You do not have permission to perform this operation.");
 					return;
 				}
