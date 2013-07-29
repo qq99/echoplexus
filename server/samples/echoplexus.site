@@ -32,6 +32,10 @@ server {
     listen 443;
     server_name chat.echoplex.us;
 
+    # This should match what you set @ server/config.js for:
+    # server_hosted_file_transfer.size_limit (note diff units!)
+    client_max_body_size 10M;
+
     ssl on;
     ssl_certificate /path/to/ssl.crt;
     ssl_certificate_key /path/to/ssl.key;
@@ -43,6 +47,16 @@ server {
     ssl_prefer_server_ciphers on;
 
     proxy_buffering off; # may interfere with websockets if on
+
+    # serve up all static webshots / user uploads via nginx
+    # don't bother proxying them to express
+    # !replace `/home/sandbox` with the path of the user running echoplexus!
+    location /sandbox/ {
+    	autoindex on;
+    	alias /home/sandbox/echoplexus/public/sandbox/;
+    	try_files $uri $uri/ =404;
+    }
+
     location / {
         proxy_pass http://localhost:8080;
         proxy_http_version 1.1;
