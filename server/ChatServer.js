@@ -733,9 +733,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 			},
 			"unsubscribe": function (namespace, socket, channel, client) {
-				var room = channel.get("name");
 				channel.clients.remove(client);
-
 			}
 		},
 		unauthenticatedEvents: ["join_private"]

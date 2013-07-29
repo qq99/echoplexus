@@ -193,7 +193,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 				}));
 			});
 
-			this.channel.clients.on("add reset change", function (model) {
+			this.channel.clients.on("add remove reset change", function (model) {
 				self.chatLog.renderUserlist(self.channel.clients);
 
 				self.autocomplete.setPool(_.map(self.channel.clients.models, function (user) {
@@ -358,9 +358,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		kill: function () {
 			var self = this;
 
-			this.socket.emit("unsubscribe:" + this.channelName, {
-				room: this.channelName
-			});
+			this.socket.emit("unsubscribe:" + this.channelName);
 			_.each(this.socketEvents, function (method, key) {
 				self.socket.removeAllListeners(key + ":" + self.channelName);
 			});
@@ -555,6 +553,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 					}
 				},
 				"client:removed": function (alteredClient) {
+					console.log("client left", alteredClient);
 					var prevClient = self.channel.clients.remove({
 						id: alteredClient.id
 					});
