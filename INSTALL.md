@@ -20,7 +20,7 @@ From there, you may do one of the following, depending on your needs:
 
 ### node.js 
 
-For server, confirmed working v0.10.10, and should be OK with v0.10.1*.
+For server, confirmed working v0.10.10 (and v0.10.15); should be OK with v0.10.1*.
 
     $ git pull https://github.com/joyent/node.git
     $ git checkout v0.10.10
