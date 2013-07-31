@@ -111,30 +111,32 @@ Example:
 Please report all issues to the github issue tracker.
 https://github.com/qq99/echoplexus/issues
 
+***********
+
 # On Amazon EC2
 
 c/o user @dirkk0
 
 `sudo apt-get update`
  
-# get ec2 ip and hostname
+### get ec2 ip and hostname
 `curl http://xxx.xxx.xxx.xxx/latest/meta-data/public-ipv4 > public.ip`
 `curl http://xxx.xxx.xxx.xxx/latest/meta-data/public-hostname > public.hostname`
  
 `sudo apt-get install --yes build-essential curl git`
  
-#install latest node
+### install latest node
 ```
 sudo apt-get install --yes python-software-properties python g++ make
 sudo add-apt-repository --yes ppa:chris-lea/node.js
 sudo apt-get update
 sudo apt-get install --yes nodejs
 ```
-#install redis
+### install redis
 `sudo apt-get install -y redis-server`
-#clone echoplexus
+### clone echoplexus
 `git clone https://github.com/qq99/echoplexus`
-# build echoplexus
+### build echoplexus
 ```
 cd echoplexus
 npm install; npm run-script bower; sudo npm install -g grunt-cli
@@ -142,4 +144,4 @@ npm run-script build; grunt; cp server/config.sample.js server/config.js
 sed -e "s/chat.echoplex.us/`cat public.hostname`/g" echoplexus/server/config.js > temp && mv temp echoplexus/server/config.js
 cd ..
 ```
-screen -S server -L -dm bash -c "cd echoplexus; npm start"
+`screen -S server -L -dm bash -c "cd echoplexus; npm start"`
