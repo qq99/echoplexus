@@ -576,8 +576,8 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 			});
 		},
 
-		setTopic: function (msg) {
-			$(".channel-topic .value", this.$el).html(msg.body);
+		setTopic: function (newTopic) {
+			$(".channel-topic .value", this.$el).html(newTopic);
 		},
 
 		showQuotationContext: function (ev) {

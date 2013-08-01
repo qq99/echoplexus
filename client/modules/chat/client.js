@@ -608,7 +608,21 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 					}
 				},
 				"topic": function (msg) {
-					self.chatLog.setTopic(msg);
+					var topic;
+					if (msg.body === null) return;
+					// attempt to parse the msg.body as a JSON object
+					try { // if it succeeds, it was an encrypted object
+						var encrypted_topic = JSON.parse(msg.body);
+						if (self.me.cryptokey) {
+							topic = crypto.decryptObject(encrypted_topic, self.me.cryptokey);
+						} else {
+							topic = encrypted_topic.ct;
+						}
+					} catch (e) {
+						console.log(e);
+						topic = msg.body;
+					}
+					self.chatLog.setTopic(topic);
 				},
 				"antiforgery_token": function (msg) {
 					if (msg.antiforgery_token) {

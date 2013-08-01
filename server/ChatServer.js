@@ -419,22 +419,22 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				ack();
 			},
 			"topic": function (namespace, socket, channel, client, data) {
-				var room = channel.get("name");
+				var room = channel.get("name"),
+					topic = data.topic;
 
 				if (!channel.hasPermission(client, "canSetTopic")) {
 					emitGenericPermissionsError(socket, client);
 					return;
 				}
 
-				redisC.hset('topic', room, data.topic);
-				socket.in(room).emit('topic:' + room, serverSentMessage({
-					body: data.topic,
-					log: false
-				}, room));
-				socket.in(room).broadcast.emit('topic:' + room, serverSentMessage({
-					body: data.topic,
-					log: false
-				}, room));
+				if (data.encrypted_topic) {
+					topic = JSON.stringify(data.encrypted_topic);
+				}
+
+				redisC.hset('topic', room, topic);
+				sio.of(CHATSPACE).in(room).emit("topic:" + room, {
+					body: topic
+				});
 			},
 			"chat:edit": function (namespace, socket, channel, client, data) {
 				if (config.chat &&

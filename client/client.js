@@ -228,10 +228,24 @@
 				return;
 			} else if (body.match(REGEXES.commands.topic)) { // /topic [My channel topic]
 				body = body.replace(REGEXES.commands.topic, "").trim();
-				socket.emit('topic:' + room, {
-					topic: body,
-					room: room
-				});
+
+
+				if (this.cryptokey) {
+					var encrypted_topic = crypto.encryptObject(body, this.cryptokey);
+					body = "-";
+					socket.emit('topic:' + room, {
+						encrypted_topic: encrypted_topic,
+						room: room
+					});
+				} else {
+					socket.emit('topic:' + room, {
+						topic: body,
+						room: room
+					});
+				}
+
+
+
 				return;
 			} else if (body.match(REGEXES.commands.private_message)) { // /tell [nick] [message]
 				body = body.replace(REGEXES.commands.private_message, "").trim();
