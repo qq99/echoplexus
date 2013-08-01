@@ -29,26 +29,38 @@ server {
 # HTTPS server def'n
 #
 server {
-    listen 443;
-    server_name chat.echoplex.us;
+	listen 443;
+	server_name chat.echoplex.us;
 
-    ssl on;
-    ssl_certificate /path/to/ssl.crt;
-    ssl_certificate_key /path/to/ssl.key;
+	ssl on;
+	ssl_certificate /path/to/ssl.crt;
+	ssl_certificate_key /path/to/ssl.key;
 
-    ssl_session_timeout 5m;
+	ssl_session_cache shared:SSL:10m;
+	ssl_session_timeout 10m;
 
-    ssl_protocols SSLv3 TLSv1;
-    ssl_ciphers ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv3:+EXP;
-    ssl_prefer_server_ciphers on;
+	# for ensuring you implement SSL correctly, this link may help:
+	# https://www.ssllabs.com/ssltest/analyze.html?d=chat.echoplex.us
+	#
+	# more resources:
+	# http://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
+	# http://projectdaenney.org/blog/2012/11/11/tougher-ssl-security-in-nginx/ (older)
 
-    proxy_buffering off; # may interfere with websockets if on
-    location / {
-        proxy_pass http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-    }
-    access_log /var/log/nginx/echoplexus/access.ssl.log;
-    error_log /var/log/nginx/echoplexus/error.ssl.log;
+	# TLSv1 considered insecure
+	# for TLSv1.1+, it seems like OpenSSL 1.0+ is required
+	ssl_protocols SSLv3 TLSv1.1 TLSv1.2;
+
+	# do not use aNULL or ADH cipher, and use modern ciphers
+	ssl_ciphers ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-RC4-SHA:ECDHE-RSA-AES256-SHA:RC4-SHA;
+	ssl_prefer_server_ciphers on;
+
+	proxy_buffering off; # may interfere with websockets if on
+	location / {
+		proxy_pass http://localhost:8080;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection $connection_upgrade;
+	}
+	access_log /var/log/nginx/echoplexus/access.ssl.log;
+	error_log /var/log/nginx/echoplexus/error.ssl.log;
 }
