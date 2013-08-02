@@ -181,6 +181,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			var urls = data.body.replace(REGEXES.urls.image, "")
 								.replace(REGEXES.urls.youtube,"")
 								.match(REGEXES.urls.all_others);
+			var from_mID = data.mID;
 			if (urls) {
 				for (var i = 0; i < urls.length; i++) {
 
@@ -211,7 +212,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 							pageData.webshot = urlRoot() + 'sandbox/' + fileName;
 							pageData.original_url = url;
-							pageData.from_mID = mID;
+							pageData.from_mID = from_mID;
 
 							sio.of(CHATSPACE).in(room).emit('webshot:' + room, pageData);
 						});

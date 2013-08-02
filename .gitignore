@@ -16,3 +16,4 @@ client/lib/*
 Vagrantfile
 .vagrant
 npm-debug.log
+.DS_Store
