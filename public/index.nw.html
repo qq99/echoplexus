@@ -3,9 +3,8 @@
 <head>
 	<title>echoplexus</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<link rel="shortcut icon" type="image/png" href="/favicon.png" />
-	<link rel="stylesheet" type="text/css" href="/css/main.css">
-	<link href='//fonts.googleapis.com/css?family=Noto+Sans:700,400italic,700italic,400' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<link href='https://fonts.googleapis.com/css?family=Noto+Sans:700,400italic,700italic,400' rel='stylesheet' type='text/css'>
 </head>
 <body>
 	<nav>
@@ -41,12 +40,8 @@
 					<label for="auto_scroll">Auto Scroll to New Messages</label>
 				</div>
 				<div class="option">
-					<input id="show_OS_notifications" type="checkbox" />
-					<label for="show_OS_notifications">Show OS Notifications</label>
-				</div>
-				<div class="option">
-					<input id="show_mewl" type="checkbox" />
-					<label for="show_mewl">Show Mewl Notifications</label>
+					<input id="show_growl" type="checkbox" />
+					<label for="show_growl">Show Growl Notifications</label>
 				</div>
 				<div class="option">
 					<input id="prefer_24hr_clock" type="checkbox" />
@@ -81,10 +76,15 @@
 			<section id="<%= section %>"></section>
 		</script>
 	</div>
-	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://chat.echoplex.us/socket.io/socket.io.js"></script>
 	<!-- build:js client/app.min.js -->
+	<script type="text/javascript">
+	    window.requireNode = window.require;
+	    window.gui = window.requireNode('nw.gui');
+	    window.require = undefined;
+	</script>
 	<script data-main="client/app" src="client/lib/requirejs/require.js"></script>
 	<!-- endbuild -->
-	<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.0/css/font-awesome.css" rel="stylesheet">
+	<link href="https://netdna.bootstrapcdn.com/font-awesome/3.2.0/css/font-awesome.css" rel="stylesheet">
 </body>
 </html>

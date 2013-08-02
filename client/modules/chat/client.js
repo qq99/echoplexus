@@ -3,7 +3,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		'modules/chat/Scrollback',
 		'modules/chat/Log',
 		'modules/chat/ChatLog',
-		'ui/Growl',
+		'ui/Mewl',
 		'text!modules/chat/templates/chatPanel.html',
 		'text!modules/chat/templates/chatInput.html',
 		'text!modules/chat/templates/channelCryptokeyModal.html',
@@ -11,7 +11,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 	],
 
 	function($, _, Backbone,
-		Client, Regex, faviconizer, crypto, Autocomplete, Scrollback, Log, ChatLog, Growl,
+		Client, Regex, faviconizer, crypto, Autocomplete, Scrollback, Log, ChatLog, Mewl,
 		chatpanelTemplate, chatinputTemplate, cryptoModalTemplate, fileUploadTemplate) {
 
 	function readablizeBytes (bytes) {
@@ -93,7 +93,9 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			_.bindAll(this);
 
 			this.hidden = true;
-			this.socket = io.connect("/chat");
+			this.config = opts.config;
+            this.module = opts.module;
+			this.socket = io.connect(this.config.host + "/chat");
 			this.channel = opts.channel;
 			this.channel.clients.model = ClientModel;
 
@@ -480,9 +482,10 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 				});
 
 				// do not show a growl for this channel's chat if we're looking at it
-				if (OPTIONS.show_growl &&
+				if (OPTIONS.show_mewl &&
 					(this.hidden || !chatModeActive())) {
-					var growl = new Growl({
+
+					var growl = new Mewl({
 						title: this.channelName + ":  " + fromNick,
 						body: msgBody
 					});

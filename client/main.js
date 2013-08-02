@@ -1,6 +1,5 @@
 if (typeof DEBUG === 'undefined') DEBUG = true; // will be removed
 
-
 function codingModeActive () { // sloppy, forgive me
 	return $("#coding").is(":visible");
 }
@@ -20,6 +19,26 @@ define(function(require,exports,module){
 	if (window.location.protocol === "https:") {
 		window.COOKIE_OPTIONS.secure = true;
 	}
+	// attempt to determine their browsing environment
+    var ua = window.ua = {
+        firefox: !!navigator.mozConnection, //Firefox 12+
+        chrome: !!window.chrome,
+        node_webkit: typeof process !== "undefined" && process.versions && !!process.versions['node-webkit'] 
+    }
+
+    // determine the echoplexus host based on environment
+    if (ua.node_webkit) {
+        if (DEBUG) {
+            window.SOCKET_HOST = "http://localhost:8080"; // default host for debugging
+        } else {
+        	// TODO: allow user to connect to any host
+            window.SOCKET_HOST = "https://chat.echoplex.us"; //Default host
+        }
+    }
+    else { // web browser
+    	window.SOCKET_HOST = window.location.origin;
+    }
+
 	var $ = require('jquery'),
 		_ = require('underscore'),
 		key = require('keymaster'),
@@ -129,6 +148,11 @@ define(function(require,exports,module){
 
 				faviconizer.setConnected();
 			}
+
+            if (ua.node_webkit) {
+                var win = gui.Window.get();
+                win.requestAttention(false);
+            }
 		});
 
 		io.connect(window.location.origin,{
@@ -230,6 +254,11 @@ define(function(require,exports,module){
 			if (!document.hasFocus()) {
 				faviconizer.setActivity();
 				document.title = "!echoplexus";
+
+                if (ua.node_webkit) {
+                    var win = gui.Window.get();
+                    win.requestAttention(true);
+                }
 			}
 		});
 

@@ -13,7 +13,6 @@
             'jquery.cookie': 'lib/jquery.cookie/jquery.cookie',
             'text': 'lib/requirejs-text/text',
             'moment': 'lib/moment/moment',
-            'tinycon': 'lib/tinycon/tinycon',
             'codemirror': 'lib/codemirror/lib/codemirror',
             'codemirror-js': 'lib/codemirror/mode/javascript/javascript',
             'codemirror-html': 'lib/codemirror/mode/htmlmixed/htmlmixed',
@@ -45,9 +44,6 @@
             },
             'codemirror': {
                 exports: 'CodeMirror'
-            },
-            'tinycon': {
-                exports: 'Tinycon'
             },
             'codemirror-js': ['codemirror'],
             'codemirror-html': ['codemirror'],
@@ -96,5 +92,12 @@
         require.config(config); // For requirejs
         //Bootstrap our main application, and start
         require(['main']);
+    }
+
+    // revert (for node-webkit)
+    if (typeof window !== 'undefined' &&
+        window.requireNode) {
+
+        window.require = window.requireNode;
     }
 })();

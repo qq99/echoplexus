@@ -1,6 +1,6 @@
-define(['jquery','backbone','underscore','client', 'loader',
+define(['require','jquery','backbone','underscore','client', 'loader',
 		'text!templates/channelSelector.html'
-	],function($,Backbone, _,Client,Modules,channelSelectorTemplate){
+	],function(require,$,Backbone, _,Client,Modules,channelSelectorTemplate){
 		var modules = _.map(Modules,function(module){return module.view;}),
 			ClientModel = Client.ClientModel,
 			ClientsCollection = Client.ClientsCollection;
@@ -22,8 +22,8 @@ define(['jquery','backbone','underscore','client', 'loader',
 			if (!joinChannels.length) {
 				joinChannels = []
 			}
-			joinChannels.push('/',window.location.pathname);
-
+			joinChannels.push('/');
+			if(!window.ua.node_webkit) joinChannels.push(window.location.pathname);
 			_.each(_.uniq(joinChannels),function(chan){
 				self.joinChannel(chan);
 			});
@@ -214,7 +214,7 @@ define(['jquery','backbone','underscore','client', 'loader',
 			this.activeChannel = channelName;
 
 			// allow the user to know that his channel can be joined via URL slug by updating the URL
-			if (history.replaceState) {
+			if (!window.ua.node_webkit && history.replaceState) {
 				// replaceState rather than pushing to keep Back/Forward intact && because we have no other option to perform here atm
 				history.replaceState(null,"",channelName);
 			}
@@ -250,7 +250,10 @@ define(['jquery','backbone','underscore','client', 'loader',
 							view: new ClientModule({
 								channel: channel,
 								room: channelName,
-								config: Modules[idx]
+								config: {
+									host: window.SOCKET_HOST
+								},
+								module: Modules[idx]
 							}),
 							config: Modules[idx]
 						};

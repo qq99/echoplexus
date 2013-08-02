@@ -18,6 +18,7 @@ define(['jquery','underscore','backbone','codemirror',
             this.channel = opts.channel;
             this.channelName = opts.room;
             this.config = opts.config;
+            this.module = opts.module;
 
             this.listen();
             this.render();
@@ -37,12 +38,14 @@ define(['jquery','underscore','backbone','codemirror',
 
             this.syncedJs = new syncedEditor({
                 clients: this.channel.clients,
+                host: this.config.host,
                 room: this.channelName,
                 subchannel: "js",
                 editor: this.editors["js"]
             });
             this.syncedHtml = new syncedEditor({
                 clients: this.channel.clients,
+                host: this.config.host,
                 room: this.channelName,
                 subchannel: "html",
                 editor: this.editors["html"]
@@ -105,7 +108,7 @@ define(['jquery','underscore','backbone','codemirror',
             var self = this;
             this.listenTo(this.syncedJs, "eval", this.livereload);
             this.listenTo(this.syncedHtml, "eval", this.livereload);
-            window.events.on("sectionActive:"+this.config.section, function () {
+            window.events.on("sectionActive:"+this.module.section, function () {
                 self.refresh();
             });
             $(window).on('message',function(e){

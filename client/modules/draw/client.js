@@ -47,8 +47,10 @@ define(['jquery','underscore','backbone','client','keymaster',
                 lineCap: "round",
                 lineJoin: "round"
             };
+            this.config = opts.config;
+            this.module = opts.module; 
 
-            this.socket = io.connect("/draw");
+            this.socket = io.connect(this.config.host + "/draw");
             this.channelName = opts.room;
 
             //Initialize a path variable to hold the paths buffer as we recieve it from other clients

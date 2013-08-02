@@ -17,3 +17,6 @@ Vagrantfile
 .vagrant
 npm-debug.log
 .DS_Store
+nw-build/
+app.nw
+nw/

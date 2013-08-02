@@ -19,7 +19,8 @@ module.exports = function(grunt) {
     // HTML
     index:{
       build: '<%= public_dir %>index.build.html',
-      dev: '<%= public_dir %>index.dev.html'
+      dev: '<%= public_dir %>index.dev.html',
+      nw: '<%= public_dir %>index.nw.html'
     },
     copy:{
       dist: {
@@ -79,6 +80,9 @@ module.exports = function(grunt) {
     },
     //Clean
     clean: {
+      options: {
+      	force: true
+      },
       build: {
         src: [
           "<%= client_dir %>app.min.js",
@@ -86,6 +90,46 @@ module.exports = function(grunt) {
           "<%= public_dir %>css/",
           "<%= public_dir %>index.build.html"
         ]
+      },
+      nw: {
+        src: [
+          "nw/app.nw"
+        ]
+      }
+    },
+    exec: {
+      launch_app: {
+        cmd: function() {
+          if (require('os').platform() === "win32") {
+            return 'nw.exe app.nw';
+          }
+          return './nw app.nw';
+        },
+        cwd: 'nw/'
+      }
+    },
+    compress: {
+      pack_app: {
+      	options: {
+      		archive: 'nw/app.nw',
+      		mode: 'zip'
+      	},
+      	files: [
+          {expand: true, src: ['node_modules/growl/**']},
+      		{expand: true, src: ['**/*'], cwd: '<%= public_dir %>'},
+      		{
+            expand: true, 
+            src: _.union([
+                '<%= client_dir %>**',
+                '!<%= client_dir %>lib/**',
+                '<%= client_dir %>lib/requirejs/require.js'
+              ],_.map(config.paths,function(path){
+                return '<%= client_dir %>' + path + '.js'
+              })
+            )
+          },
+      		{expand: true, src: ['package.json']}
+      	]
       }
     }
   });
@@ -100,10 +144,14 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-htmlmin');
   grunt.loadNpmTasks('grunt-usemin');
+  grunt.loadNpmTasks('grunt-exec');
+  grunt.loadNpmTasks('grunt-contrib-compress');
 
   // Default task.
   grunt.registerTask('default', ['clean','copy','useminPrepare','requirejs','strip','usemin','htmlmin','sass','cssmin']);
   grunt.registerTask('dev', ['clean','sass']);
+  grunt.registerTask('nw', ['clean', 'sass', 'compress:pack_app']);
+  grunt.registerTask('nw_launch', ['nw', 'exec:launch_app']);
 
   //TODO: developer task
 };
