@@ -171,13 +171,6 @@ define(['underscore'], function(_) {
 
 			_.extend(this, opts);
 
-			this.on('ready', function () {
-				self.createPeerConnections();
-				self.addLocalStreamsToRemote();
-				// self.addDataChannels();
-				self.sendOffers();
-			});
-
 			this.peerConnections = {};
 			this.localStreams = [];
 			this.peerIDs = [];
@@ -191,15 +184,8 @@ define(['underscore'], function(_) {
 			this.socketEvents = {
 				"ice_candidate": function (data) {
 					// console.log('received signal: ice_candidate', data);
-
 					var candidate = new NativeRTCIceCandidate(data);
 					self.peerConnections[data.id].addIceCandidate(candidate);
-
-					// for any listeners
-					self.trigger('received_ice_candidate', {
-						candidate: candidate,
-						clientID: data.id
-					});
 				},
 
 				"new_peer": function (data) {
@@ -209,12 +195,9 @@ define(['underscore'], function(_) {
 						pc = self.createPeerConnection(id);
 
 					self.peerIDs.push(id);
-					self.peerIDs = _.uniq(self.peerIDs);
-					// self.trigger("ready");
+					self.peerIDs = _.uniq(self.peerIDs); // just in case...
 
-					_.each(self.localStreams, function (stream) {
-						pc.addStream(stream);
-					});
+					// extend a welcome arm to our new peer <3
 					self.sendOffer(id);
 				},
 
@@ -259,10 +242,6 @@ define(['underscore'], function(_) {
 					connected: true
 				});
 				self.connections = ack.connections;
-
-				// if (self.connections.length) {
-				// 	self.trigger('ready');
-				// }
 			});
 		},
 		disconnect: function () {
@@ -301,7 +280,10 @@ define(['underscore'], function(_) {
 			var self = this,
 				room = this.get("room");
 
-			// if (rtc.dataChannelSupport) config = rtc.dataChannelConfig;
+			if (typeof this.peerConnections[targetClientID] !== "undefined") { // don't create it twice!
+				console.warn("Tried to create a peer connection, but we already had one for this target client.  This is probably a latent bug.");
+				return;
+			}
 
 			var pc = this.peerConnections[targetClientID] = new PeerConnection(stunIceConfig(), pcConfig);
 
@@ -354,6 +336,10 @@ define(['underscore'], function(_) {
 				room = this.get("room"),
 				self = this;
 
+			_.each(self.localStreams, function (stream) {
+				pc.addStream(stream);
+			});
+
 			pc.createOffer(function (description) {
 				// description.sdp = preferOpus(description.sdp); // alter sdp
 				pc.setLocalDescription(description);
@@ -368,15 +354,12 @@ define(['underscore'], function(_) {
 		},
 
 		receiveOffer: function (socketId, sdp) {
-			var pc = this.peerConnections[socketId];
-			this.createPeerConnection(socketId);
-			this.addLocalStreamsToRemote();
-			this.sendAnswer(socketId, sdp);
-		},
-
-		sendAnswer: function (socketId, sdp) {
 			var self = this,
-				pc = this.peerConnections[socketId];
+				pc = this.createPeerConnection(socketId);
+
+			_.each(this.localStreams, function (stream) {
+				pc.addStream(stream);
+			});
 
 			pc.setRemoteDescription(new NativeRTCSessionDescription(sdp));
 			pc.createAnswer(function(session_description) {
