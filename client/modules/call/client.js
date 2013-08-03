@@ -51,6 +51,8 @@ define(['modules/call/rtc',
                 room: this.channelName
             });
 
+            window.events.on("sectionActive:calling", this.subdivideVideos);
+
             this.onResize = _.debounce(this.subdivideVideos, 250);
             $(window).on("resize", this.onResize);
         },
