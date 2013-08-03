@@ -91,10 +91,7 @@ define(['modules/call/rtc',
             // so that muting one mutes all..
             // probably should wrap it in a model if so so we can listen to it everywhere for UI purposes
             this.rtc.requestClientStream({
-                "video": {
-                    "mandatory": {},
-                    "optional": []
-                },
+                "video": true,
                 "audio": true
             }, this.gotUserMedia, this.showError);
 

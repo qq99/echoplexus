@@ -12,6 +12,7 @@ var NativeRTCSessionDescription = window.NativeRTCSessionDescription  = (window.
 
 // always offer to receive both types of media, regardless of whether we send them
 var sdpConstraints = {
+	"optional": [],
 	'mandatory': {
 		'OfferToReceiveAudio': true,
 		'OfferToReceiveVideo': true
@@ -354,14 +355,16 @@ define(['underscore'], function(_) {
 				self = this;
 
 			pc.createOffer(function (description) {
-				description.sdp = preferOpus(description.sdp); // alter sdp
+				// description.sdp = preferOpus(description.sdp); // alter sdp
 				pc.setLocalDescription(description);
 				// let the target client's socket know our SDP offering
 				self.socket.emit("offer:" + room, {
 					"id": socketId,
 					"sdp": description
 				});
-			});
+			}, function (err) {
+				console.error(err);
+			}, sdpConstraints);
 		},
 
 		receiveOffer: function (socketId, sdp) {
@@ -382,9 +385,9 @@ define(['underscore'], function(_) {
 					"id": socketId,
 					"sdp": session_description
 				});
-				//TODO Unused variable!?
-				var offer = pc.remoteDescription;
-			}, null, sdpConstraints);
+			}, function (err) {
+				console.error(err);
+			}, sdpConstraints);
 		},
 
 		receiveAnswer: function (socketId, sdp) {
