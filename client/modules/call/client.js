@@ -67,7 +67,7 @@ define(['modules/call/rtc',
             if ($this.hasClass("unmuted")) {
                 this.rtc.setUserMedia({video: false});
             } else {
-                this.rtc.setUserMedia({audio: true});
+                this.rtc.setUserMedia({video: true});
             }
             $this.toggleClass("unmuted");
         },
