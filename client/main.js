@@ -87,11 +87,12 @@ define(function(require,exports,module){
 		// consider these persistent options
 		// we use a cookie for these since they're small and more compatible
 		window.OPTIONS = {
-			"show_growl": true,
+			"show_mewl": true,
 			"suppress_join": false,
 			"highlight_mine": true,
 			"prefer_24hr_clock": true,
 			"suppress_client": false,
+			"show_OS_notifications": true,
 			"suppress_identity_acknowledgements": false,
 			"auto_scroll": true //autoscroll to new chat messages
 		};

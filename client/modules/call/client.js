@@ -1,7 +1,8 @@
 define(['modules/call/rtc',
+        'ui/Mewl',
         'text!modules/call/templates/callPanel.html',
         'text!modules/call/templates/mediaStreamContainer.html'
-        ], function (RTC, callPanelTemplate, mediaStreamContainerTemplate) {
+        ], function (RTC, Mewl, callPanelTemplate, mediaStreamContainerTemplate) {
     return Backbone.View.extend({
         className: 'callClient',
         template: _.template(callPanelTemplate),
@@ -152,12 +153,29 @@ define(['modules/call/rtc',
             var self = this;
             // on peer joining the call:
             this.rtc.on('added_remote_stream', function (data) {
+                var client = self.channel.clients.findWhere({id: data.socketID}),
+                    clientNick = client.getNick(); // TODO: handle encrypted version
+
                 console.log(self.channel);
                 console.log("ADDING REMOTE STREAM...", data.stream, data.socketID);
                 var $video = self.createVideoElement(data.socketID);
 
                 self.rtc.attachStream(data.stream, $video.find("video")[0]);
                 self.subdivideVideos();
+
+                notifications.notify({
+                    title: "echoplexus",
+                    body: clientNick + " joined the call!",
+                    tag: "callStatus"
+                });
+
+                if (OPTIONS.show_mewl) {
+
+                    var mewl = new Mewl({
+                        title: this.channelName,
+                        body: clientNick + " joined the call!"
+                    });
+                }
             });
             // on peer leaving the call:
             this.rtc.on('disconnected_stream', function (clientID) {
