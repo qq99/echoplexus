@@ -20,7 +20,10 @@ define(['modules/call/rtc',
             this.config = opts.config;
             this.module = opts.module;
             this.socket = io.connect(this.config.host + "/call");
-            this.rtc = new RTC();
+            this.rtc = new RTC({
+                socket: this.socket,
+                room: this.channelName
+            });
             this.videos = {};
             this.render();
 
@@ -51,9 +54,9 @@ define(['modules/call/rtc',
             var $this = $(ev.currentTarget);
             console.log('Muting audio');
             if ($this.hasClass("unmuted")) {
-                this.rtc.muteAudio();
+                this.rtc.setUserMedia({audio: false});
             } else {
-                this.rtc.unmuteAudio();
+                this.rtc.setUserMedia({audio: true});
             }
             $this.toggleClass("unmuted");
         },
@@ -62,9 +65,9 @@ define(['modules/call/rtc',
             var $this = $(ev.currentTarget);
 
             if ($this.hasClass("unmuted")) {
-                this.rtc.muteVideo();
+                this.rtc.setUserMedia({video: false});
             } else {
-                this.rtc.unmuteVideo();
+                this.rtc.setUserMedia({audio: true});
             }
             $this.toggleClass("unmuted");
         },
@@ -80,7 +83,44 @@ define(['modules/call/rtc',
 
         joinCall: function () {
             this.joiningCall = true;
-            this.connect();
+            if (!this.$el.is(':visible')) return;
+
+            console.log("Asking/Attempting to create client's local stream");
+
+            // should this only create ONE local stream?
+            // so that muting one mutes all..
+            // probably should wrap it in a model if so so we can listen to it everywhere for UI purposes
+            this.rtc.requestClientStream({
+                "video": {
+                    "mandatory": {},
+                    "optional": []
+                },
+                "audio": true
+            }, this.gotUserMedia, this.showError);
+
+        },
+
+        gotUserMedia: function (stream) {
+            var you = $('.you',this.$el).get(0);
+
+            this.localStream = stream; // keep track of the stream we just made
+
+            this.joiningCall = false;
+            this.inCall = true;
+            you.src = URL.createObjectURL(stream);
+            // you.mozSrcObject = URL.createObjectURL(stream);
+            you.play();
+            $(".no-call", this.$el).hide();
+            $(".in-call", this.$el).show();
+
+            this.rtc.listen();
+            this.rtc.startSignalling();
+            this.rtc.setUserMedia({
+                audio: true,
+                video: true
+            });
+
+            window.events.trigger("in_call:" + this.channelName);
         },
 
         leaveCall: function () {
@@ -92,39 +132,6 @@ define(['modules/call/rtc',
             this.showCallInProgress();
 
             window.events.trigger("left_call:" + this.channelName);
-        },
-
-        afterConnect: function (stream) {
-            var you = $('.you',this.$el).get(0);
-
-            this.localStream = stream;
-
-            this.joiningCall = false;
-            this.inCall = true;
-            you.src = URL.createObjectURL(stream);
-            // you.mozSrcObject = URL.createObjectURL(stream);
-            you.muted = true;
-            you.play();
-            $(".no-call", this.$el).hide();
-            $(".in-call", this.$el).show();
-
-            this.rtc.connect();
-            this.rtc.unmuteAudio();
-            this.rtc.unmuteVideo();
-
-            window.events.trigger("in_call:" + this.channelName);
-        },
-
-        connect: function(){
-            if(!this.$el.is(':visible')) return;
-            console.log('Creating stream');
-            this.rtc.createStream({
-                "video": {
-                    "mandatory": {},
-                    "optional": []
-                },
-                "audio": true
-            }, this.afterConnect, this.showError);
         },
 
         showCallInProgress: function () {
@@ -139,20 +146,19 @@ define(['modules/call/rtc',
 
         listen: function(){
             var self = this;
-            this.rtc.listen(this.socket, this.channelName);
             // on peer joining the call:
-            this.rtc.on('add remote stream', function(stream, socketId) {
-                console.log("ADDING REMOTE STREAM...", stream, socketId);
-                var clone = self.cloneVideo('.you', socketId);
+            this.rtc.on('added_remote_stream', function (data) {
+                console.log("ADDING REMOTE STREAM...", data.stream, data.socketID);
+                var clone = self.cloneVideo('.you', data.socketID);
                 clone.attr("class", "");
                 clone.get(0).muted = false;
-                self.rtc.attachStream(stream, clone.get(0));
+                self.rtc.attachStream(data.stream, clone.get(0));
                 self.subdivideVideos();
             });
             // on peer leaving the call:
-            this.rtc.on('disconnect stream', function(data) {
-                console.log('remove ' + data);
-                self.removeVideo(data);
+            this.rtc.on('disconnected_stream', function (clientID) {
+                console.log('remove ' + clientID);
+                self.removeVideo(clientID);
             });
             // politely hang up before closing the tab/window
             $(window).on("unload", function () {
@@ -183,8 +189,10 @@ define(['modules/call/rtc',
                 this.localStream.stop();
             }
             this.videos = [];
-            this.rtc.muteAudio();
-            this.rtc.muteVideo();
+            this.rtc.setUserMedia({
+                video: false,
+                audio: false
+            });
             this.rtc.disconnect();
         },
         kill: function(){
@@ -220,6 +228,7 @@ define(['modules/call/rtc',
             var videos = _.values(this.videos);
             var perRow = this.getNumPerRow();
             var numInRow = 0;
+            console.log(videos, videos.length);
             for (var i = 0, len = videos.length; i < len; i++){
                 var video = videos[i];
                 this.setWH(video, i,len);
@@ -251,6 +260,7 @@ define(['modules/call/rtc',
 
         removeVideo: function (id) {
             var video = this.videos[id];
+            console.log("video", id, video);
             if (video) {
                 video.remove();
                 delete this.videos[id];

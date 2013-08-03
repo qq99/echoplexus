@@ -150,7 +150,7 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 				// every server shall support a disconnect handler
 				socket.on('disconnect', function () {
 					if (typeof client !== "undefined") {
-						DEBUG && console.log("Killing (d/c) ", client.cid, " from ", channelName);
+						// DEBUG && console.log("Killing (d/c) ", client.cid, " from ", channelName);
 						channel.clients.remove(client);
 					}
 				
@@ -162,7 +162,7 @@ function AbstractServer (sio, redisC, EventBus, Channels, ChannelModel) {
 				// every server shall support a unsubscribe handler (user closes channel but remains in chat)
 				socket.on('unsubscribe:' + namespace, function () {
 					if (typeof client !== "undefined") {
-						DEBUG && console.log("Killing (left) ", client.cid, " from ", channelName);
+						// DEBUG && console.log("Killing (left) ", client.cid, " from ", channelName);
 						channel.clients.remove(client);
 					}
 				

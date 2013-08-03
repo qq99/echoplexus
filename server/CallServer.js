@@ -7,59 +7,84 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
     var DEBUG = config.DEBUG;
     var CallServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, Channels, ChannelModel);
+
     CallServer.initialize({
         name: "CallServer",
         SERVER_NAMESPACE: CALLSPACE,
         events: {
-            "join": function(namespace,socket,channel,client,data){
-                DEBUG && console.log('Client joined');
-                var room = channel.get("name");
+            "join": function (namespace, socket, channel, client, data, ack) {
+                DEBUG && console.log('client expressed interest in joining the call');
+
+                var room = channel.get("name"),
+                    clientID = client.get("id");
+
+                // if this is the first person joining the call, announce the call as in progress
                 if(_.isEmpty(channel.call)) {
-                    var status = {"active":true};
-                    socket.in(room).broadcast.emit("status:"+room,status);
-                    socket.in(room).emit("status:"+room,status);
+                    sio.of(CALLSPACE).in(room).emit("status:" + room, {
+                        "active": true
+                    });
                 }
-                channel.call[client.get('id')] = socket;
-                socket.in(room).broadcast.emit("new_peer:"+room,{
-                    id: client.get('id')
+
+                // add client to our memory
+                channel.call[clientID] = socket;
+
+                // send all other peers the new peer
+                socket.in(room).broadcast.emit("new_peer:" + room, {
+                    id: clientID
                 });
-                // send new peer a list of all prior peers
-                socket.in(room).emit("peers:"+room,{
-                    "connections": _.without(_.keys(channel.call),client.get('id')),
-                    "you": client.get('id')
+
+                // send new peer a list of all prior peers' IDs and his own ID
+                ack({
+                   "connections": _.without(_.keys(channel.call),client.get('id')),
+                    "you": clientID
                 });
             },
             "leave": function (namespace, socket, channel, client, data) {
-                DEBUG && console.log('Client left');
-                var room = channel.get("name");
-                socket.in(room).broadcast.emit("remove_peer:"+room,{
-                    id: client.get("id")
+                var room = channel.get("name"),
+                    clientID = client.get("id");
+
+                // let all others know that this client has left
+                socket.in(room).broadcast.emit("remove_peer:" + room, {
+                    id: clientID
                 });
-                delete channel.call[client.get('id')];
+
+                // remove this client from our memory
+                delete channel.call[clientID];
+
+                // if the last person has left, the call status is false (no call in progress)
                 if(_.isEmpty(channel.call)) {
-                    var status = {"active":false};
-                    socket.in(room).broadcast.emit("status:"+room,status);
-                    socket.in(room).emit("status:"+room,status);
+                    sio.of(CALLSPACE).in(room).emit("status:" + room, {
+                        active: false
+                    });
                 }
+
+                DEBUG && console.log("Client left, remaining: ", _.keys(channel.call).length);
             },
-            "ice_candidate": function(namespace, socket, channel, client, data){
+            "ice_candidate": function(namespace, socket, channel, client, data) {
                 DEBUG && console.log('Ice Candidate recieved from ' + client.get('id') + ' for ' + data.id);
-                var room = channel.get("name");
-                var targetClient = channel.call[data.id];
-                if (typeof targetClient !== "undefined") {
-                    targetClient.in(room).emit("ice_candidate:"+room,{
+
+                var room = channel.get("name"),
+                    targetClientSocket = channel.call[data.id];
+
+                // convey our ice_candidates to the client in question, if he's still in the channel
+                if (typeof targetClientSocket !== "undefined") {
+
+                    targetClientSocket.in(room).emit("ice_candidate:" + room, {
                         label: data.label,
                         candidate: data.candidate,
                         id: client.get('id')
                     });
                 }
             },
-            "offer": function(namespace, socket, channel, client, data){
+            "offer": function(namespace, socket, channel, client, data) {
                 DEBUG && console.log('Offer recieved from ' + client.get('id') + ' for ' + data.id);
-                var room = channel.get("name");
-                var targetClient = channel.call[data.id];
-                if (targetClient) {
-                    targetClient.in(room).emit("offer:" + room,{
+
+                var room = channel.get("name"),
+                    targetClientSocket = channel.call[data.id];
+
+                if (targetClientSocket) {
+
+                    targetClientSocket.in(room).emit("offer:" + room,{
                         sdp: data.sdp,
                         id: client.get('id')
                     });
@@ -67,10 +92,12 @@ exports.CallServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
             },
             "answer": function(namespace, socket, channel, client, data){
                 DEBUG && console.log('Answer recieved from ' + client.get('id') + ' for ' + data.id);
-                var targetClient = channel.call[data.id];
-                var room = channel.get("name");
-                if (targetClient) {
-                    targetClient.in(room).emit("answer:"+room,{
+
+                var room = channel.get("name"),
+                    targetClientSocket = channel.call[data.id];
+
+                if (targetClientSocket) {
+                    targetClientSocket.in(room).emit("answer:" + room, {
                         sdp: data.sdp,
                         id: client.get('id')
                     });
