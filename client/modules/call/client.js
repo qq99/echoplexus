@@ -1,9 +1,11 @@
 define(['modules/call/rtc',
-        'text!modules/call/templates/callPanel.html'
-        ], function (RTC, callPanelTemplate) {
+        'text!modules/call/templates/callPanel.html',
+        'text!modules/call/templates/mediaStreamContainer.html'
+        ], function (RTC, callPanelTemplate, mediaStreamContainerTemplate) {
     return Backbone.View.extend({
         className: 'callClient',
         template: _.template(callPanelTemplate),
+        streamTemplate: _.template(mediaStreamContainerTemplate),
 
         events: {
             "click .join": "joinCall",
@@ -48,6 +50,9 @@ define(['modules/call/rtc',
             this.socket.emit('subscribe',{
                 room: this.channelName
             });
+
+            this.onResize = _.debounce(this.subdivideVideos, 250);
+            $(window).on("resize", this.onResize);
         },
 
         toggleMuteAudio: function (ev) {
@@ -145,11 +150,11 @@ define(['modules/call/rtc',
             var self = this;
             // on peer joining the call:
             this.rtc.on('added_remote_stream', function (data) {
+                console.log(self.channel);
                 console.log("ADDING REMOTE STREAM...", data.stream, data.socketID);
-                var clone = self.cloneVideo('.you', data.socketID);
-                clone.attr("class", "");
-                clone.get(0).muted = false;
-                self.rtc.attachStream(data.stream, clone.get(0));
+                var $video = self.createVideoElement(data.socketID);
+
+                self.rtc.attachStream(data.stream, $video.find("video")[0]);
                 self.subdivideVideos();
             });
             // on peer leaving the call:
@@ -201,6 +206,7 @@ define(['modules/call/rtc',
             this.socket.emit('unsubscribe:'+this.channelName,{
                 room: this.channelName
             });
+            $(window).off("resize", this.onResize);
         },
         render: function () {
             this.$el.html(this.template());
@@ -234,10 +240,14 @@ define(['modules/call/rtc',
         },
 
         setWH: function (video, i,len) {
+            var $container = $(".videos", this.$el),
+                containerW = $container.width(),
+                containerH = $container.height();
+
             var perRow = this.getNumPerRow();
             var perColumn = Math.ceil(len / perRow);
-            var width = Math.floor((window.innerWidth) / perRow);
-            var height = Math.floor((window.innerHeight - 190) / perColumn);
+            var width = Math.floor((containerW) / perRow);
+            var height = Math.floor((containerH) / perColumn);
             video.css({
                 width: width,
                 height: height,
@@ -247,12 +257,21 @@ define(['modules/call/rtc',
             });
         },
 
-        cloneVideo: function (cssSelector, clientID) {
-            console.log("cloneVideo called");
-            var video = $(cssSelector, this.$el).clone().attr('id','remote'+clientID);
-            this.videos[clientID] = video;
-            video.appendTo($('.videos', this.$el));
-            return video;
+        createVideoElement: function (clientID) {
+            var client = this.channel.clients.findWhere({id: clientID}),
+                clientNick = client.getNick(), // TODO: handle encrypted version
+                $video = $(this.streamTemplate({
+                    id: clientID,
+                    nick: clientNick
+                }));
+
+            // keep track of the $element by clientID
+            this.videos[clientID] = $video;
+
+            // add the new stream element to the container
+            $(".videos", this.$el).append($video);
+
+            return $video;
         },
 
         removeVideo: function (id) {
@@ -263,6 +282,7 @@ define(['modules/call/rtc',
                 delete this.videos[id];
             }
         },
+
         initFullScreen: function() {
             var button = document.getElementById("fullscreen");
             button.addEventListener('click', function (event) {
