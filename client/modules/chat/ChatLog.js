@@ -357,7 +357,7 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 				if (links = body.match(REGEXES.urls.all_others)) {
 					for (var i = 0, l = links.length; i < l; i++) {
 						if (self.uniqueURLs[links[i]] === undefined) {
-							$(".linklog .body", this.$el).prepend("<a href='" + links[i] + "' target='_blank'>" + links[i] + "</a>");
+							$(".linklog .body", this.$el).prepend("<a rel='noreferrer' href='" + links[i] + "' target='_blank'>" + links[i] + "</a>");
 							self.uniqueURLs[links[i]] = true;
 						}
 					}
@@ -381,7 +381,7 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
 			body = body.replace(REGEXES.commands.reply, '<a rel="$2" class="quotation" href="#'+ this.room + '$2">&gt;&gt;$2</a>');
 
 			// hyperify hyperlinks for the chatlog:
-			body = body.replace(REGEXES.urls.all_others,'<a target="_blank" href="$1">$1</a>');
+			body = body.replace(REGEXES.urls.all_others,'<a rel="noreferrer" target="_blank" href="$1">$1</a>');
 			body = body.replace(REGEXES.users.mentions,'<span class="mention">$1</span>');
 			if (body.length) { // if there's anything left in the body, 
 				var chatMessageClasses = "",
