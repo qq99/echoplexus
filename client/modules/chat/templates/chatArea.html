@@ -1,37 +1,12 @@
-<div class="room-specific">
-	<span class="channel-name">
-		<span class="room-name"><%- roomName %></span>
-	</span>
-	<span class="channel-topic">
-		Topic: <span class="value">...</span>
-	</span>
-	<div class="channel-options">
-		<div class="button-group">
-			<div
-				data-tooltip-title="What's this?"
-				data-tooltip-body="Clears the chat messages from the visible channel, but doesn't delete them from your browser."
-				class="tooltip-target option">
-				<button class="fancy clearChatlog">Clear</button>
-			</div>
-			<div
-				data-tooltip-title="What's this?"
-				data-tooltip-body="This will delete your browser's locally stored copies of all chat messages in this channel."
-				class="tooltip-target option">
-				<button class="fancy deleteLocalStorage">Delete Cache</button>
-			</div>
-			<div
-				data-tooltip-title="What's this?"
-				data-tooltip-body="This will pull recent chat messages (25 at a time) that you missed while you weren't connected to this channel."
-				class="tooltip-target option">
-				<button class="fancy syncLogs">Pull Chatlogs</button>
-			</div>
-		</div>
-	</div>
-</div>
 <div class="chatlog">
 	<div class="messages"></div>
 </div>
 <div class="supportbar">
+	<div class="room-specific">
+		<div class="channel-topic">
+			Topic: <span class="value">...</span>
+		</div>
+	</div>
 	<div class="userlist <%= userlistClasses %>">
 		<div class="header">
 			<h2>Users</h2>

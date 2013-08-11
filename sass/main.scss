@@ -128,13 +128,15 @@ a {
 @include keyframes(activity2) {
   100% {
     background:transparent;
-  }
- 
-  50% {
-    background:rgba(15,40,80,0.9);
+  } 
+  75% {
+  	background:rgba(120, 120, 220, 0.3);
     color:#efefef;
   }
-
+  25% {
+  	background:rgba(120, 120, 220, 0.3);
+    color:#efefef;
+  }
   0% {
   	background:transparent;
   }
@@ -190,11 +192,10 @@ a {
 	margin:0;
 	padding:0.25em 0.75em;
 	background:#111;
-	text-transform: uppercase;
 	color:#777;
 	border:1px solid #333;
-	font-size:1em;
 	position:relative;
+	font-size:1em;
 	&:hover {
 		background:#111911;
 		color:gold;
@@ -211,8 +212,11 @@ button.fancy {
 	@include fancyButton;
 }
 
-section h2 {
-	height:21px;
+.header h2 {
+	position:absolute;
+	height:100%;
+	width:100%;
+	font-size:1.4em;
 }
 
 .warn {
@@ -375,7 +379,7 @@ header {
 
 	.channel-selector {
 		@include clearfix;
-		height:25px;
+		height:30px;
 
 		> div {
 			display:block;
@@ -385,7 +389,6 @@ header {
 		bottom: 0;
 		left: 0;
 		padding:0 0 0.5em 1em;
-		font-size:0.8em;
 
 		.channels, .join-channel {
 			height:100%;
@@ -416,7 +419,7 @@ header {
 				@include transition(all 0.25s ease-in-out);
 				text-align: center;
 				width:2em;
-				font-size:1.25em;
+				font-size:1.3em;
 				font-style:normal;
 				background:#111;
 				vertical-align: middle;		
@@ -429,11 +432,18 @@ header {
 			}
 
 			&.activity {
-				@include animation(activity2 3s infinite);
+				@include animation(activity2 2s infinite);
+			}
+			&.active {
+				color:greenyellow;
 			}
 		}
 		.join-channel {
 			margin-left:1em;
+			.channelName {
+				color:#aaa;
+				font-style: normal;
+			}
 		}
 		input {
 			margin-left:0.25em;
@@ -451,6 +461,7 @@ header {
 .header {
 	font-family:$pretty-font-family;
 	position: relative;
+	min-height:26px;
 	z-index:2;
 	.count {
 		position: absolute;
@@ -537,7 +548,7 @@ header {
 		position:relative;
 
 		.repl-options {
-			font-size:0.9em;
+			font-size:1em;
 			height:1em;
 			position: relative;
 			z-index:2;
@@ -630,9 +641,14 @@ header {
 
 $supportbar-width: 300px;
 
+.channel-topic {
+	font-family:$pretty-font-family;
+}
+
 #chatting {
+	position: absolute;
 	height:100%;
-	$chatinput-height:5em;
+	$chatinput-height:6em;
 	.chatarea {
 		position:relative;
 		height:100%;
@@ -650,12 +666,11 @@ $supportbar-width: 300px;
 	}
 	.chatinput {
 		width:100%;
-		padding:1em;
+		padding:1em $supportbar-width 0 1em;
 		position:absolute;
 		bottom:0;
 		left:0;
 		height:$chatinput-height;
-		padding-right:$supportbar-width;
 
 		$chat-input-roundness:8em;
 		$crypto-button-width:12em;
@@ -663,32 +678,46 @@ $supportbar-width: 300px;
 			@include transition(background 0.25s ease-out, color 0.75s ease-out);
 			position:relative;
 			width:100%;
-			height:100%;
-			background:rgba(0,0,0,0.5);
-			border-radius:$chat-input-roundness;
+			height:3em;
 			box-shadow:inset 2px 2px 1px rgba(0,0,0,0.55),inset -2px -2px 1px -1px rgba(0,0,0,0.3);
 			overflow:hidden;
-			&.focus {
-				background:rgba(0,0,0,0.30);
-				color:#efefef;
+			button {
+				@include transition(all 0.25s ease-in-out);
+				cursor:pointer;
+				text-transform: uppercase;
+				color:white;
+				box-shadow:inset 1px 2px 5px rgba(0, 0, 0, 0.55), inset -2px -2px 1px -1px rgba(0, 0, 0, 0.3);
+				text-shadow:1px 1px 4px rgba(0,0,0,0.9);
+				border:none;
+				outline:none;
+				background:linear-gradient(to bottom, #aa6804 0%,#836303 50%,#644e00 51%,#8f6a03 100%);
+				width:$crypto-button-width;
+				position:absolute;
+				top:0;
+				right:0;
+				height:100%;
+				&.encrypted {
+					background:linear-gradient(to bottom, #91a905 0%,#5d8303 50%,#436400 51%,#678f03 100%);
+				}
 			}
 		}
 		textarea {
 			@include transition(background 0.25s ease-out, color 0.75s ease-out);
 			&:focus {
 				color:#efefef;
+				background:#222;
 			}
+			background:#111;
 			overflow:hidden;
-			padding-left:2em;
+			padding:0.75em 1em;
+			font-size:1em;
+			line-height:1.5em;
 			position:absolute;
 			top:0;
 			left:0;
 			padding-right:$crypto-button-width;
 			outline:none;
 			border:none;
-			background:transparent;
-			border:none;
-			padding-top:0.85em;
 			resize: none;
 			width:100%;
 			height:100%;
@@ -697,86 +726,48 @@ $supportbar-width: 300px;
 			&:-ms-input-placeholder { color:silver; } /* ie */
 			&:-moz-placeholder { color:silver; }
 		}
-		button {
-			@include transition(all 0.25s ease-in-out);
-			cursor:pointer;
-			text-transform: uppercase;
-			color:white;
-			box-shadow:inset 1px 2px 5px rgba(0, 0, 0, 0.55), inset -2px -2px 1px -1px rgba(0, 0, 0, 0.3);
-			text-shadow:1px 1px 4px rgba(0,0,0,0.9);
-			border:none;
-			outline:none;
-			background:linear-gradient(to bottom, #aa6804 0%,#836303 50%,#644e00 51%,#8f6a03 100%);
-			width:$crypto-button-width;
-			position:absolute;
-			top:0;
-			right:0;
-			height:100%;
-			border-top-right-radius:$chat-input-roundness;
-			border-bottom-right-radius:$chat-input-roundness;
-			&.encrypted {
-				background:linear-gradient(to bottom, #91a905 0%,#5d8303 50%,#436400 51%,#678f03 100%);
-			}
-		}
 	}
 
 }
 
-$room-specific-height: 30px;
+$room-specific-height: 80px;
 .channel {
 	height:100%;
 	width:100%;
-	padding-top: $room-specific-height;
 }
 .button-group {
-	div {
+	height:100%;
+	div, button {
+		height:100%;
 		float:left;
-		button {
+	}
+	div, button {
+		border-right:0px;
+		&:hover {
 			border-right:0px;
-			&:hover {
-				border-right:0px;
-			}
 		}
 	}
-	div:first-child {
-		button {
-			border-top-left-radius:3px;
-			border-bottom-left-radius:3px;
-		}
+	div:last-child button, button:last-child {
+		border-right:1px solid #333;
 	}
-	div:last-child {
-		button {
-			border-right:1px solid #333;
-			border-top-right-radius:3px;
-			border-bottom-right-radius:3px;
-		}
+	button, button:hover {
+		outline:none !important;
+		border-bottom:none;
 	}
-	button {
-		font-size:0.8em;
-	}
-	
 }
 
+.channel-options {
+	height:2em;
+}
+.channel-topic {
+	height:100%;
+	overflow-y:scroll;
+	overflow-x:hidden;
+}
 .room-specific {
-	height: $room-specific-height;
+	height: 10%;
 	width:100%;
-	padding:0 1em;
-	padding-right:$supportbar-width + 22px;
-	position: absolute;
-	top: 0;
-	button {
-		font-size: 0.8em;
-	}
-	.channel-options  {
-		float:right;
-	}
-	.channel-name {
-		display:none;
-	}
-	.room-name {
-		font-style: italic;
-		color:#888;
-	}
+	padding-bottom:1em;
 }
 .chatlog {
 	position:relative;
@@ -804,18 +795,18 @@ $room-specific-height: 30px;
 }
 .userlist {
 	@include transition(all 0.5s ease-in-out);
-	height:20%;
+	height:30%;
 	width:100%;
 	overflow-y:auto;
 	font-family: $pretty-font-family;
 	.nick {
-		display:inline-block;
 		max-width:12em;
 		text-overflow:ellipsis;
 		white-space:nowrap;
 		overflow:hidden;
 	}
 	.body {
+		padding-top:0.75em;
 		font-size:1em;
 		i {
 			margin-left:0.25em;
@@ -842,13 +833,13 @@ $room-specific-height: 30px;
 	}
 
 	&.maximized {
-		height:100%;
+		height:90%;
 		margin-bottom:-30px;
 	}
 }
 .linklog {
 	@include transition(all 0.5s ease-in-out);
-	height:80%;
+	height:60%;
 	width:100%;
 	z-index:4;
 	position:relative;
@@ -878,8 +869,10 @@ $room-specific-height: 30px;
 	}
 	.options {
 		position:absolute;
+		height:100%;
 		right:0;
-		top:0;
+		bottom:0;
+		border-bottom:1px solid #444;
 	}
 
 	.maximizeMediaLog {
@@ -1124,7 +1117,7 @@ body {
 	@include transition(all 0.25s ease-in-out);
 	height:auto;
 	position:relative;
-	margin:0 0 0.25em 0;
+	margin: 0;
 	&.fromlog {
 		opacity:0.5;
 	}

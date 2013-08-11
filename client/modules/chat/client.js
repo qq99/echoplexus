@@ -622,7 +622,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 							topic = encrypted_topic.ct;
 						}
 					} catch (e) {
-						console.log(e);
+						// console.log(e);
 						topic = msg.body;
 					}
 					self.chatLog.setTopic(topic);
