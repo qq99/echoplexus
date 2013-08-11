@@ -208,7 +208,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 							DEBUG && console.log('screenshotter stderr: ' + data.toString());
 						});
 						screenshotter.on("exit", function (data) {
-							DEBUG && console.log('screenshotter exit: ' + data.toString());
+							// DEBUG && console.log('screenshotter exit: ' + data.toString());
 
 							pageData.webshot = urlRoot() + 'sandbox/' + fileName;
 							pageData.original_url = url;
