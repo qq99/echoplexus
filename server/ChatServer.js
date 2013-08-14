@@ -189,7 +189,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 
 					(function (url, fileName) { // run our screenshotting routine in a self-executing closure so we can keep the current filename & url
 						var output = SANDBOXED_FOLDER + "/" + fileName,
-							pageData = {};
+							pageData;
 
 						DEBUG && console.log("Processing ", urls[i]);
 						// requires that the phantomjs-screenshot repo is a sibling repo of this one
@@ -201,18 +201,23 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 							});
 
 						screenshotter.stdout.on('data', function (data) {
-							// DEBUG && console.log('screenshotter stdout: ' + data.toString());
-							pageData = JSON.parse(data.toString()); // explicitly cast it, who knows what type it is having come from a process
+							try {
+								pageData = JSON.parse(data.toString()); // explicitly cast it, who knows what type it is having come from a process
+							} catch (e) { // if the result was not JSON'able
+								// DEBUG && console.log(data); // contains all kinds of garbage like script errors
+							}
+							
 						});
 						screenshotter.stderr.on('data', function (data) {
 							// DEBUG && console.log('screenshotter stderr: ' + data.toString());
 						});
 						screenshotter.on("exit", function (data) {
 							// DEBUG && console.log('screenshotter exit: ' + data.toString());
-
-							pageData.webshot = urlRoot() + 'sandbox/' + fileName;
-							pageData.original_url = url;
-							pageData.from_mID = from_mID;
+							if (pageData) {
+								pageData.webshot = urlRoot() + 'sandbox/' + fileName;
+								pageData.original_url = url;
+								pageData.from_mID = from_mID;
+							}
 
 							sio.of(CHATSPACE).in(room).emit('webshot:' + room, pageData);
 						});
