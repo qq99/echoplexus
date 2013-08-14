@@ -201,11 +201,11 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 							});
 
 						screenshotter.stdout.on('data', function (data) {
-							DEBUG && console.log('screenshotter stdout: ' + data.toString());
+							// DEBUG && console.log('screenshotter stdout: ' + data.toString());
 							pageData = JSON.parse(data.toString()); // explicitly cast it, who knows what type it is having come from a process
 						});
 						screenshotter.stderr.on('data', function (data) {
-							DEBUG && console.log('screenshotter stderr: ' + data.toString());
+							// DEBUG && console.log('screenshotter stderr: ' + data.toString());
 						});
 						screenshotter.on("exit", function (data) {
 							// DEBUG && console.log('screenshotter exit: ' + data.toString());
