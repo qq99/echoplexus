@@ -208,6 +208,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		events: {
 			"click button.syncLogs": "activelySyncLogs",
 			"click button.deleteLocalStorage": "deleteLocalStorage",
+			"click button.deleteLocalStorageAndQuit": "logOut",
 			"click button.clearChatlog": "clearChatlog",
 			"click .icon-reply": "reply",
 			"keydown .chatinput textarea": "handleChatInputKeydown",
@@ -806,9 +807,26 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		},
 
 		deleteLocalStorage: function (ev) {
+			// clears all sensitive information:
 			this.persistentLog.destroy();
+			$.cookie("nickname:" + this.channelName, null);
+			$.cookie("ident_pw:" + this.channelName, null);
+			$.cookie("channel_pw:" + this.channelName, null);
+			this.clearCryptoKey(); // delete their stored key
 			this.chatLog.clearChat(); // visually reinforce to the user that it deleted them by clearing the chatlog
 			this.chatLog.clearMedia(); // "
+
+			// visually re-inforce the destruction:
+			this.chatLog.renderChatMessage(new this.chatMessage({
+				body: "All sensitive data related to this channel stored on your computer has been erased.  This includes chat history, passwords, and encryption keys.",
+				timestamp: new Date().getTime(),
+				nickname: ''
+			}));
+		},
+
+		logOut: function (ev) {
+			this.deleteLocalStorage();
+			window.events.trigger("leaveChannel", this.channelName);
 		},
 
 		clearChatlog: function () {
