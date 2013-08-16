@@ -203,6 +203,9 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 				}));
 			});
 
+
+			$(".messages", this.$el).on("mousewheel", this.scrollSyncLogs);
+
 		},
 
 		events: {
@@ -220,6 +223,20 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			"drop .drag-mask": "dropObject",
 			"click .cancel-upload": "clearUploadStaging",
 			"click .upload": "uploadFile"
+		},
+
+		scrollSyncLogs: function (ev) {
+			// make a note of how tall in scrollable px the messages area used to be
+			this.previousScrollHeight = ev.currentTarget.scrollHeight;
+			
+			// let the chatlog know that we've been scrolling (s.t. it doesn't autoscroll back down on us)
+			this.chatLog.mostRecentScroll = Number(new Date());
+
+			// load more messages as we scroll upwards
+			if (ev.currentTarget.scrollTop === 0) {
+
+				this.activelySyncLogs();
+			}
 		},
 
 		showDragUIHelper: function (ev) {
@@ -528,6 +545,14 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 
 						msg.fromBatch = true;
 						self.chatLog.renderChatMessage(new self.chatMessage(msg));
+
+						if (self.previousScrollHeight) {
+							setTimeout(function () {
+								var chatlog = self.chatLog.$el.find(".messages")[0];
+								chatlog.scrollTop = chatlog.scrollHeight - self.previousScrollHeight;
+							}, 0);
+
+						}
 					}
 				},
 				"client:changed": function (alteredClient) {

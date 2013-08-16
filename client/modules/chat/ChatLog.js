@@ -233,12 +233,18 @@ define(['jquery','backbone', 'underscore','regex','moment','CryptoWrapper',
         },
 
         _scrollToLatest: function () { //Get the last message and scroll that into view
-        	// can't simply use last-child, since the last child may be display:none
-        	// if the user is hiding join/part
-        	var latestMessage = ($('.messages .chatMessage:visible',this.$el).last())[0]; // so we get all visible, then take the last of that
-			if (typeof latestMessage !== "undefined") {
-				latestMessage.scrollIntoView();
-			}
+        	var now = Number(new Date());
+        	// don't scroll if the user was manually scrolling recently (<3s ago)
+        	if ((typeof this.mostRecentScroll === "undefined") ||
+        		((now - this.mostRecentScroll) > 3000)) {
+
+	        	// can't simply use last-child, since the last child may be display:none
+	        	// if the user is hiding join/part
+	        	var latestMessage = ($('.messages .chatMessage:visible',this.$el).last())[0]; // so we get all visible, then take the last of that
+				if (typeof latestMessage !== "undefined") {
+					latestMessage.scrollIntoView();
+				}
+    		}
 		},
 
         replaceChatMessage: function (msg) {

@@ -103,7 +103,7 @@ define(['underscore'],function(_){
 				},
 				getListOfMissedMessages: function () {
 					var known = this.knownIDs(),
-						clientLatest = known[known.length-1],
+						clientLatest = known[known.length-1] || -1,
 						missed = [],
 						sensibleMax = 50, // don't pull everything that we might have missed, just the most relevant range
 						from = latestID,
