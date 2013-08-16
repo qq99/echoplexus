@@ -16,6 +16,7 @@ define(['jquery','underscore','backbone',
 			// defaults
 			this.position = "bottom right";
 			this.padding = 10;
+			this.lifespan = opts.lifespan || 3000;
 
 			// override defaults
 			_.extend(this, opts);
@@ -39,7 +40,7 @@ define(['jquery','underscore','backbone',
 				self.$el.addClass("shown");
 			});
 
-			setTimeout(this.hide, 3000);
+			setTimeout(this.hide, this.lifespan);
 
 			return this;
 		},
