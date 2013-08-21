@@ -192,7 +192,6 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 							pageData;
 
 						DEBUG && console.log("Processing ", urls[i]);
-						// requires that the phantomjs-screenshot repo is a sibling repo of this one
 						var screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
 							['./PhantomJS-Screenshot.js', url, output],
 							{
@@ -233,6 +232,12 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		name: "ChatServer",
 		SERVER_NAMESPACE: CHATSPACE,
 		events: {
+			"help": function (namespace, socket, channel, client, data) {
+				var room = channel.get("name");
+				socket.in(room).emit('chat:' + room, serverSentMessage({
+					body: "Please view the README for more information at https://github.com/qq99/echoplexus"
+				}, room));
+			},
 			"chown": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 

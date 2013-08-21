@@ -195,7 +195,6 @@
 				this.setNick(body, room);
 				$.cookie("nickname:" + room, body, window.COOKIE_OPTIONS);
 				$.removeCookie("ident_pw:" + room, window.COOKIE_OPTIONS); // clear out the old saved nick
-				return;
 			} else if (body.match(REGEXES.commands.private)) {  // /private [password]
 				body = body.replace(REGEXES.commands.private, "").trim();
 				socket.emit('make_private:' + room, {
@@ -203,17 +202,14 @@
 					room: room
 				});
 				$.cookie("channel_pw:" + room, body, window.COOKIE_OPTIONS);
-				return;
 			} else if (body.match(REGEXES.commands.public)) {  // /public
 				body = body.replace(REGEXES.commands.public, "").trim();
 				socket.emit('make_public:' + room, {
 					room: room
 				});
-				return;
 			} else if (body.match(REGEXES.commands.password)) {  // /password [password]
 				body = body.replace(REGEXES.commands.password, "").trim();
 				this.channelAuth(body, room);
-				return;
 			} else if (body.match(REGEXES.commands.register)) {  // /register [password]
 				body = body.replace(REGEXES.commands.register, "").trim();
 				socket.emit('register_nick:' + room, {
@@ -221,11 +217,9 @@
 					room: room
 				});
 				$.cookie("ident_pw:" + room, body, window.COOKIE_OPTIONS);
-				return;
 			} else if (body.match(REGEXES.commands.identify)) { // /identify [password]
 				body = body.replace(REGEXES.commands.identify, "").trim();
 				this.identify(body, room);
-				return;
 			} else if (body.match(REGEXES.commands.topic)) { // /topic [My channel topic]
 				body = body.replace(REGEXES.commands.topic, "").trim();
 
@@ -244,9 +238,6 @@
 					});
 				}
 
-
-
-				return;
 			} else if (body.match(REGEXES.commands.private_message)) { // /tell [nick] [message]
 				body = body.replace(REGEXES.commands.private_message, "").trim();
 
@@ -300,7 +291,6 @@
 						});
 					}
 				}
-				return;
 			} else if (body.match(REGEXES.commands.pull_logs)) { // pull
 				body = body.replace(REGEXES.commands.pull_logs, "").trim();
 
@@ -317,14 +307,12 @@
 						});
 					}
 				}
-				return;
 			} else if (body.match(REGEXES.commands.set_color)) { // pull
 				body = body.replace(REGEXES.commands.set_color, "").trim();
 
 				socket.emit('user:set_color:' + room, {
 					userColorString: body
 				});
-				return;
 			} else if (matches = body.match(REGEXES.commands.edit)) { // editing
 				var mID = matches[2], data;
 
@@ -341,17 +329,13 @@
 				}
 
 				socket.emit('chat:edit:' + room, data);
-
-				return;
 			} else if (body.match(REGEXES.commands.leave)) { // leaving
 				window.events.trigger('leave:' + room);
-				return;
 			} else if (body.match(REGEXES.commands.chown)) { // become owner
 				body = body.replace(REGEXES.commands.chown, "").trim();
 				socket.emit('chown:' + room, {
 					key: body
 				});
-				return;
 			} else if (body.match(REGEXES.commands.chmod)) { // change permissions
 				body = body.replace(REGEXES.commands.chmod, "").trim();
 				socket.emit('chmod:' + room, {
@@ -362,9 +346,10 @@
 				window.events.trigger('chat:broadcast', {
 					body: body
 				});
-				return;
+			} else if (body.match(REGEXES.commands.help)) {
+				socket.emit('help:' + room);
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
-				return;
+				// NOOP
 			} else { // send it out to the world!
 
 				if (this.cryptokey) {

@@ -31,6 +31,7 @@
 			failed_command: /^\//,
 			private: /^\/private/,
 			public: /^\/public/,
+			help: /^\/help/,
 			password: /^\/(password|pw)/,
 			private_message: /^\/(pm|w|whisper|t|tell) /,
 			join: /^\/(join|j)/,
