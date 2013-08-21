@@ -303,18 +303,37 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		},
 
 		uploadFile: function () {
+			var self = this,
+				$progressBarContainer = $(".progress-bar", this.$el),
+				$progressMeter = $(".meter", this.$el);
+
 			// construct a new form to send the data via
 			var oForm = new FormData();
 			// add the file to the form
 			oForm.append("user_upload", this.file);
 			// create a new XHR request
 			var oReq = new XMLHttpRequest();
+
+			// is it uploads, increase the width of the progress bar
+			oReq.upload.addEventListener("progress", function (ev) {
+				var percentage = (ev.loaded / ev.total) * 100;
+				$progressMeter.css("width", percentage + "%"); // namespace
+			}, false);
+
+			// when it's done, hide the progress bar
+			oReq.upload.addEventListener("load", function (ev) {
+				$progressBarContainer.removeClass("active");
+			});
+
 			oReq.open("POST", window.location.origin);
 			oReq.setRequestHeader('Using-Permission', "canUploadFile");
 			oReq.setRequestHeader('Channel', this.channelName);
 			oReq.setRequestHeader('From-User', this.me.get("id"));
 			oReq.setRequestHeader('Antiforgery-Token', this.me.antiforgery_token);
 			oReq.send(oForm); // send it
+
+			// show the progress bar
+			$progressBarContainer.addClass("active");
 
 			this.clearUploadStaging();
 
