@@ -10,7 +10,8 @@ define(['underscore'],function(_){
 			defaults = {
 				title: "Echoplexus",
 				dir: "auto",
-				iconUrl: "",
+				icon: window.location.origin + "/echoplexus-logo.png",
+				iconUrl: window.location.origin + "/echoplexus-logo.png",
 				lang: "",
 				body: "",
 				tag: "",			
@@ -30,18 +31,19 @@ define(['underscore'],function(_){
 			};
 
 		// find out what we know about the domain's current notification state
-		if (window.Notification) { // Standards
-			if (window.Notification.permission) {
-				_permission = window.Notification.permission;
-			}
-		} else if (window.webkitNotifications) { // shim for older webkit
+		if (window.webkitNotifications) { // shim for older webkit
+			_notificationProvider = window.webkitNotifications;
 			hasPermission = _notificationProvider.checkPermission();
 			if (hasPermission === 0) {
 				_permission = "granted";
 			} else {
 				_permission = "denied";
 			}
-		}
+		} else if (window.Notification) { // Standards
+			if (window.Notification.permission) {
+				_permission = window.Notification.permission;
+			}
+		} 
 
 		if (window.ua.node_webkit) {
 			_permission = "granted";
@@ -77,15 +79,10 @@ define(['underscore'],function(_){
 
 				if (window.ua.node_webkit) { // Application
 					if (process.platform === 'linux') {
-						console.log(process.cwd() + '/echoplexus-logo.png');
 						_growl(opts.body, {
 							image: process.cwd() + '/echoplexus-logo.png'
 						});
 					}
-				} else if (window.Notification) { // Standards
-					var notification = new Notification(title, opts);
-
-					// TODO: figure out how to close the notification :/
 				} else if (window.webkitNotifications) { // shim for old webkit
 					var notification = _notificationProvider.createNotification(
 						opts.iconUrl,
@@ -97,6 +94,14 @@ define(['underscore'],function(_){
 					setTimeout(function () {
 						notification.cancel();
 					}, opts.TTL);
+				} else if (window.Notification) { // Standards
+					var notification = new Notification(title, opts);
+
+					notification.show();
+					setTimeout(function () {
+						notification.cancel();
+					}, opts.TTL);
+
 				}
 			}
 
@@ -113,12 +118,12 @@ define(['underscore'],function(_){
 		*/
 		function requestNotificationPermission() {
 			if (_permission === "default") { // only request it if we don't have it
-				if (window.Notification) {
+				if (window.webkitNotifications) {
+					window.webkitNotifications.requestPermission();	
+				} else if (window.Notification) {
 					window.Notification.requestPermission(function (perm) {
 						_permission = perm;
 					});
-				} else {
-					window.webkitNotifications.requestPermission();	
 				}
 			}
 		}

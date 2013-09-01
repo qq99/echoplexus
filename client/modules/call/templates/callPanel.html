@@ -17,15 +17,33 @@
 </div>
 
 <div class="no-call">
-	<div class="btn call-in-progress call-status join">
-		<i class="icon-phone ringing"></i>
-		<p class="explanation">Call in progress.</p>
-		<p class="action">Click to join!</p>
+	<div class="call-in-progress call-status">
+		<h1>Call in progress.</h1>
+		<h2>Join in!</h2>
+		<div class="join-call-buttons">
+			<div class="btn join-call audio video">
+				<i class="icon icon-facetime-video"></i>
+				<p class="action">Video + Audio</p>
+			</div>
+			<div class="btn join-call audio">
+				<i class="icon icon-microphone"></i>
+				<p class="action">Audio Only</p>
+			</div>
+		</div>
 	</div>
-	<div class="btn no-call-in-progress call-status join">
-		<i class="icon-phone idle"></i>
-		<p class="explanation">No call currently in progress.</p>
-		<p class="action">Click to start one.</p>
+	<div class="no-call-in-progress call-status">
+		<h1>No call in progress.</h1>
+		<h2>Start one?</h2>
+		<div class="join-call-buttons">
+			<div class="btn join-call audio video">
+				<i class="icon icon-facetime-video idle"></i>
+				<p class="action">Video + Audio</p>
+			</div>
+			<div class="btn join-call audio">
+				<i class="icon icon-microphone idle"></i>
+				<p class="action">Audio Only</p>
+			</div>
+		</div>
 	</div>
 </div>
 

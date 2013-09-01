@@ -45,15 +45,21 @@ $inactive-color: rgb(157, 38, 29);
 		color:rgb(157, 38, 29);
 	}
 }
+$join-call-button-width: 15em;
 .no-call {
+	h1, h2 {
+		border: none;
+	}
 	text-align:center;
 	display:none;
 	z-index:10;
-	padding-top:5em;
-	.icon-phone {
+	padding-top:2em;
+	.icon {
 		@include transition(all 1s ease-in-out);
+		cursor:pointer;
+		cursor:hand;
 		display:block;
-		font-size:10em;
+		font-size:6em;
 		text-shadow:1px 1px 5px rgba(0,0,0,0.75);
 		&.ringing {
 			color:green;
@@ -64,22 +70,28 @@ $inactive-color: rgb(157, 38, 29);
 		}
 	}
 	p {
-		font-size:1.5em;
+		font-size:1em;
 		color:#999;
 		text-shadow:1px 1px 0px rgba(0,0,0,0.5);
 	}
 
+	.join-call-buttons {
+		width:2 * $join-call-button-width;
+		margin:auto;
+		margin-top:1em;
+	}
 	.btn {
+		float:left;
 		@include unselectable();
 		@include transition(all 0.5s ease-in-out);
 		cursor:pointer;
 		padding:4em;
 		border-radius:1em;
-		width:25em;
-		margin:auto;
+		width:$join-call-button-width;
+		margin:0 auto 2em auto;
 		&:hover {
 			background:rgba(0,0,0,0.3);
-			.icon-phone.idle {
+			.icon.idle {
 				color:yellow;
 			}
 		}

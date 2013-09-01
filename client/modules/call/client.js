@@ -9,7 +9,7 @@ define(['modules/call/rtc',
         streamTemplate: _.template(mediaStreamContainerTemplate),
 
         events: {
-            "click .join": "joinCall",
+            "click .join-call": "joinCall",
             "click .hang-up": "leaveCall",
             "click .mute-audio": "toggleMuteAudio",
             "click .mute-video": "toggleMuteVideo"
@@ -89,7 +89,11 @@ define(['modules/call/rtc',
             $(".reason.generic", this.$el).append("<p>" + errMsg + "</p>");
         },
 
-        joinCall: function () {
+        joinCall: function (ev) {
+            var $target = $(ev.currentTarget),
+                withAudio = $target.hasClass("audio"),
+                withVideo = $target.hasClass("video");
+
             this.joiningCall = true;
             if (!this.$el.is(':visible')) return;
 
@@ -99,8 +103,8 @@ define(['modules/call/rtc',
             // so that muting one mutes all..
             // probably should wrap it in a model if so so we can listen to it everywhere for UI purposes
             this.rtc.requestClientStream({
-                "video": true,
-                "audio": true
+                "video": withVideo,
+                "audio": withAudio
             }, this.gotUserMedia, this.showError);
 
         },
