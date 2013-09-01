@@ -126,13 +126,10 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 		});
 
 		// tell the newly connected client the topic of the channel:
-		redisC.hget('topic', room, function (err, reply){
-			if (client.get("room") !== room) return;
-			socket.in(room).emit('topic:' + room, serverSentMessage({
-				body: reply,
-				log: false,
-			}, room));
-		});
+		socket.in(room).emit('topic:' + room, serverSentMessage({
+			body: channel.get("topicObj"),
+			log: false,
+		}, room));
 
 		// let the knewly joined know their ID
 		socket.in(room).emit("client:id:" + room, {
@@ -430,21 +427,17 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 				ack();
 			},
 			"topic": function (namespace, socket, channel, client, data) {
-				var room = channel.get("name"),
-					topic = data.topic;
-
+				var room = channel.get("name");
+				
 				if (!channel.hasPermission(client, "canSetTopic")) {
 					emitGenericPermissionsError(socket, client);
 					return;
 				}
 
-				if (data.encrypted_topic) {
-					topic = JSON.stringify(data.encrypted_topic);
-				}
-
-				redisC.hset('topic', room, topic);
+				channel.setTopic(data);
+				
 				sio.of(CHATSPACE).in(room).emit("topic:" + room, {
-					body: topic
+					body: channel.get("topicObj")
 				});
 			},
 			"chat:edit": function (namespace, socket, channel, client, data) {

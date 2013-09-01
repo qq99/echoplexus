@@ -21,6 +21,7 @@ exports.ChannelStructures = function (redisC, EventBus) {
 	var ServerChannelModel = ChannelModel.extend({
 		defaults: {
 			name: "",
+			topic: null,
 			private: null,
 			hasOwner: null // no one can become an owner until the status of this is resolved
 		},
@@ -36,10 +37,42 @@ exports.ChannelStructures = function (redisC, EventBus) {
 			this.codeCaches = {};
 
 			this.getOwner();
+			this.getTopic();
 
 			this.permissions = new PermissionModel();
 
 			this.getPermissions();
+		},
+		getTopic: function () {
+			var self = this,
+				room = this.get("name");
+			redisC.hget('topic', room, function (err, reply){
+				self.set("topicObj", reply); // for socket
+
+				// for API:
+				if (reply && reply.encrypted_topic) {
+					self.set("topic", reply.encrypted_topic.ct);
+				} else {
+					self.set("topic", reply);
+				}
+			});
+		},
+		setTopic: function (data) {
+			var topicObj, topic;
+
+			if (data.encrypted_topic) {
+				topicObj = JSON.stringify(data.encrypted_topic);
+				topic = data.encrypted_topic.ct;
+			} else {
+				topicObj = data.topic;
+				topic = data.topic;
+			}
+			this.set("topic", topic); // transient
+			this.set("topicObj", topicObj); // "
+
+			redisC.hset('topic', this.get("name"), topicObj); // persist
+
+			return topic;
 		},
 		hasPermission: function (client, permName) {
 			var perm;

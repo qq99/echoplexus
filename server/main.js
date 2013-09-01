@@ -1,5 +1,5 @@
 var config = require('./config.js').Configuration;
-
+var Channels;
 var express = require('express'),
 	_ = require('underscore'),
 	Backbone = require('backbone'),
@@ -144,6 +144,31 @@ app.post('/*', authMW, bodyParser, function(req, res, next){
 	});
 });
 
+app.get("/api/*", function (req, res) {
+	if (req.route.params[0].indexOf("channels") !== -1) {
+		res.set('Content-Type', 'application/json');
+
+		var publicChannelInformation = [],
+			publicChannels = Channels.where({private: false});
+
+		for (var i = 0; i < publicChannels.length; i++) {
+			var chan = publicChannels[i],
+				chanJson = chan.toJSON();
+
+			// extract some non-collection information:
+			chanJson.numActiveClients = chan.clients.where({idle: false}).length;
+			chanJson.numClients = chan.clients.length;
+
+			publicChannelInformation.push(chanJson);
+		}
+
+		_.sortBy(publicChannelInformation, "numActiveClients");
+
+		res.write(JSON.stringify(publicChannelInformation));
+		res.end();
+	}
+});
+
 app.get("/*", function (req, res) {
 	res.sendfile(index);
 });
@@ -161,8 +186,9 @@ sio.set('log level', 1);
 // use db 15:
 redisC.select(15, function (err, reply) {
 	var ChannelStructures = require('./Channels.js').ChannelStructures(redisC, EventBus),
-		Channels = new ChannelStructures.ChannelsCollection(),
 		ChannelModel = ChannelStructures.ServerChannelModel;
+
+	Channels = new ChannelStructures.ChannelsCollection();
 
 	chatServer(sio, redisC, EventBus, Channels, ChannelModel); // start up the chat server
 	codeServer(sio, redisC, EventBus, Channels); // start up the code server
