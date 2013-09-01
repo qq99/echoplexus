@@ -10,9 +10,13 @@
 	<div class="chat-input-control">
 		<textarea placeholder="Say something..."></textarea>
 		<% if (encrypted) { %>
-			<button class="encrypted">Encrypted</button>
+			<button class="encrypted" title="Encrypted">
+				<i class="icon-key"></i>
+			</button>
 		<% } else { %>
-			<button class="not-encrypted">Not Encrypted</button>
+			<button class="not-encrypted" title="Not Encrypted">
+				<i class="icon-key"></i>
+			</button>
 		<% } %>
 	</div>
 </section>

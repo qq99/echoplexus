@@ -159,6 +159,8 @@ app.get("/api/*", function (req, res) {
 			chanJson.numActiveClients = chan.clients.where({idle: false}).length;
 			chanJson.numClients = chan.clients.length;
 
+			delete chanJson.topicObj;
+			
 			publicChannelInformation.push(chanJson);
 		}
 

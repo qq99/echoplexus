@@ -176,11 +176,12 @@ a {
 	position:absolute;
 	top:0;
 	left:0;
+	padding-left:30px;
 	width:100%;
 	height:100%;
 	max-height:100%;
 	max-width:100%;
-	padding-top:65px;
+	padding-top:40px;
 	box-sizing:border-box;
 	overflow:hidden;
 }
@@ -198,7 +199,7 @@ a {
 	font-size:1em;
 	&:hover {
 		background:#111911;
-		color:gold;
+		color:greenyellow;
 		border:1px solid #444;
 	}
 	&.active, &:active {
@@ -223,21 +224,32 @@ button.fancy {
 	color:#FF8B2C;
 }
 
-nav {
+nav.header {
+	position:absolute;
+	top:0;
+	left:0;
+	height:30px;
+	z-index:120;
+	background:rgba(0,0,0,0.4);
+	width:100%;
+	display:none; // temp
+}
+
+nav.functionality {
 	@include unselectable;
 
 	#buttons {
 		height: 100%;
 	}
 
-	box-shadow:inset 0px -1px 10px rgba(0,0,0,0.3);
+	background:#111;
 	position: absolute;
-	height:30px;
+	width:30px;
 	z-index: 120;
 	top:0;
 	left:0;
-	width:100%;
-	background:rgba(0,0,0,0.4);
+	height:100%;
+	// padding-top:30px;
 	h1 {
 		@include transition(all 0.25s ease-in-out);
 		font-size:1.3em;
@@ -248,14 +260,30 @@ nav {
 		border-bottom:0px;
 		color:#bbb;
 	}
+	.button-obscura {
+		@include transition(all 0.5s ease-in-out);
+		height:30px;
+		width:30px;
+		overflow: hidden;
+		box-shadow:0px;
+		&:hover {
+			width:200px;
+			h1.button {
+				background:#111;
+				border:1px solid rgba(71,178,250,0.7);
+				border-left:0px;
+			}
+		}
+	}
 	h1.button {
-		max-height:100%;
-		height:100%;
-		float:left;
+		height: 100%;
+		width: 200px;
 		cursor:pointer;
 		@include transition(all 0.25s ease-in-out);
-		padding:0.25em 1em;
-		border-bottom:0px solid transparent;
+		padding:0;
+		margin:0;
+		border-top:1px solid transparent;
+		border-bottom:1px solid transparent;
 		.button-description {
 			display: inline-block;
 			vertical-align: top;
@@ -271,15 +299,19 @@ nav {
 			display:inline-block;
 			vertical-align: top;
 			height:100%;
-			line-height:1.4em;
+			line-height:1em;
+			margin:0.35em 1em 0.35em 0.35em;
+		}
+		span {
+			padding:0 0.5em;
+			line-height: 1.5em;
 		}
 		&:hover {
-			border-bottom:1px solid rgba(71,178,250,0.7);
+
 		}
 		&.active {
-			border-bottom:0px;
 			i {
-				color:gold;
+				color:greenyellow;
 			}
 		}
 
@@ -303,8 +335,8 @@ nav {
 	}
 	.options-list {
 		position: absolute;
-		top: 0;
-		right: 0;
+		bottom: 0;
+		left: 0;
 		.options {
 			display:none;
 			position:absolute;
@@ -362,6 +394,24 @@ nav {
 		}
 	}
 }
+.channelSwitcher {
+	width:100%;
+	height:30px;
+	position:relative;
+}
+#global-options {
+	display:none;
+	width:100%;
+	height:100%;
+	font-family:$pretty-font-family;
+	padding:1em;
+	h1 {
+		margin-top:0;
+	}
+	.option {
+		margin:1em;
+	}
+}
 
 header {
 	@include unselectable;
@@ -370,8 +420,8 @@ header {
 	left:0;
 	width:100%;
 	z-index:100;
-	height:65px;
-	padding:1em;
+	height:30px;
+	padding:0 0 0 30px;
 
 	button {
 		font-size:0.8em;
@@ -379,7 +429,6 @@ header {
 
 	.channel-selector {
 		@include clearfix;
-		height:30px;
 
 		> div {
 			display:block;
@@ -388,7 +437,7 @@ header {
 		position: absolute;
 		bottom: 0;
 		left: 0;
-		padding:0 0 0.5em 1em;
+		padding:0 0 0.1em 1em;
 
 		.channels, .join-channel {
 			height:100%;
@@ -673,7 +722,7 @@ $supportbar-width: 300px;
 		height:$chatinput-height;
 
 		$chat-input-roundness:8em;
-		$crypto-button-width:12em;
+		$crypto-button-width:5em;
 		.chat-input-control {
 			@include transition(background 0.25s ease-out, color 0.75s ease-out);
 			position:relative;
@@ -686,18 +735,20 @@ $supportbar-width: 300px;
 				cursor:pointer;
 				text-transform: uppercase;
 				color:white;
-				box-shadow:inset 1px 2px 5px rgba(0, 0, 0, 0.55), inset -2px -2px 1px -1px rgba(0, 0, 0, 0.3);
 				text-shadow:1px 1px 4px rgba(0,0,0,0.9);
 				border:none;
 				outline:none;
-				background:linear-gradient(to bottom, #aa6804 0%,#836303 50%,#644e00 51%,#8f6a03 100%);
+				background:#8f6a03;
 				width:$crypto-button-width;
 				position:absolute;
 				top:0;
 				right:0;
 				height:100%;
 				&.encrypted {
-					background:linear-gradient(to bottom, #91a905 0%,#5d8303 50%,#436400 51%,#678f03 100%);
+					background:rgb(67, 100, 0);
+				}
+				i {
+					font-size:2em;
 				}
 			}
 		}

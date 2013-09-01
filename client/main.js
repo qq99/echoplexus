@@ -218,7 +218,7 @@ define(function(require,exports,module){
 		});
 
 		// change tabs:
-		var tabs = $('#buttons').children();
+		var tabs = $('#buttons .tabButton');
 		var activeTabIndex = $('#buttons .active').index();
 		key('alt+shift+right, alt+shift+k, alt+shift+d', function () {
 			activeTabIndex += 1;
@@ -240,7 +240,8 @@ define(function(require,exports,module){
 			$(this).removeClass("activity");
 			var element = $(this).data('target');
 			if ($(element + ":visible").length === 0) {
-				$(this).addClass("active").siblings().removeClass("active");
+				$(".tabButton").removeClass("active");
+				$(this).addClass("active");
 				$("#panes > section").not(element).hide();
 				$(element).show(function () {
 					window.events.trigger("sectionActive:" + element.substring(1)); // sloppy, forgive me
