@@ -204,7 +204,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			});
 
 
-			$(".messages", this.$el).on("mousewheel", this.scrollSyncLogs);
+			// $(".messages", this.$el).on("mousewheel", this.scrollSyncLogs);
 
 		},
 
