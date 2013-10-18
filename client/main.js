@@ -156,6 +156,28 @@ define(function(require,exports,module){
             }
 		});
 
+		// reconnect the socket manually using the navigator's onLine property
+		// don't bind this too early, just in case it interferes with the normal sequence of events
+		setTimeout(function () {
+			// the socket.io reconnect doesn't always fire after waking up from computer sleep
+			// I assume this is due to max reconnection attempts being reached while disconnected, but who knows for sure
+			$(window).on("online", function () {
+				console.log("attempting to force a sio reconnect");
+				io.connect(window.location.origin); // assuming it'll re-use the cnxn params we used below
+				// the faviconizer is handled seperately by the chat client.
+				// it listens to sio.reconnected and so-on, because we cannot assume chat is ready just because the browser
+				// has regained network connectivity
+				// Perhaps that should be moved out of chat client, handled in ONE place. namely, this place
+			});
+		}, 5000);
+
+		// when the navigator goes offline, we'll attempt to set their icon to reflect that
+		// this might be redundant, but is a good assumption when you're not running it on localhost
+		$(window).on("offline", function () {
+			console.log("navigator has no internet connectivity");
+			faviconizer.setDisconnected();
+		});
+
 		io.connect(window.location.origin,{
 			'connect timeout': 1000,
 			'reconnect': true,
@@ -165,8 +187,6 @@ define(function(require,exports,module){
 
 		var channelSwitcher = new ChannelSwitcher();
 		$("header").append(channelSwitcher.$el);
-
-		// socket.on('connect', function () {
 
 		notifications.enable();
 
