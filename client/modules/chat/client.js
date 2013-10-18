@@ -204,7 +204,9 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			});
 
 
-			// $(".messages", this.$el).on("mousewheel", this.scrollSyncLogs);
+			// doesn't work when defined as a backbone event :(
+			this.scrollSyncLogs = _.throttle(this._scrollSyncLogs, 500); // so we don't sync too quickly
+			$(".messages", this.$el).on("mousewheel DOMMouseScroll", this.scrollSyncLogs);
 
 		},
 
@@ -225,7 +227,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			"click .upload": "uploadFile"
 		},
 
-		scrollSyncLogs: function (ev) {
+		_scrollSyncLogs: function (ev) {
 			// make a note of how tall in scrollable px the messages area used to be
 			this.previousScrollHeight = ev.currentTarget.scrollHeight;
 			
@@ -233,7 +235,8 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 			this.chatLog.mostRecentScroll = Number(new Date());
 
 			// load more messages as we scroll upwards
-			if (ev.currentTarget.scrollTop === 0) {
+			if (ev.currentTarget.scrollTop === 0 && 
+				!this.scrollSyncLocked) {
 
 				this.activelySyncLogs();
 			}
@@ -573,6 +576,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 
 						}
 					}
+					self.scrollSyncLocked = false; // unlock the lock on scrolling to sync logs
 				},
 				"client:changed": function (alteredClient) {
 					var prevClient = self.channel.clients.findWhere({
@@ -826,6 +830,7 @@ define(['jquery','underscore','backbone','client','regex','ui/Faviconizer','Cryp
 		activelySyncLogs: function (ev) {
 			var missed = this.persistentLog.getMissingIDs(25);
 			if (missed && missed.length) {
+				this.scrollSyncLocked = true; // lock it until we receive the batch of logs
 				this.socket.emit("chat:history_request:" + this.channelName, {
 					requestRange: missed
 				});
