@@ -394,6 +394,9 @@ nav.functionality {
 		}
 	}
 }
+[class^="icon-"]:before, [class*=" icon-"]:before {
+	cursor:pointer !important;
+}
 .channelSwitcher {
 	width:100%;
 	height:30px;
@@ -473,6 +476,7 @@ header {
 				background:#111;
 				vertical-align: middle;		
 				color:#333;
+				border:1px solid transparent;
 				border-left:1px solid #222;
 				&:hover {
 					color:#aaa;
