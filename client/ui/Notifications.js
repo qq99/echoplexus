@@ -97,7 +97,6 @@ define(['underscore'],function(_){
 				} else if (window.Notification) { // Standards
 					var notification = new Notification(title, opts);
 
-					notification.show();
 					setTimeout(function () {
 						notification.cancel();
 					}, opts.TTL);
