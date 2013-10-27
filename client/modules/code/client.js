@@ -34,6 +34,19 @@ define(['jquery','underscore','backbone','codemirror',
                 "html": this.editorTemplates.SimpleHTML($(".htmlEditor", this.$el)[0])
             };
 
+            // currently triggered when user selects another channel:
+            // perhaps should also be triggered when a user chooses a different tab
+            this.on("show", this.show);
+            this.on("hide", this.hide);
+
+            //Is the REPL loaded?
+            this.isIframeAvailable = false;
+            //Wether to evaluate immediately on REPL load
+            this.runNext = false;
+        },
+
+        initializeEditors: function () {
+
             var syncedEditor = new SyncedEditor();
 
             this.syncedJs = new syncedEditor({
@@ -54,15 +67,6 @@ define(['jquery','underscore','backbone','codemirror',
 
             this.attachEvents();
 
-            // currently triggered when user selects another channel:
-            // perhaps should also be triggered when a user chooses a different tab
-            this.on("show", this.show);
-            this.on("hide", this.hide);
-
-            //Is the REPL loaded?
-            this.isIframeAvailable = false;
-            //Wether to evaluate immediately on REPL load
-            this.runNext = false;
         },
 
         hide: function () {
@@ -81,6 +85,12 @@ define(['jquery','underscore','backbone','codemirror',
         show: function () {
             DEBUG && console.log("code_client:show");
             this.$el.show();
+
+            if (!this.editorsInitialized) {
+                this.editorsInitialized = true; // lock it so it can only happen once in the lifetime
+                this.initializeEditors();
+            }
+
             this.syncedJs.trigger("show");
             this.syncedHtml.trigger("show");
         },
