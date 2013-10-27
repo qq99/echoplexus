@@ -72,8 +72,11 @@ define(['jquery','underscore','backbone','codemirror',
         hide: function () {
             DEBUG && console.log("code_client:hide");
             this.$el.hide();
-            this.syncedJs.trigger("hide");
-            this.syncedHtml.trigger("hide");
+            if (this.syncedJs && this.syncedHtml) {
+                this.syncedJs.trigger("hide");
+                this.syncedHtml.trigger("hide");                
+            }
+
             // turn off live-reloading if we hide this view
             // don't want to execute potential DoS code that was inserted while we were away
             if (this.$livereload_checkbox &&
