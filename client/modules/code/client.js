@@ -103,8 +103,8 @@ define(['jquery','underscore','backbone','codemirror',
 
             console.log("killing CodeClientView", self.channelName);
 
-            this.syncedJs.kill();
-            this.syncedHtml.kill();
+            this.syncedJs && this.syncedJs.kill();
+            this.syncedHtml && this.syncedHtml.kill();
         },
 
         livereload: function () {

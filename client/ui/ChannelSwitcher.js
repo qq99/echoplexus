@@ -22,7 +22,12 @@ define(['require','jquery','backbone','underscore','client', 'loader',
 			if (!joinChannels.length) {
 				joinChannels = []
 			}
-			joinChannels.push('/');
+
+			// some users don't like being in channel '/' on start
+			if (OPTIONS.join_default_channel) {
+				joinChannels.push('/');
+			}
+
 			if(!window.ua.node_webkit) joinChannels.push(window.location.pathname);
 			_.each(_.uniq(joinChannels),function(chan){
 				self.joinChannel(chan);

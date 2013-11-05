@@ -94,6 +94,7 @@ define(function(require,exports,module){
 			"suppress_client": false,
 			"show_OS_notifications": true,
 			"suppress_identity_acknowledgements": false,
+			"join_default_channel": true,
 			"auto_scroll": true //autoscroll to new chat messages
 		};
 
