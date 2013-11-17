@@ -20,3 +20,4 @@ npm-debug.log
 nw-build/
 app.nw
 nw/
+build/

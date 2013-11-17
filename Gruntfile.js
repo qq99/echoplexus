@@ -64,6 +64,18 @@ module.exports = function(grunt) {
         dest: '<%= requirejs.dist.options.out %>'
       }
     },
+    coffee: {
+      compile: {
+        options: {
+          bare: true
+        },
+        expand: true,
+        cwd: 'src',
+        src: ['**/*.coffee'],
+        dest: 'build',
+        ext: '.js'
+      }
+    },
     //CSS
     sass: {
       dist: {
@@ -88,7 +100,8 @@ module.exports = function(grunt) {
           "<%= client_dir %>app.min.js",
           "<%= public_dir %>css/main.css",
           "<%= public_dir %>css/",
-          "<%= public_dir %>index.build.html"
+          "<%= public_dir %>index.build.html",
+          "build/*"
         ]
       },
       nw: {
@@ -118,7 +131,7 @@ module.exports = function(grunt) {
           {expand: true, src: ['node_modules/growl/**']},
       		{expand: true, src: ['**/*'], cwd: '<%= public_dir %>'},
       		{
-            expand: true, 
+            expand: true,
             src: _.union([
                 '<%= client_dir %>**',
                 '!<%= client_dir %>lib/**',
@@ -140,6 +153,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-css');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
+  grunt.loadNpmTasks('grunt-contrib-coffee');
   grunt.loadNpmTasks('grunt-strip');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-htmlmin');
@@ -150,6 +164,7 @@ module.exports = function(grunt) {
   // Default task.
   grunt.registerTask('default', ['clean','copy','useminPrepare','requirejs','strip','usemin','htmlmin','sass','cssmin']);
   grunt.registerTask('dev', ['clean','sass']);
+  grunt.registerTask('compile', ['coffee']);
   grunt.registerTask('nw', ['clean', 'sass', 'compress:pack_app']);
   grunt.registerTask('nw_launch', ['nw', 'exec:launch_app']);
 

@@ -41,8 +41,8 @@
     "url": "https://github.com/qq99/echoplexus/issues"
   },
   "window": {
-     "icon": "favicon.png",
-     "toolbar": false
+    "icon": "favicon.png",
+    "toolbar": false
   },
   "dependencies": {
     "node-uuid": "~1.4.0",
@@ -68,6 +68,7 @@
     "grunt-contrib-htmlmin": "~0.1.3",
     "grunt-exec": "~0.4.2",
     "grunt-contrib-compress": "~0.5.2",
-    "growl": "~1.7.0"
+    "growl": "~1.7.0",
+    "grunt-contrib-coffee": "~0.7.0"
   }
 }
