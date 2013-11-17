@@ -1,5 +1,5 @@
 (function( exports ) {
-	
+
 	// customize me:
 	exports.Configuration = {
 		host: {
@@ -7,6 +7,10 @@
 			FQDN: "chat.echoplex.us",
 			PORT: 8080,
 			USE_PORT_IN_URL: true,
+		},
+		redis: {
+			host: '127.0.0.1',
+			port: 6379
 		},
 		ssl: {
 			USE_NODE_SSL: false, // only necessary if you're not having nginx proxy through to node

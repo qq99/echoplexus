@@ -1,6 +1,7 @@
 var config = require('./config.js').Configuration;
 var Channels;
-var express = require('express'),
+var redis,
+	express = require('express'),
 	_ = require('underscore'),
 	Backbone = require('backbone'),
 	crypto = require('crypto'),
@@ -9,7 +10,6 @@ var express = require('express'),
 	redis = require('redis'),
 	sio = require('socket.io'),
 	app = express(),
-	redisC = redis.createClient(),
 	spawn = require('child_process').spawn,
 	async = require('async'),
 	path = require('path'),
@@ -24,6 +24,12 @@ var express = require('express'),
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
 	CLIENT_FOLDER = ROOT_FOLDER + '/client',
 	protocol, server;
+
+if (config.redis) {
+	redisC = redis.createClient(config.redis.port, config.redis.host);
+} else {
+	redisC = redis.createClient();
+}
 
 // if we're using node's ssl, we must supply it the certs and create the server as https
 if (config.ssl.USE_NODE_SSL) {
@@ -102,7 +108,7 @@ function authMW (req, res, next) {
 	});
 }
 // always server up the index
-// 
+//
 // receive files
 app.post('/*', authMW, bodyParser, function(req, res, next){
 
@@ -160,7 +166,7 @@ app.get("/api/*", function (req, res) {
 			chanJson.numClients = chan.clients.length;
 
 			delete chanJson.topicObj;
-			
+
 			publicChannelInformation.push(chanJson);
 		}
 
