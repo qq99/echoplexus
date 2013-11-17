@@ -1,14 +1,5 @@
 AbstractServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
-  Server = ->
-    @initialized = false
-    @name = "Default"
-    @SERVER_NAMESPACE = "/default" # override in initialize
 
-    # a list of events to bind to the client socket:
-    @events = []
-
-    # everything is assumed to be an authenticated route unless specified elsewise
-    @unauthenticatedEvents = []
   _ = require("underscore")
   config = require("./config.js").Configuration
   Client = require("./client.js").ClientStructures(redisC, EventBus).ServerClient
@@ -16,123 +7,116 @@ AbstractServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
   Channel = ChannelModel
   DEBUG = config.DEBUG
 
-  #
-  #		Initialize a server with a set of events.
-  #		Provide any server-level overrides in here, e.g.,
-  #
-  #		options: {
-  #			SERVER_NAMESPACE: "/chat",
-  #			events: [
-  #				"chat": function (socket, channel, client, data) {
-  #					this.emit("yo", {'some':'data'});
-  #					// the context of "this" will be the server
-  #				}
-  #			], // list of all events the server will be listening for
-  #			unauthenticatedEvents: ["join_private"] // all other events will need to be authenticated
-  #		}
-  #
-  Server::initialize = (options) ->
-    _.extend this, options
-    @initialized = true
+  class Server
 
-  Server::initializeClientEvents = (namespace, socket, channel, client) ->
-    server = this
+    constructor: ->
+      @initialized = false
+      @name = "Default"
+      @SERVER_NAMESPACE = "/default" # override in initialize
 
-    # bind the events:
-    _.each @events, (method, eventName) ->
+      # a list of events to bind to the client socket:
+      @events = []
 
-      # wrap the event in an authentication filter:
-      authFiltered = _.wrap(method, (meth) ->
-        method_args = arguments_
-        return  if (client.get("authenticated") is false) and not _.contains(server.unauthenticatedEvents, eventName)
+      # everything is assumed to be an authenticated route unless specified elsewise
+      @unauthenticatedEvents = []
 
-        #DEBUG && console.log(eventName + ":" + namespace);
-        method_args = Array::slice.call(method_args).splice(1) # first argument is the function itself
-        method_args.unshift namespace, socket, channel, client
-        meth.apply server, method_args # not even once.
-      )
+    initialize: (options) ->
+      _.extend this, options
+      @initialized = true
 
-      # bind the pre-filtered event
-      socket.on eventName + ":" + namespace, authFiltered
+    initializeClientEvents: (namespace, socket, channel, client) ->
+      server = this
 
+      # bind the events:
+      _.each @events, (method, eventName) ->
 
-  Server::start = (callback) ->
-    server = this
-    throw new Error("Server not yet initialized")  unless @initialized
-    @serverInstance = sio.of(@SERVER_NAMESPACE).on("connection", (socket) ->
-      socket.on "subscribe", (data, subscribeAck) ->
-        channelName = data.room
-        subchannel = data.subchannel
-        namespace = undefined
-        channelProperties = undefined
-        client = undefined
-        channel = undefined
-        if typeof subchannel isnt "undefined"
-          namespace = channelName + ":" + subchannel
-        else
-          namespace = channelName
+        # wrap the event in an authentication filter:
+        authFiltered = _.wrap(method, (meth) ->
+          method_args = arguments
+          return  if (client.get("authenticated") is false) and not _.contains(server.unauthenticatedEvents, eventName)
 
-        # attempt to get the channel
-        channel = Channels.findWhere(name: channelName)
+          #DEBUG && console.log(eventName + ":" + namespace);
+          method_args = Array::slice.call(method_args).splice(1) # first argument is the function itself
+          method_args.unshift namespace, socket, channel, client
+          meth.apply server, method_args # not even once.
+        )
 
-        # create the channel if it doesn't already exist
-        if typeof channel is "undefined" or channel is null
+        # bind the pre-filtered event
+        socket.on eventName + ":" + namespace, authFiltered
 
-          # create the channel
-          channel = new Channel(name: channelName)
-          Channels.add channel
-        client = channel.clients.findWhere(sid: socket.id)
-
-        # console.log(server.name, "c", typeof client);
-        if typeof client is "undefined" or client is null # there was no pre-existing client
-          client = new Client(
-            room: channelName
-            sid: socket.id
-          )
-          client.socketRef = socket
-          channel.clients.add client
-        else # there was a pre-existing client
-          socket.join namespace  if client.get("authenticated")
-        client.once "authenticated", (result) ->
-          DEBUG and console.log("authenticated", server.name, client.cid, socket.id, result.attributes.authenticated)
-          if result.attributes.authenticated
-            socket.join namespace
-            callback.success namespace, socket, channel, client, data
-            subscribeAck cid: client.cid  if subscribeAck isnt null and typeof (subscribeAck) isnt "undefined"
+    start: (callback) ->
+      server = this
+      throw new Error("Server not yet initialized")  unless @initialized
+      @serverInstance = sio.of(@SERVER_NAMESPACE).on "connection", (socket) ->
+        socket.on "subscribe", (data, subscribeAck) ->
+          channelName = data.room
+          subchannel = data.subchannel
+          namespace = undefined
+          channelProperties = undefined
+          client = undefined
+          channel = undefined
+          if typeof subchannel isnt "undefined"
+            namespace = channelName + ":" + subchannel
           else
-            socket.leave namespace
+            namespace = channelName
+
+          # attempt to get the channel
+          channel = Channels.findWhere(name: channelName)
+
+          # create the channel if it doesn't already exist
+          if typeof channel is "undefined" or channel is null
+
+            # create the channel
+            channel = new Channel(name: channelName)
+            Channels.add channel
+          client = channel.clients.findWhere(sid: socket.id)
+
+          # console.log(server.name, "c", typeof client);
+          if typeof client is "undefined" or client is null # there was no pre-existing client
+            client = new Client(
+              room: channelName
+              sid: socket.id
+            )
+            client.socketRef = socket
+            channel.clients.add client
+          else # there was a pre-existing client
+            socket.join namespace  if client.get("authenticated")
+          client.once "authenticated", (result) ->
+            DEBUG and console.log("authenticated", server.name, client.cid, socket.id, result.attributes.authenticated)
+            if result.attributes.authenticated
+              socket.join namespace
+              callback.success namespace, socket, channel, client, data
+              subscribeAck cid: client.cid  if subscribeAck isnt null and typeof (subscribeAck) isnt "undefined"
+            else
+              socket.leave namespace
 
 
-        # attempt to authenticate on the chanenl
-        channel.authenticate client, "", (err, response) ->
-          server.initializeClientEvents namespace, socket, channel, client
+          # attempt to authenticate on the chanenl
+          channel.authenticate client, "", (err, response) ->
+            server.initializeClientEvents namespace, socket, channel, client
 
-          # let any implementing servers handle errors the way they like
-          callback.error err, socket, channel, client, data  if err
-
-
-        # every server shall support a disconnect handler
-        socket.on "disconnect", ->
-
-          # DEBUG && console.log("Killing (d/c) ", client.cid, " from ", channelName);
-          channel.clients.remove client  if typeof client isnt "undefined"
-          _.each server.events, (value, key) ->
-            socket.removeAllListeners key + ":" + channelName
+            # let any implementing servers handle errors the way they like
+            callback.error err, socket, channel, client, data  if err
 
 
+          # every server shall support a disconnect handler
+          socket.on "disconnect", ->
 
-        # every server shall support a unsubscribe handler (user closes channel but remains in chat)
-        socket.on "unsubscribe:" + namespace, ->
-
-          # DEBUG && console.log("Killing (left) ", client.cid, " from ", channelName);
-          channel.clients.remove client  if typeof client isnt "undefined"
-          _.each server.events, (value, key) ->
-            socket.removeAllListeners key + ":" + channelName
+            # DEBUG && console.log("Killing (d/c) ", client.cid, " from ", channelName);
+            channel.clients.remove client  if typeof client isnt "undefined"
+            _.each server.events, (value, key) ->
+              socket.removeAllListeners key + ":" + channelName
 
 
 
-    )
+          # every server shall support a unsubscribe handler (user closes channel but remains in chat)
+          socket.on "unsubscribe:" + namespace, ->
 
-  new Server()
+            # DEBUG && console.log("Killing (left) ", client.cid, " from ", channelName);
+            channel.clients.remove client  if typeof client isnt "undefined"
+            _.each server.events, (value, key) ->
+              socket.removeAllListeners key + ":" + channelName
+
+  return new Server()
 
 exports.AbstractServer = AbstractServer

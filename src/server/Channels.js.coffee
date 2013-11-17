@@ -65,11 +65,14 @@ exports.ChannelStructures = (redisC, EventBus) ->
 
 			# first check user perms
 			perm = client.hasPermission(permName)
+
 			if perm is null
 
 			  # if not set, check channel perms
 			  perm = @permissions.get(permName)
 			  perm = false  if perm is null # if not set, default is deny
+
+			perm
 
 		getPermissions: ->
 			room = @get("name")

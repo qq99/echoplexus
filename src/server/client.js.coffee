@@ -1,30 +1,31 @@
 exports.ClientStructures = (redisC, EventBus) ->
-	TokenBucket = ->
-
-	  # from: http://stackoverflow.com/questions/667508/whats-a-good-rate-limiting-algorithm
-	  rate = config.chat.rate_limiting.rate # unit: # messages
-	  per = config.chat.rate_limiting.per # unit: milliseconds
-	  allowance = rate # unit: # messages
-	  last_check = Number(new Date()) # unit: milliseconds
-	  @rateLimit = ->
-	    current = Number(new Date())
-	    time_passed = current - last_check
-	    last_check = current
-	    allowance += time_passed * (rate / per)
-	    allowance = rate  if allowance > rate # throttle
-	    if allowance < 1.0
-	      true # discard message, "true" to rate limiting
-	    else
-	      allowance -= 1.0
-	      false # allow message, "false" to rate limiting
-
 	_ = require("underscore")
 	uuid = require("node-uuid")
 	config = require("../server/config.js").Configuration
 	Client = require("../client/client.js").ClientModel
 
+	# from: http://stackoverflow.com/questions/667508/whats-a-good-rate-limiting-algorithm
+	class TokenBucket
+		constructor: () ->
+		  @rate = config.chat.rate_limiting.rate # unit: # messages
+		  @per = config.chat.rate_limiting.per # unit: milliseconds
+		  @allowance = @rate # unit: # messages
+		  @last_check = Number(new Date()) # unit: milliseconds
+
+	  rateLimit: ->
+	    current = Number(new Date())
+	    time_passed = current - @last_check
+	    @last_check = current
+	    @allowance += time_passed * (@rate / @per)
+	    @allowance = @rate  if @allowance > @rate # throttle
+	    if @allowance < 1.0
+	      true # discard message, "true" to rate limiting
+	    else
+	      @allowance -= 1.0
+	      false # allow message, "false" to rate limiting
+
 	this.ServerClient = Client.extend
-		initialize: =>
+		initialize: ->
 			@on "change:identified", (data) ->
 			  self.loadMetadata()
 			  self.setIdentityToken (err) ->
@@ -32,7 +33,7 @@ exports.ClientStructures = (redisC, EventBus) ->
 			    self.getPermissions()
 
 
-			Client::initialize.apply this, arguments_
+			Client::initialize.apply this, arguments
 
 			# set a good global identifier
 			@set "id", uuid.v4() if uuid?
@@ -40,7 +41,7 @@ exports.ClientStructures = (redisC, EventBus) ->
 			if (config?.chat?.rate_limiting?.enabled)
 				this.tokenBucket = new TokenBucket();
 
-		setIdentityToken: (callback) =>
+		setIdentityToken: (callback) ->
 			self = this
 			token = undefined
 			room = @get("room")
@@ -61,14 +62,14 @@ exports.ClientStructures = (redisC, EventBus) ->
 			    self.identity_token = token # store it on the client object
 			    callback null
 
-		hasPermission: (permName) =>
+		hasPermission: (permName) ->
 			@get("permissions").get permName
 
-		becomeChannelOwner: =>
+		becomeChannelOwner: ->
 			@get("permissions").upgradeToOperator()
 			@set "operator", true # TODO: add a way to send client data on change events
 
-		getPermissions: =>
+		getPermissions: ->
 			room = @get("room")
 			nick = @get("nick")
 			identity_token = @identity_token;
@@ -81,7 +82,7 @@ exports.ClientStructures = (redisC, EventBus) ->
 			    stored_permissions = JSON.parse(reply)
 			    self.get("permissions").set stored_permissions
 
-		persistPermissions: =>
+		persistPermissions: ->
 			return if @get("identified")
 
 			room = @get("room")
@@ -90,7 +91,7 @@ exports.ClientStructures = (redisC, EventBus) ->
 
 			redisC.hset "permissions:" + room, nick + ":" + identity_token, JSON.stringify(@get("permissions").toJSON())
 
-		metadataToArray: =>
+		metadataToArray: ->
 			data = []
 			_.each @supported_metadata, (field) ->
 			  data.push field
@@ -98,7 +99,7 @@ exports.ClientStructures = (redisC, EventBus) ->
 
 			data
 
-		saveMetadata: =>
+		saveMetadata: ->
 			if @get("identified")
 			  room = @get("room")
 			  nick = @get("nick")
@@ -107,7 +108,7 @@ exports.ClientStructures = (redisC, EventBus) ->
 			    throw err  if err
 			    callback null
 
-		loadMetadata: =>
+		loadMetadata: ->
 			if @get("identified")
 			  room = @get("room")
 			  nick = @get("nick")
@@ -127,3 +128,5 @@ exports.ClientStructures = (redisC, EventBus) ->
 			      trigger: true
 
 			    reply # just in case
+
+	return this

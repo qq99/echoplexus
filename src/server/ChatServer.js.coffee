@@ -148,37 +148,38 @@ exports.ChatServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
 
 			from_mID = data.mID
 
-			for url in urls
+			if urls
+				for url in urls
 
-				randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg" # also guarantees we store no more than 9000 webshots at any time
+					randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg" # also guarantees we store no more than 9000 webshots at any time
 
-				((url, fileName) -> # run our screenshotting routine in a self-executing closure so we can keep the current filename & url
-					output = SANDBOXED_FOLDER + "/" + fileName
-					DEBUG && console.log("Processing ", urls[i])
+					((url, fileName) -> # run our screenshotting routine in a self-executing closure so we can keep the current filename & url
+						output = SANDBOXED_FOLDER + "/" + fileName
+						DEBUG && console.log("Processing ", urls[i])
 
-					screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
-						['./PhantomJS-Screenshot.js', url, output],
-						{
-							cwd: __dirname
-							timeout: 30*1000 # after 30s, we'll consider phantomjs to have failed to screenshot and kill it
-						})
+						screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
+							['./PhantomJS-Screenshot.js', url, output],
+							{
+								cwd: __dirname
+								timeout: 30*1000 # after 30s, we'll consider phantomjs to have failed to screenshot and kill it
+							})
 
-					screenshotter.stdout.on 'data', (data) ->
-						try
-							pageData = JSON.parse(data.toString()) # explicitly cast it, who knows what type it is having come from a process
-						catch e # if the result was not JSON'able
+						screenshotter.stdout.on 'data', (data) ->
+							try
+								pageData = JSON.parse(data.toString()) # explicitly cast it, who knows what type it is having come from a process
+							catch e # if the result was not JSON'able
 
-					#screenshotter.stderr.on 'data', (data) ->
+						#screenshotter.stderr.on 'data', (data) ->
 
-					screenshotter.on "exit", (data) ->
-						# DEBUG && console.log('screenshotter exit: ' + data.toString())
-						if pageData
-							pageData.webshot = urlRoot() + 'sandbox/' + fileName
-							pageData.original_url = url
-							pageData.from_mID = from_mID
+						screenshotter.on "exit", (data) ->
+							# DEBUG && console.log('screenshotter exit: ' + data.toString())
+							if pageData
+								pageData.webshot = urlRoot() + 'sandbox/' + fileName
+								pageData.original_url = url
+								pageData.from_mID = from_mID
 
-						sio.of(CHATSPACE).in(room).emit('webshot:' + room, pageData)
-				)(url, randomFilename) # call our closure with our random filename
+							sio.of(CHATSPACE).in(room).emit('webshot:' + room, pageData)
+					)(url, randomFilename) # call our closure with our random filename
 
 	ChatServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, Channels, ChannelModel)
 

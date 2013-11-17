@@ -82,7 +82,7 @@ Clients = require("../client/client.js").ClientsCollection
 REGEXES = require("../client/regex.js").REGEXES
 app.use "/client", express.static(CLIENT_FOLDER)
 xferc = config.server_hosted_file_transfer
-app.use express.limit(xferc.size_limit)  if xferc and xferc.enabled and xferc.size_limit
+app.use express.limit(xferc.size_limit)  if xferc?.enabled and xferc.size_limit
 app.use express.static(PUBLIC_FOLDER)
 bodyParser = express.bodyParser(uploadDir: SANDBOXED_FOLDER)
 
