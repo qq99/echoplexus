@@ -13,6 +13,7 @@ public/sandbox
 server/config.js
 *.sublime-*
 client/lib/*
+src/client/lib/*
 Vagrantfile
 .vagrant
 npm-debug.log

@@ -1,0 +1,27 @@
+<div class="media-item imageThumbnail">
+	<div class="media-buttons">
+		<a rel="noreferrer" class="to-external" href="<%= url %>" title="<%- title %>" target="_blank">
+			<span class="explanatory-text">Direct</span>
+			<i class="icon-external-link"></i>
+		</a>
+		<a class="hide" href="#">
+			<span class="explanatory-text">Hide</span>
+			<i class="icon-collapse-alt"></i>
+		</a>
+		<a class="close" href="#">
+			<i class="icon-remove"></i>
+		</a>
+	</div>
+	<div class="media-object">
+		<div class="max">
+			<a rel="noreferrer" href="<%= url %>" target="_blank" title="<%- title %>">
+				<img src="<%= image_url %>" target="_blank" />
+			</a>
+		</div>
+		<div class="min">
+			<a rel="noreferrer" href="<%= url %>" target="_blank" title="<%- title %>">
+				<%= url %>
+			</a>
+		</div>
+	</div>
+</div>
