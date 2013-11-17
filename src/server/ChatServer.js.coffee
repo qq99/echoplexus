@@ -537,34 +537,34 @@ exports.ChatServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
 								body: "There's no registration on file for " + nick
 							}, room))
 						else
-							# async.parallel
-							# 	salt: (callback) ->
-							# 		redisC.hget("salts:" + room, nick, callback)
-							# 	password: (callback) ->
-							# 		redisC.hget("passwords:" + room, nick, callback)
-							# , (err, stored) ->
-							# 	throw err if err
-							# 	crypto.pbkdf2 data.password, stored.salt, 4096, 256, (err, derivedKey) ->
-							# 		throw err if err
+							async.parallel {
+								salt: (callback) ->
+									redisC.hget("salts:" + room, nick, callback)
+								password: (callback) ->
+									redisC.hget("passwords:" + room, nick, callback)
+							}, (err, stored) ->
+								throw err if err
+								crypto.pbkdf2 data.password, stored.salt, 4096, 256, (err, derivedKey) ->
+									throw err if err
 
-							# 		# TODO: does not output the right nick while encrypted, may not be necessary as this functionality might change (re: GPG/PGP)
-							# 		if (derivedKey.toString() !== stored.password) { # FAIL
-							# 			client.set("identified", false)
-							# 			socket.in(room).emit('chat:' + room, serverSentMessage({
-							# 				class: "identity err",
-							# 				body: "Wrong password for " + nick
-							# 			}, room))
-							# 			socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
-							# 				class: "identity err",
-							# 				body: nick + " just failed to identify himself"
-							# 			}, room))
+									# TODO: does not output the right nick while encrypted, may not be necessary as this functionality might change (re: GPG/PGP)
+									if (derivedKey.toString() != stored.password) # FAIL
+										client.set("identified", false)
+										socket.in(room).emit('chat:' + room, serverSentMessage({
+											class: "identity err",
+											body: "Wrong password for " + nick
+										}, room))
+										socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
+											class: "identity err",
+											body: nick + " just failed to identify himself"
+										}, room))
 
-							# 		else # ident'd
-							# 			client.set("identified", true)
-							# 			socket.in(room).emit('chat:' + room, serverSentMessage({
-							# 				class: "identity ack",
-							# 				body: "You are now identified for " + nick
-							# 			}, room))
+									else # ident'd
+										client.set("identified", true)
+										socket.in(room).emit('chat:' + room, serverSentMessage({
+											class: "identity ack",
+											body: "You are now identified for " + nick
+										}, room))
 				catch e # identification error
 					socket.in(room).emit('chat:' + room, serverSentMessage({
 						body: "Error identifying yourself: " + e
