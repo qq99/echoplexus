@@ -148,39 +148,37 @@ exports.ChatServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
 
 			from_mID = data.mID
 
-			if urls
+			for url in urls
 
-				for (i = 0 i < urls.length i++)
+				randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg" # also guarantees we store no more than 9000 webshots at any time
 
-					randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg" # also guarantees we store no more than 9000 webshots at any time
+				((url, fileName) -> # run our screenshotting routine in a self-executing closure so we can keep the current filename & url
+					output = SANDBOXED_FOLDER + "/" + fileName
+					DEBUG && console.log("Processing ", urls[i])
 
-					((url, fileName) -> # run our screenshotting routine in a self-executing closure so we can keep the current filename & url
-						output = SANDBOXED_FOLDER + "/" + fileName
-						DEBUG && console.log("Processing ", urls[i])
+					screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
+						['./PhantomJS-Screenshot.js', url, output],
+						{
+							cwd: __dirname
+							timeout: 30*1000 # after 30s, we'll consider phantomjs to have failed to screenshot and kill it
+						})
 
-						screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
-							['./PhantomJS-Screenshot.js', url, output],
-							{
-								cwd: __dirname
-								timeout: 30*1000 # after 30s, we'll consider phantomjs to have failed to screenshot and kill it
-							})
+					screenshotter.stdout.on 'data', (data) ->
+						try
+							pageData = JSON.parse(data.toString()) # explicitly cast it, who knows what type it is having come from a process
+						catch e # if the result was not JSON'able
 
-						screenshotter.stdout.on 'data', (data) ->
-							try
-								pageData = JSON.parse(data.toString()) // explicitly cast it, who knows what type it is having come from a process
-							catch (e) # if the result was not JSON'able
+					#screenshotter.stderr.on 'data', (data) ->
 
-						#screenshotter.stderr.on 'data', (data) ->
+					screenshotter.on "exit", (data) ->
+						# DEBUG && console.log('screenshotter exit: ' + data.toString())
+						if pageData
+							pageData.webshot = urlRoot() + 'sandbox/' + fileName
+							pageData.original_url = url
+							pageData.from_mID = from_mID
 
-						screenshotter.on "exit", (data) ->
-							# DEBUG && console.log('screenshotter exit: ' + data.toString())
-							if pageData
-								pageData.webshot = urlRoot() + 'sandbox/' + fileName
-								pageData.original_url = url
-								pageData.from_mID = from_mID
-
-							sio.of(CHATSPACE).in(room).emit('webshot:' + room, pageData)
-					)(urls[i], randomFilename) # call our closure with our random filename
+						sio.of(CHATSPACE).in(room).emit('webshot:' + room, pageData)
+				)(url, randomFilename) # call our closure with our random filename
 
 	ChatServer = require('./AbstractServer.js').AbstractServer(sio, redisC, EventBus, Channels, ChannelModel)
 
@@ -217,9 +215,11 @@ exports.ChatServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
 				room = channel.get("name")
 				bestowables = client.get("permissions").canBestow
 				startOfUsername = data.body.indexOf(' ')
-				perms = data.body.substring(0, (startOfUsername === -1) ? data.body.length : startOfUsername)
+				permStart = startOfUsername
+				permStart = data.body.length if permStart == -1
+				perms = data.body.substring(0, permStart)
 
-				if startOfUsername !== -1
+				if startOfUsername != -1
 					username = data.body.substring(startOfUsername, data.body.length).trim()
 				else
 					username = null
@@ -234,9 +234,8 @@ exports.ChatServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
 				successes = []
 				permsToSave = {}
 
-				for (i = 0 i < perms.length i++) {
-					perm = perms[i]
-					permValue = (perm.charAt(0) === "+")
+				for perm in perms
+					permValue = (perm.charAt(0) == "+")
 					permName = perm.replace(/[+-]/g, '')
 
 					# we can't bestow it, continue to next perm
@@ -247,7 +246,6 @@ exports.ChatServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
 						successes.push(perm)
 
 					permsToSave[permName] = permValue
-				}
 
 				if (successes.length)
 					if (username) # we're setting a perm on the user object
@@ -454,13 +452,11 @@ exports.ChatServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
 
 						# O(nm) if pm'ing everyone, most likely O(n) in the average case
 						_.each data.ciphernicks, (ciphernick) ->
-							for (i = 0 i < channel.clients.length i++) {
-								encryptedNick = channel.clients.at(i).get("encrypted_nick")
+							for client in channel.clients
+								encryptedNick = clients.at(i).get("encrypted_nick")
 
-								if encryptedNick && encryptedNick["ct"] === ciphernick
+								if encryptedNick && encryptedNick["ct"] == ciphernick
 									targetClients.push(channel.clients.at(i))
-
-							}
 
 						delete data.ciphernicks # no use sending this to other clients
 					else # it wasn't encrypted, just find the regular directedAt
@@ -541,35 +537,35 @@ exports.ChatServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
 								body: "There's no registration on file for " + nick
 							}, room))
 						else
-							async.parallel
-								salt: (callback) ->
-									redisC.hget("salts:" + room, nick, callback)
-								password: (callback) ->
-									redisC.hget("passwords:" + room, nick, callback)
-							, (err, stored) ->
-								if (err) throw err
-								crypto.pbkdf2 data.password, stored.salt, 4096, 256, (err, derivedKey) ->
-									if (err) throw err
+							# async.parallel
+							# 	salt: (callback) ->
+							# 		redisC.hget("salts:" + room, nick, callback)
+							# 	password: (callback) ->
+							# 		redisC.hget("passwords:" + room, nick, callback)
+							# , (err, stored) ->
+							# 	throw err if err
+							# 	crypto.pbkdf2 data.password, stored.salt, 4096, 256, (err, derivedKey) ->
+							# 		throw err if err
 
-									# TODO: does not output the right nick while encrypted, may not be necessary as this functionality might change (re: GPG/PGP)
-									if (derivedKey.toString() !== stored.password) { # FAIL
-										client.set("identified", false)
-										socket.in(room).emit('chat:' + room, serverSentMessage({
-											class: "identity err",
-											body: "Wrong password for " + nick
-										}, room))
-										socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
-											class: "identity err",
-											body: nick + " just failed to identify himself"
-										}, room))
+							# 		# TODO: does not output the right nick while encrypted, may not be necessary as this functionality might change (re: GPG/PGP)
+							# 		if (derivedKey.toString() !== stored.password) { # FAIL
+							# 			client.set("identified", false)
+							# 			socket.in(room).emit('chat:' + room, serverSentMessage({
+							# 				class: "identity err",
+							# 				body: "Wrong password for " + nick
+							# 			}, room))
+							# 			socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
+							# 				class: "identity err",
+							# 				body: nick + " just failed to identify himself"
+							# 			}, room))
 
-									else # ident'd
-										client.set("identified", true)
-										socket.in(room).emit('chat:' + room, serverSentMessage({
-											class: "identity ack",
-											body: "You are now identified for " + nick
-										}, room))
-				catch (e) # identification error
+							# 		else # ident'd
+							# 			client.set("identified", true)
+							# 			socket.in(room).emit('chat:' + room, serverSentMessage({
+							# 				class: "identity ack",
+							# 				body: "You are now identified for " + nick
+							# 			}, room))
+				catch e # identification error
 					socket.in(room).emit('chat:' + room, serverSentMessage({
 						body: "Error identifying yourself: " + e
 					}, room))
@@ -578,27 +574,27 @@ exports.ChatServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
 				room = channel.get("name")
 				nick = client.get("nick")
 				redisC.sismember "users:#{room}", nick, (err, reply) ->
-					if (err) throw err
+					throw err if err
 					if !reply # nick is not in use
 						try # try crypto & persistence
 							crypto.randomBytes 256, (ex, buf) ->
-								if (ex) throw ex
+								throw ex if ex
 								salt = buf.toString()
 								crypto.pbkdf2 data.password, salt, 4096, 256, (err, derivedKey) ->
-									if (err) throw err
+									throw err if err
 
 									redisC.sadd "users:#{room}", nick, (err, reply) ->
-										if (err) throw err
+										throw err if err
 									redisC.hset "salts:#{room}", nick, salt, (err, reply) ->
-										if (err) throw err
+										throw err if err
 									redisC.hset "passwords:#{room}", nick, derivedKey.toString(), (err, reply) ->
-										if (err) throw err
+										throw err if err
 
 									client.set("identified", true)
 									socket.in(room).emit('chat:' + room, serverSentMessage({
 										body: "You have registered your nickname.  Please remember your password."
 									}, room))
-						catch (e)
+						catch e
 							socket.in(room).emit('chat:' + room, serverSentMessage({
 								body: "Error in registering your nickname: " + e
 							}, room))
