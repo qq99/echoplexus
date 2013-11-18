@@ -31,3 +31,5 @@
     initialize: (modelAttributes, options) ->
       _.bindAll this
   )
+
+  return exports

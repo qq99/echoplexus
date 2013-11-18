@@ -6,6 +6,7 @@ public/*.js
 client/app.min.js
 public/index.build.html
 .libs
+lib
 .css
 .js
 public/sandbox

@@ -23,6 +23,8 @@ var redis,
 	PUBLIC_FOLDER = ROOT_FOLDER + '/public',
 	SANDBOXED_FOLDER = PUBLIC_FOLDER + '/sandbox',
 	CLIENT_FOLDER = ROOT_FOLDER + '/client',
+	LIB_FOLDER = ROOT_FOLDER + '/lib',
+ 	BUILD_FOLDER = ROOT_FOLDER + '/build',
 	protocol, server;
 
 if (config.redis) {
@@ -64,7 +66,8 @@ function urlRoot(){
 
 // Web server init:
 app.use('/client',express.static(CLIENT_FOLDER));
-
+app.use('/lib',express.static(LIB_FOLDER));
+app.use('/build',express.static(BUILD_FOLDER));
 
 // xferc means 'transfer config'
 var xferc = config.server_hosted_file_transfer;

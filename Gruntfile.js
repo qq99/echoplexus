@@ -58,6 +58,14 @@ module.exports = function(grunt) {
         })
       }
     },
+    mocha: {
+      // Test all files ending in .html anywhere inside the test directory.
+      browser: ['tests/testrunner.html'],
+      options: {
+        reporter: 'Nyan', // Duh!
+        run: true
+      }
+    },
     strip: {
       dist: {
         src: '<%= requirejs.dist.options.out %>',
@@ -65,7 +73,7 @@ module.exports = function(grunt) {
       }
     },
     coffee: {
-      compile: {
+      src: {
         options: {
           bare: true
         },
@@ -73,6 +81,16 @@ module.exports = function(grunt) {
         cwd: 'src',
         src: ['**/*.coffee'],
         dest: 'build',
+        ext: '.js'
+      },
+      test: {
+        options: {
+          bare: true
+        },
+        expand: true,
+        cwd: 'tests',
+        src: ['**/*.coffee'],
+        dest: 'tests',
         ext: '.js'
       }
     },
@@ -160,10 +178,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-usemin');
   grunt.loadNpmTasks('grunt-exec');
   grunt.loadNpmTasks('grunt-contrib-compress');
+  grunt.loadNpmTasks('grunt-mocha');
 
   // Default task.
   grunt.registerTask('default', ['clean','copy','useminPrepare','requirejs','strip','usemin','htmlmin','sass','cssmin']);
-  grunt.registerTask('dev', ['clean','sass']);
+  grunt.registerTask('dev', ['clean','coffee:src','sass']);
+  grunt.registerTask('test', ['mocha']);
   grunt.registerTask('compile', ['coffee']);
   grunt.registerTask('nw', ['clean', 'sass', 'compress:pack_app']);
   grunt.registerTask('nw_launch', ['nw', 'exec:launch_app']);

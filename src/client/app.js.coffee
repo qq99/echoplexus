@@ -5,23 +5,23 @@
   "use strict"
   config =
     paths:
-      jquery: "lib/jquery/jquery.min"
-      underscore: "lib/underscore/underscore-min"
-      backbone: "lib/backbone/backbone-min"
-      keymaster: "lib/keymaster/keymaster.min"
-      "jquery.cookie": "lib/jquery.cookie/jquery.cookie"
-      text: "lib/requirejs-text/text"
-      moment: "lib/moment/moment"
-      codemirror: "lib/codemirror/lib/codemirror"
-      "codemirror-js": "lib/codemirror/mode/javascript/javascript"
-      "codemirror-html": "lib/codemirror/mode/htmlmixed/htmlmixed"
-      "codemirror-xml": "lib/codemirror/mode/xml/xml"
-      "codemirror-css": "lib/codemirror/mode/css/css"
-      AES: "CryptoJS-3.1.2/rollups/aes"
+      jquery: "../../lib/jquery/jquery.min"
+      underscore: "../../lib/underscore/underscore-min"
+      backbone: "../../lib/backbone/backbone-min"
+      keymaster: "../../lib/keymaster/keymaster.min"
+      "jquery.cookie": "../../lib/jquery.cookie/jquery.cookie"
+      text: "../../lib/requirejs-text/text"
+      moment: "../../lib/moment/moment"
+      codemirror: "../../lib/codemirror/lib/codemirror"
+      "codemirror-js": "../../lib/codemirror/mode/javascript/javascript"
+      "codemirror-html": "../../lib/codemirror/mode/htmlmixed/htmlmixed"
+      "codemirror-xml": "../../lib/codemirror/mode/xml/xml"
+      "codemirror-css": "../../lib/codemirror/mode/css/css"
+      AES: "../../lib/CryptoJS-3.1.2/rollups/aes"
 
     shim:
       AES:
-        deps: ["CryptoJS-3.1.2/components/core", "CryptoJS-3.1.2/components/enc-base64", "CryptoJS-3.1.2/components/enc-utf16", "CryptoJS-3.1.2/components/pbkdf2"]
+        deps: ["../../lib/CryptoJS-3.1.2/components/core", "../../lib/CryptoJS-3.1.2/components/enc-base64", "../../lib/CryptoJS-3.1.2/components/enc-utf16", "../../lib/CryptoJS-3.1.2/components/pbkdf2"]
 
       underscore:
         exports: "_"

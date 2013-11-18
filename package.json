@@ -69,6 +69,9 @@
     "grunt-exec": "~0.4.2",
     "grunt-contrib-compress": "~0.5.2",
     "growl": "~1.7.0",
-    "grunt-contrib-coffee": "~0.7.0"
+    "grunt-contrib-coffee": "~0.7.0",
+    "chai": "~1.8.1",
+    "mocha": "~1.14.0",
+    "grunt-mocha": "~0.4.1"
   }
 }

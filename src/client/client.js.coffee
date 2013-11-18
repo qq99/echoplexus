@@ -314,3 +314,5 @@
           msg.body = "-"
         socket.emit "chat:" + room, msg
   )
+
+  return exports

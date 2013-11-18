@@ -204,7 +204,7 @@ define ["require", "jquery", "backbone", "underscore", "client", "loader", "text
 
 
           # create an instance of each module:
-          _.each arguments_, (ClientModule, idx) ->
+          _.each arguments, (ClientModule, idx) ->
             return  unless _.isFunction(ClientModule)
             modInstance =
               view: new ClientModule(
