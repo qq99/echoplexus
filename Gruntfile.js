@@ -27,6 +27,9 @@ module.exports = function(grunt) {
         files: {
           '<%= index.build %>': '<%= index.dev %>'
         }
+      },
+      build: {
+
       }
     },
     'useminPrepare':{

@@ -1,3 +1,29 @@
+config           = require("./config.js").Configuration # deploy specific configuration
+express          = require("express")
+_                = require("underscore")
+Backbone         = require("backbone")
+crypto           = require("crypto")
+fs               = require("fs")
+uuid             = require("node-uuid")
+redis            = require("redis")
+sio              = require("socket.io")
+spawn            = require("child_process").spawn
+async            = require("async")
+path             = require("path")
+ChatServer       = require("./ChatServer.js").ChatServer
+CodeServer       = require("./CodeServer.js").CodeServer
+DrawServer       = require("./DrawingServer.js").DrawingServer
+CallServer       = require("./CallServer.js").CallServer
+UserServer       = require("./UserServer.js").UserServer
+EventBus         = new Backbone.Model
+app              = express()
+
+# config:
+ROOT_FOLDER      = path.dirname(__dirname)
+PUBLIC_FOLDER    = ROOT_FOLDER + "/public"
+SANDBOXED_FOLDER = PUBLIC_FOLDER + "/sandbox"
+CLIENT_FOLDER    = ROOT_FOLDER + "/client"
+
 
 # if we're using node's ssl, we must supply it the certs and create the server as https
 # proxying via nginx allows us to use a simple http server (and connections will be upgraded)
@@ -31,33 +57,6 @@ authMW = (req, res, next) ->
       return
     next()
 
-config = require("./config.js").Configuration
-Channels = undefined
-redis = undefined
-express = require("express")
-_ = require("underscore")
-Backbone = require("backbone")
-crypto = require("crypto")
-fs = require("fs")
-uuid = require("node-uuid")
-redis = require("redis")
-sio = require("socket.io")
-app = express()
-spawn = require("child_process").spawn
-async = require("async")
-path = require("path")
-EventBus = new Backbone.Model()
-chatServer = require("./ChatServer.js").ChatServer
-codeServer = require("./CodeServer.js").CodeServer
-drawServer = require("./DrawingServer.js").DrawingServer
-callServer = require("./CallServer.js").CallServer
-userServer = require("./UserServer.js").UserServer
-ROOT_FOLDER = path.dirname(__dirname)
-PUBLIC_FOLDER = ROOT_FOLDER + "/public"
-SANDBOXED_FOLDER = PUBLIC_FOLDER + "/sandbox"
-CLIENT_FOLDER = ROOT_FOLDER + "/client"
-protocol = undefined
-server = undefined
 if config.redis
   redisC = redis.createClient(config.redis.port, config.redis.host)
 else
@@ -156,7 +155,37 @@ redisC.select 15, (err, reply) ->
   ChannelModel = ChannelStructures.ServerChannelModel
   Channels = new ChannelStructures.ChannelsCollection()
   chatServer sio, redisC, EventBus, Channels, ChannelModel # start up the chat server
-  codeServer sio, redisC, EventBus, Channels # start up the code server
-  drawServer sio, redisC, EventBus, Channels # start up the code server
-  callServer sio, redisC, EventBus, Channels
+
+
+  codeServer = new CodeServer sio, redisC, EventBus, Channels
+  CodeServer.start
+    error: (err, socket, channel, client) ->
+      if err
+        DEBUG && console.log("CodeServer: ", err)
+    success: (namespace, socket, channel, client) ->
+      cc = spawnCodeCache(namespace)
+      socket.in(namespace).emit("code:authoritative_push:#{namespace}", cc.syncToClient());
+
+
+  drawServer = new DrawingServer sio, redisC, EventBus, Channels
+  drawServer.start
+    error: (err, socket, channel, client) ->
+      if err
+        return
+    success: (namespace, socket, channel, client) ->
+      room = channel.get("name")
+
+      # play back what has happened
+      socket.emit("draw:replay:" + namespace, channel.replay)
+
+  callServer = new CallServer sio, redisC, EventBus, Channels
+  callServer.start
+    error: (err, socket, channel, client) ->
+        if (err)
+            console.log("CallServer: ", err)
+
+    success: (namespace, socket, channel, client) ->
+        room = channel.get('name')
+        socket.emit "status:#{room}", active: !_.isEmpty(channel.call)
+
   userServer sio, redisC, EventBus, Channels

@@ -1,36 +1,34 @@
-((exports) ->
-  _ = require("underscore")
-  PermissionModel = require("../client/PermissionModel.js").PermissionModel
-  exports.ClientPermissionModel = PermissionModel.extend
-    initialize: ->
-      self = this
-      _.bindAll this
-      PermissionModel::initialize.apply this, arguments
+_                 = require("underscore")
+PermissionModel   = require("../client/PermissionModel.js").PermissionModel
 
-    upgradeToOperator: ->
-      @set
-        canSetTopic: true
-        canMakePrivate: true
-        canMakePublic: true
-        canKick: true
-        canMute: true
-        canBan: true
-        canSpeak: true
-        canPullLogs: true
-        canUploadFile: true
+module.exports.ClientPermissionModel = class ClientPermissionModel extends PermissionModel
+  initialize: ->
+    _.bindAll this
+    super
 
-      @canBestow = @attributes
-
-  exports.ChannelPermissionModel = PermissionModel.extend
-    defaults:
-      canSetTopic: null # null represents no particular privilege or inhibition
-      canMakePrivate: null
-      canMakePublic: null
-      canKick: null
-      canMute: null
-      canBan: null
+  upgradeToOperator: ->
+    @set
+      canSetTopic: true
+      canMakePrivate: true
+      canMakePublic: true
+      canKick: true
+      canMute: true
+      canBan: true
       canSpeak: true
       canPullLogs: true
-      canUploadFile: false
+      canUploadFile: true
 
-) (if typeof exports is "object" then exports else this)
+    @canBestow = @attributes
+
+module.exports.ChannelPermissionModel = class ChannelPermissionModel extends PermissionModel
+
+  defaults:
+    canSetTopic: null # null represents no particular privilege or inhibition
+    canMakePrivate: null
+    canMakePublic: null
+    canKick: null
+    canMute: null
+    canBan: null
+    canSpeak: true
+    canPullLogs: true
+    canUploadFile: false
