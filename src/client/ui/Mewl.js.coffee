@@ -1,71 +1,72 @@
-define ["jquery", "underscore", "backbone", "text!templates/MewlNotification.html"], ($, _, Backbone, growlTemplate) ->
+mewlTemplate = require("../templates/MewlNotification.html")
+
 
   # Displays a little modal-like alert box with
-  MewlNotification = Backbone.View.extend(
-    template: _.template(growlTemplate)
-    className: "growl"
-    initialize: (opts) ->
-      _.bindAll this
+module.exports.MewlNotification = class MewlNotification extends Backbone.View
 
-      # defaults
-      @position = "bottom right"
-      @padding = 10
-      @lifespan = opts.lifespan or 3000
+  template: mewlTemplate
+  className: "growl"
 
-      # override defaults
-      _.extend this, opts
-      @$el.html @template(
-        title: opts.title
-        body: opts.body
-      )
-      @$el.addClass @position
-      @place().show()
+  initialize: (opts) ->
+    _.bindAll this
 
-    show: ->
-      self = this
-      $("body").append @$el
-      _.defer ->
-        self.$el.addClass "shown"
+    # defaults
+    @position = "bottom right"
+    @padding = 10
+    @lifespan = opts.lifespan or 3000
 
-      setTimeout @hide, @lifespan
-      this
+    # override defaults
+    _.extend this, opts
+    @$el.html @template(
+      title: opts.title
+      body: opts.body
+    )
+    @$el.addClass @position
+    @place().show()
 
-    hide: ->
-      self = this
-      @$el.removeClass "shown"
-      window.events.trigger "growl:hide",
-        height: parseInt(self.$el.outerHeight(), 10)
+  show: ->
+    self = this
+    $("body").append @$el
+    _.defer ->
+      self.$el.addClass "shown"
 
-      setTimeout ->
-        self.remove()
+    setTimeout @hide, @lifespan
+    this
+
+  hide: ->
+    self = this
+    @$el.removeClass "shown"
+    window.events.trigger "growl:hide",
+      height: parseInt(self.$el.outerHeight(), 10)
+
+    setTimeout ->
+      self.remove()
 
 
-    place: ->
-      cssString = undefined
-      curValue = undefined
-      $otherEl = undefined
-      $otherGrowls = $(".growl:visible." + @position.replace(" ", ".")) # finds all with the same position settings as ours
-      if @position.indexOf("bottom") isnt -1
-        cssString = "bottom"
-      else
-        cssString = "top"
-      max = -Infinity
-      heightOfMax = 0
+  place: ->
+    cssString = undefined
+    curValue = undefined
+    $otherEl = undefined
+    $otherGrowls = $(".growl:visible." + @position.replace(" ", ".")) # finds all with the same position settings as ours
+    if @position.indexOf("bottom") isnt -1
+      cssString = "bottom"
+    else
+      cssString = "top"
+    max = -Infinity
+    heightOfMax = 0
 
-      # find the offset of the highest visible growl
-      # and place ourself above it
-      i = 0
+    # find the offset of the highest visible growl
+    # and place ourself above it
+    i = 0
 
-      while i < $otherGrowls.length
-        $otherEl = $($otherGrowls[i])
-        curValue = parseInt($otherEl.css(cssString), 10)
-        if curValue > max
-          max = curValue
-          heightOfMax = $otherEl.outerHeight()
-        i++
-      max += heightOfMax
-      max += @padding # some padding
-      @$el.css cssString, max
-      this
-  )
-  MewlNotification
+    while i < $otherGrowls.length
+      $otherEl = $($otherGrowls[i])
+      curValue = parseInt($otherEl.css(cssString), 10)
+      if curValue > max
+        max = curValue
+        heightOfMax = $otherEl.outerHeight()
+      i++
+    max += heightOfMax
+    max += @padding # some padding
+    @$el.css cssString, max
+    this

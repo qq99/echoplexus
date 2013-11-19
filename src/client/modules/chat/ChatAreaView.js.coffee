@@ -4,7 +4,7 @@ linkedImageTemplate         = require("./templates/linkedImage.html")
 userListUserTemplate        = require("./templates/userListUser.html")
 youtubeTemplate             = require("./templates/youtube.html")
 webshotBadgeTemplate        = require("./templates/webshotBadge.html")
-Regex                       = require("../../regex.js.coffee").REGEXES
+REGEXES                     = require("../../regex.js.coffee").REGEXES
 CryptoWrapper               = require("../../CryptoWrapper.coffee")
 
 

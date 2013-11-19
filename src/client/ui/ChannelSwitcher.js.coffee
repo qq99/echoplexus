@@ -207,7 +207,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
         isPrivate: false
 
       # create an instance of each module:
-      _.each @modules, (ClientModule, idx) ->
+      _.each @modules, (ClientModule, idx) =>
         return  unless _.isFunction(ClientModule)
         modInstance =
           view: new ClientModule(
@@ -216,9 +216,9 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
             config:
               host: window.SOCKET_HOST
 
-            module: Modules[idx]
+            module: @loader[idx]
           )
-          config: Modules[idx]
+          config: @loader[idx]
 
         modInstance.view.$el.hide()
         channel.modules.push modInstance

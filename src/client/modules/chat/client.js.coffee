@@ -2,13 +2,13 @@ chatpanelTemplate       = require("./templates/chatPanel.html")
 chatinputTemplate       = require("./templates/chatInput.html")
 fileUploadTemplate      = require("./templates/fileUpload.html")
 cryptoModalTemplate     = require("./templates/channelCryptokeyModal.html")
-Regex                   = require("../../regex.js.coffee").REGEXES
+REGEXES                 = require("../../regex.js.coffee").REGEXES
 Faviconizer             = require("../../ui/Faviconizer.js.coffee").Faviconizer
 Autocomplete            = require("./Autocomplete.js.coffee").Autocomplete
 Scrollback              = require("./Scrollback.js.coffee").Scrollback
-Log                     = require("./Log.js.coffee")
-ChatLog                 = require("./ChatLog.js.coffee")
-Mewl                    = require("../../ui/Mewl.js.coffee")
+Log                     = require("./Log.js.coffee").Log
+ChatAreaView            = require("./ChatAreaView.js.coffee").ChatAreaView
+Mewl                    = require("../../ui/Mewl.js.coffee").MewlNotification
 Client                  = require('../../client.js.coffee')
 ColorModel              = Client.ColorModel
 ClientModel             = Client.ClientModel
@@ -16,7 +16,7 @@ ClientsCollection       = Client.ClientsCollection
 
 module.exports.CryptoModal = class CryptoModal extends Backbone.View
   className: "backdrop"
-  template: _.template(cryptoModalTemplate)
+  template: cryptoModalTemplate
   events:
     "keydown input.crypto-key": "checkToSetKey"
     "click .set-encryption-key": "setCryptoKey"
@@ -78,7 +78,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @me = new ClientModel(socket: @socket)
     @me.peers = @channel.clients # let the client have access to all the users in the channel
 
-    @chatLog = new ChatLog
+    @chatLog = new ChatAreaView
       room: @channelName
       persistentLog: @persistentLog
       me: @me
@@ -103,7 +103,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       l = entries.length
 
       while i < l
-        model = new @chatMessage(entries[i])
+        model = new ChatMessage(entries[i])
         entry = @chatLog.renderChatMessage(model,
           delayInsert: true
         )
