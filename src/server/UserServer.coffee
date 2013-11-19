@@ -3,7 +3,7 @@ exports.UserServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
   config = require("./config.js").Configuration
   _ = require("underscore")
   DEBUG = config.DEBUG
-  UserServer = require("./AbstractServer.js").AbstractServer(sio, redisC, EventBus, Channels, ChannelModel)
+  UserServer = require("./AbstractServer.coffee").AbstractServer(sio, redisC, EventBus, Channels, ChannelModel)
   UserServer.initialize
     name: "UserServer"
     SERVER_NAMESPACE: USERSPACE

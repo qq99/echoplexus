@@ -1,5 +1,5 @@
 _                 = require("underscore")
-PermissionModel   = require("../client/PermissionModel.js").PermissionModel
+PermissionModel   = require("../client/PermissionModel.coffee").PermissionModel
 
 module.exports.ClientPermissionModel = class ClientPermissionModel extends PermissionModel
   initialize: ->

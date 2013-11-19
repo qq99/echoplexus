@@ -1,15 +1,19 @@
+Backbone 						= require("backbone")
+_ 									= require("underscore")
+async 							= require("async")
+crypto 							= require("crypto")
+ApplicationError 		= require("./Error.js.coffee")
+Clients 						= require("../client/client.js").ClientsCollection
+config 							= require("./config.js").Configuration
+PermissionModel 		= require("./PermissionModel.js.coffee").ChannelPermissionModel
+DEBUG 							= config.DEBUG
+
+
+
+
 exports.ChannelStructures = (redisC, EventBus) ->
-	Backbone = require("backbone")
-	_ = require("underscore")
-	async = require("async")
-	crypto = require("crypto")
-	ApplicationError = require("./Error")
-	ClientStructures = require("./client.js").ClientStructures(redisC, EventBus)
-	Client = ClientStructures.ServerClient
-	Clients = require("../client/client.js").ClientsCollection
-	config = require("./config.js").Configuration
-	PermissionModel = require("./PermissionModel").ChannelPermissionModel
-	DEBUG = config.DEBUG
+	ClientStructures 		= require("./client.js.coffee").ClientStructures(redisC, EventBus)
+	Client 							= ClientStructures.ServerClient
 
 	ChannelModel = Backbone.Model.extend
 		isPrivate: ->

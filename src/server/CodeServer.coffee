@@ -1,7 +1,7 @@
-config 					= require('./config.js').Configuration
-AbstractServer 	= require('./AbstractServer.js').AbstractServer
-Client 					= require('../client/client.js').ClientModel
-Clients 				= require('../client/client.js').ClientsCollection
+config 					= require('./config.js.coffee').Configuration
+AbstractServer 	= require('./AbstractServer.coffee').AbstractServer
+Client 					= require('../client/client.js.coffee').ClientModel
+Clients 				= require('../client/client.js.coffee').ClientsCollection
 DEBUG 					= config.DEBUG
 
 

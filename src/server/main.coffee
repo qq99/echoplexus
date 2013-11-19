@@ -1,3 +1,4 @@
+require("coffee-script")
 config           = require("./config.js").Configuration # deploy specific configuration
 express          = require("express")
 _                = require("underscore")
@@ -10,19 +11,22 @@ sio              = require("socket.io")
 spawn            = require("child_process").spawn
 async            = require("async")
 path             = require("path")
-ChatServer       = require("./ChatServer.js").ChatServer
-CodeServer       = require("./CodeServer.js").CodeServer
-DrawServer       = require("./DrawingServer.js").DrawingServer
-CallServer       = require("./CallServer.js").CallServer
-UserServer       = require("./UserServer.js").UserServer
+ChatServer       = require("./ChatServer.coffee").ChatServer
+CodeServer       = require("./CodeServer.coffee").CodeServer
+DrawServer       = require("./DrawServer.coffee").DrawServer
+CallServer       = require("./CallServer.coffee").CallServer
+UserServer       = require("./UserServer.coffee").UserServer
 EventBus         = new Backbone.Model
 app              = express()
 
 # config:
 ROOT_FOLDER      = path.dirname(__dirname)
-PUBLIC_FOLDER    = ROOT_FOLDER + "/public"
+PUBLIC_FOLDER    = ROOT_FOLDER + "/../public"
 SANDBOXED_FOLDER = PUBLIC_FOLDER + "/sandbox"
-CLIENT_FOLDER    = ROOT_FOLDER + "/client"
+
+console.log "Root:            #{ROOT_FOLDER}"
+console.log "Public:          #{PUBLIC_FOLDER}"
+console.log "Sandboxed:       #{SANDBOXED_FOLDER}"
 
 
 # if we're using node's ssl, we must supply it the certs and create the server as https
@@ -79,10 +83,12 @@ console.log "Using index: " + index
 Client = require("../client/client.js").ClientModel
 Clients = require("../client/client.js").ClientsCollection
 REGEXES = require("../client/regex.js").REGEXES
-app.use "/client", express.static(CLIENT_FOLDER)
+
+app.use express.static(PUBLIC_FOLDER)
+
 xferc = config.server_hosted_file_transfer
 app.use express.limit(xferc.size_limit)  if xferc?.enabled and xferc.size_limit
-app.use express.static(PUBLIC_FOLDER)
+
 bodyParser = express.bodyParser(uploadDir: SANDBOXED_FOLDER)
 
 # always server up the index
@@ -154,38 +160,88 @@ redisC.select 15, (err, reply) ->
   ChannelStructures = require("./Channels.js").ChannelStructures(redisC, EventBus)
   ChannelModel = ChannelStructures.ServerChannelModel
   Channels = new ChannelStructures.ChannelsCollection()
-  chatServer sio, redisC, EventBus, Channels, ChannelModel # start up the chat server
+  chatServer = new ChatServer sio, redisC, EventBus, Channels, ChannelModel # start up the chat server
+  chatServer.start
+    error: (err, socket, channel, client, data) ->
+      room = channel.get("name")
 
+      if err
+        if err instanceof ApplicationError.Authentication
+          if !data.reconnect
+            socket.in(room).emit("chat:" + room, serverSentMessage({
+              body: "This channel is private.  Please type /password [channel password] to join"
+            }, room))
+          socket.in(room).emit("private:" + room)
+        else
+          socket.in(room).emit("chat:" + room, serverSentMessage({
+            body: err.message
+          }, room))
+
+          DEBUG && console.log("ChatServer: ", err)
+        return
+    success: (namespace, socket, channel, client,data) ->
+      room = channel.get("name")
+      DEBUG && console.log("Client joined ", room)
+      subscribeSuccess(socket, client, channel)
+
+      # channel.initialized is inelegant (since it clearly has been)
+      # and other modules might use it.
+      # hotfix for now, real fix later
+      if channel.initialized == false
+        # only bind these once *ever*
+        channel.clients.on "change", (changed) ->
+          clientChanged(socket, channel, changed)
+
+        channel.clients.on "remove", (removed) ->
+          clientRemoved(socket, channel, removed)
+
+        channel.initialized = true
+
+        # listen for file upload events
+        EventBus.on "file_uploaded:#{room}", (data) ->
+          # check to see that the uploader someone actually in the channel
+          fromClient = channel.clients.findWhere({id: data.from_user})
+
+          if fromClient?
+            uploadedFile = serverSentMessage({
+              body: fromClient.get("nick") + " just uploaded: " + data.path
+            }, room)
+
+            storePersistent uploadedFile, room, (err, msg) ->
+              if err
+                console.log("Error persisting a file upload notification to redis", err.message, msg)
+
+              sio.of(CHATSPACE).in(room).emit("chat:" + room, msg)
 
   codeServer = new CodeServer sio, redisC, EventBus, Channels
-  CodeServer.start
+  codeServer.start
     error: (err, socket, channel, client) ->
       if err
         DEBUG && console.log("CodeServer: ", err)
     success: (namespace, socket, channel, client) ->
+      console.log "CodeServer started"
       cc = spawnCodeCache(namespace)
       socket.in(namespace).emit("code:authoritative_push:#{namespace}", cc.syncToClient());
 
+  # drawServer = new DrawServer sio, redisC, EventBus, Channels
+  # drawServer.start
+  #   error: (err, socket, channel, client) ->
+  #     if err
+  #       return
+  #   success: (namespace, socket, channel, client) ->
+  #     room = channel.get("name")
 
-  drawServer = new DrawingServer sio, redisC, EventBus, Channels
-  drawServer.start
-    error: (err, socket, channel, client) ->
-      if err
-        return
-    success: (namespace, socket, channel, client) ->
-      room = channel.get("name")
+  #     # play back what has happened
+  #     socket.emit("draw:replay:" + namespace, channel.replay)
 
-      # play back what has happened
-      socket.emit("draw:replay:" + namespace, channel.replay)
+  # callServer = new CallServer sio, redisC, EventBus, Channels
+  # callServer.start
+  #   error: (err, socket, channel, client) ->
+  #       if (err)
+  #           console.log("CallServer: ", err)
 
-  callServer = new CallServer sio, redisC, EventBus, Channels
-  callServer.start
-    error: (err, socket, channel, client) ->
-        if (err)
-            console.log("CallServer: ", err)
+  #   success: (namespace, socket, channel, client) ->
+  #       room = channel.get('name')
+  #       socket.emit "status:#{room}", active: !_.isEmpty(channel.call)
 
-    success: (namespace, socket, channel, client) ->
-        room = channel.get('name')
-        socket.emit "status:#{room}", active: !_.isEmpty(channel.call)
-
-  userServer sio, redisC, EventBus, Channels
+  # userServer sio, redisC, EventBus, Channels

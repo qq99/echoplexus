@@ -1,5 +1,6 @@
-define ["AES"], (AES) ->
-  JsonFormatter =
+module.exports.CryptoWrapper = class CryptoWrapper
+
+  JsonFormatter:
     stringify: (cipherParams) ->
 
       # create json object with ciphertext
@@ -25,7 +26,7 @@ define ["AES"], (AES) ->
       cipherParams.salt = CryptoJS.enc.Hex.parse(jsonObj.s)  if jsonObj.s
       cipherParams
 
-  encryptObject = (plaintextObj, key) ->
+  encryptObject: (plaintextObj, key) ->
     throw "encryptObject: missing a parameter."  if typeof plaintextObj is "undefined" or typeof key is "undefined" or key is ""
     # CryptoJS only takes strings
     plaintextObj = JSON.stringify(plaintextObj)  if typeof plaintextObj is "object"
@@ -34,7 +35,7 @@ define ["AES"], (AES) ->
     )
     JSON.parse enciphered.toString() # format it back into an object for sending over socket.io
 
-  decryptObject = (encipheredObj, key) ->
+  decryptObject: (encipheredObj, key) ->
     throw "decryptObject: missing a parameter."  if typeof encipheredObj is "undefined"
     # if we have no key, display the ct
     return encipheredObj.ct  if typeof key is "undefined"
@@ -52,6 +53,3 @@ define ["AES"], (AES) ->
     # if it failed gracefully, output the ciphertext
     decipheredString = encipheredObj.ct  if decipheredString is ""
     decipheredString # it may not always be a stringified representation of an object, so we'll just return the string
-
-  encryptObject: encryptObject
-  decryptObject: decryptObject

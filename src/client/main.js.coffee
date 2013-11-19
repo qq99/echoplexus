@@ -1,3 +1,4 @@
+
 # will be removed
 codingModeActive = -> # sloppy, forgive me
   $("#coding").is ":visible"
@@ -35,17 +36,13 @@ define (require, exports, module) ->
       window.SOCKET_HOST = "https://chat.echoplex.us" #Default host
   else # web browser
     window.SOCKET_HOST = window.location.origin
-  $ = require("jquery")
-  _ = require("underscore")
-  key = require("keymaster")
-  ChannelSwitcher = require("ui/ChannelSwitcher")
-  Notifications = require("ui/Notifications")
-  faviconizer = require("ui/Faviconizer")
-  require "jquery.cookie"
-  require "events"
-  require "utility"
-  require "AES"
-  require "modules/user_info/UserData"
+  key = require("../../lib/keymaster")
+  ChannelSwitcher = require("./ui/ChannelSwitcher.js.coffee")
+  Notifications = require("./ui/Notifications.js.coffee")
+  faviconizer = require("./ui/Faviconizer.js.coffee")
+  require "./events.js.coffee"
+  require "./utility.js.coffee"
+  require "./modules/user_info/UserData.js.coffee"
   $(document).ready ->
 
     # tooltip stuff:s

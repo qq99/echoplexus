@@ -1,5 +1,5 @@
 _                   = require("underscore")
-AbstractServer      = require("./AbstractServer.js").AbstractServer
+AbstractServer      = require("./AbstractServer.coffee").AbstractServer
 config              = require("./config.js").Configuration
 Client              = require("../client/client.js").ClientModel
 Clients             = require("../client/client.js").ClientsCollection

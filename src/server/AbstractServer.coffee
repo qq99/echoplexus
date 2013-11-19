@@ -1,10 +1,9 @@
 _         = require("underscore")
-config    = require("./config.js").Configuration
-Clients   = require("../client/client.js").ClientsCollection
-Channel   = ChannelModel
+config    = require("./config.js.coffee").Configuration
+Clients   = require("../client/client.js.coffee").ClientsCollection
 DEBUG     = config.DEBUG
 
-module.exports.AbstractServer = class Server
+module.exports.AbstractServer = class AbstractServer
   constructor: (sio, redisC, EventBus, Channels, ChannelModel) ->
 
     @sio = sio
@@ -12,12 +11,12 @@ module.exports.AbstractServer = class Server
     @EventBus = EventBus
     @Channels = Channels
     @ChannelModel = ChannelModel
-    @Client = require("./client.js").ClientStructures(@redisC, @EventBus).ServerClient
+    @Client = require("./client.js.coffee").ClientStructures(@redisC, @EventBus).ServerClient
 
 
     @initialized = false
     @name = "Default"
-    @SERVER_NAMESPACE = "/default" # override in initialize
+    @namespace = "/default" # override in initialize
 
     # a list of events to bind to the client socket:
     @events = []

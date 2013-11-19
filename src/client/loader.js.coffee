@@ -1,25 +1,20 @@
-define (require, exports, module) ->
-  _ = require("underscore")
-  $ = require("jquery")
-  config = module.config()
-  mods = []
-  section = _.template($("#sectionTemplate").html())
-  button = _.template($("#buttonTemplate").html())
-  _.each config.modules, (val) ->
-    val = _.defaults(val,
-      active: false
-    )
-    s = $(section(val)).appendTo($("#panes"))
-    s.hide()  unless val.active
-    $(button(val)).appendTo $("#buttons")
-    mods.push _.extend(val,
-      view: "modules/" + val.name + "/client"
-    )
+defined_modules = require('./config.coffee').Modules
 
+module.exports.Loader = class Loader
 
-  #Preload modules
-  require _.map(mods, (mod) ->
-    mod.view
-  ), ->
+  @modules = []
+  constructor: ->
 
-  mods
+    section = _.template($("#sectionTemplate").html())
+    button = _.template($("#buttonTemplate").html())
+
+    _.each defined_modules, (val) ->
+      val = _.defaults val, active: false
+      s = $(section(val)).appendTo($("#panes"))
+      s.hide()  unless val.active
+      $(button(val)).appendTo $("#buttons")
+      @modules.push _.extend(val,
+        view: "modules/" + val.name + "/client"
+      )
+
+    @modules
