@@ -59,7 +59,7 @@ module.exports = (grunt) ->
           "<%= files.js.app.client.compiled %>" : "<%= files.js.app.client.main %>"
         options:
           debug: true
-          transform: ["coffeeify"]
+          transform: ["coffeeify", "node-underscorify"]
 
     concat_sourcemap:
       options:

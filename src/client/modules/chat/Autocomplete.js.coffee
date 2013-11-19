@@ -1,44 +1,41 @@
 # object: given a string A, returns a string B iff A is a substring of B
 #  transforms A,B -> lowerCase for the comparison
 #      TODO: use a scheme involving something like l-distance instead
-define ["underscore"], (_) ->
-  Autocomplete = ->
-    "use strict"
-    pool = [] # client names to select from
-    candidates = [] #The candidates
-    result = null #The last result
-    nID = 0 #The last NID
-    @setPool = (arr) ->
-      pool = _.uniq(arr) # e.g., don't bother having "Anonymous" in the pool twice
-      candidates = pool
-      result = ""
-      nID = 0
 
-    @next = (stub) ->
-      self = this
-      return ""  unless pool.length
-      stub = stub.toLowerCase() # transform the stub -> lcase
-      if stub is "" or stub is result.toLowerCase()
+module.exports.Autocomplete = class Autocomplete
+  constructor: ->
+    @pool = [] # client names to select from
+    @candidates = [] #The candidates
+    @result = null #The last result
+    @nID = 0 #The last NID
 
-        # scroll around the memoized array of candidates:
-        nID += 1
-        nID %= candidates.length
-        result = "@" + candidates[nID]
-      else # update memoized candidates
-        nID = 0 # start with the highest score (at pos 0)
-        candidates = _.chain(pool).sortBy((n) ->
-          self.levDist stub, n.substring(0, stub.length).toLowerCase()
-        ).value()
+  setPool: (arr) ->
+    @pool = _.uniq(arr) # e.g., don't bother having "Anonymous" in the pool twice
+    @candidates = @pool
+    @result = ""
+    @nID = 0
 
-        # pick the closest match
-        result = "@" + candidates[0]
-      result
+  next: (stub) ->
+    return ""  unless @pool.length
+    stub = stub.toLowerCase() # transform the stub -> lcase
+    if stub is "" or stub is result.toLowerCase()
 
-    this
+      # scroll around the memoized array of candidates:
+      @nID += 1
+      @nID %= @candidates.length
+      @result = "@" + @candidates[@nID]
+    else # update memoized candidates
+      @nID = 0 # start with the highest score (at pos 0)
+      @candidates = _.chain(@pool).sortBy((n) =>
+        levDist stub, n.substring(0, stub.length).toLowerCase()
+      ).value()
 
+      # pick the closest match
+      @result = "@" + @candidates[0]
+    @result
 
   #http://www.merriampark.com/ld.htm, http://www.mgilleland.com/ld/ldjavascript.htm, Damerau–Levenshtein distance (Wikipedia)
-  Autocomplete::levDist = (s, t) ->
+  levDist = (s, t) ->
     d = [] #2d matrix
 
     # Step 1
@@ -97,5 +94,3 @@ define ["underscore"], (_) ->
 
     # Step 7
     d[n][m]
-
-  Autocomplete

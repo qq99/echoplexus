@@ -97,6 +97,8 @@ $(document).ready ->
   # messy, hacky, but make it safer for now
   turnOffLiveReload = ->
     $(".livereload").attr "checked", false
+
+
   $("body").on("mouseenter", ".tooltip-target", (ev) ->
     title = $(this).data("tooltip-title")
     body = $(this).data("tooltip-body")

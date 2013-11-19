@@ -2,14 +2,16 @@ Client                    = require('../client.js.coffee')
 ClientModel               = Client.ClientModel
 ClientsCollection         = Client.ClientsCollection
 Loader                    = require('../loader.js.coffee').Loader
-channelSelectorTemplate   = ''
+channelSelectorTemplate   = require('../templates/channelSelector.html')
+ChatClient                = require('../modules/chat/client.js.coffee').ChatClient
 
 module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
   className: "channelSwitcher"
-  template: _.template(channelSelectorTemplate)
+  template: channelSelectorTemplate
 
-  modules: (new Loader()).modules
+  loader: (new Loader()).modules
+  modules: [ChatClient]
 
   initialize: ->
     self = this
@@ -198,14 +200,14 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
   joinChannel: (channelName) ->
     self = this
 
-    if _.isUndefined(@channels[channelName])
+    if !@channels[channelName]?
       channel =
         clients: new ClientsCollection()
         modules: []
         isPrivate: false
 
       # create an instance of each module:
-      _.each arguments, (ClientModule, idx) ->
+      _.each @modules, (ClientModule, idx) ->
         return  unless _.isFunction(ClientModule)
         modInstance =
           view: new ClientModule(

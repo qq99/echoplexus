@@ -4,33 +4,35 @@
 #	- adding new elements to the top of the stack
 #	- emptying the stack
 #  - replacing an element in the stack with another element
-define ->
-  ->
-    "use strict"
-    buffer = []
-    position = 0
-    add: (userInput) ->
-      buffer.push userInput
-      position += 1
 
-    prev: ->
-      position -= 1  if position > 0
-      buffer[position]
+module.exports.Scrollback = class Scrollback
 
-    next: ->
-      position += 1  if position < buffer.length
-      buffer[position]
+  constructor: ->
+    @buffer = []
+    @position = 0
 
-    replace: (prevObj, newObj) ->
-      start = buffer.length - 1 # start at the end of the array as this will be the most common case
-      i = start
+  add: (userInput) ->
+    @buffer.push userInput
+    @position += 1
 
-      while i >= 0
-        if buffer[i] is prevObj
-          buffer[i] = newObj
-          return true
-        i--
-      false # no match
+  prev: ->
+    @position -= 1 if @position > 0
+    @buffer[@position]
 
-    reset: ->
-      position = buffer.length
+  next: ->
+    @position += 1  if @position < @buffer.length
+    @buffer[@position]
+
+  replace: (prevObj, newObj) ->
+    start = @buffer.length - 1 # start at the end of the array as this will be the most common case
+    i = start
+
+    while i >= 0
+      if @buffer[i] is prevObj
+        @buffer[i] = newObj
+        return true
+      i--
+    false # no match
+
+  reset: ->
+    @position = @buffer.length
