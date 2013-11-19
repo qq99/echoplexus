@@ -2,13 +2,13 @@ defined_modules = require('./config.coffee').Modules
 
 module.exports.Loader = class Loader
 
-  @modules = []
-  constructor: ->
 
+  constructor: ->
+    @modules = []
     section = _.template($("#sectionTemplate").html())
     button = _.template($("#buttonTemplate").html())
 
-    _.each defined_modules, (val) ->
+    _.each defined_modules, (val) =>
       val = _.defaults val, active: false
       s = $(section(val)).appendTo($("#panes"))
       s.hide()  unless val.active

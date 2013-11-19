@@ -1,17 +1,37 @@
 # object: a wrapper around Chrome OS-level notifications
-define ["underscore"], (_) ->
-  ->
-    # not granted nor denied
+module.exports.Notifications = class Notifications
 
-    # window.focus();
-    # this.cancel();
-    # this.close();
-    # window.close();
-    # :s
+    _permission = "default"
+    enabled = false
+    _growl = null
+    _notificationProvider = null
 
-    # find out what we know about the domain's current notification state
-    # shim for older webkit
-    # Standards
+    defaults:
+      title: "Echoplexus"
+      dir: "auto"
+      icon: window.location.origin + "/echoplexus-logo.png"
+      iconUrl: window.location.origin + "/echoplexus-logo.png"
+      lang: ""
+      body: ""
+      tag: ""
+      TTL: 5000
+      onshow: ->
+      onclose: ->
+      onerror: ->
+      onclick: ->
+
+    constructor: ->
+      if window.webkitNotifications
+        _notificationProvider = window.webkitNotifications
+        hasPermission = _notificationProvider.checkPermission()
+        if hasPermission is 0
+          _permission = "granted"
+        else
+          _permission = "denied"
+      else _permission = window.Notification.permission  if window.Notification.permission  if window.Notification
+      if window.ua?.node_webkit?
+        _permission = "granted"
+        _growl = window.requireNode("growl")
 
     #
     #		Polyfill to present an OS-level notification:
@@ -24,7 +44,7 @@ define ["underscore"], (_) ->
     #			TTL: (milliseconds) amount of time to keep it alive
     #		}
     #
-    notify = (userOptions) ->
+    notify: (userOptions) ->
       return  unless enabled
       if not document.hasFocus() and _permission is "granted" and window.OPTIONS["show_OS_notifications"]
         title = undefined
@@ -54,13 +74,13 @@ define ["underscore"], (_) ->
     #
     #		(Boolean) Are OS notification permissions granted?
     #
-    hasPermission = ->
+    hasPermission: ->
       _permission
 
     #
     #		Polyfill to request notification permission
     #
-    requestNotificationPermission = ->
+    requestNotificationPermission: ->
       if _permission is "default" # only request it if we don't have it
         if window.webkitNotifications
           window.webkitNotifications.requestPermission()
@@ -68,44 +88,8 @@ define ["underscore"], (_) ->
           window.Notification.requestPermission (perm) ->
             _permission = perm
 
-    "use strict"
-    _permission = "default"
-    enabled = false
-    _growl = null
-    _notificationProvider = null
-    defaults =
-      title: "Echoplexus"
-      dir: "auto"
-      icon: window.location.origin + "/echoplexus-logo.png"
-      iconUrl: window.location.origin + "/echoplexus-logo.png"
-      lang: ""
-      body: ""
-      tag: ""
-      TTL: 5000
-      onshow: ->
-        setTimeout (->
-        ), 5000
 
-      onclose: ->
-
-      onerror: ->
-
-      onclick: ->
-
-    if window.webkitNotifications
-      _notificationProvider = window.webkitNotifications
-      hasPermission = _notificationProvider.checkPermission()
-      if hasPermission is 0
-        _permission = "granted"
-      else
-        _permission = "denied"
-    else _permission = window.Notification.permission  if window.Notification.permission  if window.Notification
-    if window.ua.node_webkit
-      _permission = "granted"
-      _growl = window.requireNode("growl")
-    notify: notify
     enable: ->
       enabled = true
 
-    hasPermission: hasPermission
-    request: requestNotificationPermission
+    request: @requestNotificationPermission

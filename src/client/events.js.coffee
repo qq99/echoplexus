@@ -1,3 +1,3 @@
 #TODO: more namespacing
-define ["underscore", "backbone"], (_, Backbone) ->
+module.exports = ->
   window.events = _.clone(Backbone.Events)

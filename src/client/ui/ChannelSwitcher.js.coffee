@@ -1,15 +1,15 @@
 Client                    = require('../client.js.coffee')
 ClientModel               = Client.ClientModel
 ClientsCollection         = Client.ClientsCollection
-Loader                    = require('../loader.js.coffee')
-#channelSelectorTemplate   = ''
+Loader                    = require('../loader.js.coffee').Loader
+channelSelectorTemplate   = ''
 
 module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
   className: "channelSwitcher"
   template: _.template(channelSelectorTemplate)
 
-  modules: (new Loader).modules
+  modules: (new Loader()).modules
 
   initialize: ->
     self = this
@@ -157,7 +157,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     if self.loading > 0
       setTimeout callback, 50
       return
-    DEBUG and console.log("showing channel: " + channelName)
+
     channelsToDeactivate = _.without(_.keys(@channels), channelName)
 
     # tell the views to deactivate
@@ -197,7 +197,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
   joinChannel: (channelName) ->
     self = this
-    DEBUG and console.log("creating view for", channelName)
+
     if _.isUndefined(@channels[channelName])
       channel =
         clients: new ClientsCollection()
