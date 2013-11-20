@@ -27,7 +27,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 	  alteredMsg = undefined
 
 	  # get the pure message
-	  redisC.hget "chatlog:" + room, mID, (err, reply) ->
+	  @redisC.hget "chatlog:" + room, mID, (err, reply) =>
 	    throw err  if err
 	    alteredMsg = JSON.parse(reply) # parse it
 
@@ -40,7 +40,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 	    alteredMsg.encrypted = newMessage.encrypted  if typeof newMessage.encrypted isnt "undefined"
 
 	    # overwrite the old message with the altered chat message
-	    redisC.hset "chatlog:" + room, mID, JSON.stringify(alteredMsg), (err, reply) ->
+	    @redisC.hset "chatlog:" + room, mID, JSON.stringify(alteredMsg), (err, reply) ->
 	      throw err  if err
 	      callback null, alteredMsg
 
@@ -61,23 +61,23 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		room = channel.get("name")
 		authenticatedClients = channel.clients.where({authenticated: true})
 
-		sio.of(CHATSPACE).in(room).emit("userlist:#{room}", {
+		@sio.of(@namespace).in(room).emit("userlist:#{room}", {
 			users: authenticatedClients,
 			room: room
 		})
 
 	clientChanged: (socket, channel, changedClient) ->
 		room = channel.get("name")
-		sio.of(CHATSPACE).in(room).emit("client:changed:#{room}", changedClient.toJSON())
+		@sio.of(@namespace).in(room).emit("client:changed:#{room}", changedClient.toJSON())
 
 	clientRemoved: (socket, channel, changedClient) ->
 		room = channel.get("name")
-		sio.of(CHATSPACE).in(room).emit("client:removed:#{room}", changedClient.toJSON())
+		@sio.of(@namespace).in(room).emit("client:removed:#{room}", changedClient.toJSON())
 
 	emitGenericPermissionsError: (socket, client) ->
 		room = client.get("room")
 
-		socket.in(room).emit("chat:#{room}", serverSentMessage({
+		socket.in(room).emit("chat:#{room}", @serverSentMessage({
 			body: "I can't let you do that, " + client.get("nick"),
 			log: false
 		}))
@@ -85,7 +85,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 	broadcast: (socket, channel, message) ->
 		room = channel.get("name")
 
-		sio.of(CHATSPACE).in(room).emit("chat:#{room}", serverSentMessage({
+		@sio.of(@namespace).in(room).emit("chat:#{room}", @serverSentMessage({
 			body: message
 		}, room))
 
@@ -96,7 +96,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		# channel.clients.add(client)
 
 		# tell the newly connected client know the ID of the latest logged message
-		redisC.hget "channels:currentMessageID", room, (err, reply) ->
+		@redisC.hget "channels:currentMessageID", room, (err, reply) ->
 			throw err if err
 			socket.in(room).emit("chat:currentID:#{room}", {
 				mID: reply,
@@ -104,7 +104,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			})
 
 		# tell the newly connected client the topic of the channel:
-		socket.in(room).emit("topic:#{room}", serverSentMessage({
+		socket.in(room).emit("topic:#{room}", @serverSentMessage({
 			body: channel.get("topicObj"),
 			log: false,
 		}, room))
@@ -120,24 +120,24 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			antiforgery_token: client.antiforgery_token
 		})
 
-		publishUserList(channel)
+		@publishUserList(channel)
 
 	storePersistent: (msg, room, callback) ->
 
 	  # store in redis
-	  redisC.hget "channels:currentMessageID", room, (err, reply) ->
+	  @redisC.hget "channels:currentMessageID", room, (err, reply) =>
 	    callback err  if err
 
 	    # update where we keep track of the sequence number:
 	    mID = 0
 	    mID = parseInt(reply, 10)  if reply
-	    redisC.hset "channels:currentMessageID", room, mID + 1
+	    @redisC.hset "channels:currentMessageID", room, mID + 1
 
 	    # alter the message object itself
 	    msg.mID = mID
 
 	    # store the message
-	    redisC.hset "chatlog:" + room, mID, JSON.stringify(msg), (err, reply) ->
+	    @redisC.hset "chatlog:" + room, mID, JSON.stringify(msg), (err, reply) ->
 	      callback err  if err
 
 	      # return the altered message object
@@ -182,13 +182,13 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 								pageData.original_url = url
 								pageData.from_mID = from_mID
 
-							sio.of(CHATSPACE).in(room).emit('webshot:' + room, pageData)
+							@sio.of(@namespace).in(room).emit('webshot:' + room, pageData)
 					)(url, randomFilename) # call our closure with our random filename
 
 	events:
 		"help": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
-			socket.in(room).emit('chat:' + room, serverSentMessage({
+			socket.in(room).emit('chat:' + room, @serverSentMessage({
 				body: "Please view the README for more information at https://github.com/qq99/echoplexus"
 			}, room))
 
@@ -197,19 +197,19 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 			return if !data.key?
 
-			channel.assumeOwnership client, data.key, (err, response) ->
+			channel.assumeOwnership client, data.key, (err, response) =>
 				if err
-					socket.in(room).emit("chat:#{room}", serverSentMessage({
+					socket.in(room).emit("chat:#{room}", @serverSentMessage({
 						body: err.message
 					}, room))
 					return
 
 				client.becomeChannelOwner()
 
-				socket.in(room).emit("chat:#{room}", serverSentMessage({
+				socket.in(room).emit("chat:#{room}", @serverSentMessage({
 					body: response
 				}, room))
-				publishUserList(channel)
+				@publishUserList(channel)
 
 		"chmod": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
@@ -259,11 +259,11 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 							targetClient.get("permissions").set(permsToSave)
 							console.log("now",targetClient.get("permissions").toJSON())
 							targetClient.persistPermissions()
-							targetClient.socketRef.in(room).emit("chat:#{room}", serverSentMessage({
+							targetClient.socketRef.in(room).emit("chat:#{room}", @serverSentMessage({
 								body: client.get("nick") + " has set your permissions to [#{successes}]."
 							}, room))
 
-						socket.in(room).emit("chat:#{room}", serverSentMessage({
+						socket.in(room).emit("chat:#{room}", @serverSentMessage({
 							body: "You've successfully set [#{successes}] on #{username}"
 						}, room))
 					else
@@ -272,15 +272,15 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					channel.permissions.set(permsToSave)
 					channel.persistPermissions()
 
-					socket.in(room).emit("chat:#{room}", serverSentMessage({
+					socket.in(room).emit("chat:#{room}", @serverSentMessage({
 						body: "You've successfully set [#{successes}] on the channel."
 					}, room))
-					socket.in(room).broadcast.emit("chat:#{room}", serverSentMessage({
+					socket.in(room).broadcast.emit("chat:#{room}", @serverSentMessage({
 						body: client.get("nick") + " has set [#{successes}] on the channel."
 					}, room))
 
 			if errors.length
-				socket.in(room).emit("chat:#{room}", serverSentMessage({
+				socket.in(room).emit("chat:#{room}", @serverSentMessage({
 					body: "The permissions [#{errors}] don't exist or you can't bestow them."
 				}, room))
 
@@ -291,9 +291,9 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				emitGenericPermissionsError(socket, client)
 				return
 
-			channel.makePublic (err, response) ->
+			channel.makePublic (err, response) =>
 				if err
-					socket.in(room).emit('chat:' + room, serverSentMessage({
+					socket.in(room).emit('chat:' + room, @serverSentMessage({
 						body: err.message
 					}, room))
 					return
@@ -307,9 +307,9 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				emitGenericPermissionsError(socket, client)
 				return
 
-			channel.makePrivate data.password, (err, response) ->
+			channel.makePrivate data.password, (err, response) =>
 				if err
-					socket.in(room).emit('chat:' + room, serverSentMessage({
+					socket.in(room).emit('chat:' + room, @serverSentMessage({
 						body: err.message
 					}, room))
 					return
@@ -320,18 +320,18 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			password = data.password
 			room = channel.get("name")
 
-			channel.authenticate client, password, (err, response) ->
+			channel.authenticate client, password, (err, response) =>
 				if err
 					if err.message instanceof ApplicationError.Authentication
 						if err.message == "Incorrect password."
 							# let everyone currently in the room know that someone failed to join it
-							socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
+							socket.in(room).broadcast.emit('chat:' + room, @serverSentMessage({
 								class: "identity",
 								body: client.get("nick") + " just failed to join the room."
 							}, room))
 
 					# let the joiner know what went wrong:
-					socket.in(room).emit('chat:' + room, serverSentMessage({
+					socket.in(room).emit('chat:' + room, @serverSentMessage({
 						body: err.message
 					}, room))
 
@@ -350,7 +350,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			  client.set "encrypted_nick", data.encrypted_nick
 
 			if newName == ""
-				socket.in(room).emit('chat:' + room, serverSentMessage({
+				socket.in(room).emit('chat:' + room, @serverSentMessage({
 					body: "You may not use the empty string as a nickname.",
 					log: false
 				}, room))
@@ -369,7 +369,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 			channel.setTopic(data)
 
-			sio.of(CHATSPACE).in(room).emit("topic:" + room, {
+			@sio.of(@namespace).in(room).emit("topic:" + room, {
 				body: channel.get("topicObj")
 			})
 
@@ -380,9 +380,9 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 			room = channel.get("name")
 			mID = parseInt(data.mID, 10)
-			editResultCallback = (err, msg) ->
+			editResultCallback = (err, msg) =>
 				if err
-					socket.in(room).emit('chat:' + room, serverSentMessage({
+					socket.in(room).emit('chat:' + room, @serverSentMessage({
 						type: "SERVER",
 						body: err.message
 					}, room))
@@ -394,13 +394,13 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					}))
 
 			if _.indexOf(client.mIDs, mID) != -1
-				updatePersistedMessage(room, mID, data, editResultCallback)
+				@updatePersistedMessage(room, mID, data, editResultCallback)
 			else # attempt to use the client's identity token, if it exists & if it matches the one stored with the chatlog object
-				redisC.hget "chatlog:identity_tokens:" + room, mID, (err, reply) ->
+				@redisC.hget "chatlog:identity_tokens:" + room, mID, (err, reply) ->
 					throw err if err
 
 					if client.identity_token == reply
-						updatePersistedMessage(room, mID, data, editResultCallback)
+						@updatePersistedMessage(room, mID, data, editResultCallback)
 
 		"chat:history_request": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
@@ -410,7 +410,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				emitGenericPermissionsError(socket, client)
 				return
 
-			redisC.hmget "chatlog:#{room}", data.requestRange, (err, reply) ->
+			@redisC.hmget "chatlog:#{room}", data.requestRange, (err, reply) ->
 				throw err if err
 				# emit the logged replies to the client requesting them
 				socket.in(room).emit('chat:batch:' + room, _.without(reply, null))
@@ -477,9 +477,9 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		"user:set_color": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 
-			client.get("color").parse data.userColorString, (err) ->
+			client.get("color").parse data.userColorString, (err) =>
 				if err
-					socket.in(room).emit('chat:' + room, serverSentMessage({
+					socket.in(room).emit('chat:' + room, @serverSentMessage({
 						type: "SERVER",
 						body: err.message
 					}, room))
@@ -503,15 +503,13 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				data.identified = client.get("identified")
 
 				# store in redis
-				storePersistent data, room, (err, msg) ->
+				@storePersistent data, room, (err, msg) =>
 					mID = msg.mID
 
-					socket.in(room).broadcast.emit('chat:' + room, msg)
-					socket.in(room).emit('chat:' + room, _.extend(msg, {
-						you: true
-					}))
+					socket.in(room).broadcast.emit "chat:#{room}", msg
+					socket.in(room).emit "chat:#{room}", _.extend msg, you: true
 
-					createWebshot(msg, room)
+					@createWebshot(msg, room)
 
 					if err
 						console.log("Was unable to persist a chat message", err.message, msg)
@@ -522,7 +520,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 					# is there an edit token associated with this client?  if so, persist that so he can edit the message later
 					if client.identity_token
-						redisC.hset "chatlog:identity_tokens:#{room}", mID, client.identity_token, (err, reply) ->
+						@redisC.hset "chatlog:identity_tokens:#{room}", mID, client.identity_token, (err, reply) ->
 							throw err if err
 
 		"identify": (namespace, socket, channel, client, data) ->
@@ -530,76 +528,76 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			nick = client.get("nick")
 
 			try
-				redisC.sismember "users:#{room}", nick, (err, reply) ->
+				@redisC.sismember "users:#{room}", nick, (err, reply) =>
 					if !reply
-						socket.in(room).emit('chat:' + room, serverSentMessage({
+						socket.in(room).emit('chat:' + room, @serverSentMessage({
 							class: "identity err",
 							body: "There's no registration on file for " + nick
 						}, room))
 					else
 						async.parallel {
 							salt: (callback) ->
-								redisC.hget("salts:" + room, nick, callback)
+								@redisC.hget("salts:" + room, nick, callback)
 							password: (callback) ->
-								redisC.hget("passwords:" + room, nick, callback)
+								@redisC.hget("passwords:" + room, nick, callback)
 						}, (err, stored) ->
 							throw err if err
-							crypto.pbkdf2 data.password, stored.salt, 4096, 256, (err, derivedKey) ->
+							crypto.pbkdf2 data.password, stored.salt, 4096, 256, (err, derivedKey) =>
 								throw err if err
 
 								# TODO: does not output the right nick while encrypted, may not be necessary as this functionality might change (re: GPG/PGP)
 								if (derivedKey.toString() != stored.password) # FAIL
 									client.set("identified", false)
-									socket.in(room).emit('chat:' + room, serverSentMessage({
+									socket.in(room).emit('chat:' + room, @serverSentMessage({
 										class: "identity err",
 										body: "Wrong password for " + nick
 									}, room))
-									socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
+									socket.in(room).broadcast.emit('chat:' + room, @serverSentMessage({
 										class: "identity err",
 										body: nick + " just failed to identify himself"
 									}, room))
 
 								else # ident'd
 									client.set("identified", true)
-									socket.in(room).emit('chat:' + room, serverSentMessage({
+									socket.in(room).emit('chat:' + room, @serverSentMessage({
 										class: "identity ack",
 										body: "You are now identified for " + nick
 									}, room))
 			catch e # identification error
-				socket.in(room).emit('chat:' + room, serverSentMessage({
+				socket.in(room).emit('chat:' + room, @serverSentMessage({
 					body: "Error identifying yourself: " + e
 				}, room))
 
 		"register_nick": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 			nick = client.get("nick")
-			redisC.sismember "users:#{room}", nick, (err, reply) ->
+			@redisC.sismember "users:#{room}", nick, (err, reply) =>
 				throw err if err
 				if !reply # nick is not in use
 					try # try crypto & persistence
-						crypto.randomBytes 256, (ex, buf) ->
+						crypto.randomBytes 256, (ex, buf) =>
 							throw ex if ex
 							salt = buf.toString()
-							crypto.pbkdf2 data.password, salt, 4096, 256, (err, derivedKey) ->
+							crypto.pbkdf2 data.password, salt, 4096, 256, (err, derivedKey) =>
 								throw err if err
 
-								redisC.sadd "users:#{room}", nick, (err, reply) ->
+								@redisC.sadd "users:#{room}", nick, (err, reply) ->
 									throw err if err
-								redisC.hset "salts:#{room}", nick, salt, (err, reply) ->
+								@redisC.hset "salts:#{room}", nick, salt, (err, reply) ->
 									throw err if err
-								redisC.hset "passwords:#{room}", nick, derivedKey.toString(), (err, reply) ->
+								@redisC.hset "passwords:#{room}", nick, derivedKey.toString(), (err, reply) ->
 									throw err if err
 
 								client.set("identified", true)
-								socket.in(room).emit('chat:' + room, serverSentMessage({
+								socket.in(room).emit('chat:' + room, @serverSentMessage({
 									body: "You have registered your nickname.  Please remember your password."
 								}, room))
 					catch e
-						socket.in(room).emit('chat:' + room, serverSentMessage({
+						socket.in(room).emit('chat:' + room, @serverSentMessage({
 							body: "Error in registering your nickname: " + e
 						}, room))
 				else # nick is already in use
-					socket.in(room).emit('chat:' + room, serverSentMessage({
+					socket.in(room).emit('chat:' + room, @serverSentMessage({
 						body: "That nickname is already registered by somebody."
 					}, room))
 

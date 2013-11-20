@@ -177,12 +177,11 @@ redisC.select 15, (err, reply) ->
             body: err.message
           }, room))
 
-          DEBUG && console.log("ChatServer: ", err)
+          console.log("ChatServer: ", err)
         return
     success: (namespace, socket, channel, client,data) ->
       room = channel.get("name")
-      DEBUG && console.log("Client joined ", room)
-      subscribeSuccess(socket, client, channel)
+      @subscribeSuccess(socket, client, channel)
 
       # channel.initialized is inelegant (since it clearly has been)
       # and other modules might use it.
@@ -217,7 +216,7 @@ redisC.select 15, (err, reply) ->
   codeServer.start
     error: (err, socket, channel, client) ->
       if err
-        DEBUG && console.log("CodeServer: ", err)
+        console.log("CodeServer: ", err)
     success: (namespace, socket, channel, client) ->
       console.log "CodeServer started"
       cc = spawnCodeCache(namespace)

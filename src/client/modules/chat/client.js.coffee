@@ -62,7 +62,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   fileUploadTemplate: fileUploadTemplate
 
   initialize: (opts) ->
-    self = this
     _.bindAll this
     @hidden = true
     @config = opts.config
@@ -114,16 +113,16 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     # triggered by ChannelSwitcher:
     @on "show", @show
     @on "hide", @hide
-    @channel.clients.on "change:nick", (model, changedAttributes) ->
+    @channel.clients.on "change:nick", (model, changedAttributes) =>
       prevName = undefined
-      currentName = model.getNick(self.me.cryptokey)
-      if self.me.is(model)
+      currentName = model.getNick(@me.cryptokey)
+      if @me.is(model)
         prevName = "You are"
       else
         prevClient = new ClientModel(model.previousAttributes())
-        prevName = prevClient.getNick(self.me.cryptokey)
+        prevName = prevClient.getNick(@me.cryptokey)
         prevName += " is"
-      self.chatLog.renderChatMessage new self.chatMessage(
+      @chatLog.renderChatMessage new ChatMessage(
         body: prevName + " now known as " + currentName
         type: "SYSTEM"
         timestamp: new Date().getTime()
@@ -131,28 +130,28 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         class: "identity ack"
       )
 
-    @channel.clients.on "add", (model) ->
-      self.chatLog.renderChatMessage new self.chatMessage(
-        body: model.getNick(self.me.cryptokey) + " has joined the room."
+    @channel.clients.on "add", (model) =>
+      @chatLog.renderChatMessage new ChatMessage(
+        body: model.getNick(@me.cryptokey) + " has joined the room."
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "join"
       )
 
-    @channel.clients.on "remove", (model) ->
-      self.chatLog.renderChatMessage new self.chatMessage(
-        body: model.getNick(self.me.cryptokey) + " has left the room."
+    @channel.clients.on "remove", (model) =>
+      @chatLog.renderChatMessage new ChatMessage(
+        body: model.getNick(@me.cryptokey) + " has left the room."
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "part"
       )
 
-    @channel.clients.on "add remove reset change", (model) ->
-      self.chatLog.renderUserlist self.channel.clients
-      self.autocomplete.setPool _.map(self.channel.clients.models, (user) ->
-        user.getNick self.me.cryptokey
+    @channel.clients.on "add remove reset change", (model) =>
+      @chatLog.renderUserlist @channel.clients
+      @autocomplete.setPool _.map(@channel.clients.models, (user) =>
+        user.getNick @me.cryptokey
       )
 
 
@@ -281,8 +280,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     self = this
 
     #Bind the disconnnections, send message on disconnect
-    self.socket.on "disconnect", ->
-      self.chatLog.renderChatMessage new self.chatMessage(
+    self.socket.on "disconnect", =>
+      self.chatLog.renderChatMessage new ChatMessage(
         body: "Disconnected from the server"
         type: "SYSTEM"
         timestamp: new Date().getTime()
@@ -295,7 +294,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     #On reconnection attempts, print out the retries
     self.socket.on "reconnecting", (nextRetry) ->
-      self.chatLog.renderChatMessage new self.chatMessage(
+      self.chatLog.renderChatMessage new ChatMessage(
         body: "Connection lost, retrying in " + nextRetry / 1000.0 + " seconds"
         type: "SYSTEM"
         timestamp: new Date().getTime()
@@ -326,8 +325,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
 
   postSubscribe: (data) ->
-    self = this
-    @chatLog.renderChatMessage new self.chatMessage(
+    @chatLog.renderChatMessage new ChatMessage(
       body: "Connected. Now talking in channel " + @channelName
       type: "SYSTEM"
       timestamp: new Date().getTime()
@@ -429,7 +427,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @socketEvents =
       chat: (msg) ->
         window.events.trigger "message", socket, self, msg
-        message = new self.chatMessage(msg)
+        message = new ChatMessage(msg)
 
         # update our scrollback buffer so that we can quickly edit the message by pressing up/down
         # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
@@ -447,7 +445,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
           msg = JSON.parse(msgs[i])
           self.persistentLog.add msg
           msg.fromBatch = true
-          self.chatLog.renderChatMessage new self.chatMessage(msg)
+          self.chatLog.renderChatMessage new ChatMessage(msg)
           if self.previousScrollHeight
             setTimeout (->
               chatlog = self.chatLog.$el.find(".messages")[0]
@@ -478,7 +476,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         prevClient = self.channel.clients.remove(id: alteredClient.id)
 
       private_message: (msg) ->
-        message = new self.chatMessage(msg)
+        message = new ChatMessage(msg)
         msg = self.checkToNotify(message)
         self.persistentLog.add message.toJSON()
         self.chatLog.renderChatMessage message
@@ -494,7 +492,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         self.postSubscribe()
 
       "chat:edit": (msg) ->
-        message = new self.chatMessage(msg)
+        message = new ChatMessage(msg)
         msg = self.checkToNotify(message) # the edit might have been to add a "@nickname", so check again to notify
         self.persistentLog.replaceMessage message.toJSON() # replace the message with the edited version in local storage
         self.chatLog.replaceChatMessage message # replace the message with the edited version in the chat log
@@ -548,7 +546,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
           nick = "You"
         else
           nick = fromClient.getNick(self.me.cryptokey)
-        chatMessage = new self.chatMessage(
+        chatMessage = new ChatMessage(
           body: nick + " uploaded a file: " + msg.path
           timestamp: new Date().getTime()
           nickname: ""

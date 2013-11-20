@@ -63,7 +63,7 @@ module.exports.Log = class Log
   knownIDs: ->
     return if !window.Storage?
     # compile a list of the message IDs we know about
-    known = _.without(_.map(log, (obj) ->
+    known = _.without(_.map(@log, (obj) ->
       obj.mID
     ), `undefined`)
     known

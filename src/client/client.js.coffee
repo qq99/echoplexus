@@ -1,6 +1,7 @@
+_ = require("underscore") if !_
 Backbone = require("backbone") if !Backbone
 PermissionModel = require("./PermissionModel.coffee").PermissionModel
-Regex = require("./regex.js.coffee").REGEXES
+REGEXES = require("./regex.js.coffee").REGEXES
 CryptoWrapper = require("./CryptoWrapper.coffee")
 
 module.exports.ColorModel = Backbone.Model.extend(
@@ -78,7 +79,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     website_url: null
 
   toJSON: ->
-    json = Backbone.Model::toJSON.apply(this, arguments_)
+    json = Backbone.Model::toJSON.apply(this, arguments)
     json.cid = @cid
     json
 

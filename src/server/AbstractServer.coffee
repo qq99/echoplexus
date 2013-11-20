@@ -4,25 +4,17 @@ Clients   = require("../client/client.js.coffee").ClientsCollection
 DEBUG     = config.DEBUG
 
 module.exports.AbstractServer = class AbstractServer
-  constructor: (sio, redisC, EventBus, Channels, ChannelModel) ->
+  constructor: (sio, redisC, EventBus, channels, ChannelModel) ->
 
     @sio = sio
     @redisC = redisC
     @EventBus = EventBus
-    @Channels = Channels
+    @channels = channels
     @ChannelModel = ChannelModel
     @Client = require("./client.js.coffee").ClientStructures(@redisC, @EventBus).ServerClient
 
 
     @initialized = false
-    @name = "Default"
-    @namespace = "/default" # override in initialize
-
-    # a list of events to bind to the client socket:
-    @events = []
-
-    # everything is assumed to be an authenticated route unless specified elsewise
-    @unauthenticatedEvents = []
 
   initializeClientEvents: (namespace, socket, channel, client) ->
     server = this
@@ -47,28 +39,29 @@ module.exports.AbstractServer = class AbstractServer
   start: (callback) ->
     server = this
 
-    @serverInstance = @sio.of(@SERVER_NAMESPACE).on "connection", (socket) ->
-      socket.on "subscribe", (data, subscribeAck) ->
+    console.log @namespace
+
+    @serverInstance = @sio.of(@namespace).on "connection", (socket) =>
+      socket.on "subscribe", (data, subscribeAck) =>
         channelName = data.room
         subchannel = data.subchannel
-        namespace = undefined
         channelProperties = undefined
         client = undefined
         channel = undefined
         if typeof subchannel isnt "undefined"
-          namespace = channelName + ":" + subchannel
+          effectiveRoom = channelName + ":" + subchannel
         else
-          namespace = channelName
+          effectiveRoom = channelName
 
         # attempt to get the channel
-        channel = Channels.findWhere(name: channelName)
+        channel = @channels.findWhere(name: channelName)
 
         # create the channel if it doesn't already exist
         if typeof channel is "undefined" or channel is null
 
           # create the channel
-          channel = new Channel(name: channelName)
-          Channels.add channel
+          channel = new @ChannelModel(name: channelName)
+          @channels.add channel
         client = channel.clients.findWhere(sid: socket.id)
 
         # console.log(server.name, "c", typeof client);
@@ -80,23 +73,23 @@ module.exports.AbstractServer = class AbstractServer
           client.socketRef = socket
           channel.clients.add client
         else # there was a pre-existing client
-          socket.join namespace  if client.get("authenticated")
-        client.once "authenticated", (result) ->
+          socket.join effectiveRoom  if client.get("authenticated")
+        client.once "authenticated", (result) =>
           DEBUG and console.log("authenticated", server.name, client.cid, socket.id, result.attributes.authenticated)
           if result.attributes.authenticated
-            socket.join namespace
-            callback.success namespace, socket, channel, client, data
+            socket.join effectiveRoom
+            callback.success.call this, effectiveRoom, socket, channel, client, data
             subscribeAck cid: client.cid  if subscribeAck isnt null and typeof (subscribeAck) isnt "undefined"
           else
-            socket.leave namespace
+            socket.leave effectiveRoom
 
 
         # attempt to authenticate on the chanenl
-        channel.authenticate client, "", (err, response) ->
-          server.initializeClientEvents namespace, socket, channel, client
+        channel.authenticate client, "", (err, response) =>
+          server.initializeClientEvents effectiveRoom, socket, channel, client
 
           # let any implementing servers handle errors the way they like
-          callback.error err, socket, channel, client, data  if err
+          callback.error.call this err, socket, channel, client, data  if err
 
 
         # every server shall support a disconnect handler
@@ -110,7 +103,7 @@ module.exports.AbstractServer = class AbstractServer
 
 
         # every server shall support a unsubscribe handler (user closes channel but remains in chat)
-        socket.on "unsubscribe:" + namespace, ->
+        socket.on "unsubscribe:#{effectiveRoom}", ->
 
           # DEBUG && console.log("Killing (left) ", client.cid, " from ", channelName);
           channel.clients.remove client  if typeof client isnt "undefined"
