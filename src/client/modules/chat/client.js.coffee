@@ -14,6 +14,9 @@ ColorModel              = Client.ColorModel
 ClientModel             = Client.ClientModel
 ClientsCollection       = Client.ClientsCollection
 
+
+faviconizer = new Faviconizer
+
 module.exports.CryptoModal = class CryptoModal extends Backbone.View
   className: "backdrop"
   template: cryptoModalTemplate

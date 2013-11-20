@@ -188,11 +188,11 @@ redisC.select 15, (err, reply) ->
       # hotfix for now, real fix later
       if channel.initialized == false
         # only bind these once *ever*
-        channel.clients.on "change", (changed) ->
-          clientChanged(socket, channel, changed)
+        channel.clients.on "change", (changed) =>
+          @clientChanged(socket, channel, changed)
 
-        channel.clients.on "remove", (removed) ->
-          clientRemoved(socket, channel, removed)
+        channel.clients.on "remove", (removed) =>
+          @clientRemoved(socket, channel, removed)
 
         channel.initialized = true
 

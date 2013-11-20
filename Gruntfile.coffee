@@ -24,18 +24,17 @@ module.exports = (grunt) ->
 
       js:
         vendor: [
-          "lib/jquery/jquery.js"
-          "lib/jquery.cookie/jquery.cookie.js"
-          "lib/keymaster/keymaster.js"
-          "lib/moment/moment.js"
-          "lib/underscore/underscore.js"
-          "lib/backbone/backbone.js"
+          "vendor/jquery/jquery.js"
+          "vendor/jquery.cookie/jquery.cookie.js"
+          "vendor/keymaster/keymaster.js"
+          "vendor/moment/moment.js"
+          "vendor/underscore/underscore.js"
+          "vendor/backbone/backbone.js"
         ]
 
         app:
-          client:
-            main: "src/client/main.js.coffee"
-            compiled: "<%= public_dir %>js/app.min.js"
+          main: "src/client/main.js.coffee"
+          compiled: "<%= public_dir %>js/app.min.js"
 
       templates:
         src: "app/templates/**/*.hb"
@@ -56,7 +55,7 @@ module.exports = (grunt) ->
     browserify:
       app:
         files:
-          "<%= files.js.app.client.compiled %>" : "<%= files.js.app.client.main %>"
+          "<%= files.js.app.compiled %>" : "<%= files.js.app.main %>"
         options:
           debug: true
           transform: ["coffeeify", "node-underscorify"]
@@ -76,16 +75,12 @@ module.exports = (grunt) ->
         livereload: true
 
       # targets for watch
-      html:
-        files: ["<%= files.html.src %>"]
-        tasks: ["copy"]
-
       js:
         files: ["<%= files.js.vendor %>"]
         tasks: ["concat_sourcemap"]
 
       coffee:
-        files: ["src/**/*.coffee"]
+        files: ["src/client/**/*.coffee"]
         tasks: ["browserify", "concat_sourcemap"]
 
       sass:
@@ -140,7 +135,7 @@ module.exports = (grunt) ->
         dest: "<%= public_dir %>js/app.min.js"
 
     clean:
-      workspaces: ["dist", "generated"]
+      workspaces: ["build"]
 
   # loading local tasks
   grunt.loadTasks "tasks"
@@ -150,6 +145,6 @@ module.exports = (grunt) ->
   require('matchdep').filterAll('grunt-*').forEach(grunt.loadNpmTasks)
 
   # creating workflows
-  # grunt.registerTask "default", ["sass:dist", "cssmin", "browserify", "concat_sourcemap", "copy", "server", "open", "watch"]
-  grunt.registerTask "build", ["clean", "sass:dist", "cssmin", "browserify", "concat_sourcemap", "copy"]
+  grunt.registerTask "default", ["sass:dist", "cssmin", "browserify", "concat_sourcemap", "copy", "watch"]
+  grunt.registerTask "build", ["clean", "sass:dist", "cssmin", "browserify", "uglify", "concat_sourcemap", "copy"]
   # grunt.registerTask "prodsim", ["build", "server", "open", "watch"]

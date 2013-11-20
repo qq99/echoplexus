@@ -35,17 +35,17 @@ module.exports.Log = class Log
     @log.push obj
 
     # sort the log for consistency:
-    @log = _.sortBy(log, "timestamp")
+    @log = _.sortBy(@log, "timestamp")
 
     # cull the older log entries
-    @log.unshift()  if @log.length > options.logMax
+    @log.unshift()  if @log.length > @options.logMax
 
     # presist to localStorage:
-    window.localStorage.setObj "log:#{@options.names}", @log
+    window.localStorage.setObj "log:#{@options.namespace}", @log
 
   destroy: ->
     @log = []
-    window.localStorage.setObj "log:" + options.namespace, null
+    window.localStorage.setObj "log:#{@options.namespace}", null
 
   empty: ->
     return if !window.Storage?
@@ -99,7 +99,7 @@ module.exports.Log = class Log
     missed = []
     sensibleMax = 50 # don't pull everything that we might have missed, just the most relevant range
     from = @latestID
-    to = Math.max(latestID - sensibleMax, clientLatest + 1)
+    to = Math.max(from - sensibleMax, clientLatest + 1)
 
     # if the server is ahead of us
     if @latestID > clientLatest

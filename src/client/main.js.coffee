@@ -7,9 +7,9 @@ require("./utility.js.coffee")()
 
 
 # will be removed
-codingModeActive = -> # sloppy, forgive me
+window.codingModeActive = -> # sloppy, forgive me
   $("#coding").is ":visible"
-chatModeActive = ->
+window.chatModeActive = ->
   $("#chatting").is ":visible"
 DEBUG = true  if typeof DEBUG is "undefined"
 
