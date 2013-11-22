@@ -1,8 +1,8 @@
-_ = require("underscore") if !_
-Backbone = require("backbone") if !Backbone
+_               = require("underscore") if !_
+Backbone        = require("backbone") if !Backbone
 PermissionModel = require("./PermissionModel.coffee").PermissionModel
-REGEXES = require("./regex.js.coffee").REGEXES
-CryptoWrapper = require("./CryptoWrapper.coffee")
+REGEXES         = require("./regex.js.coffee").REGEXES
+CryptoWrapper   = require("./CryptoWrapper.coffee")
 
 module.exports.ColorModel = Backbone.Model.extend(
   defaults:

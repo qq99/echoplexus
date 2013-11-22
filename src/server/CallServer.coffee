@@ -1,6 +1,6 @@
 _                   = require("underscore")
 AbstractServer      = require("./AbstractServer.coffee").AbstractServer
-config              = require("./config.js").Configuration
+config              = require("./config.coffee").Configuration
 Client              = require("../client/client.js").ClientModel
 Clients             = require("../client/client.js").ClientsCollection
 DEBUG               = config.DEBUG

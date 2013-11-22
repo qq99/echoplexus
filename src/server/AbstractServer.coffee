@@ -1,20 +1,11 @@
 _         = require("underscore")
-config    = require("./config.js.coffee").Configuration
+config    = require("./config.coffee").Configuration
 Clients   = require("../client/client.js.coffee").ClientsCollection
 DEBUG     = config.DEBUG
 
 module.exports.AbstractServer = class AbstractServer
-  constructor: (sio, redisC, EventBus, channels, ChannelModel) ->
-
-    @sio = sio
-    @redisC = redisC
-    @EventBus = EventBus
-    @channels = channels
-    @ChannelModel = ChannelModel
-    @Client = require("./client.js.coffee").ClientStructures(@redisC, @EventBus).ServerClient
-
-
-    @initialized = false
+  constructor: (@sio, @channels, @ChannelModel) ->
+    @Client = require("./client.js.coffee").ServerClient
 
   initializeClientEvents: (namespace, socket, channel, client) ->
     server = this
@@ -25,6 +16,7 @@ module.exports.AbstractServer = class AbstractServer
       # wrap the event in an authentication filter:
       authFiltered = _.wrap(method, (meth) ->
         method_args = arguments
+
         return  if (client.get("authenticated") is false) and not _.contains(server.unauthenticatedEvents, eventName)
 
         #DEBUG && console.log(eventName + ":" + namespace);
@@ -66,10 +58,10 @@ module.exports.AbstractServer = class AbstractServer
 
         # console.log(server.name, "c", typeof client);
         if typeof client is "undefined" or client is null # there was no pre-existing client
-          client = new @Client(
+          client = new @Client
             room: channelName
             sid: socket.id
-          )
+
           client.socketRef = socket
           channel.clients.add client
         else # there was a pre-existing client

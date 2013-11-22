@@ -1,6 +1,6 @@
 exports.UserServer = (sio, redisC, EventBus, Channels, ChannelModel) ->
   USERSPACE = "/user"
-  config = require("./config.js").Configuration
+  config = require("./config.coffee").Configuration
   _ = require("underscore")
   DEBUG = config.DEBUG
   UserServer = require("./AbstractServer.coffee").AbstractServer(sio, redisC, EventBus, Channels, ChannelModel)

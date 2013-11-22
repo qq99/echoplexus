@@ -239,6 +239,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     self = this
     body = undefined
     nickname = undefined
+
     if typeof msg.get("encrypted_nick") isnt "undefined"
       nickname = crypto.decryptObject(msg.get("encrypted_nick"), @me.cryptokey)
     else
@@ -247,7 +248,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       body = crypto.decryptObject(msg.get("encrypted"), @me.cryptokey)
     else
       body = msg.get("body")
-    opts = {}  if typeof opts is "undefined"
+    opts = {}  if !opts
     if @autoloadMedia and msg.get("class") isnt "identity" # setting nick to a image URL or youtube URL should not update media bar
       # put image links on the side:
       images = undefined
@@ -259,7 +260,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
           href = images[i]
 
           # only do it if it's an image we haven't seen before
-          if self.uniqueURLs[href] is `undefined`
+          if self.uniqueURLs[href]?
             img = self.linkedImageTemplate(
               url: href
               image_url: href
@@ -291,7 +292,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
             src: src
             originalSrc: youtubes[i]
           )
-          if self.uniqueURLs[src] is `undefined`
+          if self.uniqueURLs[src]?
             $(".linklog .body", @$el).prepend yt
             self.uniqueURLs[src] = true
           i++
@@ -303,7 +304,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         l = links.length
 
         while i < l
-          if self.uniqueURLs[links[i]] is `undefined`
+          if self.uniqueURLs[links[i]]?
             $(".linklog .body", @$el).prepend "<a rel='noreferrer' href='" + links[i] + "' target='_blank'>" + links[i] + "</a>"
             self.uniqueURLs[links[i]] = true
           i++

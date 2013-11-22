@@ -292,7 +292,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
 
     #On reconnection attempts, print out the retries
-    @socket.on "reconnecting", (nextRetry) ->
+    @socket.on "reconnecting", (nextRetry) =>
       @chatLog.renderChatMessage new ChatMessage
         body: "Connection lost, retrying in " + nextRetry / 1000.0 + " seconds"
         type: "SYSTEM"

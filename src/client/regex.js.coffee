@@ -1,12 +1,12 @@
 # utility: a container of useful regexes arranged into some a rough taxonomy
 module.exports.REGEXES =
   urls:
-    image: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|].(jpeg|jpg|png|bmp|gif|svg))/g
-    youtube: /((https?:\/\/)?(www\.)?youtu((?=\.)\.be\/|be\.com\/watch.*v=)([\w\d\-_]*))/g
-    all_others: /(\b(https?|http):(\/\/|&#x2F;&#x2F;)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|;])/g
+    image: /(\b(https?|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|].(jpeg|jpg|png|bmp|gif|svg))/gi
+    youtube: /((https?:\/\/)?(www\.)?youtu((?=\.)\.be\/|be\.com\/watch.*v=)([\w\d\-_]*))/gi
+    all_others: /(\b(https?|http):(\/\/|&#x2F;&#x2F;)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|;])/gi
 
   users:
-    mentions: /(@[^\b\s]*)/g
+    mentions: /(@[^\b\s]*)/gi
 
   commands:
     nick: /^\/(nick|n) /

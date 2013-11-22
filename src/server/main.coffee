@@ -1,12 +1,12 @@
 require("coffee-script")
-config           = require("./config.js").Configuration # deploy specific configuration
+config           = require("./config.coffee").Configuration # deploy specific configuration
+redisC           = require("./RedisClient.coffee").RedisClient(config.redis?.port, config.redis?.host)
 express          = require("express")
 _                = require("underscore")
 Backbone         = require("backbone")
 crypto           = require("crypto")
 fs               = require("fs")
 uuid             = require("node-uuid")
-redis            = require("redis")
 sio              = require("socket.io")
 spawn            = require("child_process").spawn
 async            = require("async")
@@ -16,7 +16,7 @@ CodeServer       = require("./CodeServer.coffee").CodeServer
 DrawServer       = require("./DrawServer.coffee").DrawServer
 CallServer       = require("./CallServer.coffee").CallServer
 UserServer       = require("./UserServer.coffee").UserServer
-EventBus         = new Backbone.Model
+EventBus         = require("./EventBus.coffee").EventBus()
 app              = express()
 
 # config:
@@ -61,10 +61,6 @@ authMW = (req, res, next) ->
       return
     next()
 
-if config.redis
-  redisC = redis.createClient(config.redis.port, config.redis.host)
-else
-  redisC = redis.createClient()
 if config.ssl.USE_NODE_SSL
   protocol = require("https")
   privateKey = fs.readFileSync(config.ssl.PRIVATE_KEY).toString()
@@ -157,10 +153,10 @@ sio.set "log level", 1
 
 # use db 15:
 redisC.select 15, (err, reply) ->
-  ChannelStructures = require("./Channels.js").ChannelStructures(redisC, EventBus)
+  ChannelStructures = require("./Channels.js.coffee")
   ChannelModel = ChannelStructures.ServerChannelModel
-  Channels = new ChannelStructures.ChannelsCollection()
-  chatServer = new ChatServer sio, redisC, EventBus, Channels, ChannelModel # start up the chat server
+  Channels = new ChannelStructures.ChannelsCollection
+  chatServer = new ChatServer sio, Channels, ChannelModel # start up the chat server
   chatServer.start
     error: (err, socket, channel, client, data) ->
       room = channel.get("name")
@@ -212,15 +208,15 @@ redisC.select 15, (err, reply) ->
 
               sio.of(CHATSPACE).in(room).emit("chat:" + room, msg)
 
-  codeServer = new CodeServer sio, redisC, EventBus, Channels
-  codeServer.start
-    error: (err, socket, channel, client) ->
-      if err
-        console.log("CodeServer: ", err)
-    success: (namespace, socket, channel, client) ->
-      console.log "CodeServer started"
-      cc = spawnCodeCache(namespace)
-      socket.in(namespace).emit("code:authoritative_push:#{namespace}", cc.syncToClient());
+  # codeServer = new CodeServer sio, redisC, EventBus, Channels, ChannelModel
+  # codeServer.start
+  #   error: (err, socket, channel, client) ->
+  #     if err
+  #       console.log("CodeServer: ", err)
+  #   success: (namespace, socket, channel, client) ->
+  #     console.log "CodeServer started"
+  #     cc = spawnCodeCache(namespace)
+  #     socket.in(namespace).emit("code:authoritative_push:#{namespace}", cc.syncToClient());
 
   # drawServer = new DrawServer sio, redisC, EventBus, Channels
   # drawServer.start

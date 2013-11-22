@@ -1,4 +1,4 @@
-config 					= require('./config.js.coffee').Configuration
+config 					= require('./config.coffee').Configuration
 AbstractServer 	= require('./AbstractServer.coffee').AbstractServer
 Client 					= require('../client/client.js.coffee').ClientModel
 Clients 				= require('../client/client.js.coffee').ClientsCollection

@@ -32,7 +32,7 @@ server {
     listen 443;
     server_name chat.echoplex.us;
 
-    # This should match what you set @ server/config.js for:
+    # This should match what you set @ server/config.coffee for:
     # server_hosted_file_transfer.size_limit (note diff units!)
     client_max_body_size 10M;
 

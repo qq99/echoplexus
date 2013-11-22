@@ -1,132 +1,136 @@
-exports.ClientStructures = (redisC, EventBus) ->
-	_ = require("underscore")
-	uuid = require("node-uuid")
-	config = require("../server/config.js").Configuration
-	Client = require("../client/client.js").ClientModel
+_               = require("underscore")
+uuid            = require("node-uuid")
+config          = require("../server/config.coffee").Configuration
+Client          = require("../client/client.js").ClientModel
+redisC          = require("./RedisClient.coffee").RedisClient()
+PermissionModel = require("./PermissionModel.coffee").ClientPermissionModel
 
-	# from: http://stackoverflow.com/questions/667508/whats-a-good-rate-limiting-algorithm
-	class TokenBucket
-		constructor: () ->
-		  @rate = config.chat.rate_limiting.rate # unit: # messages
-		  @per = config.chat.rate_limiting.per # unit: milliseconds
-		  @allowance = @rate # unit: # messages
-		  @last_check = Number(new Date()) # unit: milliseconds
+module.exports.TokenBucket = class TokenBucket
+  # from: http://stackoverflow.com/questions/667508/whats-a-good-rate-limiting-algorithm
 
-	  rateLimit: ->
-	    current = Number(new Date())
-	    time_passed = current - @last_check
-	    @last_check = current
-	    @allowance += time_passed * (@rate / @per)
-	    @allowance = @rate  if @allowance > @rate # throttle
-	    if @allowance < 1.0
-	      true # discard message, "true" to rate limiting
-	    else
-	      @allowance -= 1.0
-	      false # allow message, "false" to rate limiting
+  constructor: () ->
+    @rate = config.chat.rate_limiting.rate # unit: # messages
+    @per = config.chat.rate_limiting.per # unit: milliseconds
+    @allowance = @rate # unit: # messages
+    @last_check = Number(new Date()) # unit: milliseconds
 
-	this.ServerClient = Client.extend
-		initialize: ->
-			@on "change:identified", (data) ->
-			  self.loadMetadata()
-			  self.setIdentityToken (err) ->
-			    throw err  if err
-			    self.getPermissions()
+  rateLimit: ->
+    current = Number(new Date())
+    time_passed = current - @last_check
+    @last_check = current
+    @allowance += time_passed * (@rate / @per)
+    @allowance = @rate  if @allowance > @rate # throttle
+    if @allowance < 1.0
+      true # discard message, "true" to rate limiting
+    else
+      @allowance -= 1.0
+      false # allow message, "false" to rate limiting
+
+module.exports.ServerClient = class ServerClient extends Client
+
+  initialize: ->
+    _.bindAll this
+    @on "change:identified", (data) =>
+      @loadMetadata()
+      @setIdentityToken (err) =>
+        throw err  if err
+        @getPermissions()
 
 
-			Client::initialize.apply this, arguments
+    Client::initialize.apply this, arguments
+    @set "permissions", new PermissionModel()
 
-			# set a good global identifier
-			@set "id", uuid.v4() if uuid?
+    # set a good global identifier
+    @set "id", uuid.v4() if uuid?
 
-			if (config?.chat?.rate_limiting?.enabled)
-				this.tokenBucket = new TokenBucket();
+    if (config?.chat?.rate_limiting?.enabled)
+      @tokenBucket = new TokenBucket
 
-		setIdentityToken: (callback) ->
-			self = this
-			token = undefined
-			room = @get("room")
-			nick = @get("nick")
+  setIdentityToken: (callback) ->
+    room = @get("room")
+    nick = @get("nick")
 
-			# check to see if a token already exists for the user
-			redisC.hget "identity_token:" + room, nick, (err, reply) ->
-			  callback err  if err
-			  unless reply # if not, make a new one
-			    token = uuid.v4()
-			    redisC.hset "identity_token:" + room, nick, token, (err, reply) -> # persist it
-			      throw err  if err
-			      self.identity_token = token # store it on the client object
-			      callback null
+    # check to see if a token already exists for the user
+    redisC.hget "identity_token:" + room, nick, (err, reply) =>
+      callback err  if err
+      unless reply # if not, make a new one
+        token = uuid.v4()
+        redisC.hset "identity_token:" + room, nick, token, (err, reply) => # persist it
+          throw err  if err
+          @identity_token = token # store it on the client object
+          callback null
 
-			  else
-			    token = reply
-			    self.identity_token = token # store it on the client object
-			    callback null
+      else
+        token = reply
+        @identity_token = token # store it on the client object
+        callback null
 
-		hasPermission: (permName) ->
-			@get("permissions").get permName
+  hasPermission: (permName) ->
+    @get("permissions").get permName
 
-		becomeChannelOwner: ->
-			@get("permissions").upgradeToOperator()
-			@set "operator", true # TODO: add a way to send client data on change events
+  becomeChannelOwner: ->
+    console.log @get "permissions"
+    @get("permissions").upgradeToOperator()
+    @set "operator", true # TODO: add a way to send client data on change events
 
-		getPermissions: ->
-			room = @get("room")
-			nick = @get("nick")
-			identity_token = @identity_token;
+  getPermissions: ->
+    room = @get("room")
+    nick = @get("nick")
+    identity_token = @identity_token;
 
-			return if !identity_token?;
+    console.log room, nick, identity_token
 
-			redisC.hget "permissions:" + room, nick + ":" + identity_token, (err, reply) ->
-			  throw err  if err
-			  if reply
-			    stored_permissions = JSON.parse(reply)
-			    self.get("permissions").set stored_permissions
+    return if !identity_token?
 
-		persistPermissions: ->
-			return if @get("identified")
+    redisC.hget "permissions:#{room}", "#{nick}:#{identity_token}", (err, reply) =>
+      throw err if err
+      if reply
+        stored_permissions = JSON.parse(reply)
+        @get("permissions").set stored_permissions
 
-			room = @get("room")
-			nick = @get("nick")
-			identity_token = @identity_token
+  persistPermissions: ->
+    return if @get("identified")
 
-			redisC.hset "permissions:" + room, nick + ":" + identity_token, JSON.stringify(@get("permissions").toJSON())
+    room = @get("room")
+    nick = @get("nick")
+    identity_token = @identity_token
 
-		metadataToArray: ->
-			data = []
-			_.each @supported_metadata, (field) ->
-			  data.push field
-			  data.push self.get(field)
+    redisC.hset "permissions:" + room, nick + ":" + identity_token, JSON.stringify(@get("permissions").toJSON())
 
-			data
+  metadataToArray: ->
+    data = []
+    _.each @supported_metadata, (field) =>
+      data.push field
+      data.push @get(field)
 
-		saveMetadata: ->
-			if @get("identified")
-			  room = @get("room")
-			  nick = @get("nick")
-			  data = @metadataToArray()
-			  redisC.hmset "users:room:" + nick, data, (err, reply) ->
-			    throw err  if err
-			    callback null
+    data
 
-		loadMetadata: ->
-			if @get("identified")
-			  room = @get("room")
-			  nick = @get("nick")
-			  fields = {}
-			  redisC.hmget "users:room:" + nick, @supported_metadata, (err, reply) ->
-			    throw err  if err
+  saveMetadata: ->
+    if @get("identified")
+      room = @get("room")
+      nick = @get("nick")
+      data = @metadataToArray()
+      redisC.hmset "users:room:" + nick, data, (err, reply) ->
+        throw err  if err
+        callback null
 
-			    # console.log("metadata:", reply);
-			    i = 0
+  loadMetadata: ->
+    if @get("identified")
+      room = @get("room")
+      nick = @get("nick")
+      fields = {}
+      redisC.hmget "users:room:" + nick, @supported_metadata, (err, reply) =>
+        throw err  if err
 
-			    while i < reply.length
-			      fields[self.supported_metadata[i]] = reply[i]
-			      i++
+        # console.log("metadata:", reply);
+        i = 0
 
-			    # console.log(fields);
-			    self.set fields,
-			      trigger: true
+        while i < reply.length
+          fields[@supported_metadata[i]] = reply[i]
+          i++
 
-			    reply # just in case
+        # console.log(fields);
+        @set fields,
+          trigger: true
 
-	return this
+        reply # just in case

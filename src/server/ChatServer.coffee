@@ -1,5 +1,5 @@
 _ 								= require("underscore")
-config 						= require('./config.js.coffee').Configuration
+config 						= require('./config.coffee').Configuration
 AbstractServer 		= require('./AbstractServer.coffee').AbstractServer
 Client 						= require('../client/client.js.coffee').ClientModel
 Clients 					= require('../client/client.js.coffee').ClientsCollection
@@ -13,6 +13,7 @@ uuid 							= require("node-uuid")
 PUBLIC_FOLDER 		= __dirname + "/../public"
 SANDBOXED_FOLDER 	= PUBLIC_FOLDER + "/sandbox"
 ApplicationError 	= require("./Error.js.coffee")
+redisC 						= require("./RedisClient.coffee").RedisClient()
 REGEXES 					= require("../client/regex.js.coffee").REGEXES
 DEBUG 						= config.DEBUG
 
@@ -27,7 +28,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 	  alteredMsg = undefined
 
 	  # get the pure message
-	  @redisC.hget "chatlog:" + room, mID, (err, reply) =>
+	  redisC.hget "chatlog:" + room, mID, (err, reply) ->
 	    throw err  if err
 	    alteredMsg = JSON.parse(reply) # parse it
 
@@ -40,7 +41,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 	    alteredMsg.encrypted = newMessage.encrypted  if typeof newMessage.encrypted isnt "undefined"
 
 	    # overwrite the old message with the altered chat message
-	    @redisC.hset "chatlog:" + room, mID, JSON.stringify(alteredMsg), (err, reply) ->
+	    redisC.hset "chatlog:" + room, mID, JSON.stringify(alteredMsg), (err, reply) ->
 	      throw err  if err
 	      callback null, alteredMsg
 
@@ -96,7 +97,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		# channel.clients.add(client)
 
 		# tell the newly connected client know the ID of the latest logged message
-		@redisC.hget "channels:currentMessageID", room, (err, reply) ->
+		redisC.hget "channels:currentMessageID", room, (err, reply) ->
 			throw err if err
 			socket.in(room).emit("chat:currentID:#{room}", {
 				mID: reply,
@@ -125,19 +126,19 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 	storePersistent: (msg, room, callback) ->
 
 	  # store in redis
-	  @redisC.hget "channels:currentMessageID", room, (err, reply) =>
+	  redisC.hget "channels:currentMessageID", room, (err, reply) ->
 	    callback err  if err
 
 	    # update where we keep track of the sequence number:
 	    mID = 0
 	    mID = parseInt(reply, 10)  if reply
-	    @redisC.hset "channels:currentMessageID", room, mID + 1
+	    redisC.hset "channels:currentMessageID", room, mID + 1
 
 	    # alter the message object itself
 	    msg.mID = mID
 
 	    # store the message
-	    @redisC.hset "chatlog:" + room, mID, JSON.stringify(msg), (err, reply) ->
+	    redisC.hset "chatlog:" + room, mID, JSON.stringify(msg), (err, reply) ->
 	      callback err  if err
 
 	      # return the altered message object
@@ -225,7 +226,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				username = null
 
 			if !bestowables
-				emitGenericPermissionsError(socket, client)
+				@emitGenericPermissionsError(socket, client)
 				return
 
 			perms = _.compact(_.uniq(perms.replace(/([+-])/g, " $1").split(' ')))
@@ -288,7 +289,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			room = channel.get("name")
 
 			if !channel.hasPermission(client, "canMakePublic")
-				emitGenericPermissionsError(socket, client)
+				@emitGenericPermissionsError(socket, client)
 				return
 
 			channel.makePublic (err, response) =>
@@ -304,7 +305,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			room = channel.get("name")
 
 			if !channel.hasPermission(client, "canMakePrivate")
-				emitGenericPermissionsError(socket, client)
+				@emitGenericPermissionsError(socket, client)
 				return
 
 			channel.makePrivate data.password, (err, response) =>
@@ -364,7 +365,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			room = channel.get("name")
 
 			if !channel.hasPermission(client, "canSetTopic")
-				emitGenericPermissionsError(socket, client)
+				@emitGenericPermissionsError(socket, client)
 				return
 
 			channel.setTopic(data)
@@ -396,7 +397,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			if _.indexOf(client.mIDs, mID) != -1
 				@updatePersistedMessage(room, mID, data, editResultCallback)
 			else # attempt to use the client's identity token, if it exists & if it matches the one stored with the chatlog object
-				@redisC.hget "chatlog:identity_tokens:" + room, mID, (err, reply) ->
+				redisC.hget "chatlog:identity_tokens:" + room, mID, (err, reply) ->
 					throw err if err
 
 					if client.identity_token == reply
@@ -407,10 +408,10 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			jsonArray = []
 
 			if !channel.hasPermission(client, "canPullLogs")
-				emitGenericPermissionsError(socket, client)
+				@emitGenericPermissionsError(socket, client)
 				return
 
-			@redisC.hmget "chatlog:#{room}", data.requestRange, (err, reply) ->
+			redisC.hmget "chatlog:#{room}", data.requestRange, (err, reply) ->
 				throw err if err
 				# emit the logged replies to the client requesting them
 				socket.in(room).emit('chat:batch:' + room, _.without(reply, null))
@@ -432,7 +433,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			room = channel.get("name")
 
 			if !channel.hasPermission(client, "canSpeak")
-				emitGenericPermissionsError(socket, client)
+				@emitGenericPermissionsError(socket, client)
 				return
 
 			# only send a message if it has a body & is directed at someone
@@ -489,7 +490,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			room = channel.get("name")
 
 			if !channel.hasPermission(client, "canSpeak")
-				emitGenericPermissionsError(socket, client)
+				@emitGenericPermissionsError(socket, client)
 				return
 
 			if config.chat?.rate_limiting?.enabled
@@ -520,7 +521,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 					# is there an edit token associated with this client?  if so, persist that so he can edit the message later
 					if client.identity_token
-						@redisC.hset "chatlog:identity_tokens:#{room}", mID, client.identity_token, (err, reply) ->
+						redisC.hset "chatlog:identity_tokens:#{room}", mID, client.identity_token, (err, reply) ->
 							throw err if err
 
 		"identify": (namespace, socket, channel, client, data) ->
@@ -528,7 +529,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			nick = client.get("nick")
 
 			try
-				@redisC.sismember "users:#{room}", nick, (err, reply) =>
+				redisC.sismember "users:#{room}", nick, (err, reply) =>
 					if !reply
 						socket.in(room).emit('chat:' + room, @serverSentMessage({
 							class: "identity err",
@@ -537,9 +538,9 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					else
 						async.parallel {
 							salt: (callback) ->
-								@redisC.hget("salts:" + room, nick, callback)
+								redisC.hget("salts:" + room, nick, callback)
 							password: (callback) ->
-								@redisC.hget("passwords:" + room, nick, callback)
+								redisC.hget("passwords:" + room, nick, callback)
 						}, (err, stored) ->
 							throw err if err
 							crypto.pbkdf2 data.password, stored.salt, 4096, 256, (err, derivedKey) =>
@@ -571,7 +572,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		"register_nick": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 			nick = client.get("nick")
-			@redisC.sismember "users:#{room}", nick, (err, reply) =>
+			redisC.sismember "users:#{room}", nick, (err, reply) =>
 				throw err if err
 				if !reply # nick is not in use
 					try # try crypto & persistence
@@ -581,11 +582,11 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 							crypto.pbkdf2 data.password, salt, 4096, 256, (err, derivedKey) =>
 								throw err if err
 
-								@redisC.sadd "users:#{room}", nick, (err, reply) ->
+								redisC.sadd "users:#{room}", nick, (err, reply) ->
 									throw err if err
-								@redisC.hset "salts:#{room}", nick, salt, (err, reply) ->
+								redisC.hset "salts:#{room}", nick, salt, (err, reply) ->
 									throw err if err
-								@redisC.hset "passwords:#{room}", nick, derivedKey.toString(), (err, reply) ->
+								redisC.hset "passwords:#{room}", nick, derivedKey.toString(), (err, reply) ->
 									throw err if err
 
 								client.set("identified", true)

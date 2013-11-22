@@ -2,7 +2,7 @@ _ 							= require('underscore')
 AbstractServer 	= require('./AbstractServer.coffee').AbstractServer
 Client 					= require('../client/client.js').ClientModel
 Clients 				= require('../client/client.js').ClientsCollection
-config 					= require('./config.js').Configuration
+config 					= require('./config.coffee').Configuration
 DEBUG 					= config.DEBUG
 
 module.exports.DrawServer = class DrawingServer extends AbstractServer
