@@ -205,7 +205,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   # return false;
   dropObject: (ev) ->
-    self = this
     @noop ev
     console.log ev.originalEvent.dataTransfer # will report .files.length => 0 (it's just a console bug though!)
     console.log ev.originalEvent.dataTransfer.files[0] # it actually exists :o
@@ -215,15 +214,15 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       return
     @file = file
     reader = new FileReader()
-    reader.addEventListener "loadend", ((e) ->
+    reader.addEventListener "loadend", ((e) =>
       data =
-        fileName: self.file.name
-        fileSize: readablizeBytes(self.file.size)
+        fileName: @file.name
+        fileSize: readablizeBytes(@file.size)
         img: null
 
       # show img preview
       data.img = e.target.result  if e.target.result.match(/^data:image/)
-      $(".staging-area", @$el).html self.fileUploadTemplate(data)
+      $(".staging-area", @$el).html @fileUploadTemplate(data)
     ), false
     reader.readAsDataURL file
     $(".drag-mask", @$el).hide()
@@ -234,7 +233,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     delete @file
 
   uploadFile: ->
-    self = this
     $progressBarContainer = $(".progress-bar", @$el)
     $progressMeter = $(".meter", @$el)
 
@@ -272,7 +270,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   show: ->
     @$el.show()
     @chatLog.scrollToLatest()
-    $("textarea", self.$el).focus()
+    $("textarea", @$el).focus()
     @hidden = false
 
   hide: ->
@@ -280,66 +278,59 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @hidden = true
 
   bindReconnections: ->
-    self = this
-
     #Bind the disconnnections, send message on disconnect
-    self.socket.on "disconnect", =>
-      self.chatLog.renderChatMessage new ChatMessage(
+    @socket.on "disconnect", =>
+      @chatLog.renderChatMessage new ChatMessage
         body: "Disconnected from the server"
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "client"
-      )
+
       window.disconnected = true
       faviconizer.setDisconnected()
 
 
     #On reconnection attempts, print out the retries
-    self.socket.on "reconnecting", (nextRetry) ->
-      self.chatLog.renderChatMessage new ChatMessage(
+    @socket.on "reconnecting", (nextRetry) ->
+      @chatLog.renderChatMessage new ChatMessage
         body: "Connection lost, retrying in " + nextRetry / 1000.0 + " seconds"
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "client"
-      )
-
 
     #On successful reconnection, render the chatmessage, and emit a subscribe event
-    self.socket.on "reconnect", ->
+    @socket.on "reconnect", =>
 
       #Resend the subscribe event
-      self.socket.emit "subscribe",
-        room: self.channelName
+      @socket.emit "subscribe",
+        room: @channelName
         reconnect: true
-      , -> # server acks and we:
+      , => # server acks and we:
         # if we were idle on reconnect, report idle immediately after ack
-        self.me.inactive "", self.channelName, self.socket  if self.me.get("idle")
-        self.postSubscribe()
+        @me.inactive "", @channelName, @socket  if @me.get("idle")
+        @postSubscribe()
 
 
 
   kill: ->
-    self = this
     @socket.emit "unsubscribe:" + @channelName
-    _.each @socketEvents, (method, key) ->
-      self.socket.removeAllListeners key + ":" + self.channelName
+    _.each @socketEvents, (method, key) =>
+      @socket.removeAllListeners "#{key}:#{@channelName}"
 
 
   postSubscribe: (data) ->
-    @chatLog.renderChatMessage new ChatMessage(
+    @chatLog.renderChatMessage new ChatMessage
       body: "Connected. Now talking in channel " + @channelName
       type: "SYSTEM"
       timestamp: new Date().getTime()
       nickname: ""
       class: "client"
-    )
 
     # attempt to automatically /nick and /ident
-    $.when(@autoNick()).done ->
-      self.autoIdent()
-
+    $.when(@autoNick()).done =>
+      @autoIdent()
 
     # start the countdown for idle
     @startIdleTimer()
@@ -425,182 +416,174 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     msg
 
   listen: ->
-    self = this
     socket = @socket
     @socketEvents =
-      chat: (msg) ->
-        window.events.trigger "message", socket, self, msg
+      chat: (msg) =>
+        window.events.trigger "message", socket, @, msg
         message = new ChatMessage(msg)
 
         # update our scrollback buffer so that we can quickly edit the message by pressing up/down
         # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
-        self.scrollback.replace message.getBody(self.me.cryptokey), "/edit #" + message.get("mID") + " " + message.getBody(self.me.cryptokey)  if message.get("you") is true
-        self.checkToNotify message
-        self.persistentLog.add message.toJSON()
-        self.chatLog.renderChatMessage message
+        @scrollback.replace message.getBody(@me.cryptokey), "/edit ##{message.get("mID")} #{message.getBody(@me.cryptokey)}"  if message.get("you")
+        @checkToNotify message
+        @persistentLog.add message.toJSON()
+        @chatLog.renderChatMessage message
 
-      "chat:batch": (msgs) ->
+      "chat:batch": (msgs) =>
         msg = undefined
         i = 0
         l = msgs.length
 
         while i < l
           msg = JSON.parse(msgs[i])
-          self.persistentLog.add msg
+          @persistentLog.add msg
           msg.fromBatch = true
-          self.chatLog.renderChatMessage new ChatMessage(msg)
-          if self.previousScrollHeight
+          @chatLog.renderChatMessage new ChatMessage(msg)
+          if @previousScrollHeight
             setTimeout (->
-              chatlog = self.chatLog.$el.find(".messages")[0]
-              chatlog.scrollTop = chatlog.scrollHeight - self.previousScrollHeight
+              chatlog = @chatLog.$el.find(".messages")[0]
+              chatlog.scrollTop = chatlog.scrollHeight - @previousScrollHeight
             ), 0
           i++
-        self.scrollSyncLocked = false # unlock the lock on scrolling to sync logs
+        @scrollSyncLocked = false # unlock the lock on scrolling to sync logs
 
-      "client:changed": (alteredClient) ->
-        prevClient = self.channel.clients.findWhere(id: alteredClient.id)
+      "client:changed": (alteredClient) =>
+        prevClient = @channel.clients.findWhere(id: alteredClient.id)
         alteredClient.color = new ColorModel(alteredClient.color)  if alteredClient.color
         if prevClient
           prevClient.set alteredClient
-          prevClient.unset "encrypted_nick"  if typeof alteredClient.encrypted_nick is "undefined"
+          prevClient.unset "encrypted_nick"  if !alteredClient.encrypted_nick?
           # backbone won't unset undefined
 
           # check to see if it's ME that's being updated
           # TODO: this is hacky, but it fixes notification nick checking :s
-          if prevClient.get("id") is self.me.get("id")
-            self.me.set alteredClient
-            self.me.unset "encrypted_nick"  if typeof alteredClient.encrypted_nick is "undefined"
+          if prevClient.get("id") is @me.get("id")
+            @me.set alteredClient
+            @me.unset "encrypted_nick"  if !alteredClient.encrypted_nick?
         # backbone won't unset undefined
         else # there was no previous client by this id
-          self.channel.clients.add alteredClient
+          @channel.clients.add alteredClient
 
-      "client:removed": (alteredClient) ->
-        console.log "client left", alteredClient
-        prevClient = self.channel.clients.remove(id: alteredClient.id)
+      "client:removed": (alteredClient) =>
+        prevClient = @channel.clients.remove(id: alteredClient.id)
 
-      private_message: (msg) ->
+      private_message: (msg) =>
         message = new ChatMessage(msg)
-        msg = self.checkToNotify(message)
-        self.persistentLog.add message.toJSON()
-        self.chatLog.renderChatMessage message
+        msg = @checkToNotify(message)
+        @persistentLog.add message.toJSON()
+        @chatLog.renderChatMessage message
 
-      private: ->
-        self.channel.isPrivate = true
-        self.autoAuth()
+      private: =>
+        @channel.isPrivate = true
+        @autoAuth()
 
-      webshot: (msg) ->
-        self.chatLog.renderWebshot msg
+      webshot: (msg) =>
+        @chatLog.renderWebshot msg
 
-      subscribed: ->
-        self.postSubscribe()
+      subscribed: =>
+        @postSubscribe()
 
-      "chat:edit": (msg) ->
+      "chat:edit": (msg) =>
         message = new ChatMessage(msg)
-        msg = self.checkToNotify(message) # the edit might have been to add a "@nickname", so check again to notify
-        self.persistentLog.replaceMessage message.toJSON() # replace the message with the edited version in local storage
-        self.chatLog.replaceChatMessage message # replace the message with the edited version in the chat log
+        msg = @checkToNotify(message) # the edit might have been to add a "@nickname", so check again to notify
+        @persistentLog.replaceMessage message.toJSON() # replace the message with the edited version in local storage
+        @chatLog.replaceChatMessage message # replace the message with the edited version in the chat log
 
-      "client:id": (msg) ->
-        self.me.set "id", msg.id
+      "client:id": (msg) =>
+        @me.set "id", msg.id
 
-      userlist: (msg) ->
+      userlist: (msg) =>
 
         # update the pool of possible autocompletes
-        self.channel.clients.reset msg.users
+        @channel.clients.reset msg.users
 
-      "chat:currentID": (msg) ->
+      "chat:currentID": (msg) =>
         missed = undefined
-        self.persistentLog.latestIs msg.mID # store the server's current sequence number
+        @persistentLog.latestIs msg.mID # store the server's current sequence number
 
         # find out only what we missed since we were last connected to this channel
-        missed = self.persistentLog.getListOfMissedMessages()
+        missed = @persistentLog.getListOfMissedMessages()
 
         # then pull it, if there was anything
-        if missed and missed.length
-          socket.emit "chat:history_request:" + self.channelName,
-            requestRange: missed
+        if missed?.length
+          socket.emit "chat:history_request:#{@channelName}", requestRange: missed
 
-
-      topic: (msg) ->
-        topic = undefined
-        return  if msg.body is null
+      topic: (msg) =>
+        return if msg.body is null
 
         # attempt to parse the msg.body as a JSON object
         try # if it succeeds, it was an encrypted object
           encrypted_topic = JSON.parse(msg.body)
-          if self.me.cryptokey
-            topic = crypto.decryptObject(encrypted_topic, self.me.cryptokey)
+          if @me.cryptokey
+            topic = crypto.decryptObject(encrypted_topic, @cryptokey)
           else
             topic = encrypted_topic.ct
         catch e
-
-          # console.log(e);
           topic = msg.body
-        self.chatLog.setTopic topic
 
-      antiforgery_token: (msg) ->
-        self.me.antiforgery_token = msg.antiforgery_token  if msg.antiforgery_token
+        @chatLog.setTopic topic
 
-      file_uploaded: (msg) ->
-        fromClient = self.channel.clients.findWhere(id: msg.from_user)
-        return  if typeof fromClient is "undefined" or fromClient is null
-        nick = undefined
-        if self.me.is(fromClient)
+      antiforgery_token: (msg) =>
+        @me.antiforgery_token = msg.antiforgery_token if msg.antiforgery_token
+
+      file_uploaded: (msg) =>
+        fromClient = @channel.clients.findWhere(id: msg.from_user)
+        return if typeof !fromClient?
+
+        if @me.is(fromClient)
           nick = "You"
         else
-          nick = fromClient.getNick(self.me.cryptokey)
-        chatMessage = new ChatMessage(
-          body: nick + " uploaded a file: " + msg.path
+          nick = fromClient.getNick(@me.cryptokey)
+
+        chatMessage = new ChatMessage
+          body: "#{nick} uploaded a file: #{msg.path}"
           timestamp: new Date().getTime()
           nickname: ""
-        )
-        self.chatLog.renderChatMessage chatMessage
-        self.persistentLog.add chatMessage.toJSON()
 
-    _.each @socketEvents, (value, key) ->
+        @chatLog.renderChatMessage chatMessage
+        @persistentLog.add chatMessage.toJSON()
 
+    _.each @socketEvents, (value, key) =>
       # listen to a subset of event
-      socket.on key + ":" + self.channelName, value
+      socket.on "#{key}:#{@channelName}", value
 
 
   attachEvents: ->
-    self = this
-    window.events.on "chat:broadcast", (data) ->
-      self.me.speak
+    window.events.on "chat:broadcast", (data) =>
+      @me.speak
         body: data.body
-        room: self.channelName
-      , self.socket
+        room: @channelName
+      , @socket
 
-    window.events.on "unidle", ->
-      if self.$el.is(":visible")
-        if self.me
-          self.me.active self.channelName, self.socket
-          clearTimeout self.idleTimer
-          self.startIdleTimer()
+    window.events.on "unidle", =>
+      if @$el.is(":visible") and @me?
+        @me.active @channelName, @socket
 
-    window.events.on "beginEdit:" + @channelName, (data) ->
+        clearTimeout @idleTimer
+        @startIdleTimer()
+
+    window.events.on "beginEdit:#{@channelName}", (data) =>
       mID = data.mID
-      msgText = undefined
-      msg = self.persistentLog.getMessage(mID) # get the raw message data from our log, if possible
+      msg = @persistentLog.getMessage(mID) # get the raw message data from our log, if possible
       unless msg # if we didn't have it in our log (e.g., recently cleared storage), then get it from the DOM
-        msgText = $(".chatMessage.mine[data-sequence='" + mID + "'] .body").text()
+        msgText = $(".chatMessage.mine[data-sequence='" + mID + "'] .body", @$el).text()
       else
         msgText = msg.body
-      $(".chatinput textarea", @$el).val("/edit #" + mID + " " + msg.body).focus()
 
-    window.events.on "edit:commit:" + @channelName, (data) ->
-      self.socket.emit "chat:edit:" + self.channelName,
+      $(".chatinput textarea", @$el).val("/edit ##{mID} #{msg.body}").focus()
+
+    # finalize the edit
+    window.events.on "edit:commit:#{@channelName}", (data) =>
+      @socket.emit "chat:edit:#{@channelName}",
         mID: data.mID
         body: data.newText
 
-
-
     # let the chat server know our call status so we can advertise that to other users
-    window.events.on "in_call:" + @channelName, (data) ->
-      self.socket.emit "in_call:" + self.channelName
+    window.events.on "in_call:#{@channelName}", (data) =>
+      @socket.emit "in_call:#{@channelName}"
 
-    window.events.on "left_call:" + @channelName, (data) ->
-      self.socket.emit "left_call:" + self.channelName
+    window.events.on "left_call:#{@channelName}", (data) =>
+      @socket.emit "left_call:#{@channelName}"
 
 
   handleChatInputKeydown: (ev) ->
@@ -698,9 +681,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @chatLog.clearChat()
 
   startIdleTimer: ->
-    self = this
-    @idleTimer = setTimeout(->
-      self.me.inactive "", self.channelName, self.socket  if self.me
+    @idleTimer = setTimeout(=>
+      @me.inactive "", @channelName, @socket if @me?
     , 1000 * 30)
 
   rerenderInputBox: ->
@@ -709,16 +691,15 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @$el.append @inputTemplate(encrypted: (typeof @me.cryptokey isnt "undefined"))
 
   showCryptoModal: ->
-    self = this
-    modal = new @cryptoModal(channelName: @channelName)
-    modal.on "setKey", (data) ->
+    modal = new CryptoModal(channelName: @channelName)
+    modal.on "setKey", (data) =>
       if data.key isnt ""
-        self.me.cryptokey = data.key
-        window.localStorage.setItem "chat:cryptokey:" + self.channelName, data.key
-      self.rerenderInputBox()
-      $(".chatinput textarea", self.$el).focus()
-      self.me.setNick self.me.get("nick"), self.channelName
+        @me.cryptokey = data.key
+        window.localStorage.setItem "chat:cryptokey:#{@channelName}", data.key
 
+      @rerenderInputBox()
+      $(".chatinput textarea", @$el).focus()
+      @me.setNick @me.get("nick"), @channelName
 
   clearCryptoKey: ->
     delete @me.cryptokey
