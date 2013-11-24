@@ -49,7 +49,7 @@ module.exports.AbstractServer = class AbstractServer
         channel = @channels.findWhere(name: channelName)
 
         # create the channel if it doesn't already exist
-        if typeof channel is "undefined" or channel is null
+        if !channel?
 
           # create the channel
           channel = new @ChannelModel(name: channelName)
@@ -57,7 +57,7 @@ module.exports.AbstractServer = class AbstractServer
         client = channel.clients.findWhere(sid: socket.id)
 
         # console.log(server.name, "c", typeof client);
-        if typeof client is "undefined" or client is null # there was no pre-existing client
+        if !client?  # there was no pre-existing client
           client = new @Client
             room: channelName
             sid: socket.id

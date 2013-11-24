@@ -89,6 +89,7 @@ module.exports.SyncedEditor = class SyncedEditor extends Backbone.View
           i++
 
       "code:cursorActivity": (data) => # show the other users' cursors in our view
+        console.log 'cursor ', data
         return  if not @active or not codingModeActive()
         pos = editor.cursorCoords(data.cursor, "local") # their position
         fromClient = @clients.get(data.id) # our knowledge of their client object
@@ -107,11 +108,11 @@ module.exports.SyncedEditor = class SyncedEditor extends Backbone.View
           top: pos.top
           left: pos.left
 
-    _.each @socketEvents, (value, key) ->
+    _.each @socketEvents, (value, key) =>
       socket.on "#{key}:#{@channelKey}", value
 
     #On successful reconnect, attempt to rejoin the room
-    socket.on "reconnect", ->
+    socket.on "reconnect", =>
 
       #Resend the subscribe event
       socket.emit "subscribe",

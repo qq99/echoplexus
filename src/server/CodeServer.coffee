@@ -44,25 +44,22 @@ module.exports.CodeServer = class CodeServer extends AbstractServer
 
   events:
     "code:cursorActivity": (namespace, socket, channel, client, data) ->
-      room = channel.get("name")
-      socket.in(room).broadcast.emit "code:cursorActivity:#{room}",
+      socket.in(namespace).broadcast.emit "code:cursorActivity:#{namespace}",
         cursor: data.cursor,
         id: client.get("id")
 
     "code:change": (namespace, socket, channel, client, data) ->
-      room = channel.get("name")
-      codeCache = @spawnCodeCache room
+      codeCache = @spawnCodeCache namespace
 
       data.timestamp = Number(new Date())
       codeCache.add data, client
-      socket.in(room).broadcast.emit "code:change:#{room}", data
+      socket.in(namespace).broadcast.emit "code:change:#{namespace}", data
 
     "code:full_transcript": (namespace, socket, channel, client, data) ->
-      room = channel.get("name")
-      codeCache = @spawnCodeCache room
+      codeCache = @spawnCodeCache namespace
 
       codeCache.set data.code
-      socket.in(room).broadcast.emit "code:sync:#{room}", data
+      socket.in(namespace).broadcast.emit "code:sync:#{namespace}", data
 
   spawnCodeCache: (ns) ->
     if @codeCaches[ns]?
