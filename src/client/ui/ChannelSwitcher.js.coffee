@@ -3,7 +3,12 @@ ClientModel               = Client.ClientModel
 ClientsCollection         = Client.ClientsCollection
 Loader                    = require('../loader.js.coffee').Loader
 channelSelectorTemplate   = require('../templates/channelSelector.html')
+
+# Clients:
+# abstract this to config.coffee
 ChatClient                = require('../modules/chat/client.js.coffee').ChatClient
+CodeClient                = require('../modules/code/client.js.coffee').CodeClient
+DrawingClient             = require('../modules/draw/client.js.coffee').DrawingClient
 
 module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
@@ -11,7 +16,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
   template: channelSelectorTemplate
 
   loader: (new Loader()).modules
-  modules: [ChatClient]
+  modules: [ChatClient, CodeClient, DrawingClient]
 
   initialize: ->
     self = this
@@ -208,6 +213,10 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
       # create an instance of each module:
       _.each @modules, (ClientModule, idx) =>
+        if !_.isFunction(ClientModule)
+          console.error 'Supplied module is not a callable function'
+          return
+
         return  unless _.isFunction(ClientModule)
         modInstance =
           view: new ClientModule(

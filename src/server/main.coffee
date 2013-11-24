@@ -14,8 +14,8 @@ path             = require("path")
 ChatServer       = require("./ChatServer.coffee").ChatServer
 CodeServer       = require("./CodeServer.coffee").CodeServer
 DrawServer       = require("./DrawServer.coffee").DrawServer
-CallServer       = require("./CallServer.coffee").CallServer
-UserServer       = require("./UserServer.coffee").UserServer
+# CallServer       = require("./CallServer.coffee").CallServer
+# UserServer       = require("./UserServer.coffee").UserServer
 EventBus         = require("./EventBus.coffee").EventBus()
 app              = express()
 
@@ -182,7 +182,7 @@ redisC.select 15, (err, reply) ->
       # channel.initialized is inelegant (since it clearly has been)
       # and other modules might use it.
       # hotfix for now, real fix later
-      if channel.initialized == false
+      if !channel.initialized
         # only bind these once *ever*
         channel.clients.on "change", (changed) =>
           @clientChanged(socket, channel, changed)
@@ -208,26 +208,25 @@ redisC.select 15, (err, reply) ->
 
               sio.of(CHATSPACE).in(room).emit("chat:" + room, msg)
 
-  # codeServer = new CodeServer sio, redisC, EventBus, Channels, ChannelModel
-  # codeServer.start
-  #   error: (err, socket, channel, client) ->
-  #     if err
-  #       console.log("CodeServer: ", err)
-  #   success: (namespace, socket, channel, client) ->
-  #     console.log "CodeServer started"
-  #     cc = spawnCodeCache(namespace)
-  #     socket.in(namespace).emit("code:authoritative_push:#{namespace}", cc.syncToClient());
+  codeServer = new CodeServer sio, Channels, ChannelModel
+  codeServer.start
+    error: (err, socket, channel, client) ->
+      if err
+        console.log("CodeServer: ", err)
+    success: (namespace, socket, channel, client) ->
+      cc = @spawnCodeCache(namespace)
+      socket.in(namespace).emit("code:authoritative_push:#{namespace}", cc.syncToClient());
 
-  # drawServer = new DrawServer sio, redisC, EventBus, Channels
-  # drawServer.start
-  #   error: (err, socket, channel, client) ->
-  #     if err
-  #       return
-  #   success: (namespace, socket, channel, client) ->
-  #     room = channel.get("name")
+  drawServer = new DrawServer sio, Channels, ChannelModel
+  drawServer.start
+    error: (err, socket, channel, client) ->
+      if err
+        return
+    success: (namespace, socket, channel, client) ->
+      room = channel.get("name")
 
-  #     # play back what has happened
-  #     socket.emit("draw:replay:" + namespace, channel.replay)
+      # play back what has happened
+      socket.emit("draw:replay:" + namespace, channel.replay)
 
   # callServer = new CallServer sio, redisC, EventBus, Channels
   # callServer.start

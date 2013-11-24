@@ -485,6 +485,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 						body: err.message
 					}, room))
 					return
+				client.trigger("change", client) # setting sub-model won't trigger change on main, so we fire it manually
 
 		"chat": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")

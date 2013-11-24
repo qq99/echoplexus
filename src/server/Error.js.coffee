@@ -12,7 +12,7 @@ module.exports.AbstractError = class AbstractError extends Error
     # If defined, store a custom error message
     @message = msg or "Error"
 
-module.exports.AuthenticationFailure = class AuthenticationFailure extends module.exports.AbstractError
+module.exports.AuthenticationError = class AuthenticationError extends module.exports.AbstractError
 
   name: "Authentication Failure"
   constructor: (msg, constr) ->

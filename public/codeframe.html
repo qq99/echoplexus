@@ -1,8 +1,7 @@
 <html>
 <head>
 	<title>CodeFrame</title>
-	<script src="client/lib/jquery/jquery.min.js"></script>
-	<script src="client/lib/underscore/underscore-min.js"></script>
+	<script src="/js/vendor.min.js"></script>
 	<script>
 		var HANDLERS = {
 			js: function(code){
@@ -40,13 +39,13 @@
 						result: ex.toString(),
 						channel: data.channel
 					}));
-				}	
+				}
 				e.source.postMessage(msg, e.origin);
 			});
 		});
 	</script>
 </head>
 <body>
-	
+
 </body>
 </html>

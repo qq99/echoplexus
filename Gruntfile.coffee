@@ -30,6 +30,12 @@ module.exports = (grunt) ->
           "vendor/moment/moment.js"
           "vendor/underscore/underscore.js"
           "vendor/backbone/backbone.js"
+          "vendor/codemirror/lib/codemirror.js"
+          "vendor/codemirror/mode/xml/xml.js"
+          "vendor/codemirror/mode/css/css.js"
+          "vendor/codemirror/mode/javascript/javascript.js"
+          "vendor/codemirror/mode/htmlmixed/htmlmixed.js"
+          "vendor/codemirror/mode/htmlembedded/htmlembedded.js"
         ]
 
         app:
@@ -66,7 +72,7 @@ module.exports = (grunt) ->
       app:
         src: [
           "<%= files.js.vendor %>"
-          "<%= files.templates.compiled %>"
+          #"<%= files.templates.compiled %>"
         ]
         dest: "<%= public_dir %>js/vendor.min.js"
 

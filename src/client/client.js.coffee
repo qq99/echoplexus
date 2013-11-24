@@ -4,7 +4,7 @@ PermissionModel = require("./PermissionModel.coffee").PermissionModel
 REGEXES         = require("./regex.js.coffee").REGEXES
 CryptoWrapper   = require("./CryptoWrapper.coffee")
 
-module.exports.ColorModel = Backbone.Model.extend(
+module.exports.ColorModel = class ColorModel extends Backbone.Model
   defaults:
     r: 0
     g: 0
@@ -57,7 +57,6 @@ module.exports.ColorModel = Backbone.Model.extend(
       r: r
       g: g
       b: b
-
 
   toRGB: ->
     "rgb(" + @attributes.r + "," + @attributes.g + "," + @attributes.b + ")"
@@ -304,4 +303,3 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         msg.encrypted = crypto.encryptObject(msg.body, @cryptokey)
         msg.body = "-"
       socket.emit "chat:#{room}", msg
-    )

@@ -115,7 +115,7 @@ module.exports.ServerChannelModel = class ServerChannelModel extends ChannelMode
 		    crypto.pbkdf2 key, stored.salt, 4096, 256, (err, derivedKey) ->
 		      callback err  if err
 		      if derivedKey.toString() isnt stored.password # auth failure
-		        callback new ApplicationError.Authentication("Incorrect password.")
+		        callback new ApplicationError.AuthenticationError("Incorrect password.")
 		      else # auth success
 		        callback null, "You have proven that you are the channel owner."
 
@@ -267,7 +267,7 @@ module.exports.ServerChannelModel = class ServerChannelModel extends ChannelMode
 		      crypto.pbkdf2 channelPassword, stored.salt, 4096, 256, (err, derivedKey) =>
 		        callback err  if err
 		        if derivedKey.toString() isnt stored.password # auth failure
-		          callback new ApplicationError.Authentication("Incorrect password.")
+		          callback new ApplicationError.AuthenticationError("Incorrect password.")
 		        else # auth success
 		          @authenticationSuccess client
 		          callback null, true
