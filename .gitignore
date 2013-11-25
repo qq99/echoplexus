@@ -2,6 +2,8 @@ node_modules
 .sass-cache
 public/css
 public/*.js
+public/js/*.min.js
+public/js/*.map
 *.swp
 client/app.min.js
 public/index.build.html
