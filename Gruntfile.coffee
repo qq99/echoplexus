@@ -36,6 +36,10 @@ module.exports = (grunt) ->
           "vendor/codemirror/mode/javascript/javascript.js"
           "vendor/codemirror/mode/htmlmixed/htmlmixed.js"
           "vendor/codemirror/mode/htmlembedded/htmlembedded.js"
+          "lib/CryptoJS-3.1.2/components/core.js"
+          "lib/CryptoJS-3.1.2/components/enc-base64.js"
+          "lib/CryptoJS-3.1.2/components/enc-utf16.js"
+          "lib/CryptoJS-3.1.2/rollups/aes.js"
         ]
 
         app:

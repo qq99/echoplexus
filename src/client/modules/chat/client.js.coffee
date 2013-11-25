@@ -13,6 +13,8 @@ Client                  = require('../../client.js.coffee')
 ColorModel              = Client.ColorModel
 ClientModel             = Client.ClientModel
 ClientsCollection       = Client.ClientsCollection
+CryptoWrapper           = require("../../CryptoWrapper.coffee").CryptoWrapper
+cryptoWrapper           = new CryptoWrapper
 
 
 faviconizer = new Faviconizer
@@ -48,7 +50,7 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
   getBody: (cryptoKey) ->
       body = @get("body")
       encrypted_body = @get("encrypted")
-      body = crypto.decryptObject(encrypted_body, cryptoKey)  if (typeof cryptoKey isnt "undefined") and (cryptoKey isnt "") and (typeof encrypted_body isnt "undefined")
+      body = cryptoWrapper.decryptObject(encrypted_body, cryptoKey)  if (typeof cryptoKey isnt "undefined") and (cryptoKey isnt "") and (typeof encrypted_body isnt "undefined")
       body
 
 module.exports.ChatClient = class ChatClient extends Backbone.View
@@ -377,7 +379,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     fromNick = msg.get("nickname")
     atMyNick = "@" + myNick
     encrypted_nick = msg.get("encrypted_nick")
-    fromNick = crypto.decryptObject(encrypted_nick, @me.cryptokey)  if encrypted_nick
+    fromNick = cryptoWrapper.decryptObject(encrypted_nick, @me.cryptokey)  if encrypted_nick
 
     # check to see if me.nick is contained in the msgme.
     if (msgBody.toLowerCase().indexOf(atMyNick.toLowerCase()) isnt -1) or (msgBody.toLowerCase().indexOf("@all") isnt -1)
@@ -515,7 +517,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         try # if it succeeds, it was an encrypted object
           encrypted_topic = JSON.parse(msg.body)
           if @me.cryptokey
-            topic = crypto.decryptObject(encrypted_topic, @cryptokey)
+            topic = cryptoWrapper.decryptObject(encrypted_topic, @cryptokey)
           else
             topic = encrypted_topic.ct
         catch e

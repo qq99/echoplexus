@@ -31,7 +31,7 @@ module.exports.CryptoWrapper = class CryptoWrapper
     # CryptoJS only takes strings
     plaintextObj = JSON.stringify(plaintextObj)  if typeof plaintextObj is "object"
     enciphered = CryptoJS.AES.encrypt(plaintextObj, key,
-      format: JsonFormatter
+      format: @JsonFormatter
     )
     JSON.parse enciphered.toString() # format it back into an object for sending over socket.io
 
@@ -45,7 +45,7 @@ module.exports.CryptoWrapper = class CryptoWrapper
     # attempt to decrypt the result:
     try
       decipheredObj = CryptoJS.AES.decrypt(JSON.stringify(encipheredObj), key,
-        format: JsonFormatter
+        format: @JsonFormatter
       )
       decipheredString = decipheredObj.toString(CryptoJS.enc.Utf8)
     catch e # if it fails nastily, output the ciphertext

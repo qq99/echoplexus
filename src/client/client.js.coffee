@@ -2,7 +2,8 @@ _               = require("underscore") if !_
 Backbone        = require("backbone") if !Backbone
 PermissionModel = require("./PermissionModel.coffee").PermissionModel
 REGEXES         = require("./regex.js.coffee").REGEXES
-CryptoWrapper   = require("./CryptoWrapper.coffee")
+CryptoWrapper   = require("./CryptoWrapper.coffee").CryptoWrapper
+cryptoWrapper   = new CryptoWrapper
 
 module.exports.ColorModel = class ColorModel extends Backbone.Model
   defaults:
@@ -116,7 +117,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     encrypted_nick = @get("encrypted_nick")
     if typeof encrypted_nick isnt "undefined"
       if (typeof cryptoKey isnt "undefined") and (cryptoKey isnt "")
-        nick = crypto.decryptObject(encrypted_nick, cryptoKey)
+        nick = cryptoWrapper.decryptObject(encrypted_nick, cryptoKey)
       else
         nick = encrypted_nick.ct
     nick
@@ -124,7 +125,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
   setNick: (nick, room, ack) ->
     $.cookie "nickname:" + room, nick, window.COOKIE_OPTIONS
     if @cryptokey
-      @set "encrypted_nick", crypto.encryptObject(nick, @cryptokey),
+      @set "encrypted_nick", cryptoWrapper.encryptObject(nick, @cryptokey),
         silent: true
 
       nick = "-"
@@ -187,7 +188,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     else if body.match(REGEXES.commands.topic) # /topic [My channel topic]
       body = body.replace(REGEXES.commands.topic, "").trim()
       if @cryptokey
-        encrypted_topic = crypto.encryptObject(body, @cryptokey)
+        encrypted_topic = cryptoWrapper.encryptObject(body, @cryptokey)
         body = "-"
         socket.emit "topic:" + room,
           encrypted_topic: encrypted_topic
@@ -232,7 +233,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
           if ciphernicks.length
 
             # encrypt the body text
-            encrypted = crypto.encryptObject(body, @cryptokey)
+            encrypted = cryptoWrapper.encryptObject(body, @cryptokey)
             body = "-" # clean it immediately after encrypting it
             socket.emit "private_message:" + room,
               encrypted: encrypted
@@ -274,7 +275,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         body: body
 
       if @cryptokey
-        data.encrypted = crypto.encryptObject(data.body, @cryptokey)
+        data.encrypted = cryptoWrapper.encryptObject(data.body, @cryptokey)
         data.body = "-"
       socket.emit "chat:edit:" + room, data
     else if body.match(REGEXES.commands.leave) # leaving
@@ -300,6 +301,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       # NOOP
       # send it out to the world!
       if @cryptokey
-        msg.encrypted = crypto.encryptObject(msg.body, @cryptokey)
+        msg.encrypted = cryptoWrapper.encryptObject(msg.body, @cryptokey)
         msg.body = "-"
       socket.emit "chat:#{room}", msg

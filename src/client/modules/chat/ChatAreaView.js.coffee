@@ -5,7 +5,8 @@ userListUserTemplate        = require("./templates/userListUser.html")
 youtubeTemplate             = require("./templates/youtube.html")
 webshotBadgeTemplate        = require("./templates/webshotBadge.html")
 REGEXES                     = require("../../regex.js.coffee").REGEXES
-CryptoWrapper               = require("../../CryptoWrapper.coffee")
+CryptoWrapper               = require("../../CryptoWrapper.coffee").CryptoWrapper
+cryptoWrapper               = new CryptoWrapper
 
 
 module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
@@ -241,11 +242,11 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     nickname = undefined
 
     if typeof msg.get("encrypted_nick") isnt "undefined"
-      nickname = crypto.decryptObject(msg.get("encrypted_nick"), @me.cryptokey)
+      nickname = cryptoWrapper.decryptObject(msg.get("encrypted_nick"), @me.cryptokey)
     else
       nickname = msg.get("nickname")
     if typeof msg.get("encrypted") isnt "undefined"
-      body = crypto.decryptObject(msg.get("encrypted"), @me.cryptokey)
+      body = cryptoWrapper.decryptObject(msg.get("encrypted"), @me.cryptokey)
     else
       body = msg.get("body")
     opts = {}  if !opts
