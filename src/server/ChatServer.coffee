@@ -453,11 +453,11 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 					# O(nm) if pm'ing everyone, most likely O(n) in the average case
 					_.each data.ciphernicks, (ciphernick) ->
-						for client in channel.clients
-							encryptedNick = clients.at(i).get("encrypted_nick")
+						for c in channel.clients.models
+							encryptedNick = c.get("encrypted_nick")
 
 							if encryptedNick && encryptedNick["ct"] == ciphernick
-								targetClients.push(channel.clients.at(i))
+								targetClients.push(c)
 
 					delete data.ciphernicks # no use sending this to other clients
 				else # it wasn't encrypted, just find the regular directedAt
@@ -465,8 +465,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 				if targetClients?.length
 					# send the pm to each client matching the name
-					_.each targetClients, (client) ->
-						client.socketRef.emit('private_message:' + room, data)
+					_.each targetClients, (c) ->
+						c.socketRef.emit('private_message:' + room, data)
 
 					# send it to the sender s.t. he knows that it went through
 					socket.in(room).emit('private_message:' + room, _.extend(data, {

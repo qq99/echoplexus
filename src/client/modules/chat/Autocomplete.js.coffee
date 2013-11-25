@@ -18,7 +18,7 @@ module.exports.Autocomplete = class Autocomplete
   next: (stub) ->
     return ""  unless @pool.length
     stub = stub.toLowerCase() # transform the stub -> lcase
-    if stub is "" or stub is result.toLowerCase()
+    if stub is "" or stub is @result.toLowerCase()
 
       # scroll around the memoized array of candidates:
       @nID += 1
