@@ -19,7 +19,7 @@ module.exports.CallServer = class CallServer extends AbstractServer
 
             # if this is the first person joining the call, announce the call as in progress
             if _.isEmpty(channel.call)
-                sio.of(@namespace).in(room).emit "status:#{room}", active: true
+                @sio.of(@namespace).in(room).emit "status:#{room}", active: true
 
             # add client to our memory
             channel.call[clientID] = socket
@@ -44,9 +44,7 @@ module.exports.CallServer = class CallServer extends AbstractServer
 
             # if the last person has left, the call status is false (no call in progress)
             if _.isEmpty(channel.call)
-                sio.of(@namepsace).in(room).emit("status:#{room}", {
-                    active: false
-                })
+                @sio.of(@namepsace).in(room).emit "status:#{room}", active: false
 
             DEBUG && console.log("Client left, remaining: ", _.keys(channel.call).length)
 

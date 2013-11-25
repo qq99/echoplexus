@@ -14,7 +14,7 @@ path             = require("path")
 ChatServer       = require("./ChatServer.coffee").ChatServer
 CodeServer       = require("./CodeServer.coffee").CodeServer
 DrawServer       = require("./DrawServer.coffee").DrawServer
-# CallServer       = require("./CallServer.coffee").CallServer
+CallServer       = require("./CallServer.coffee").CallServer
 # UserServer       = require("./UserServer.coffee").UserServer
 EventBus         = require("./EventBus.coffee").EventBus()
 app              = express()
@@ -228,14 +228,14 @@ redisC.select 15, (err, reply) ->
       # play back what has happened
       socket.emit("draw:replay:" + namespace, channel.replay)
 
-  # callServer = new CallServer sio, redisC, EventBus, Channels
-  # callServer.start
-  #   error: (err, socket, channel, client) ->
-  #       if (err)
-  #           console.log("CallServer: ", err)
+  callServer = new CallServer sio, Channels, ChannelModel
+  callServer.start
+    error: (err, socket, channel, client) ->
+        if (err)
+            console.log("CallServer: ", err)
 
-  #   success: (namespace, socket, channel, client) ->
-  #       room = channel.get('name')
-  #       socket.emit "status:#{room}", active: !_.isEmpty(channel.call)
+    success: (namespace, socket, channel, client) ->
+        room = channel.get('name')
+        socket.emit "status:#{room}", active: !_.isEmpty(channel.call)
 
   # userServer sio, redisC, EventBus, Channels

@@ -9,6 +9,7 @@ channelSelectorTemplate   = require('../templates/channelSelector.html')
 ChatClient                = require('../modules/chat/client.js.coffee').ChatClient
 CodeClient                = require('../modules/code/client.js.coffee').CodeClient
 DrawingClient             = require('../modules/draw/client.js.coffee').DrawingClient
+CallClient                = require('../modules/call/client.js.coffee').CallClient
 
 module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
@@ -16,7 +17,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
   template: channelSelectorTemplate
 
   loader: (new Loader()).modules
-  modules: [ChatClient, CodeClient, DrawingClient]
+  modules: [ChatClient, CodeClient, DrawingClient, CallClient]
 
   initialize: ->
     self = this
