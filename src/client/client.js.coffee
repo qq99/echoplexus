@@ -129,6 +129,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         silent: true
 
       nick = "-"
+
     @socket.emit "nickname:" + room,
       nick: nick
       encrypted_nick: @get("encrypted_nick")

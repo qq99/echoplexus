@@ -1,7 +1,7 @@
 client      = require('../../src/client/client.js.coffee')
 ColorModel  = client.ColorModel
 
-describe 'Client.ColorModel', ->
+describe 'ColorModel', ->
   beforeEach ->
     @subject = new ColorModel
       r: 111
