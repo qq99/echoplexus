@@ -1,0 +1,21 @@
+{
+  "framework": "mocha",
+  "before_tests": "browserify tests/**/*.coffee -o browserified.js -t coffeeify",
+  "src_files": [
+    "vendor/js/vendor.min.js",
+    "tests/**/*.coffee",
+    "tests/**/*.js"
+  ],
+  "serve_files": [
+    "public/js/vendor.min.js",
+    "vendor/sinon/lib/sinon.js",
+    "vendor/sinon/lib/sinon/match.js",
+    "vendor/sinon/lib/sinon/call.js",
+    "vendor/sinon/lib/sinon/spy.js",
+    "vendor/sinon/lib/sinon/mock.js",
+    "vendor/sinon/lib/sinon/stub.js",
+    "vendor/chai/chai.js",
+    "tests/setup.js",
+    "browserified.js"
+  ]
+}

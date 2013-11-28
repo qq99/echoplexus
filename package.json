@@ -74,8 +74,6 @@
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-concat-sourcemap": "~0.3.1",
     "chai": "~1.8.1",
-    "mocha": "~1.14.0",
-    "grunt-mocha": "~0.4.1",
     "browserify": "~2.34.3",
     "grunt-browserify": "~1.2.9",
     "coffeeify": "~0.5.2",

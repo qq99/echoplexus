@@ -130,10 +130,6 @@ module.exports = (grunt) ->
         command: 'supervisor -n error -w . src/server/main.coffee'
         stdout: true
 
-    # open:
-    #   dev:
-    #     path: "http://localhost:<%= server.web.port %>"
-
     uglify:
       options:
         banner: "<%= banner %>"

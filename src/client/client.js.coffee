@@ -36,9 +36,9 @@ module.exports.ColorModel = class ColorModel extends Backbone.Model
   parse: (userString, callback) ->
     if userString.match(REGEXES.colors.hex)
       @setFromHex userString
-      callback null
-    else # only 6-digit hex is supported for now
-      callback new Error("Invalid colour; you must supply a valid CSS hex color code (e.g., '#efefef', '#fff')")
+      callback? null
+    else
+      callback? new Error("Invalid colour; you must supply a valid CSS hex color code (e.g., '#efefef', '#fff')")
       return
 
   setFromHex: (hexString) ->
