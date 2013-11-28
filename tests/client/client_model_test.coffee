@@ -5,14 +5,20 @@ describe 'ClientModel', ->
   beforeEach ->
     @subject = new ClientModel
     window.events =
-      trigger: mock()
+      trigger: stub()
 
     $.cookie = stub()
     $.removeCookie = stub()
     @fakeSocket =
-      emit: mock()
+      emit: stub()
 
     @subject.socket = @fakeSocket
+
+    @subjectSays = (string) =>
+      @subject.speak({
+        body: string,
+        room: '/'
+      }, @fakeSocket)
 
   describe 'constructors', ->
     it 'should create a new Permissions model attribute on creation', ->
@@ -37,13 +43,11 @@ describe 'ClientModel', ->
   describe "#speak", ->
     describe '/nick', ->
       beforeEach ->
-        @subject.speak({
-          body: '/nick Foobar',
-          room: '/'
-        }, @fakeSocket)
+        @subjectSays '/nick Foobar'
 
       it 'fires a request to change the nickname', ->
         assert @fakeSocket.emit.calledWith('nickname:/')
+        assert @fakeSocket.emit.neverCalledWith('chat:/')
       it 'should immediately update the nickname cookie', ->
         assert $.cookie.calledWith('nickname:/', 'Foobar')
       it 'should immediately clear any identity password cookie associated with the nickname', ->
@@ -51,12 +55,23 @@ describe 'ClientModel', ->
 
     describe '/private', ->
       beforeEach ->
-        @subject.speak({
-          body: '/private Super secret password',
-          room: '/'
-        }, @fakeSocket)
+        @subjectSays '/private Super secret password'
 
       it 'fires a request to update the channel password', ->
         assert @fakeSocket.emit.calledWith('make_private:/', {password: "Super secret password", room: "/"})
+        assert @fakeSocket.emit.neverCalledWith('chat:/')
       it 'should update the channel password cookie', ->
         assert $.cookie.calledWith('channel_pw:/', 'Super secret password')
+
+    describe '/leave', ->
+      it 'should trigger an event on the global eventbus', ->
+        @subjectSays '/leave'
+
+        assert window.events.trigger.calledWith("leave:/")
+        assert !@fakeSocket.emit.called
+
+    describe '/help', ->
+      it 'fires a request', ->
+        @subjectSays '/help'
+
+        assert @fakeSocket.emit.calledWith('help:/')
