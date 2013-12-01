@@ -1,6 +1,6 @@
 {
   "framework": "mocha",
-  "before_tests": "browserify tests/**/*.coffee -o browserified.js -t coffeeify",
+  "before_tests": "browserify tests/**/*.coffee -o browserified.js -t coffeeify -t node-underscorify",
   "src_files": [
     "vendor/js/vendor.min.js",
     "tests/**/*.coffee",

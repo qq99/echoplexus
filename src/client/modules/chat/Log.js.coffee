@@ -1,6 +1,7 @@
-# object: a persistent log if local storage is available ELSE noops
+require("./events.js.coffee")()
 
 module.exports.Log = class Log
+  # this is: a persistent log if local storage is available, ELSE buncha noops
 
   LOG_VERSION: "0.0.2" # update if the server-side changes
 
@@ -23,6 +24,9 @@ module.exports.Log = class Log
         prevLog = prevLog.slice(prevLog.length - @options.logMax)
         window.localStorage.setObj "log:" + @options.namespace, prevLog
       @log = prevLog
+
+    window.events.on "getMissingIDs:#{@options.namespace}", (n) =>
+      window.events.trigger "gotMissingIDs:#{@options.namespace}", @getMissingIDs(n)
 
   add: (obj) ->
     return if !window.Storage?

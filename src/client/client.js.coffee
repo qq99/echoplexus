@@ -256,13 +256,15 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       else
         nLogs = Math.max(1, parseInt(body, 10))
         nLogs = Math.min(100, nLogs) # 1 <= N <= 100
-        missed = @persistentLog.getMissingIDs(nLogs)
 
-        if missed.length
-          @socket.emit "chat:history_request:" + room,
-            requestRange: missed
+        window.events.one "gotMissingIDs:#{@options.namespace}", (missed) =>
+          if missed.length
+            @socket.emit "chat:history_request:#{room}",
+              requestRange: missed
 
-    else if body.match(REGEXES.commands.set_color) # pull
+        window.events.trigger "getMissingIDs:#{room}", nLogs
+
+    else if body.match(REGEXES.commands.set_color) # /color
       body = body.replace(REGEXES.commands.set_color, "").trim()
       socket.emit "user:set_color:" + room,
         userColorString: body
