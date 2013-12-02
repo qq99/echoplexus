@@ -1,4 +1,5 @@
-require("./events.js.coffee")()
+require("../../events.js.coffee")()
+require("../../utility.js.coffee")()
 
 module.exports.Log = class Log
   # this is: a persistent log if local storage is available, ELSE buncha noops
@@ -9,27 +10,29 @@ module.exports.Log = class Log
     @latestID = -Infinity
     @log = [] # should always be sorted by timestamp
     @options =
+      storage: localStorage
       namespace: "default"
       logMax: 256
     # extend defaults with any custom paramters
     _.extend @options, opts
 
-    if window.Storage?
-      version = window.localStorage.getItem("logVersion:" + @options.namespace)
-      if typeof version is "undefined" or version is null or version isnt @LOG_VERSION
-        window.localStorage.setObj "log:" + @options.namespace, null
-        window.localStorage.setItem "logVersion:" + @options.namespace, @LOG_VERSION
-      prevLog = window.localStorage.getObj("log:" + @options.namespace) or []
+    if Storage?
+      version = @options.storage.getItem("logVersion:" + @options.namespace)
+      if version isnt @LOG_VERSION
+        @options.storage.setObj "log:#{@options.namespace}", null
+        @options.storage.setItem "logVersion:#{@options.namespace}", @LOG_VERSION
+
+      prevLog = @options.storage.getObj("log:#{@options.namespace}") or []
       if prevLog.length > @options.logMax # kill the previous log, getting too big
         prevLog = prevLog.slice(prevLog.length - @options.logMax)
-        window.localStorage.setObj "log:" + @options.namespace, prevLog
+        @options.storage.setObj "log:" + @options.namespace, prevLog
       @log = prevLog
 
-    window.events.on "getMissingIDs:#{@options.namespace}", (n) =>
-      window.events.trigger "gotMissingIDs:#{@options.namespace}", @getMissingIDs(n)
+    # events.on "getMissingIDs:#{@options.namespace}", (n) =>
+    #   events.trigger "gotMissingIDs:#{@options.namespace}", @getMissingIDs(n)
 
   add: (obj) ->
-    return if !window.Storage?
+    return if !Storage?
     return  if obj.log and obj.log is false # don't store things we're explicitly ordered not to
     return  if obj.timestamp is false # don't store things without a timestamp
     # keep track of highest so far
@@ -45,27 +48,27 @@ module.exports.Log = class Log
     @log.unshift()  if @log.length > @options.logMax
 
     # presist to localStorage:
-    window.localStorage.setObj "log:#{@options.namespace}", @log
+    @options.storage.setObj "log:#{@options.namespace}", @log
 
   destroy: ->
     @log = []
-    window.localStorage.setObj "log:#{@options.namespace}", null
+    @options.storage.setObj "log:#{@options.namespace}", null
 
   empty: ->
-    return if !window.Storage?
+    return if !Storage?
     @log.length is 0
 
   all: ->
-    return if !window.Storage?
+    return if !Storage?
     @log
 
   latestIs: (id) ->
-    return if !window.Storage?
+    return if !Storage?
     id = parseInt(id, 10)
     @latestID = id  if id > @latestID
 
   knownIDs: ->
-    return if !window.Storage?
+    return if !Storage?
     # compile a list of the message IDs we know about
     known = _.without(_.map(@log, (obj) ->
       obj.mID
@@ -73,7 +76,7 @@ module.exports.Log = class Log
     known
 
   getMessage: (byID) ->
-    return if !window.Storage?
+    return if !Storage?
     start = @log.length - 1
     i = start
 
@@ -83,7 +86,7 @@ module.exports.Log = class Log
     null
 
   replaceMessage: (msg) ->
-    return if !window.Storage?
+    return if !Storage?
     start = @log.length - 1
     i = start
 
@@ -92,12 +95,12 @@ module.exports.Log = class Log
         @log[i] = msg
 
         # presist to localStorage:
-        window.localStorage.setObj "log:#{@options.namespace}", @log
+        @options.storage.setObj "log:#{@options.namespace}", @log
         return
       i--
 
   getListOfMissedMessages: ->
-    return if !window.Storage?
+    return if !Storage?
     known = @knownIDs()
     clientLatest = known[known.length - 1] or -1
     missed = []
@@ -117,7 +120,7 @@ module.exports.Log = class Log
     missed
 
   getMissingIDs: (N) -> # fills in any holes in our chat history
-    return if !window.Storage?
+    return if !Storage?
     # compile a list of the message IDs we know about
     known = @knownIDs()
 
