@@ -33,8 +33,8 @@ module.exports.Log = class Log
 
   add: (obj) ->
     return if !Storage?
-    return  if obj.log and obj.log is false # don't store things we're explicitly ordered not to
-    return  if obj.timestamp is false # don't store things without a timestamp
+    return if obj.hasOwnProperty("log") and obj.log == false # don't store things we're explicitly ordered not to
+    return if !obj.timestamp? # don't store things without a timestamp
     # keep track of highest so far
     @latestID = obj.mID  if obj.mID and obj.mID > @latestID
 
@@ -45,7 +45,7 @@ module.exports.Log = class Log
     @log = _.sortBy(@log, "timestamp")
 
     # cull the older log entries
-    @log.unshift()  if @log.length > @options.logMax
+    @log.shift()  if @log.length > @options.logMax
 
     # presist to localStorage:
     @options.storage.setObj "log:#{@options.namespace}", @log
