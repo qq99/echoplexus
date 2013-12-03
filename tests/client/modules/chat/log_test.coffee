@@ -100,3 +100,159 @@ describe 'Log', ->
         timestamp: 4
 
       assert.deepEqual [{timestamp:1},{timestamp:2},{timestamp:3},{body:'there', timestamp: 4},{body:'hi',timestamp: 5}], @subject.log
+
+    it 'will sort log entries by timestamp upon being added', ->
+      @subject.add
+        timestamp: 1.5
+
+      assert.deepEqual [{timestamp:0},{timestamp:1},{timestamp:1.5},{timestamp:2},{timestamp:3}], @subject.log
+
+    it 'will persist to localStorage', ->
+      spy(@fakeStorage, 'setObj')
+      @subject.add
+        timestamp: 1.5
+
+      assert @fakeStorage.setObj.calledOnce
+      assert @fakeStorage.setObj.calledWith('log:/', [{timestamp:0},{timestamp:1},{timestamp:1.5},{timestamp:2},{timestamp:3}])
+
+  describe "#destroy", ->
+    beforeEach ->
+      @initialSet = [{timestamp:0},{timestamp:1},{timestamp:2},{timestamp:3}]
+      @fakeStorage.setObj('log:/', @initialSet)
+      @fakeStorage.setItem('logVersion:/', '0')
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+    it 'should destroy the log from localStorage', ->
+      spy(@fakeStorage, 'setObj')
+
+      @subject.destroy()
+
+      assert @fakeStorage.setObj.calledWith('log:/', null)
+
+    it 'should destroy log from working memory', ->
+      @subject.destroy()
+      assert.deepEqual [], @subject.log
+
+  describe "#empty", ->
+    beforeEach ->
+      @initialSet = [{timestamp:0},{timestamp:1},{timestamp:2},{timestamp:3}]
+      @fakeStorage.setObj('log:/', @initialSet)
+      @fakeStorage.setItem('logVersion:/', '0')
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+    it 'returns false if there are items', ->
+      assert.equal false, @subject.empty()
+
+    it 'returns true if there are no items', ->
+      @subject.destroy()
+      assert.equal true, @subject.empty()
+
+  describe "#all", ->
+    beforeEach ->
+      @initialSet = [1,2,3]
+      @fakeStorage.setObj('log:/', @initialSet)
+      @fakeStorage.setItem('logVersion:/', '0')
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+    it 'is an alias for .log', ->
+      assert.deepEqual @subject.log, @subject.all()
+
+  describe "#latestIs", ->
+    beforeEach ->
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+    it 'sets the mID of the latest message', ->
+      @subject.latestIs(5)
+      assert 5, @subject.latestID
+    it 'sets the mID of the latest message, if it is greater than the current latest', ->
+      @subject.latestIs(10)
+      assert 10, @subject.latestID
+
+      @subject.latestIs(20)
+      assert 20, @subject.latestID
+
+      @subject.latestIs(0)
+      assert 20, @subject.latestID
+
+  describe "#knownIDs", ->
+    beforeEach ->
+      @initialSet = [{mID: 0},{},{mID: 5}]
+      @fakeStorage.setObj('log:/', @initialSet)
+      @fakeStorage.setItem('logVersion:/', '0')
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+    it 'returns an array of all known mIDs, when they exist', ->
+      assert.deepEqual [0,5], @subject.knownIDs()
+    it 'should not die if there is nothing in the log', ->
+      @fakeStorage.setObj('log:/', [])
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+      assert.deepEqual [], @subject.knownIDs()
+
+  describe "#getMessage", ->
+    beforeEach ->
+      @initialSet = [{mID: 0, body: 'hi'},{},{mID: 5, body: 'there'}]
+      @fakeStorage.setObj('log:/', @initialSet)
+      @fakeStorage.setItem('logVersion:/', '0')
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+    it 'should allow us to query the structure for a particular item by mID', ->
+      assert.deepEqual {mID: 0, body: 'hi'}, @subject.getMessage(0)
+      assert.deepEqual {mID: 5, body: 'there'}, @subject.getMessage(5)
+    it 'returns null if there was no message by that mID', ->
+      assert.equal null, @subject.getMessage(999)
+
+  describe '#replaceMessage', ->
+    beforeEach ->
+      @initialSet = [{mID: 0, body: 'hi'},{},{mID: 5, body: 'there'}]
+      @fakeStorage.setObj('log:/', @initialSet)
+      @fakeStorage.setItem('logVersion:/', '0')
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+    it 'will replace a message by mID', ->
+      @subject.replaceMessage({mID:0, body:'yo'})
+      assert.deepEqual {mID: 0, body: 'yo'}, @subject.getMessage(0)
+      @subject.replaceMessage({mID:5, body:'yo'})
+      assert.deepEqual {mID: 5, body: 'yo'}, @subject.getMessage(5)
+    it 'does nothing if the mID never existed', ->
+      @subject.replaceMessage({mID:999, body:'ghost'})
+      assert.deepEqual @initialSet, @subject.log
+
+  describe '#getListOfMissedMessages', ->
+    beforeEach ->
+      @initialSet = [{mID: 0, body: 'hi'},{},{mID: 5, body: 'there'}]
+      @fakeStorage.setObj('log:/', @initialSet)
+      @fakeStorage.setItem('logVersion:/', '0')
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+    it 'will give us a list of all IDs higher than our latestID when the server is ahead of us', ->
+      @subject.latestID = 10
+      assert.deepEqual [10, 9, 8, 7, 6], @subject.getListOfMissedMessages()
+
+      @subject.latestID = 8
+      assert.deepEqual [8, 7, 6], @subject.getListOfMissedMessages()
+    it 'will return null if the server is not ahead of us', ->
+      @subject.latestID = 5
+      assert.equal null, @subject.getListOfMissedMessages()
+
+  describe '#getMissingIDs', ->
+    beforeEach ->
+      @initialSet = [{mID: 0, body: 'hi'},{},{mID: 5, body: 'there'}]
+      @fakeStorage.setObj('log:/', @initialSet)
+      @fakeStorage.setItem('logVersion:/', '0')
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+    it 'returns a list of mIDs missing from our chat history, up til the server latest mID', ->
+      @subject.latestID = 10
+      assert.deepEqual [10, 9, 8, 7, 6, 4, 3, 2, 1], @subject.getMissingIDs()
+
+    it 'returns a list of mIDS missing from our chat history when the server is not ahead of us', ->
+      @subject.latestID = 5
+      assert.deepEqual [4,3,2,1], @subject.getMissingIDs()
+
+    it 'works properly on a very hole-y log', ->
+      @initialSet = [{mID: 4, body: 'hi'},{},{mID: 8, body: 'there'}]
+      @fakeStorage.setObj('log:/', @initialSet)
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+      @subject.latestID = 10
+      assert.deepEqual [10,9,7,6,5,3,2,1,0], @subject.getMissingIDs()

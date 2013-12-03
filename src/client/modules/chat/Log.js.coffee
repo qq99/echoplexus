@@ -80,7 +80,7 @@ module.exports.Log = class Log
     start = @log.length - 1
     i = start
 
-    while i > 0
+    while i >= 0
       return @log[i]  if @log[i].mID is byID
       i--
     null
@@ -90,7 +90,7 @@ module.exports.Log = class Log
     start = @log.length - 1
     i = start
 
-    while i > 0
+    while i >= 0
       if @log[i].mID is msg.mID
         @log[i] = msg
 
