@@ -31,6 +31,12 @@ noMatch = (sampleSet, regex) ->
   for sample in sampleSet
     assert.equal null, sample.match(regex)
 
+assertMatches = (string, regex) ->
+  assert string.match(regex)?.length
+
+assertNoMatches = (string, regex) ->
+  assert.equal null, string.match(regex)
+
 describe 'Regexes', ->
   describe 'urls.image', ->
     it 'matches images properly', ->
@@ -53,3 +59,20 @@ describe 'Regexes', ->
       perfectMatch(all_other_url_samples, regexes.urls.all_others)
       perfectMatch(image_samples, regexes.urls.all_others)
       perfectMatch(youtube_samples, regexes.urls.all_others)
+
+  describe 'users', ->
+    describe 'mentions', ->
+      it 'matches @nick', ->
+        body = "hey @nick what's up!"
+        assertMatches("hey @nick what's up", regexes.users.mentions)
+
+  describe 'commands', ->
+    describe 'nick', ->
+      beforeEach ->
+        @re = regexes.commands.nick
+      it 'matches /nick', ->
+        assertMatches("/nick Anon", @re)
+      it 'matches /n', ->
+        assertMatches("/n Anon", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches("type /nick to set your nick", @re)
