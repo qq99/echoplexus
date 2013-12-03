@@ -16,6 +16,13 @@ all_other_url_samples = [
   "http://www.google.ca"
 ]
 
+partialMatch = (sampleSet, regex) ->
+  for sample in sampleSet
+    match = sample.match(regex)[0]
+    index = match.indexOf(sample)
+    index = sample.indexOf(match) if index is -1
+    assert.notEqual -1, index
+
 perfectMatch = (sampleSet, regex) ->
   for sample in sampleSet
     assert.equal sample, sample.match(regex)[0]
@@ -32,3 +39,17 @@ describe 'Regexes', ->
     it 'does not match non-images', ->
       noMatch(all_other_url_samples, regexes.urls.image)
       noMatch(youtube_samples, regexes.urls.image)
+
+  describe 'urls.youtube', ->
+    it 'matches images properly', ->
+      partialMatch(youtube_samples, regexes.urls.youtube) # should be perfect match?
+
+    it 'does not match non-youtube', ->
+      noMatch(all_other_url_samples, regexes.urls.youtube)
+      noMatch(image_samples, regexes.urls.youtube)
+
+  describe 'urls.all_others', ->
+    it 'matches all other urls properly', ->
+      perfectMatch(all_other_url_samples, regexes.urls.all_others)
+      perfectMatch(image_samples, regexes.urls.all_others)
+      perfectMatch(youtube_samples, regexes.urls.all_others)
