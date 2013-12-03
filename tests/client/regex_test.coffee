@@ -76,3 +76,171 @@ describe 'Regexes', ->
         assertMatches("/n Anon", @re)
       it 'does not match in the middle of a string', ->
         assertNoMatches("type /nick to set your nick", @re)
+
+    describe 'register', ->
+      beforeEach ->
+        @re = regexes.commands.register
+      it 'matches /register', ->
+        assertMatches("/register password", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches("type /register [password] to register", @re)
+
+    describe 'identify', ->
+      beforeEach ->
+        @re = regexes.commands.identify
+      it 'matches /identify', ->
+        assertMatches("/identify password", @re)
+      it 'matches /id', ->
+        assertMatches("/id password", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /identify test", @re)
+
+    describe 'topic', ->
+      beforeEach ->
+        @re = regexes.commands.topic
+      it 'matches /topic', ->
+        assertMatches("/topic test", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /topic test", @re)
+
+    describe 'broadcast', ->
+      beforeEach ->
+        @re = regexes.commands.broadcast
+      it 'matches /broadcast', ->
+        assertMatches("/broadcast hi all", @re)
+      it 'matches /bc', ->
+        assertMatches("/bc hi all", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /broadcast test", @re)
+
+    describe 'private', ->
+      beforeEach ->
+        @re = regexes.commands.private
+      it 'matches /private', ->
+        assertMatches("/private secret", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /private secret", @re)
+
+    describe 'public', ->
+      beforeEach ->
+        @re = regexes.commands.public
+      it 'matches /public', ->
+        assertMatches("/public", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /public", @re)
+
+    describe 'help', ->
+      beforeEach ->
+        @re = regexes.commands.help
+      it 'matches /help', ->
+        assertMatches("/help", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches("so /help", @re)
+
+    describe 'private_message', ->
+      beforeEach ->
+        @re = regexes.commands.private_message
+      it 'matches /pm', ->
+        assertMatches("/pm @Anon hi", @re)
+      it 'matches /whisper', ->
+        assertMatches("/pm @Anon hi", @re)
+      it 'matches /w', ->
+        assertMatches("/w @Anon hi", @re)
+      it 'matches /tell', ->
+        assertMatches("/tell @Anon hi", @re)
+      it 'matches /t', ->
+        assertMatches("/t @Anon hi", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /t @Anon hi", @re)
+
+    describe 'join', ->
+      beforeEach ->
+        @re = regexes.commands.join
+      it 'matches /join', ->
+        assertMatches("/join channelname", @re)
+      it 'matches /j', ->
+        assertMatches("/join nsfw", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /join girlsgonewild", @re)
+
+    describe 'leave', ->
+      beforeEach ->
+        @re = regexes.commands.leave
+      it 'matches /leave', ->
+        assertMatches("/leave", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /leave", @re)
+
+    describe 'pull_logs', ->
+      beforeEach ->
+        @re = regexes.commands.pull_logs
+      it 'matches /pull', ->
+        assertMatches("/pull 10", @re)
+      it 'matches /p', ->
+        assertMatches("/p 20", @re)
+      it 'matches /sync', ->
+        assertMatches("/sync 40", @re)
+      it 'matches /s', ->
+        assertMatches("/s 30", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /s 30", @re)
+
+    describe 'set_color', ->
+      beforeEach ->
+        @re = regexes.commands.set_color
+      it 'matches /color', ->
+        assertMatches("/color #fff", @re)
+      it 'matches /c', ->
+        assertMatches("/c #ABCDEF", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /c #333", @re)
+
+    describe 'edit', ->
+      beforeEach ->
+        @re = regexes.commands.edit
+      it 'matches /edit when a #[messageID] is supplied', ->
+        assertMatches("/edit #538 new text", @re)
+      it 'does not match /edit when a #[messageID] is not supplied', ->
+        assertNoMatches("/edit hi", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches("  /edit #1 hi", @re)
+
+    describe 'chown', ->
+      beforeEach ->
+        @re = regexes.commands.chown
+      it 'matches /chown', ->
+        assertMatches("/chown password", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /chown password", @re)
+
+    describe 'chmod', ->
+      beforeEach ->
+        @re = regexes.commands.chmod
+      it 'matches /chmod', ->
+        assertMatches("/chmod +canSetTopic", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /chmod +canSetTopic", @re)
+
+    describe 'reply', ->
+      beforeEach ->
+        @re = regexes.commands.reply
+      it 'matches >>12345', ->
+        assertMatches(">>111", @re)
+        assertMatches(">>0", @re)
+      it 'does not match >> without any message ID', ->
+        assertNoMatches(">> hi how are ya", @re)
+      it 'matches anywhere in the string', ->
+        assertMatches("I think >>55 is completely wrong.", @re)
+
+  describe 'colors', ->
+    describe 'hex', ->
+      beforeEach ->
+        @re = regexes.colors.hex
+      it 'matches 6char hex', ->
+        assertMatches("#1F3D9A", @re)
+        assertMatches("F0a3b3", @re)
+      it 'matches 3char hex', ->
+        assertMatches("#333", @re)
+        assertMatches("01F", @re)
+
+

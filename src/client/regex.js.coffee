@@ -30,4 +30,4 @@ module.exports.REGEXES =
     reply: /(>>|&gt;&gt;)(\d+)/g
 
   colors:
-    hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i # matches 3 and 6-digit hex colour codes, optional #
+    hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i # matches 3 and 6-char hex colour codes, optional #
