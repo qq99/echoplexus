@@ -1,4 +1,4 @@
-Mewl                          = require("../../ui/Mewl.js.coffee")
+Mewl                          = require("../../ui/Mewl.js.coffee").MewlNotification
 callPanelTemplate             = require("./templates/callPanel.html")
 mediaStreamContainerTemplate  = require("./templates/mediaStreamContainer.html")
 RTC                           = require("./rtc.js.coffee").RTC
@@ -21,7 +21,6 @@ module.exports.CallClient = class CallClient extends Backbone.View
     @channel = opts.channel
     @channelName = opts.room
     @config = opts.config
-    @module = opts.module
     @socket = io.connect(@config.host + "/call")
     @rtc = new RTC
       socket: @socket
@@ -96,6 +95,7 @@ module.exports.CallClient = class CallClient extends Backbone.View
 
     # you.mozSrcObject = URL.createObjectURL(stream);
     you.play()
+    you.muted = true # don't need to hear your own audio
     $(".no-call", @$el).hide()
     $(".in-call", @$el).show()
     @rtc.listen()
@@ -140,7 +140,7 @@ module.exports.CallClient = class CallClient extends Backbone.View
         body: clientNick + " joined the call!"
         tag: "callStatus"
 
-      if OPTIONS.show_mewl
+      if window.OPTIONS.show_mewl
         mewl = new Mewl
           title: @channelName
           body: clientNick + " joined the call!"
@@ -149,6 +149,7 @@ module.exports.CallClient = class CallClient extends Backbone.View
     @rtc.on "disconnected_stream", (clientID) =>
       console.log "remove " + clientID
       @removeVideo clientID
+      @subdivideVideos()
 
     # politely hang up before closing the tab/window
     $(window).on "unload", =>
@@ -192,7 +193,8 @@ module.exports.CallClient = class CallClient extends Backbone.View
 
   getNumPerRow: ->
     len = _.size(@videos)
-    biggest = undefined
+
+    return len if len is 1
 
     # Ensure length is even for better division.
     len++  if len % 2 is 1
@@ -202,8 +204,6 @@ module.exports.CallClient = class CallClient extends Backbone.View
 
   subdivideVideos: ->
     videos = _.values(@videos)
-    perRow = @getNumPerRow()
-    numInRow = 0
     console.log videos, videos.length
     i = 0
     len = videos.length
@@ -211,7 +211,6 @@ module.exports.CallClient = class CallClient extends Backbone.View
     while i < len
       video = videos[i]
       @setWH video, i, len
-      numInRow = (numInRow + 1) % perRow
       i++
 
   setWH: (video, i, len) ->

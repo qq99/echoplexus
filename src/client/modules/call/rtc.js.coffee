@@ -368,11 +368,11 @@ module.exports.RTC = class RTC extends Backbone.Model
 
   setUserMedia: (opts) ->
     _.each @localStreams, (stream) ->
-      if typeof opts.video isnt "undefined"
+      if opts.video?
         _.each stream.getVideoTracks(), (track) ->
           track.enabled = opts.video
 
-      if typeof opts.audio isnt "undefined"
+      if opts.audio?
         _.each stream.getAudioTracks(), (track) ->
           track.enabled = opts.audio
 
