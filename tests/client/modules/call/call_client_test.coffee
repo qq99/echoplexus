@@ -1,4 +1,5 @@
-CallClient = require('../../../../src/client/modules/call/client.js.coffee').CallClient
+CallClient  = require('../../../../src/client/modules/call/client.js.coffee').CallClient
+ClientModel = require('../../../../src/client/client.js.coffee').ClientModel
 
 describe 'CallClient', ->
   beforeEach ->
@@ -174,4 +175,99 @@ describe 'CallClient', ->
       assert.equal 500, @videoEl.width()
       assert.equal 1000, @videoEl.height()
 
+  describe '#subdivideVideos', ->
+    beforeEach ->
+      @subject = new CallClient(@opts)
+      @container = $(".videos", @subject.$el)
+      @container.css
+        width: "500px"
+        height: "1000px"
 
+    it 'subdivides 2 videos on 1 row when there are 2 videos', ->
+      @subject.videos = [$("<video></video>"), $("<video></video>")]
+
+      @subject.subdivideVideos()
+
+      $vid1 = @subject.videos[0]
+      assert.equal 250, $vid1.width()
+      assert.equal 1000, $vid1.height()
+      assert.equal "0px", $vid1.css("left")
+
+      $vid2 = @subject.videos[1]
+      assert.equal 250, $vid2.width()
+      assert.equal 1000, $vid2.height()
+      assert.equal "250px", $vid2.css("left")
+
+    it 'subdivides 4 videos into 2 videos on 2 rows, when there are 4 videos', ->
+      @subject.videos = [$("<video></video>"), $("<video></video>"), $("<video></video>"), $("<video></video>")]
+
+      @subject.subdivideVideos()
+
+      $vid1 = @subject.videos[0]
+      assert.equal 250, $vid1.width()
+      assert.equal 500, $vid1.height()
+      assert.equal "0px", $vid1.css("left")
+      assert.equal "0px", $vid1.css("top")
+
+      $vid2 = @subject.videos[1]
+      assert.equal 250, $vid2.width()
+      assert.equal 500, $vid2.height()
+      assert.equal "250px", $vid2.css("left")
+      assert.equal "0px", $vid2.css("top")
+
+      $vid3 = @subject.videos[2]
+      assert.equal 250, $vid3.width()
+      assert.equal 500, $vid3.height()
+      assert.equal "0px", $vid3.css("left")
+      assert.equal "500px", $vid3.css("top")
+
+      $vid4 = @subject.videos[3]
+      assert.equal 250, $vid4.width()
+      assert.equal 500, $vid4.height()
+      assert.equal "250px", $vid4.css("left")
+      assert.equal "500px", $vid4.css("top")
+
+  describe '#createVideoElement', ->
+    beforeEach ->
+      @subject = new CallClient(@opts)
+      @alice = {id: 1, nick: "Alice"}
+      @bob = {id: 2, nick: "Bob"}
+
+      channel = Backbone.Collection.extend
+        model: ClientModel
+
+      @subject.channel.clients = new channel([@bob, @alice])
+
+    it 'creates the right element for the right user', ->
+      @subject.createVideoElement(1)
+      assert @subject.videos[1]
+      assert !@subject.videos[0]
+
+    it 'places the client nick in the video template', ->
+      @subject.createVideoElement(1)
+      assert.include @subject.videos[1].find(".nick").text(), "Alice"
+
+      @subject.createVideoElement(2)
+      assert.include @subject.videos[2].find(".nick").text(), "Bob"
+
+  describe '#removeVideo', ->
+    beforeEach ->
+      @subject = new CallClient(@opts)
+      @alice = {id: 1, nick: "Alice"}
+      @bob = {id: 2, nick: "Bob"}
+
+      channel = Backbone.Collection.extend
+        model: ClientModel
+
+      @subject.channel.clients = new channel([@bob, @alice])
+      @subject.createVideoElement(1)
+      @subject.createVideoElement(2)
+
+    it 'deletes the video from the store', ->
+      assert @subject.videos[1]
+      @subject.removeVideo(1)
+      assert !@subject.videos[1]
+
+      assert @subject.videos[2]
+      @subject.removeVideo(2)
+      assert !@subject.videos[2]

@@ -147,7 +147,6 @@ module.exports.CallClient = class CallClient extends Backbone.View
 
     # on peer leaving the call:
     @rtc.on "disconnected_stream", (clientID) =>
-      console.log "remove " + clientID
       @removeVideo clientID
       @subdivideVideos()
 
@@ -230,33 +229,26 @@ module.exports.CallClient = class CallClient extends Backbone.View
 
 
   createVideoElement: (clientID) ->
+
     client = @channel.clients.findWhere(id: clientID)
-    clientNick = client.getNick() # TODO: handle encrypted version
-    $video = $(@streamTemplate(
-      id: clientID
-      nick: clientNick
-    ))
 
-    # keep track of the $element by clientID
-    @videos[clientID] = $video
+    if client
+      clientNick = client.getNick() # TODO: handle encrypted version
+      $video = $(@streamTemplate(
+        id: clientID
+        nick: clientNick
+      ))
 
-    # add the new stream element to the container
-    $(".videos", @$el).append $video
-    $video
+      # keep track of the $element by clientID
+      @videos[clientID] = $video
+
+      # add the new stream element to the container
+      $(".videos", @$el).append $video
+      $video
 
   removeVideo: (id) ->
     video = @videos[id]
-    console.log "video", id, video
     if video
       video.remove()
       delete @videos[id]
-
-  initFullScreen: ->
-    button = document.getElementById("fullscreen")
-    button.addEventListener "click", (event) ->
-      elem = document.getElementById("videos")
-
-      #show full screen
-      elem.webkitRequestFullScreen()
-
 
