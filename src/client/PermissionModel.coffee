@@ -13,6 +13,7 @@ module.exports.PermissionModel = class PermissionModel extends Backbone.Model
     canSpeak: null
     canPullLogs: null
     canUploadFile: null
+    canSetGithubPostReceiveHooks: null
 
   canBestow: null # eventually a map of bestowable permissions
   initialize: (modelAttributes, options) ->

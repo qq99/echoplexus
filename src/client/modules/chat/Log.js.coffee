@@ -1,5 +1,5 @@
 require("../../events.js.coffee")()
-require("../../utility.js.coffee")()
+require("../../utility.js.coffee")
 
 module.exports.Log = class Log
   # this is: a persistent log if local storage is available, ELSE buncha noops

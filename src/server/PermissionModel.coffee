@@ -17,6 +17,7 @@ module.exports.ClientPermissionModel = class ClientPermissionModel extends Permi
       canSpeak: true
       canPullLogs: true
       canUploadFile: true
+      canSetGithubPostReceiveHooks: true
 
     @canBestow = @attributes
 
@@ -32,3 +33,4 @@ module.exports.ChannelPermissionModel = class ChannelPermissionModel extends Per
     canSpeak: true
     canPullLogs: true
     canUploadFile: false
+    canSetGithubPostReceiveHooks: null

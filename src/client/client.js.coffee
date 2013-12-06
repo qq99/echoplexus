@@ -300,6 +300,16 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     else if body.match(REGEXES.commands.help)
       socket.emit "help:" + room
+    else if body.match(REGEXES.commands.github)
+      body = body.replace(REGEXES.commands.github, "").trim()
+      split = body.split(" ")
+      subcommand = split.shift()
+      args = split.join(" ")
+
+      if subcommand.match(REGEXES.github_subcommands.track) and args.match(REGEXES.urls.all_others)
+        socket.emit "add_github_webhook:#{room}",
+          repoUrl: args
+
     else unless body.match(REGEXES.commands.failed_command) # match all
       # NOOP
       # send it out to the world!

@@ -28,6 +28,10 @@ module.exports.REGEXES =
     chown: /^\/chown /
     chmod: /^\/chmod /
     reply: /(>>|&gt;&gt;)(\d+)/g
+    github: /^\/github /
+
+  github_subcommands:
+    track: /^track/
 
   colors:
     hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i # matches 3 and 6-char hex colour codes, optional #

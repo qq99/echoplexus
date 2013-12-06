@@ -3,6 +3,7 @@ regexes      = require('../../src/client/regex.js.coffee').REGEXES
 image_samples = [
   "http://example.com/my-img.png",
   "http://example.com/my%20img.png",
+  "http://www.example.com/my.png?yo=lo"
   "http://example.com/my_img.png#?from=whatever&query=whaaat"
 ]
 youtube_samples = [

@@ -18,6 +18,7 @@ CallServer       = require("./CallServer.coffee").CallServer
 # UserServer       = require("./UserServer.coffee").UserServer
 EventBus         = require("./EventBus.coffee").EventBus()
 app              = express()
+GithubWebhook    = require("./GithubWebhookIntegration.coffee")
 
 # config:
 ROOT_FOLDER      = path.dirname(__dirname)
@@ -42,11 +43,9 @@ urlRoot = ->
 
 # Web server init:
 
-# xferc means 'transfer config'
-
 # MW: MiddleWare
 authMW = (req, res, next) ->
-  console.log req.get("channel"), req.get("from_user"), req.get("antiforgery_token"), req.get("using_permission")
+  # xferc means 'transfer config'
   if not xferc or not xferc.enabled
     res.send 500, "Not enabled."
     return
@@ -83,12 +82,28 @@ REGEXES = require("../client/regex.js").REGEXES
 app.use express.static(PUBLIC_FOLDER)
 
 xferc = config.server_hosted_file_transfer
-app.use express.limit(xferc.size_limit)  if xferc?.enabled and xferc.size_limit
+app.use express.limit(xferc.size_limit)  if xferc.enabled and xferc.size_limit
 
 bodyParser = express.bodyParser(uploadDir: SANDBOXED_FOLDER)
+app.use express.bodyParser()
 
-# always server up the index
-#
+# endpoint for github
+app.post "/api/github/postreceive", (req, res) ->
+
+  GithubWebhook.verifyAllowedRepository req.body.repository.url, (err, reply) ->
+    throw err if err
+
+    if reply.length?
+      message = GithubWebhook.prettyPrint(req.body)
+      for room in reply
+        EventBus.trigger("github:postreceive:#{room}", message)
+
+
+      res.write "OK"
+      res.end()
+    else
+      console.warn "Received unauthorized webhook for #{req.body.repository?.url?}"
+
 # receive files
 app.post "/*", authMW, bodyParser, (req, res, next) ->
   file = req.files.user_upload
@@ -115,29 +130,27 @@ app.post "/*", authMW, bodyParser, (req, res, next) ->
       from_user: req.get("From-User")
       path: serverPath
 
+# get list of channels and users in them
+app.get "/api/channels", (req, res) ->
+  res.set "Content-Type", "application/json"
+  publicChannelInformation = []
+  publicChannels = Channels.where(private: false)
+  i = 0
 
+  while i < publicChannels.length
+    chan = publicChannels[i]
+    chanJson = chan.toJSON()
 
-app.get "/api/*", (req, res) ->
-  if req.route.params[0].indexOf("channels") isnt -1
-    res.set "Content-Type", "application/json"
-    publicChannelInformation = []
-    publicChannels = Channels.where(private: false)
-    i = 0
+    # extract some non-collection information:
+    chanJson.numActiveClients = chan.clients.where(idle: false).length
+    chanJson.numClients = chan.clients.length
+    delete chanJson.topicObj
 
-    while i < publicChannels.length
-      chan = publicChannels[i]
-      chanJson = chan.toJSON()
-
-      # extract some non-collection information:
-      chanJson.numActiveClients = chan.clients.where(idle: false).length
-      chanJson.numClients = chan.clients.length
-      delete chanJson.topicObj
-
-      publicChannelInformation.push chanJson
-      i++
-    _.sortBy publicChannelInformation, "numActiveClients"
-    res.write JSON.stringify(publicChannelInformation)
-    res.end()
+    publicChannelInformation.push chanJson
+    i++
+  _.sortBy publicChannelInformation, "numActiveClients"
+  res.write JSON.stringify(publicChannelInformation)
+  res.end()
 
 app.get "/*", (req, res) ->
   res.sendfile index
@@ -151,11 +164,12 @@ sio.enable "browser client minification"
 sio.enable "browser client gzip"
 sio.set "log level", 1
 
+ChannelStructures = require("./Channels.js.coffee")
+ChannelModel = ChannelStructures.ServerChannelModel
+Channels = new ChannelStructures.ChannelsCollection
+
 # use db 15:
 redisC.select 15, (err, reply) ->
-  ChannelStructures = require("./Channels.js.coffee")
-  ChannelModel = ChannelStructures.ServerChannelModel
-  Channels = new ChannelStructures.ChannelsCollection
   chatServer = new ChatServer sio, Channels, ChannelModel # start up the chat server
   chatServer.start
     error: (err, socket, channel, client, data) ->
@@ -191,6 +205,11 @@ redisC.select 15, (err, reply) ->
           @clientRemoved(socket, channel, removed)
 
         channel.initialized = true
+
+        EventBus.on "github:postreceive:#{room}", (data) =>
+          sio.of(@namespace).in(room).emit("chat:#{room}", @serverSentMessage({
+            body: data
+          }, room))
 
         # listen for file upload events
         EventBus.on "file_uploaded:#{room}", (data) ->
@@ -237,5 +256,3 @@ redisC.select 15, (err, reply) ->
     success: (namespace, socket, channel, client) ->
         room = channel.get('name')
         socket.emit "status:#{room}", active: !_.isEmpty(channel.call)
-
-  # userServer sio, redisC, EventBus, Channels

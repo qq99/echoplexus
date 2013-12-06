@@ -16,6 +16,8 @@ ApplicationError 	= require("./Error.js.coffee")
 redisC 						= require("./RedisClient.coffee").RedisClient()
 REGEXES 					= require("../client/regex.js.coffee").REGEXES
 DEBUG 						= config.DEBUG
+GithubWebhook 		= require("./GithubWebhookIntegration.coffee")
+EventBus 					= require("./EventBus.coffee").EventBus()
 
 module.exports.ChatServer = class ChatServer extends AbstractServer
 	name: "ChatServer"
@@ -608,6 +610,27 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 		"left_call": (namespace, socket, channel, client) ->
 			client.set("inCall", false)
+
+		"add_github_webhook": (namespace, socket, channel, client, data) ->
+			room = channel.get("name")
+			repoUrl = data.repoUrl
+
+			return if !repoUrl?
+
+			if !channel.hasPermission(client, "canMakePublic")
+				@emitGenericPermissionsError(socket, client)
+				return
+
+			GithubWebhook.allowRepository room, repoUrl, (err) =>
+				if err
+					socket.in(room).emit("chat:#{room}", @serverSentMessage({
+						body: err.toString()
+					}, room))
+				else
+					socket.in(room).emit("chat:#{room}", @serverSentMessage({
+						body: "Github webhook integrations are now enabled for #{repoUrl}"
+					}, room))
+
 
 		"unsubscribe": (namespace, socket, channel, client) ->
 			channel.clients.remove(client)
