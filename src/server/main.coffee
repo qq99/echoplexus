@@ -185,7 +185,7 @@ redisC.select 15, (err, reply) ->
 
           console.log("ChatServer: ", err)
         return
-    success: (namespace, socket, channel, client,data) ->
+    success: (effectiveRoom, socket, channel, client,data) ->
       room = channel.get("name")
       @subscribeSuccess(socket, client, channel)
 
@@ -233,20 +233,20 @@ redisC.select 15, (err, reply) ->
     error: (err, socket, channel, client) ->
       if err
         console.log("CodeServer: ", err)
-    success: (namespace, socket, channel, client) ->
-      cc = @spawnCodeCache(@namespace)
-      socket.in(@namespace).emit("code:authoritative_push:#{@namespace}", cc.syncToClient());
+    success: (effectiveRoom, socket, channel, client) ->
+      cc = @spawnCodeCache(effectiveRoom)
+      socket.in(effectiveRoom).emit("code:authoritative_push:#{effectiveRoom}", cc.syncToClient());
 
   drawServer = new DrawServer sio, Channels, ChannelModel
   drawServer.start
     error: (err, socket, channel, client) ->
       if err
         return
-    success: (namespace, socket, channel, client) ->
+    success: (effectiveRoom, socket, channel, client) ->
       room = channel.get("name")
 
       # play back what has happened
-      socket.emit("draw:replay:#{@namespace}", channel.replay)
+      socket.emit("draw:replay:#{room}", channel.replay)
 
   callServer = new CallServer sio, Channels, ChannelModel
   callServer.start
@@ -254,6 +254,6 @@ redisC.select 15, (err, reply) ->
         if (err)
             console.log("CallServer: ", err)
 
-    success: (namespace, socket, channel, client) ->
+    success: (effectiveRoom, socket, channel, client) ->
         room = channel.get('name')
         socket.emit "status:#{room}", active: !_.isEmpty(channel.call)
