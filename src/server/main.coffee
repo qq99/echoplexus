@@ -209,7 +209,8 @@ redisC.select 15, (err, reply) ->
           msg.nickname = "<i class='icon-github'></i>"
           msg.trustworthiness = "limited"
 
-          sio.of(@namespace).in(room).emit("chat:#{room}", msg)
+          @storePersistent msg, room, =>
+            sio.of(@namespace).in(room).emit("chat:#{room}", msg)
 
         # listen for file upload events
         EventBus.on "file_uploaded:#{room}", (data) ->
@@ -221,11 +222,11 @@ redisC.select 15, (err, reply) ->
               body: fromClient.get("nick") + " just uploaded: " + data.path
             }, room)
 
-            storePersistent uploadedFile, room, (err, msg) ->
+            @storePersistent uploadedFile, room, (err, msg) =>
               if err
                 console.log("Error persisting a file upload notification to redis", err.message, msg)
 
-              sio.of(CHATSPACE).in(room).emit("chat:" + room, msg)
+              sio.of(@namespace).in(room).emit("chat:" + room, msg)
 
   codeServer = new CodeServer sio, Channels, ChannelModel
   codeServer.start
@@ -233,8 +234,8 @@ redisC.select 15, (err, reply) ->
       if err
         console.log("CodeServer: ", err)
     success: (namespace, socket, channel, client) ->
-      cc = @spawnCodeCache(namespace)
-      socket.in(namespace).emit("code:authoritative_push:#{namespace}", cc.syncToClient());
+      cc = @spawnCodeCache(@namespace)
+      socket.in(@namespace).emit("code:authoritative_push:#{@namespace}", cc.syncToClient());
 
   drawServer = new DrawServer sio, Channels, ChannelModel
   drawServer.start
@@ -245,7 +246,7 @@ redisC.select 15, (err, reply) ->
       room = channel.get("name")
 
       # play back what has happened
-      socket.emit("draw:replay:" + namespace, channel.replay)
+      socket.emit("draw:replay:#{@namespace}", channel.replay)
 
   callServer = new CallServer sio, Channels, ChannelModel
   callServer.start
