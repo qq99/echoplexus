@@ -90,7 +90,7 @@ module.exports = (grunt) ->
         tasks: ["concat_sourcemap"]
 
       coffee:
-        files: ["src/client/**/*.coffee"]
+        files: ["src/client/**/*.coffee", "src/client/**/*.html"]
         tasks: ["browserify", "concat_sourcemap"]
 
       sass:

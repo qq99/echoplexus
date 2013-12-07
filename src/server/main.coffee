@@ -92,7 +92,6 @@ app.post "/api/github/postreceive", (req, res) ->
 
   GithubWebhook.verifyAllowedRepository req.body.repository.url, (err, reply) ->
     throw err if err
-
     if reply.length?
       message = GithubWebhook.prettyPrint(req.body)
       for room in reply
@@ -207,9 +206,13 @@ redisC.select 15, (err, reply) ->
         channel.initialized = true
 
         EventBus.on "github:postreceive:#{room}", (data) =>
-          sio.of(@namespace).in(room).emit("chat:#{room}", @serverSentMessage({
+          msg = @serverSentMessage({
             body: data
-          }, room))
+          }, room)
+          msg.nickname = "<i class='icon-github'></i>"
+          msg.trustworthiness = "limited"
+
+          sio.of(@namespace).in(room).emit("chat:#{room}", msg)
 
         # listen for file upload events
         EventBus.on "file_uploaded:#{room}", (data) ->

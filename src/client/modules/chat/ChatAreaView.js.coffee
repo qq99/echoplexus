@@ -6,6 +6,7 @@ youtubeTemplate             = require("./templates/youtube.html")
 webshotBadgeTemplate        = require("./templates/webshotBadge.html")
 REGEXES                     = require("../../regex.js.coffee").REGEXES
 CryptoWrapper               = require("../../CryptoWrapper.coffee").CryptoWrapper
+HTMLSanitizer               = require("../../utility.js.coffee").HTMLSanitizer
 cryptoWrapper               = new CryptoWrapper
 
 
@@ -250,7 +251,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     else
       body = msg.get("body")
     opts = {}  if !opts
-    if @autoloadMedia and msg.get("class") isnt "identity" # setting nick to a image URL or youtube URL should not update media bar
+    if @autoloadMedia and msg.get("class") isnt "identity" and msg.get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar
       # put image links on the side:
       images = undefined
       if images = body.match(REGEXES.urls.image)
@@ -312,23 +313,31 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     # end media insertion
 
     # sanitize the body:
-    body = _.escape(body)
+    if msg.get("trustworthiness") is "limited"
+      sanitizer = new HTMLSanitizer
+      body = sanitizer.sanitize(body, ["A", "I", "IMG"], ["href", "title", "class", "src"])
+      nickname = sanitizer.sanitize(nickname, ["I"], ["class"])
+      console.log nickname
+    else
+      body = _.escape(body)
+      nickname = _.escape(nickname)
 
-    # convert new lines to breaks:
-    if body.match(/\n/g)
-      lines = body.split(/\n/g)
-      body = ""
-      _.each lines, (line) ->
-        line = "<pre>" + line + "</pre>"
-        body += line
+      # convert new lines to breaks:
+      if body.match(/\n/g)
+        lines = body.split(/\n/g)
+        body = ""
+        _.each lines, (line) ->
+          line = "<pre>" + line + "</pre>"
+          body += line
 
 
-    # format >>quotations:
-    body = body.replace(REGEXES.commands.reply, "<a rel=\"$2\" class=\"quotation\" href=\"#" + @room + "$2\">&gt;&gt;$2</a>")
+      # format >>quotations:
+      body = body.replace(REGEXES.commands.reply, "<a rel=\"$2\" class=\"quotation\" href=\"#" + @room + "$2\">&gt;&gt;$2</a>")
 
-    # hyperify hyperlinks for the chatlog:
-    body = body.replace(REGEXES.urls.all_others, "<a rel=\"noreferrer\" target=\"_blank\" href=\"$1\">$1</a>")
-    body = body.replace(REGEXES.users.mentions, "<span class=\"mention\">$1</span>")
+      # hyperify hyperlinks for the chatlog:
+      body = body.replace(REGEXES.urls.all_others, "<a rel=\"noreferrer\" target=\"_blank\" href=\"$1\">$1</a>")
+      body = body.replace(REGEXES.users.mentions, "<span class=\"mention\">$1</span>")
+
     if body.length # if there's anything left in the body,
       chatMessageClasses = ""
       nickClasses = ""

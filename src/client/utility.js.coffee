@@ -13,10 +13,13 @@ if Storage
 
 module.exports.HTMLSanitizer = class HTMLSanitizer
 
-  sanitize: (htmlString, allowedElements) ->
+  sanitize: (htmlString, allowedElements, allowedAttributes) ->
 
     ALLOWED_TAGS       = ["STRONG", "EM", "P", "A"]
     ALLOWED_ATTRIBUTES = ["href", "title"]
+
+    ALLOWED_TAGS       = allowedElements if allowedElements
+    ALLOWED_ATTRIBUTES = allowedAttributes if allowedAttributes
 
     clean = (el) ->
       tags = Array.prototype.slice.apply(el.getElementsByTagName("*"), [0])
@@ -27,7 +30,7 @@ module.exports.HTMLSanitizer = class HTMLSanitizer
         # now remove all the troublesome attributes
         attrs = tag.attributes
         for attribute in tag.attributes
-          if ALLOWED_ATTRIBUTES.indexOf(attribute.name) == -1
+          if attribute? and ALLOWED_ATTRIBUTES.indexOf(attribute.name) == -1
             delete tag.attributes.removeNamedItem(attribute.name)
 
         null

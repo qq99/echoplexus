@@ -2,7 +2,7 @@ ChannelSwitcher   = require("./ui/ChannelSwitcher.js.coffee").ChannelSwitcher
 Notifications     = require("./ui/Notifications.js.coffee").Notifications
 Faviconizer       = require("./ui/Faviconizer.js.coffee").Faviconizer
 require("./events.js.coffee")()
-require("./utility.js.coffee")()
+require("./utility.js.coffee")
   # require "./modules/user_info/UserData.js.coffee"
 
 
