@@ -88,20 +88,17 @@ bodyParser = express.bodyParser(uploadDir: SANDBOXED_FOLDER)
 app.use express.bodyParser()
 
 # endpoint for github
-app.post "/api/github/postreceive", (req, res) ->
+app.post "/api/github/postreceive/:token", (req, res) ->
 
-  GithubWebhook.verifyAllowedRepository req.body.repository.url, (err, reply) ->
-    throw err if err
-    if reply.length?
+  GithubWebhook.verifyAllowedRepository req.params.token, (err, room) ->
+    if err
+      res.send(err.toString(), 404)
+    if room
       message = GithubWebhook.prettyPrint(req.body)
-      for room in reply
-        EventBus.trigger("github:postreceive:#{room}", message)
+      EventBus.trigger("github:postreceive:#{room}", message)
 
-
-      res.write "OK"
+      res.send("OK", 200)
       res.end()
-    else
-      console.warn "Received unauthorized webhook for #{req.body.repository?.url?}"
 
 # receive files
 app.post "/*", authMW, bodyParser, (req, res, next) ->

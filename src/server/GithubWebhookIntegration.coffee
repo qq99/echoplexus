@@ -1,33 +1,42 @@
-config           = require("./config.coffee").Configuration # deploy specific configuration
-redisC           = require("./RedisClient.coffee").RedisClient(config.redis?.port, config.redis?.host)
-crypto           = require('crypto')
+config             = require("./config.coffee").Configuration # deploy specific configuration
+redisC             = require("./RedisClient.coffee").RedisClient(config.redis?.port, config.redis?.host)
+crypto             = require('crypto')
+utility            = new (require("./utility.coffee").Utility)
+async              = require("async")
 
 # hackish, as anybody could really end up spoofing this information
 # so, we don't let them do too much with this capability
 module.exports.allowRepository = (room, repo_url, callback) ->
-  redisC.hget "github:webhooks", repo_url, (err, reply) ->
+  redisC.hget "github:webhooks", repo_url, (err, rooms) ->
     throw err if err
 
-    if reply
-      reply = JSON.parse(reply)
+    if rooms
+      rooms = JSON.parse(rooms)
     else
-      reply = []
+      rooms = []
+    rooms.push room
 
-    reply.push room
-
-    redisC.hset "github:webhooks", repo_url, JSON.stringify(reply), (err, reply) ->
+    utility.getSimpleSaltedMD5 room, (err, hash) ->
       throw err if err
-      callback?(null)
 
-module.exports.verifyAllowedRepository = (repo_url, callback) ->
-  redisC.hget "github:webhooks", repo_url, (err, reply) ->
+      async.parallel {
+        token: (callback) ->
+          redisC.hset "github:webhooks:tokens", hash, room, callback
+        webhook: (callback) ->
+          redisC.hset "github:webhooks", repo_url, JSON.stringify(rooms), callback
+      }, (err, stored) ->
+        console.log err, hash, stored
+        throw err if err
+        callback?(null, hash)
+
+module.exports.verifyAllowedRepository = (token, callback) ->
+  redisC.hget "github:webhooks:tokens", token, (err, reply) ->
     throw err if err
 
     if reply
-      reply = JSON.parse(reply)
       callback?(null, reply)
     else
-      callback?("Ignoring request, no matches")
+      callback?("Ignoring GitHub postreceive hook's request: token not found!")
 
 module.exports.prettyPrint = (githubResponse) ->
   r = githubResponse

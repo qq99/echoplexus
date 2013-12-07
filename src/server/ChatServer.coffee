@@ -181,7 +181,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 						screenshotter.on "exit", (data) ->
 							# DEBUG && console.log('screenshotter exit: ' + data.toString())
 							if pageData
-								pageData.webshot = urlRoot() + 'sandbox/' + fileName
+								pageData.webshot = @urlRoot() + 'sandbox/' + fileName
 								pageData.original_url = url
 								pageData.from_mID = from_mID
 
@@ -617,18 +617,19 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 			return if !repoUrl?
 
-			if !channel.hasPermission(client, "canMakePublic")
+			if !channel.hasPermission(client, "canSetGithubPostReceiveHooks")
 				@emitGenericPermissionsError(socket, client)
 				return
 
-			GithubWebhook.allowRepository room, repoUrl, (err) =>
+			GithubWebhook.allowRepository room, repoUrl, (err, token) =>
+				console.log err, token
 				if err
 					socket.in(room).emit("chat:#{room}", @serverSentMessage({
 						body: err.toString()
 					}, room))
 				else
 					socket.in(room).emit("chat:#{room}", @serverSentMessage({
-						body: "Github webhook integrations are now enabled for #{repoUrl}"
+						body: "Github webhook integrations are now enabled for #{repoUrl}.  Please set up your hook to point to: #{@urlRoot()}api/github/postreceive/#{token}"
 					}, room))
 
 
