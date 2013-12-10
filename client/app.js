@@ -9,7 +9,7 @@
             'jquery': 'lib/jquery/jquery.min',
             'underscore': 'lib/underscore/underscore-min',
             'backbone': 'lib/backbone/backbone-min',
-            'keymaster': 'lib/keymaster/keymaster.min',
+            'keymaster': 'lib/keymaster/keymaster',
             'jquery.cookie': 'lib/jquery.cookie/jquery.cookie',
             'text': 'lib/requirejs-text/text',
             'moment': 'lib/moment/moment',
