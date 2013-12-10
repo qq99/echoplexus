@@ -20,8 +20,6 @@ Future Goals
 - Peer2Peer chat, boostrapped by Echoplexus (to facilitate off-the-record communication)
 - End2End encryption
 - Increased selection of languages for the real-time collaborative REPL
-- User access control
-- ...
 
 Be sure to check out the planned [enhancements](https://github.com/qq99/echoplexus/issues?labels=enhancement&milestone=&page=1&state=open "Planned Enhancements")
 
