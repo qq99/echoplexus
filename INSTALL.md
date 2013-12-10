@@ -18,7 +18,7 @@ From there, you may do one of the following, depending on your needs:
 
 ##Dependencies:
 
-### node.js 
+### node.js
 
 For server, confirmed working v0.10.10, and should be OK with v0.10.1*.
 
@@ -60,7 +60,7 @@ Download from http://phantomjs.org/
 
 Install the binary to `/opt/bin/phantomjs`
 
-If you don't want to do this step, set "phantomjs_screenshot" to false in `server/config.js`. 
+If you don't want to do this step, set "phantomjs_screenshot" to false in `server/config.js`.
 
 ###Building
 
@@ -110,3 +110,39 @@ Example:
 ###Issues
 Please report all issues to the github issue tracker.
 https://github.com/qq99/echoplexus/issues
+
+https://github.com/qq99/echoplexus/issues
+
+***********
+# On Amazon EC2
+
+c/o user @dirkk0
+
+`sudo apt-get update`
+
+### get ec2 ip and hostname
+`curl http://xxx.xxx.xxx.xxx/latest/meta-data/public-ipv4 > public.ip`
+`curl http://xxx.xxx.xxx.xxx/latest/meta-data/public-hostname > public.hostname`
+
+`sudo apt-get install --yes build-essential curl git`
+
+### install latest node
+```
+sudo apt-get install --yes python-software-properties python g++ make
+sudo add-apt-repository --yes ppa:chris-lea/node.js
+sudo apt-get update
+sudo apt-get install --yes nodejs
+```
+### install redis
+`sudo apt-get install -y redis-server`
+### clone echoplexus
+`git clone https://github.com/qq99/echoplexus`
+### build echoplexus
+```
+cd echoplexus
+npm install; npm run-script bower; sudo npm install -g grunt-cli
+npm run-script build; grunt; cp server/config.sample.js server/config.js
+sed -e "s/chat.echoplex.us/`cat public.hostname`/g" echoplexus/server/config.js > temp && mv temp echoplexus/server/config.js
+cd ..
+```
+`screen -S server -L -m`
