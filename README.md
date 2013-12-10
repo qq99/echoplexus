@@ -1,5 +1,5 @@
-[![Stories in Ready](https://badge.waffle.io/qq99/echoplexus.png)](http://waffle.io/qq99/echoplexus)  
-[echoplexus](https://echoplex.us) (v0.2.1)
+[![Stories in Ready](https://badge.waffle.io/qq99/echoplexus.png)](http://waffle.io/qq99/echoplexus)
+[echoplexus](https://echoplex.us) (v0.2.2)
 ==================
 
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
