@@ -73,7 +73,7 @@ else
   protocol = require("http")
   server = protocol.createServer(app)
 index = "public/index.dev.html"
-index = "public/index.build.html"  if fs.existsSync(PUBLIC_FOLDER + "/index.build.html")
+#index = "public/index.build.html"  if fs.existsSync(PUBLIC_FOLDER + "/index.build.html")
 console.log "Using index: " + index
 Client = require("../client/client.js").ClientModel
 Clients = require("../client/client.js").ClientsCollection

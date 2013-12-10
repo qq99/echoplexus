@@ -52,7 +52,18 @@
     "crypto": "~0.0.3",
     "redis": "~0.8.3",
     "backbone": "~1.0.0",
-    "async": "~0.2.9"
+    "async": "~0.2.9",
+    "matchdep": "~0.3.0",
+    "coffee-script": "~1.6.3",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-open": "~0.2.2",
+    "grunt-concat-sourcemap": "~0.4.0",
+    "grunt-contrib-uglify": "~0.2.7",
+    "browserify": "~2.36.1",
+    "grunt-browserify": "~1.2.12",
+    "coffeeify": "~0.5.2",
+    "node-underscorify": "0.0.3"
   },
   "devDependencies": {
     "bower": "~0.9.2",
