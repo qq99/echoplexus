@@ -1,4 +1,4 @@
-ClientStructures      = require('../../Client.js.coffee')
+ClientStructures      = require('../../client.js.coffee')
 ColorModel            = ClientStructures.ColorModel
 ClientsCollection     = ClientStructures.ClientsCollection
 ClientModel           = ClientStructures.ClientModel
