@@ -106,7 +106,7 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
       @changeTool "ERASER"
 
     @$el.on "click", ".swatch", (ev) =>
-      @style.strokeStyle = $(this).data("color")
+      @style.strokeStyle = $(ev.currentTarget).data("color")
 
     @$el.on "click", ".tool.pen", =>
       @changeTool "PEN"
@@ -114,7 +114,7 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
     @$el.on "click", ".tool.info", ->
       $(this).find(".tool-options").toggleClass "active"
 
-    @$el.on "click", ".tool.color", =>
+    @$el.on "click", ".tool.color", ->
       options = $(this).find(".tool-options-contents")
       swatch = $("<div class=\"swatch\"></div>")
       options.html ""
