@@ -152,5 +152,5 @@ module.exports = (grunt) ->
 
   # creating workflows
   grunt.registerTask "default", ["sass:dist", "cssmin", "browserify", "concat_sourcemap", "copy", "watch"]
-  grunt.registerTask "build", ["clean", "sass:dist", "cssmin", "browserify", "uglify", "concat_sourcemap", "copy"]
+  grunt.registerTask "build", ["clean", "sass:dist", "cssmin", "browserify", "concat_sourcemap", "uglify", "copy"]
   # grunt.registerTask "prodsim", ["build", "server", "open", "watch"]

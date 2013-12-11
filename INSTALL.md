@@ -37,6 +37,7 @@ Known Issues:
 Install the required server-side packages
 
     $ npm install
+
 ### bower Packages
 Install the required client-side libraries
 If you have bower installed globally, you can run:
@@ -46,6 +47,7 @@ If you have bower installed globally, you can run:
 Otherwise, please run
 
     $ npm run-script bower
+
 ### Redis
 
 Echoplexus uses Redis for chatlog persistence
@@ -68,21 +70,12 @@ If you don't want to do this step, set "phantomjs_screenshot" to false in `serve
 
 If you have grunt installed globally, you can simply run:
 
-    $ grunt dev
-
-Otherwise you can run:
-
-    $ npm run-script build-dev
-
+    $ grunt
 
 ####Production:
 If you have grunt installed globally, you can simply run:
 
-    $ grunt
-
-Otherwise you can run:
-
-    $ npm run-script build
+    $ grunt build
 
 ###Running
 Create a copy of the sample config file for the server, and change any relevant options:
