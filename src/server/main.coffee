@@ -6,6 +6,7 @@ _                = require("underscore")
 Backbone         = require("backbone")
 crypto           = require("crypto")
 fs               = require("fs")
+ApplicationError = require("./Error.js.coffee")
 uuid             = require("node-uuid")
 sio              = require("socket.io")
 spawn            = require("child_process").spawn
@@ -172,14 +173,14 @@ redisC.select 15, (err, reply) ->
       room = channel.get("name")
 
       if err
-        if err instanceof ApplicationError.Authentication
+        if err instanceof ApplicationError.AuthenticationError
           if !data.reconnect
-            socket.in(room).emit("chat:" + room, serverSentMessage({
+            socket.in(room).emit("chat:" + room, @serverSentMessage({
               body: "This channel is private.  Please type /password [channel password] to join"
             }, room))
           socket.in(room).emit("private:" + room)
         else
-          socket.in(room).emit("chat:" + room, serverSentMessage({
+          socket.in(room).emit("chat:" + room, @serverSentMessage({
             body: err.message
           }, room))
 
@@ -213,12 +214,12 @@ redisC.select 15, (err, reply) ->
             sio.of(@namespace).in(room).emit("chat:#{room}", msg)
 
         # listen for file upload events
-        EventBus.on "file_uploaded:#{room}", (data) ->
+        EventBus.on "file_uploaded:#{room}", (data) =>
           # check to see that the uploader someone actually in the channel
           fromClient = channel.clients.findWhere({id: data.from_user})
 
           if fromClient?
-            uploadedFile = serverSentMessage({
+            uploadedFile = @serverSentMessage({
               body: fromClient.get("nick") + " just uploaded: " + data.path
             }, room)
 

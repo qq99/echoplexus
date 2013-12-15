@@ -175,7 +175,10 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     else if body.match(REGEXES.commands.password) # /password [password]
       body = body.replace(REGEXES.commands.password, "").trim()
-      @channelAuth body, room
+
+      socket.emit "join_private:" + room,
+        password: body
+        room: room
     else if body.match(REGEXES.commands.register) # /register [password]
       body = body.replace(REGEXES.commands.register, "").trim()
       socket.emit "register_nick:" + room,

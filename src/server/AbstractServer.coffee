@@ -19,7 +19,6 @@ module.exports.AbstractServer = class AbstractServer
 
         return  if (client.get("authenticated") is false) and not _.contains(server.unauthenticatedEvents, eventName)
 
-        #DEBUG && console.log(eventName + ":" + namespace);
         method_args = Array::slice.call(method_args).splice(1) # first argument is the function itself
         method_args.unshift namespace, socket, channel, client
         meth.apply server, method_args # not even once.
@@ -81,7 +80,7 @@ module.exports.AbstractServer = class AbstractServer
           server.initializeClientEvents effectiveRoom, socket, channel, client
 
           # let any implementing servers handle errors the way they like
-          callback.error.call this err, socket, channel, client, data  if err
+          callback.error.call this, err, socket, channel, client, data  if err
 
 
         # every server shall support a disconnect handler

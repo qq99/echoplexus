@@ -188,6 +188,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 							@sio.of(@namespace).in(room).emit('webshot:' + room, pageData)
 					)(url, randomFilename) # call our closure with our random filename
 
+	unauthenticatedEvents: ["join_private"]
 	events:
 		"help": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
@@ -301,7 +302,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					}, room))
 					return
 
-				broadcast(socket, channel, "This channel is now public.")
+				@broadcast(socket, channel, "This channel is now public.")
 
 		"make_private": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
@@ -317,15 +318,17 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					}, room))
 					return
 
-				broadcast socket, channel, "This channel is now private.  Please remember your password."
+				@broadcast socket, channel, "This channel is now private.  Please remember your password."
 
 		"join_private": (namespace, socket, channel, client, data) ->
 			password = data.password
 			room = channel.get("name")
 
+			console.log 'called'
+
 			channel.authenticate client, password, (err, response) =>
 				if err
-					if err.message instanceof ApplicationError.Authentication
+					if err.message instanceof ApplicationError.AuthenticationError
 						if err.message == "Incorrect password."
 							# let everyone currently in the room know that someone failed to join it
 							socket.in(room).broadcast.emit('chat:' + room, @serverSentMessage({
@@ -635,7 +638,5 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 		"unsubscribe": (namespace, socket, channel, client) ->
 			channel.clients.remove(client)
-
-		unauthenticatedEvents: ["join_private"]
 
 
