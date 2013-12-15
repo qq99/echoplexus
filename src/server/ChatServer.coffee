@@ -10,8 +10,6 @@ spawn 						= require("child_process").spawn
 fs 								= require("fs")
 crypto 						= require("crypto")
 uuid 							= require("node-uuid")
-PUBLIC_FOLDER 		= __dirname + "/../public"
-SANDBOXED_FOLDER 	= PUBLIC_FOLDER + "/sandbox"
 ApplicationError 	= require("./Error.js.coffee")
 redisC 						= require("./RedisClient.coffee").RedisClient()
 REGEXES 					= require("../client/regex.js.coffee").REGEXES
@@ -160,12 +158,13 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 					randomFilename = parseInt(Math.random()*9000,10).toString() + ".jpg" # also guarantees we store no more than 9000 webshots at any time
 
-					((url, fileName) -> # run our screenshotting routine in a self-executing closure so we can keep the current filename & url
-						output = SANDBOXED_FOLDER + "/" + fileName
-						DEBUG && console.log("Processing ", urls[i])
+					((url, fileName) => # run our screenshotting routine in a self-executing closure so we can keep the current filename & url
+						output = config.SANDBOXED_FOLDER + "/" + fileName
+						console.log("Processing ", url)
+						pageData = null
 
 						screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
-							['./PhantomJS-Screenshot.js', url, output],
+							['./PhantomJS-Screenshot.js.coffee', url, output],
 							{
 								cwd: __dirname
 								timeout: 30*1000 # after 30s, we'll consider phantomjs to have failed to screenshot and kill it
@@ -173,12 +172,12 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 						screenshotter.stdout.on 'data', (data) ->
 							try
-								pageData = JSON.parse(data.toString()) # explicitly cast it, who knows what type it is having come from a process
+								pageData = JSON.parse(data.toString()) if data # explicitly cast it, who knows what type it is having come from a process
 							catch e # if the result was not JSON'able
 
 						#screenshotter.stderr.on 'data', (data) ->
 
-						screenshotter.on "exit", (data) ->
+						screenshotter.on "exit", (data) =>
 							# DEBUG && console.log('screenshotter exit: ' + data.toString())
 							if pageData
 								pageData.webshot = @urlRoot() + 'sandbox/' + fileName

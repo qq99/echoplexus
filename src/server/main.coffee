@@ -26,6 +26,10 @@ ROOT_FOLDER      = path.dirname(__dirname)
 PUBLIC_FOLDER    = ROOT_FOLDER + "/../public"
 SANDBOXED_FOLDER = PUBLIC_FOLDER + "/sandbox"
 
+config.ROOT_FOLDER      = ROOT_FOLDER
+config.PUBLIC_FOLDER    = PUBLIC_FOLDER
+config.SANDBOXED_FOLDER = SANDBOXED_FOLDER
+
 console.log "Root:            #{ROOT_FOLDER}"
 console.log "Public:          #{PUBLIC_FOLDER}"
 console.log "Sandboxed:       #{SANDBOXED_FOLDER}"
