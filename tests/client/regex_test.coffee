@@ -219,6 +219,8 @@ describe 'Regexes', ->
         @re = regexes.commands.chmod
       it 'matches /chmod', ->
         assertMatches("/chmod +canSetTopic", @re)
+      it 'matches /chmod with username', ->
+        assertMatches("/chmod Alice +canSetTopic", @re)
       it 'does not match in the middle of a string', ->
         assertNoMatches(" /chmod +canSetTopic", @re)
 
