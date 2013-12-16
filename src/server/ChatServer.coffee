@@ -323,8 +323,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			password = data.password
 			room = channel.get("name")
 
-			console.log 'called'
-
 			channel.authenticate client, password, (err, response) =>
 				if err
 					if err.message instanceof ApplicationError.AuthenticationError
@@ -546,7 +544,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 								redisC.hget("salts:" + room, nick, callback)
 							password: (callback) ->
 								redisC.hget("passwords:" + room, nick, callback)
-						}, (err, stored) ->
+						}, (err, stored) =>
 							throw err if err
 							crypto.pbkdf2 data.password, stored.salt, 4096, 256, (err, derivedKey) =>
 								throw err if err
