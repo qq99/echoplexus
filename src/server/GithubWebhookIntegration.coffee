@@ -40,7 +40,6 @@ module.exports.verifyAllowedRepository = (token, callback) ->
 
 module.exports.prettyPrint = (githubResponse) ->
   r = githubResponse
-  headCommit = r.head_commit.committer
 
   pluralize = (noun, n) ->
     if n > 1
