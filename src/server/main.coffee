@@ -100,8 +100,11 @@ app.post "/api/github/postreceive/:token", (req, res) ->
       res.send(err.toString(), 404)
     if room
       console.log req.body
-      message = GithubWebhook.prettyPrint(req.body.payload)
-      EventBus.trigger("github:postreceive:#{room}", message)
+      try
+        message = GithubWebhook.prettyPrint(req.body.payload)
+        EventBus.trigger("github:postreceive:#{room}", message)
+      catch e
+        console.warn 'Failed to parse request', e
 
       res.send("OK", 200)
       res.end()
