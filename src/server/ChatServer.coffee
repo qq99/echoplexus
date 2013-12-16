@@ -256,7 +256,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					if targetClients?.length
 
 						# send the pm to each client matching the name
-						_.each targetClients, (targetClient) ->
+						_.each targetClients, (targetClient) =>
 							console.log("currently",targetClient.get("permissions").toJSON())
 							console.log("setting", permsToSave)
 							targetClient.get("permissions").set(permsToSave)
