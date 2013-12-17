@@ -1,0 +1,49 @@
+@media (max-width: 600px) {
+  .supportbar {
+    display: none;
+  }
+  .chatlog {
+    padding-right: 0px;
+  }
+
+  header {
+    padding: 0;
+  }
+
+  #main {
+    padding-left: 0;
+  }
+  nav.functionality {
+    display: none;
+  }
+  #chatting {
+    .chatarea {
+      padding-bottom: 3em;
+    }
+    .chatinput {
+      height: 3em;
+      padding: 1em;
+    }
+    .channel-options {
+      display: none;
+    }
+
+    .chatMessage {
+      padding: 1em 0.5em;
+      margin-top: 0.5em;
+    }
+    .nick, .body, .time {
+      position: static;
+      display: inline;
+      padding: 0;
+      margin: 0.5em;
+      width: auto;
+    }
+    .time {
+      float: right;
+    }
+    .body {
+      display: block;
+    }
+  }
+}
