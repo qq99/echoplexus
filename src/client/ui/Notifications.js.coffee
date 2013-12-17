@@ -48,7 +48,7 @@ module.exports.Notifications = class Notifications
       return  unless enabled
       if not document.hasFocus() and _permission is "granted" and window.OPTIONS["show_OS_notifications"]
         title = undefined
-        opts = _.clone(defaults)
+        opts = _.clone(@defaults)
         _.extend opts, userOptions
         title = opts.title
         delete opts.title
