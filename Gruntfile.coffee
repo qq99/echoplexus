@@ -137,7 +137,7 @@ module.exports = (grunt) ->
       dist:
         sourceMapIn: "<%= public_dir %>js/app.min.js.map"
         sourceMap:   "<%= public_dir %>js/app.min.js.map"
-        src: "<%= concat_sourcemap.app.dest %>" # input from the concat_sourcemap process
+        src: "<%= files.js.app.compiled %>" # input from the concat_sourcemap process
         dest: "<%= public_dir %>js/app.min.js"
 
     clean:
