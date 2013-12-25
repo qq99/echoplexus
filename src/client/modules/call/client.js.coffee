@@ -203,7 +203,6 @@ module.exports.CallClient = class CallClient extends Backbone.View
 
   subdivideVideos: ->
     videos = _.values(@videos)
-    console.log videos, videos.length
     i = 0
     len = videos.length
 

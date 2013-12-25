@@ -51,7 +51,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     self = this
     preferredAutoloadSetting = undefined
     _.bindAll this
-    @scrollToLatest = _.debounce(@_scrollToLatest, 100) # if we're pulling a batch, do the scroll just once
+    @scrollToLatest = _.debounce(@_scrollToLatest, 200) # if we're pulling a batch, do the scroll just once
     throw "No channel designated for the chat log"  unless options.room
     @room = options.room
     @me = options.me
@@ -188,16 +188,17 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         $button.find(".explanatory-text").text "Show"
 
 
-  _scrollToLatest: -> #Get the last message and scroll that into view
+  _scrollToLatest: (ev) -> #Get the last message and scroll that into view
     now = Number(new Date())
 
     # don't scroll if the user was manually scrolling recently (<3s ago)
-    if (typeof @mostRecentScroll is "undefined") or ((now - @mostRecentScroll) > 3000)
+    if (ev and ev.type != "resize")
+      return if (typeof @mostRecentScroll is "undefined") or ((now - @mostRecentScroll) > 3000)
 
-      # can't simply use last-child, since the last child may be display:none
-      # if the user is hiding join/part
-      latestMessage = ($(".messages .chatMessage:visible", @$el).last())[0] # so we get all visible, then take the last of that
-      latestMessage.scrollIntoView()  if typeof latestMessage isnt "undefined"
+    # can't simply use last-child, since the last child may be display:none
+    # if the user is hiding join/part
+    latestMessage = ($(".messages .chatMessage:visible", @$el).last())[0] # so we get all visible, then take the last of that
+    latestMessage.scrollIntoView()  if typeof latestMessage isnt "undefined"
 
   replaceChatMessage: (msg) ->
     msgHtml = @renderChatMessage(msg, # render the altered message, but don't insert it yet

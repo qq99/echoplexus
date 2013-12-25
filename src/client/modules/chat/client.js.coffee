@@ -164,6 +164,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @scrollSyncLogs = _.throttle(@_scrollSyncLogs, 500) # so we don't sync too quickly
     $(".messages", @$el).on "mousewheel DOMMouseScroll", @scrollSyncLogs
 
+    $(window).on "resize", @chatLog.scrollToLatest
+
   events:
     "click button.syncLogs": "activelySyncLogs"
     "click button.deleteLocalStorage": "deleteLocalStorage"
@@ -317,6 +319,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
 
   kill: ->
+    $(window).off "resize", @chatLog.scrollToLatest
     @socket.emit "unsubscribe:" + @channelName
     _.each @socketEvents, (method, key) =>
       @socket.removeAllListeners "#{key}:#{@channelName}"
