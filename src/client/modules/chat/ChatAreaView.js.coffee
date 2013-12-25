@@ -263,7 +263,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
           href = images[i]
 
           # only do it if it's an image we haven't seen before
-          if self.uniqueURLs[href]?
+          if !self.uniqueURLs[href]?
             img = self.linkedImageTemplate(
               url: href
               image_url: href
@@ -287,15 +287,15 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
           img_src = undefined
           yt = undefined
           REGEXES.urls.youtube.exec "" # clear global state
-          src = makeYoutubeURL(vID)
-          img_src = makeYoutubeThumbnailURL(vID)
+          src = @makeYoutubeURL(vID)
+          img_src = @makeYoutubeThumbnailURL(vID)
           yt = self.youtubeTemplate(
             vID: vID
             img_src: img_src
             src: src
             originalSrc: youtubes[i]
           )
-          if self.uniqueURLs[src]?
+          if !self.uniqueURLs[src]?
             $(".linklog .body", @$el).prepend yt
             self.uniqueURLs[src] = true
           i++
@@ -307,7 +307,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         l = links.length
 
         while i < l
-          if self.uniqueURLs[links[i]]?
+          if !self.uniqueURLs[links[i]]?
             $(".linklog .body", @$el).prepend "<a rel='noreferrer' href='" + links[i] + "' target='_blank'>" + links[i] + "</a>"
             self.uniqueURLs[links[i]] = true
           i++
