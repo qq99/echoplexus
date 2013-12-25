@@ -107,6 +107,7 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
 
     @$el.on "click", ".swatch", (ev) =>
       @style.strokeStyle = $(ev.currentTarget).data("color")
+      @changeTool "PEN"
 
     @$el.on "click", ".tool.pen", =>
       @changeTool "PEN"
