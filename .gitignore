@@ -20,3 +20,4 @@ app.nw
 nw/
 build/
 vendor
+browserified.js

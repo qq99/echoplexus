@@ -1,0 +1,23 @@
+{
+    "version" : "0.0.1",
+    "name" : "echoplexus",
+    "launch_path" : "/",
+
+    "installs_allowed_from" : ["*"],
+
+    "icons": {
+        "16" : "/echoplexus-logo.png",
+        "32" : "/echoplexus-logo.png",
+        "48" : "/echoplexus-logo.png",
+        "64" : "/echoplexus-logo.png",
+        "128" : "/echoplexus-logo.png"
+    },
+
+    "default_locale" : "en",
+
+    "permissions" : {
+        "desktop-notification": {
+            "description" : "To show notifications"
+        }
+    }
+}
