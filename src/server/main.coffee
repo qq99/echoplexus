@@ -84,6 +84,8 @@ Client = require("../client/client.js").ClientModel
 Clients = require("../client/client.js").ClientsCollection
 REGEXES = require("../client/regex.js").REGEXES
 
+express.static.mime.define {'application/x-web-app-manifest+json': ['webapp']}
+
 app.use express.static(PUBLIC_FOLDER)
 
 xferc = config.server_hosted_file_transfer
@@ -100,12 +102,8 @@ app.post "/api/github/postreceive/:token", (req, res) ->
       res.send(err.toString(), 404)
     if room
       console.log req.body
-      try
-        payload = JSON.parse(req.body.payload)
-        message = GithubWebhook.prettyPrint(payload)
-        EventBus.trigger("github:postreceive:#{room}", message)
-      catch e
-        console.warn 'Failed to parse request', e
+      message = GithubWebhook.prettyPrint(req.body)
+      EventBus.trigger("github:postreceive:#{room}", message)
 
       res.send("OK", 200)
       res.end()
