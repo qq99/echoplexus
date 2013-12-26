@@ -5,6 +5,13 @@
 
     "installs_allowed_from" : ["*"],
 
+    "developer": {
+        "name": "Anthony Cameron",
+        "url": "https://echoplex.us"
+    },
+
+    "default_locale": "en",
+
     "description": "Anonymous chat (alpha version)",
 
     "icons": {
@@ -13,6 +20,7 @@
         "48" : "/echoplexus-logo.png",
         "60" : "/echoplexus-logo.png",
         "64" : "/echoplexus-logo.png",
+        "90" : "/echoplexus-logo.png",
         "128" : "/echoplexus-logo.png",
         "256" : "/echoplexus-logo.png"
     },
