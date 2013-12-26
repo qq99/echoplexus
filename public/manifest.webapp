@@ -5,12 +5,16 @@
 
     "installs_allowed_from" : ["*"],
 
+    "description": "Anonymous chat (alpha version)",
+
     "icons": {
         "16" : "/echoplexus-logo.png",
         "32" : "/echoplexus-logo.png",
         "48" : "/echoplexus-logo.png",
+        "60" : "/echoplexus-logo.png",
         "64" : "/echoplexus-logo.png",
-        "128" : "/echoplexus-logo.png"
+        "128" : "/echoplexus-logo.png",
+        "256" : "/echoplexus-logo.png"
     },
 
     "default_locale" : "en",
