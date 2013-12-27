@@ -444,12 +444,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
           @persistentLog.add msg
           msg.fromBatch = true
           @chatLog.renderChatMessage new ChatMessage(msg)
-          if @previousScrollHeight
-            setTimeout (->
-              chatlog = @chatLog.$el.find(".messages")[0]
-              chatlog.scrollTop = chatlog.scrollHeight - @previousScrollHeight
-            ), 0
           i++
+
+        if @previousScrollHeight
+          chatlog = @chatLog.$el.find(".messages")[0]
+          console.log chatlog.scrollHeight, @previousScrollHeight
+          chatlog.scrollTop = chatlog.scrollHeight - @previousScrollHeight
+
         @scrollSyncLocked = false # unlock the lock on scrolling to sync logs
 
       "client:changed": (alteredClient) =>

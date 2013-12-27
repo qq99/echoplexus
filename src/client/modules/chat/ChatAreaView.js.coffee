@@ -192,8 +192,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     now = Number(new Date())
 
     # don't scroll if the user was manually scrolling recently (<3s ago)
-    if (ev and ev.type != "resize")
-      return if (typeof @mostRecentScroll is "undefined") or ((now - @mostRecentScroll) > 3000)
+    return if @mostRecentScroll and (now - @mostRecentScroll) < 3000
 
     # can't simply use last-child, since the last child may be display:none
     # if the user is hiding join/part
