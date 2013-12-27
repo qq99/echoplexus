@@ -520,7 +520,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         try # if it succeeds, it was an encrypted object
           encrypted_topic = JSON.parse(msg.body)
           if @me.cryptokey
-            topic = cryptoWrapper.decryptObject(encrypted_topic, @cryptokey)
+            topic = cryptoWrapper.decryptObject(encrypted_topic, @me.cryptokey)
           else
             topic = encrypted_topic.ct
         catch e
