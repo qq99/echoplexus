@@ -39,7 +39,7 @@ module.exports.verifyAllowedRepository = (token, callback) ->
       callback?("Ignoring GitHub postreceive hook's request: token not found!")
 
 module.exports.prettyPrint = (githubResponse) ->
-  r = githubResponse.payload
+  r = githubResponse
 
   pluralize = (noun, n) ->
     if n > 1
