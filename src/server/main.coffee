@@ -101,9 +101,9 @@ app.post "/api/github/postreceive/:token", (req, res) ->
     if err
       res.send(err.toString(), 404)
     if room
-      console.log req.body
       try
-        payload = req.body.payload
+        payload = JSON.parse(req.body.payload)
+        console.log payload
         message = GithubWebhook.prettyPrint(payload)
         EventBus.trigger("github:postreceive:#{room}", message)
       catch e
