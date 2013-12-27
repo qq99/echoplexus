@@ -316,7 +316,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     # sanitize the body:
     if msg.get("trustworthiness") is "limited"
       sanitizer = new HTMLSanitizer
-      body = sanitizer.sanitize(body, ["A", "I", "IMG"], ["href", "title", "class", "src"])
+      body = sanitizer.sanitize(body, ["A", "I", "IMG","UL","LI"], ["href", "title", "class", "src"])
       nickname = sanitizer.sanitize(nickname, ["I"], ["class"])
       console.log nickname
     else

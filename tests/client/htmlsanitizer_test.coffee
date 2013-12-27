@@ -15,13 +15,13 @@ describe 'HTMLSanitizer', ->
     assert.equal "<p>this is a test</p>", @subject.sanitize(html)
 
   it 'accepts a list of custom whitelisted tags', ->
-    html = "<p>this is a test<script>alert('hi')</script></p><video></video>"
+    html = "<p>this is a test<script>alert('hi')</script></p><video></video><ul><li>hi</li></ul>"
 
-    assert.equal "<p>this is a test</p>", @subject.sanitize(html)
+    assert.equal "<p>this is a test</p><ul><li>hi</li></ul>", @subject.sanitize(html)
     assert.equal "<p>this is a test</p><video></video>", @subject.sanitize(html, ["P", "VIDEO"])
 
   it 'accepts a list of custom whitelisted attributes', ->
-    html = "<p title='wat'>u</p><ul><li>hi</li></ul>"
+    html = "<p title='wat'>u</p>"
 
     assert.equal "<p title=\"wat\">u</p>", @subject.sanitize(html, null, ["title"])
 
