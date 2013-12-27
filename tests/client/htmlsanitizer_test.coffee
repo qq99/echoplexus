@@ -21,7 +21,7 @@ describe 'HTMLSanitizer', ->
     assert.equal "<p>this is a test</p><video></video>", @subject.sanitize(html, ["P", "VIDEO"])
 
   it 'accepts a list of custom whitelisted attributes', ->
-    html = "<p title='wat'>u</p>"
+    html = "<p title='wat'>u</p><ul><li>hi</li></ul>"
 
     assert.equal "<p title=\"wat\">u</p>", @subject.sanitize(html, null, ["title"])
 

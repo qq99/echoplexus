@@ -15,7 +15,7 @@ module.exports.HTMLSanitizer = class HTMLSanitizer
 
   sanitize: (htmlString, allowedElements, allowedAttributes) ->
 
-    ALLOWED_TAGS       = ["STRONG", "EM", "P", "A"]
+    ALLOWED_TAGS       = ["STRONG", "EM", "P", "A", "UL", "LI"]
     ALLOWED_ATTRIBUTES = ["href", "title"]
 
     ALLOWED_TAGS       = allowedElements if allowedElements
