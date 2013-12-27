@@ -47,9 +47,15 @@ module.exports.prettyPrint = (githubResponse) ->
     else
       noun
 
-  "<img class='fl' src=#{module.exports.gravatarURL(r.pusher.email)}></img>
-  #{r.pusher.name} just pushed #{r.commits.length} #{pluralize('commit', r.commits.length)} to
-  <a href='#{r.repository.url}' target='_blank' title='#{r.repository.name} on GitHub'>#{r.repository.name}</a>"
+  details = for (c in r.commits)
+    "<li><a href='#{c.url}'>#{c.message}</a></li>"
+
+  "<img class='fl' src='#{module.exports.gravatarURL(r.committer.email)}'></img>
+  #{r.committer.name} just pushed #{r.commits.length} #{pluralize('commit', r.commits.length)} to
+  <a href='#{r.repository.url}' target='_blank' title='#{r.repository.name} on GitHub'>#{r.repository.name}</a>
+  <ul>
+    #{details}
+  </ul>"
 
 module.exports.gravatarURLHash = (emailAddress) ->
   emailAddress = emailAddress.trim()
