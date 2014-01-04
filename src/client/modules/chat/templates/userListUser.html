@@ -1,0 +1,50 @@
+<div class="user" rel="<%= id %>">
+	<span class="nick" style="color: <%= color %>"><%- nick %></span>
+	<% if (using_encryption) { %>
+		<span
+			data-tooltip-title="Encrypted"
+			data-tooltip-body="This user is using encryption.  If you wish to talk to him, you'll need to use the same password."
+			class='tooltip-target encrypted'>
+				<i class="icon-key encrypted"></i>
+		</span>
+	<% } %>
+	<% if (identified) { %>
+		<span
+			data-tooltip-title="Identified"
+			data-tooltip-body="This user has confirmed his identity with the server."
+			data-tooltip-class="ident success"
+			class='tooltip-target ident yes'>
+				<i class="icon-lock"></i>
+		</span>
+	<% } else { %>
+		<span
+			data-tooltip-title="Not Identified"
+			data-tooltip-body="This user has not confirmed his identity with the server.  He could be anyone!"
+			data-tooltip-class="ident warn"
+			class='tooltip-target ident no'>
+				<i class="icon-unlock-alt"></i>
+		</span>
+	<% } %>
+
+	<% if (operator) { %>
+	<span class="operator" title="This user is the channel operator.">
+		<i class="icon-legal"></i>
+	</span>
+	<% } %>
+
+	<% if (idle === true) { %>
+		<span class="idle" data-timestamp="<%= idleSince %>">
+			<span class="zzz">Z
+				<span class="zzz">Z
+					<span class="zzz">Z
+					</span>
+				</span>
+			</span>
+		</span>
+	<% } %>
+	<% if (inCall === true) { %>
+		<span class="inCall" title="In call">
+			<i class="icon-phone"></i>
+		</span>
+	<% } %>
+</div>
