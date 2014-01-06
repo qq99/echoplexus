@@ -1,6 +1,5 @@
 mewlTemplate = require("../templates/MewlNotification.html")
 
-
   # Displays a little modal-like alert box with
 module.exports.MewlNotification = class MewlNotification extends Backbone.View
 

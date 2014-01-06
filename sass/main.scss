@@ -172,6 +172,36 @@ a {
 	}
 }
 
+#is-private {
+	display:none;
+	font-family:$pretty-font-family;
+	width:100%;
+	height:100%;
+	position:absolute;
+	left:0;
+	top:0;
+	z-index:1000;
+	padding: 20em 25%;
+	text-align:center;
+	.remember-password {
+		margin-top:1.5em;
+	}
+	.locked {
+		@include unselectable;
+		position: relative;
+		text-align: center;
+		width: 100%;
+		height: 0;
+		z-index: -1;
+		top: -14em;
+		.icon {
+			font-size:30em;
+			color:#444;
+			text-shadow: -1px -1px 0px #555;
+		}
+	}
+}
+
 #main {
 	position:absolute;
 	top:0;
@@ -261,18 +291,13 @@ nav.functionality {
 		color:#bbb;
 	}
 	.button-obscura {
-		@include transition(all 0.5s ease-in-out);
+		@include transition(all 0.1s ease-in-out);
 		height:30px;
 		width:30px;
 		overflow: hidden;
 		box-shadow:0px;
-		&:hover {
-			width:200px;
-			h1.button {
-				background:#111;
-				border:1px solid rgba(71,178,250,0.7);
-				border-left:0px;
-			}
+		&:hover h1.button {
+			color: rgba(71,178,250,0.7);
 		}
 	}
 	h1.button {
@@ -537,7 +562,11 @@ header {
 		}
 	}
 }
-#panes {
+
+#info-overlay {
+	display: none;
+}
+#main-ui, #panes, #info-overlay {
 	position:relative;
 	width:100%;
 	height:100%;
@@ -546,9 +575,6 @@ header {
 		height:100%;
 		width:100%;
 		overflow: hidden;
-	}
-	#coding, #drawing {
-		display:none;
 	}
 }
 

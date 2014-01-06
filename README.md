@@ -65,7 +65,6 @@ Currently Supported Commands:
 - `/register [some_password]`: Facilitates linkable anonymity; people talking to you yesterday can rest assured you're the same person today (and not an impersonator trying to steal your nickname) by registering and identifying.
 - `/identify [your_password]`: Assume command of your nickname, and get a green lock icon beside it (signifying to others that you are identified).
 - `/private [channel_password]`: Makes a channel private.  Only those with the password may enter it.
-- `/password [channel_password]`: Supply the password to a private channel after joining it.  Incorrect attempts will notify everybody in the room.
 - `/public`: Make the private channel a public channel.
 - `/whisper [nickname]`: Send a private message that is visible to anybody with the nickname you've supplied.  Aliases: `/w`, `/tell`, `/t`, `/pm`.  *Pro-tip:* Press "ctrl+r" to quick-reply to the last person who has whispered you.
 - `/pull [N]`: Sync the N latest chat messages that you've missed while you weren't connected to the channel.  Currently, maximum is set to 100 for UI responsiveness until a more efficient rendering method is added.

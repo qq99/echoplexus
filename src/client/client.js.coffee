@@ -92,11 +92,14 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     @socket = opts.socket  if opts and opts.socket
     @set "permissions", new PermissionModel()
 
-  channelAuth: (pw, room) ->
+  channelAuth: (pw, room, ack) ->
     $.cookie "channel_pw:" + room, pw, window.COOKIE_OPTIONS
     @socket.emit "join_private:" + room,
       password: pw
       room: room
+    , (err) ->
+      ack.rejectWith(this, [err]) if ack and err
+      ack.resolve() if ack
 
 
   inactive: (reason, room, socket) ->
@@ -134,7 +137,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       nick: nick
       encrypted_nick: @get("encrypted_nick")
     , ->
-      ack.resolve()  if ack
+      ack.resolve() if ack
 
 
   identify: (pw, room, ack) ->
@@ -143,7 +146,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       password: pw
       room: room
     , ->
-      ack.resolve()
+      ack.resolve() if ack
 
 
   is: (otherModel) ->
@@ -173,10 +176,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       socket.emit "make_public:" + room,
         room: room
 
-    else if body.match(REGEXES.commands.password) # /password [password]
-      body = body.replace(REGEXES.commands.password, "").trim()
-
-      @channelAuth(body, room)
     else if body.match(REGEXES.commands.register) # /register [password]
       body = body.replace(REGEXES.commands.register, "").trim()
       socket.emit "register_nick:" + room,

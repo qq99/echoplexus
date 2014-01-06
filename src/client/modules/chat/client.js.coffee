@@ -320,6 +320,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   kill: ->
     $(window).off "resize", @chatLog.scrollToLatest
+    console.log 'kill'
+    window.events.off "channelPassword:#{@channelName}"
     @socket.emit "unsubscribe:" + @channelName
     _.each @socketEvents, (method, key) =>
       @socket.removeAllListeners "#{key}:#{@channelName}"
@@ -360,12 +362,31 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       acked.reject()
     acked.promise()
 
-  autoAuth: ->
+  authenticate: (password) ->
+    acked = $.Deferred()
 
-    # we only care about the success of this event, but the server already responds
-    # explicitly with a success event if it is so
+    if password
+      @me.channelAuth password, @channelName, acked if password
+    else
+      acked.reject()
+
+    $.when(acked).done =>
+      @channel.authenticated = true
+      hidePrivateOverlay()
+
+    $.when(acked).fail (err) =>
+      if !@hidden
+        showPrivateOverlay()
+        growl = new Mewl(
+          title: @channelName + ": Error"
+          body: err
+        )
+
+    acked.promise()
+
+  autoAuth: ->
     storedAuth = $.cookie("channel_pw:" + @channelName)
-    @me.channelAuth storedAuth, @channelName  if storedAuth
+    return @authenticate(storedAuth)
 
   render: ->
     @$el.html @template()
@@ -448,7 +469,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
         if @previousScrollHeight
           chatlog = @chatLog.$el.find(".messages")[0]
-          console.log chatlog.scrollHeight, @previousScrollHeight
           chatlog.scrollTop = chatlog.scrollHeight - @previousScrollHeight
 
         @scrollSyncLocked = false # unlock the lock on scrolling to sync logs
@@ -481,6 +501,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
       private: =>
         @channel.isPrivate = true
+        showPrivateOverlay() if !@hidden
+
         @autoAuth()
 
       webshot: (msg) =>
@@ -560,6 +582,9 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         body: data.body
         room: @channelName
       , @socket
+
+    window.events.on "channelPassword:#{@channelName}", (data) =>
+      @authenticate data.password
 
     window.events.on "unidle", =>
       if @$el.is(":visible") and @me?

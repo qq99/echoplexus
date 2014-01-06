@@ -319,7 +319,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 				@broadcast socket, channel, "This channel is now private.  Please remember your password."
 
-		"join_private": (namespace, socket, channel, client, data) ->
+		"join_private": (namespace, socket, channel, client, data, ack) ->
 			password = data.password
 			room = channel.get("name")
 
@@ -332,11 +332,12 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 								class: "identity",
 								body: client.get("nick") + " just failed to join the room."
 							}, room))
+							ack(err)
 
 					# let the joiner know what went wrong:
-					socket.in(room).emit('chat:' + room, @serverSentMessage({
-						body: err.message
-					}, room))
+					ack("Wrong password")
+				else
+					ack(null)
 
 		"nickname": (namespace, socket, channel, client, data, ack) ->
 			room = channel.get("name")

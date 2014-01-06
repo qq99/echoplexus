@@ -42,7 +42,6 @@ module.exports.SyncedEditor = class SyncedEditor extends Backbone.View
     $("body").on "codeSectionActive", => # sloppy, forgive me
       @trigger "eval"
 
-
   postSubscribe: ->
 
   kill: ->

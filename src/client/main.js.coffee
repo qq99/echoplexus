@@ -11,6 +11,15 @@ window.codingModeActive = -> # sloppy, forgive me
   $("#coding").is ":visible"
 window.chatModeActive = ->
   $("#chatting").is ":visible"
+
+window.showPrivateOverlay = ->
+  $("#is-private, #info-overlay").show()
+  $("#panes").hide()
+  $("#channel-password").focus()
+window.hidePrivateOverlay = ->
+  $("#is-private, #info-overlay").hide()
+  $("#panes").show()
+
 DEBUG = true  if typeof DEBUG is "undefined"
 
 
@@ -133,12 +142,6 @@ $(document).ready ->
     auto_scroll: true
 
   _.each window.OPTIONS, updateOption
-  $(".options-list .header button, .options-list .header .button").on "click", ->
-    panel = $(this).parent().siblings(".options")
-    if panel.is(":visible")
-      panel.slideUp()
-    else
-      panel.slideDown()
 
   tooltipTemplate = $("#tooltip").html()
   window.notifications = new Notifications()
@@ -177,6 +180,12 @@ $(document).ready ->
   $(window).on "click", ->
     notifications.requestNotificationPermission()
 
+  $("#channel-password").on "keydown", (ev) ->
+    if ev.keyCode == 13
+      pw = ev.currentTarget.value
+      window.events.trigger "channelPassword",
+        password: pw
+      ev.currentTarget.value = ""
 
   # hook up global key shortcuts:
   key.filter = -> # stub out the filter method from the lib to enable them globally
@@ -227,15 +236,16 @@ $(document).ready ->
 
   $(".tabButton").on "click", (ev) ->
     ev.preventDefault()
-    console.log "changing tab"
     $(this).removeClass "activity"
     element = $(this).data("target")
     if $(element + ":visible").length is 0
       $(".tabButton").removeClass "active"
       $(this).addClass "active"
       $("#panes > section").not(element).hide()
-      $(element).show ->
-        window.events.trigger "sectionActive:" + element.substring(1) # sloppy, forgive me
+
+      $(element).show()
+
+      window.events.trigger "sectionActive:" + element.substring(1) # sloppy, forgive me
 
 
   window.events.on "chat:activity", (data) ->

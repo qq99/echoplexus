@@ -185,10 +185,6 @@ redisC.select 15, (err, reply) ->
 
       if err
         if err instanceof ApplicationError.AuthenticationError
-          if !data.reconnect
-            socket.in(room).emit("chat:" + room, @serverSentMessage({
-              body: "This channel is private.  Please type /password [channel password] to join"
-            }, room))
           socket.in(room).emit("private:" + room)
         else
           socket.in(room).emit("chat:" + room, @serverSentMessage({

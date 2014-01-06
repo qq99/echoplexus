@@ -65,6 +65,7 @@ module.exports.AbstractServer = class AbstractServer
           channel.clients.add client
         else # there was a pre-existing client
           socket.join effectiveRoom  if client.get("authenticated")
+
         client.once "authenticated", (result) =>
           DEBUG and console.log("authenticated", server.name, client.cid, socket.id, result.attributes.authenticated)
           if result.attributes.authenticated

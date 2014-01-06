@@ -49,6 +49,9 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     window.events.on "leaveChannel", (channel) ->
       self.leaveChannel channel
 
+    window.events.on "channelPassword", (data) =>
+      window.events.trigger "channelPassword:#{@activeChannel}",
+        password: data.password
 
     # show an input after clicking "+ Join Channel"
     @$el.on "click", ".join", ->
@@ -156,15 +159,12 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
   showChannel: (channelName) ->
     self = this
-    callback = ->
-      if self.loading > 0
-        setTimeout callback, 50
-        return
-      self.showChannel channelName
 
-    if self.loading > 0
-      setTimeout callback, 50
-      return
+    channel = @channels[channelName]
+    if channel.isPrivate && !channel.authenticated
+      showPrivateOverlay()
+    else
+      hidePrivateOverlay()
 
     channelsToDeactivate = _.without(_.keys(@channels), channelName)
 
@@ -181,10 +181,9 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     $(".channels .channelBtn[data-channel='" + channelName + "']", @$el).addClass("active").removeClass "activity"
 
     # send events to the view we're showing:
-    _.each @channels[channelName].modules, (module) ->
+    _.each channel.modules, (module) ->
       module.view.$el.show()
       module.view.trigger "show"
-
 
     # keep track of which one is currently active
     @activeChannel = channelName
@@ -210,6 +209,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
       channel =
         clients: new ClientsCollection()
         modules: []
+        authenticated: false
         isPrivate: false
 
       # create an instance of each module:
