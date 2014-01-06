@@ -335,9 +335,9 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 							ack(err)
 
 					# let the joiner know what went wrong:
-					ack("Wrong password")
+					ack?("Wrong password")
 				else
-					ack(null)
+					ack?(null)
 
 		"nickname": (namespace, socket, channel, client, data, ack) ->
 			room = channel.get("name")
