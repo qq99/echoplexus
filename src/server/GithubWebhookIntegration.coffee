@@ -66,4 +66,4 @@ module.exports.gravatarURLHash = (emailAddress) ->
   md5.digest('hex')
 
 module.exports.gravatarURL = (emailAddress) ->
-  "http://www.gravatar.com/avatar/#{module.exports.gravatarURLHash(emailAddress)}.jpg?s=16&d=identicon"
+  "https://www.gravatar.com/avatar/#{module.exports.gravatarURLHash(emailAddress)}.jpg?s=16&d=identicon"
