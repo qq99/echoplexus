@@ -11,6 +11,9 @@ if Storage
   Storage::getObj = (key) ->
     JSON.parse localStorage.getItem(key)
 
+module.exports.isMobile = ->
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent)
+
 module.exports.HTMLSanitizer = class HTMLSanitizer
 
   sanitize: (htmlString, allowedElements, allowedAttributes) ->

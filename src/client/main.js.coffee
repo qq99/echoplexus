@@ -1,8 +1,9 @@
 ChannelSwitcher   = require("./ui/ChannelSwitcher.js.coffee").ChannelSwitcher
 Notifications     = require("./ui/Notifications.js.coffee").Notifications
 Faviconizer       = require("./ui/Faviconizer.js.coffee").Faviconizer
+TouchGestures     = require("./ui/TouchGestures.js.coffee").TouchGestures
+utility           = require("./utility.js.coffee")
 require("./events.js.coffee")()
-require("./utility.js.coffee")
   # require "./modules/user_info/UserData.js.coffee"
 
 
@@ -194,15 +195,15 @@ $(document).ready ->
 
   # change channels:
   key "alt+right, alt+k", ->
-    channelSwitcher.trigger "nextChannel"
+    window.events.trigger "nextChannel"
     false
 
   key "alt+left, alt+j", ->
-    channelSwitcher.trigger "previousChannel"
+    window.events.trigger "previousChannel"
     false
 
   key "ctrl+shift+c", ->
-    channelSwitcher.trigger "leaveChannel"
+    window.events.trigger "leaveChannel"
     false
 
 
@@ -262,4 +263,5 @@ $(document).ready ->
   $(window).on "keydown mousemove", ->
     window.events.trigger "unidle"
 
-
+  if utility.isMobile()
+    Gestures = new TouchGestures

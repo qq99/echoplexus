@@ -46,4 +46,80 @@
       display: block;
     }
   }
+
+  header {
+    left: 0%;
+    @include transition(all 0.5s ease-in-out);
+    &.inactive {
+      @include transition(all 0.5s ease-in-out);
+      left: -100%;
+    }
+  }
+
+  header, .channelSwitcher, .channel-selector {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+  }
+  header {
+    .channel-selector {
+      padding:0;
+      width:100%;
+      height:100%;
+      top:0;
+      left:0;
+      .channels {
+        width:100%;
+        background:#111;
+        overflow-y:scroll;
+        padding-bottom:12em;
+        .channelBtn {
+          padding-left: 0;
+        }
+      }
+      .channelBtn {
+        float: none;
+        height: auto;
+        margin: 0;
+        font-size:1em;
+        padding:1em;
+        border: 0;
+        outline: 0;
+        width:100%;
+        &:hover, &.active {
+          border: 0;
+          outline: 0;
+        }
+        .channelName {
+          height:auto;
+        }
+        .close {
+          float:none;
+          position: absolute;
+          top: 0;
+          right: 0;
+          line-height: 2.5em;
+        }
+      }
+      .join-channel {
+        height:auto;
+        width:100%;
+        margin:0;
+        .channelBtn {
+          background:#333;
+        }
+        .channelName {
+          float:none;
+          margin:auto;
+        }
+      }
+    }
+  }
+
+  .join-channel {
+    position: absolute;
+    bottom:0;
+    left:0;
+  }
+
 }

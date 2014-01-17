@@ -10,6 +10,7 @@ ChatClient                = require('../modules/chat/client.js.coffee').ChatClie
 CodeClient                = require('../modules/code/client.js.coffee').CodeClient
 DrawingClient             = require('../modules/draw/client.js.coffee').DrawingClient
 CallClient                = require('../modules/call/client.js.coffee').CallClient
+utility                   = require("../utility.js.coffee")
 
 module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
@@ -54,13 +55,16 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
         password: data.password
 
     # show an input after clicking "+ Join Channel"
-    @$el.on "click", ".join", ->
-      $input = $(this).siblings("input")
-      if $input.is(":visible")
-        $input.fadeOut()
+    @$el.on "click", ".join", =>
+      if utility.isMobile()
+        channelName = prompt("Which channel?")
+        @joinAndShowChannel channelName
       else
-        $input.fadeIn()
-
+        $input = $(this).siblings("input")
+        if $input.is(":visible")
+          $input.fadeOut()
+        else
+          $input.fadeIn()
 
     # join a channel by typing in the name after clicking the "+ Join Channel" button and clicking enter
     @$el.on "keydown", "input.channelName", (ev) ->
@@ -84,13 +88,13 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
       channel = $(this).data("channel")
       self.showChannel channel
 
-    @on "nextChannel", @showNextChannel
-    @on "previousChannel", @showPreviousChannel
-    @on "leaveChannel", ->
-      self.leaveChannel self.activeChannel
+    window.events.on "nextChannel", @showNextChannel
+    window.events.on "previousChannel", @showPreviousChannel
+    window.events.on "leaveChannel", =>
+      @leaveChannel @activeChannel
 
-    window.events.on "chat:activity", (data) ->
-      self.channelActivity data
+    window.events.on "chat:activity", (data) =>
+      @channelActivity data
 
 
   quickKill: ->

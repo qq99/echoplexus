@@ -70,7 +70,9 @@ module.exports.Notifications = class Notifications
           setTimeout (->
             notification.cancel()
           ), opts.TTL
-
+        else if navigator.mozNotification
+          notification = navigator.mozNotification.createNotification(title, opts.body, opts.iconUrl)
+          notification.show()
     #
     #		(Boolean) Are OS notification permissions granted?
     #
