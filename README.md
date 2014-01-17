@@ -13,6 +13,24 @@ In a nutshell
 
 Echoplexus is an anonymous, web-based, IRC-like chatting platform that makes its best effort to respect your privacy.  It allows you to create public or private channels.  You can secure a pseudonym for linkable anonymity (think: `/msg nickserv register ____`.  You can code and draw together in real time.  **As of v0.2.0, you can make Peer2Peer video and voice calls with the people in your channel.**
 
+Coming up in 0.2.3
+------------------
+
+Major:
+
+- [x] Complete rewrite in coffeescript
+- [x] Unit tests with `testem`
+- [x] Re-tooled and remove `requirejs` in favour of `browserify`
+- [x] GitHub postreceive hook support, displaying the commit names & links to the commits
+- [x] Firefox Marketplace App that can [be install here](https://chat.echoplex.us/install.html), creating a usable mobile app for Firefox OS, Android via 'Firefox Beta for Android', and desktop clients via Firefox Aurora/Nightly
+- [ ] Mobile styles and touch gesture support
+- [ ] Automated unit tests via travis
+
+Minor:
+- no longer hear yourself talking when in a call
+- improved subdivision algorithm of Call panel, proved correctness with unit tests
+- miscelaneous other bug fixes uncovered by unit tests
+
 Future Goals
 ------------
 
