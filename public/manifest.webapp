@@ -15,15 +15,14 @@
     "description": "Anonymous chat (alpha version)",
 
     "icons": {
-        "16" : "/echoplexus-logo.png",
-        "32" : "/echoplexus-logo.png",
-        "48" : "/echoplexus-logo.png",
-        "60" : "/echoplexus-logo.png",
-        "64" : "/echoplexus-logo.png",
-        "90" : "/echoplexus-logo.png",
-        "120" : "/echoplexus-logo.png",
-        "128" : "/echoplexus-logo.png",
-        "256" : "/echoplexus-logo.png"
+        "16" : "/echoplexus-logo-16.png",
+        "32" : "/echoplexus-logo-32.png",
+        "48" : "/echoplexus-logo-48.png",
+        "60" : "/echoplexus-logo-60.png",
+        "64" : "/echoplexus-logo-64.png",
+        "90" : "/echoplexus-logo-90.png",
+        "120" : "/echoplexus-logo-120.png",
+        "128" : "/echoplexus-logo-128.png"
     },
 
     "default_locale" : "en",
