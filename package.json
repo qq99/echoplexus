@@ -9,7 +9,8 @@
     "start": "supervisor server/main.js",
     "build": "grunt",
     "build-dev": "grunt dev",
-    "bower": "bower install"
+    "bower": "bower install",
+    "test": "bower install; testem ci"
   },
   "repository": {
     "type": "git",
