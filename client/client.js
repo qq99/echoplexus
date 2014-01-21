@@ -348,6 +348,8 @@
 				});
 			} else if (body.match(REGEXES.commands.help)) {
 				socket.emit('help:' + room);
+			} else if (body.match(REGEXES.commands.roll)) {
+				socket.emit('chat:' + room, "rolled a" + Math.floor(Math.random()*21));
 			} else if (body.match(REGEXES.commands.failed_command)) { // match all
 				// NOOP
 			} else { // send it out to the world!
