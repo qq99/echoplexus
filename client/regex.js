@@ -32,6 +32,7 @@
 			private: /^\/private/,
 			public: /^\/public/,
 			help: /^\/help/,
+			roll: /^\/roll/,
 			password: /^\/(password|pw)/,
 			private_message: /^\/(pm|w|whisper|t|tell) /,
 			join: /^\/(join|j)/,
@@ -41,8 +42,7 @@
 			edit: /^(\/edit) #?(\d*) /,
 			chown: /^\/chown /,
 			chmod: /^\/chmod /,
-			reply: /(>>|&gt;&gt;)(\d+)/g,
-			roll: /^\/roll /
+			reply: /(>>|&gt;&gt;)(\d+)/g
 		},
 		colors: {
 			hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i, // matches 3 and 6-digit hex colour codes, optional #

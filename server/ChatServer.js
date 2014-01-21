@@ -235,7 +235,13 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					body: "Please view the README for more information at https://github.com/qq99/echoplexus"
 				}, room));
 			},
-			"chown": function (namespace, socket, channel, client, data) {
+      "roll": function (namespace, socket, channel, client, data) {
+        var room = channel.get("name");
+        socket.in(room).emit('chat:' + room, serverSentMessage({
+          body: "Please view the README for more information at https://github.com/qq99/echoplexus"
+        }, room));
+      },
+      "chown": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				if (typeof data.key === "undefined") return;
