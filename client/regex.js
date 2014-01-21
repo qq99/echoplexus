@@ -41,7 +41,8 @@
 			edit: /^(\/edit) #?(\d*) /,
 			chown: /^\/chown /,
 			chmod: /^\/chmod /,
-			reply: /(>>|&gt;&gt;)(\d+)/g
+			reply: /(>>|&gt;&gt;)(\d+)/g,
+			roll: /^\/roll /
 		},
 		colors: {
 			hex: /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i, // matches 3 and 6-digit hex colour codes, optional #
