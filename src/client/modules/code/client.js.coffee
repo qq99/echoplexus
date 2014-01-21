@@ -18,7 +18,6 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
 
     # debounce a function for auto-repling
     @doREPL = _.debounce(=>
-      @refreshIframe()
       @_repl()
     , 700)
 
@@ -33,7 +32,7 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
     @on "hide", @hide
 
     #Is the REPL loaded?
-    @isIframeAvailable = false
+    @isIframeAvailable = true
 
     #Wether to evaluate immediately on REPL load
     @runNext = false
@@ -79,11 +78,7 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
     @syncedHtml and @syncedHtml.kill()
 
   livereload: ->
-
     # only automatically evaluate the REPL if the user has opted in
-
-    #Reload the iframe (causes huge amounts of lag)
-    #this.refreshIframe();
     @doREPL()  if @$livereload_checkbox and @$livereload_checkbox.is(":checked")
 
   attachEvents: ->
@@ -94,13 +89,6 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
       @refresh()
 
     $(window).on "message", (e) =>
-      if e.originalEvent.data is "ready"
-        @isIframeAvailable = true
-        if @runNext
-          @_repl()
-          @runNext = false
-        return
-      data = undefined
       try
         data = JSON.parse(decodeURI(e.originalEvent.data))
         @updateREPL data.result  if data.channel is @channelName
@@ -150,9 +138,9 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
     )), "*"
 
   _repl: ->
-    unless @isIframeAvailable
-      @runNext = true
-      return
+    if not @isIframeAvailable
+      @refreshIframe()
+
     code = _.object(_.map(@editors, (editor, key) ->
       [key, editor.getValue()]
     ))
