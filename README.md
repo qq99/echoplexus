@@ -2,6 +2,12 @@
 [echoplexus](https://echoplex.us) (v0.2.2)
 ==================
 
+Echoplexus with customizations.
+
+Customizations:
++ WIP - /roll - for rolling dice in D&D and such
+
+
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
 
 [Parlez-vous français? Continuez ici](https://github.com/tetalab/echoplexus/)
