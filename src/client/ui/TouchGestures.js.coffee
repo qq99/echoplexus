@@ -8,6 +8,7 @@ module.exports.TouchGestures = class TouchGestures extends Backbone.Model
     @$switcher = $("header")
     @switcherEl = @$switcher[0]
     @attachEvents()
+    @gestureTolerance = 100 # ms
 
   attachEvents: ->
 
@@ -42,7 +43,7 @@ module.exports.TouchGestures = class TouchGestures extends Backbone.Model
     return if @gestureLock != "previousChannel"
 
     now = new Date()
-    if now - @dragleftStart > 150
+    if now - @dragleftStart > @gestureTolerance
       @touchesFrozen = true
       window.events.trigger 'previousChannel'
 
@@ -56,7 +57,7 @@ module.exports.TouchGestures = class TouchGestures extends Backbone.Model
     return if @gestureLock != "nextChannel"
 
     now = new Date()
-    if now - @dragrightStart > 150
+    if now - @dragrightStart > @gestureTolerance
       @touchesFrozen = true
       window.events.trigger 'nextChannel'
 
@@ -69,7 +70,7 @@ module.exports.TouchGestures = class TouchGestures extends Backbone.Model
     return if @gestureLock != "openSwitcher"
 
     now = new Date()
-    if now - @dragrightStart > 150
+    if now - @dragrightStart > @gestureTolerance
       @set 'switcherInactive', false
       @$switcher.removeClass("inactive")
       delete @dragrightStart
@@ -83,7 +84,7 @@ module.exports.TouchGestures = class TouchGestures extends Backbone.Model
     return if @gestureLock != "closeSwitcher"
 
     now = new Date()
-    if now - @dragleftStart > 150
+    if now - @dragleftStart > @gestureTolerance
       @set 'switcherInactive', true
       @$switcher.addClass("inactive")
       delete @dragleftStart
