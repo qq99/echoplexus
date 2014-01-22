@@ -246,12 +246,12 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
           var diceType = 20;
           var diceMultiple = 1;
           
-          if(dice.match(/^(\d|)(d|)(2|3|4|6|8|12|20|100)$/)){
+          if(dice.match(/^(\d|)(d|)(2|3|4|6|8|10|12|20|100)$/)){
             if(dice.match(/^(\d|)d/)){
               diceType = dice.replace(/(\dd|)(d|)/, "").trim();
               
               if(dice.match(/(\d)d/)){
-                diceMultiple = dice.replace(/d(2|3|4|6|8|12|20|100)$/, "").trim(); 
+                diceMultiple = dice.replace(/d(2|3|4|6|8|10|12|20|100)$/, "").trim(); 
               }
             }else{
               diceType = dice;
