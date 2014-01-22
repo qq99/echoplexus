@@ -292,7 +292,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			        }, room));
 			
 			},
-		        "chown": function (namespace, socket, channel, client, data) {
+			"chown": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				if (typeof data.key === "undefined") return;
