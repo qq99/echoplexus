@@ -238,25 +238,47 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
       "roll": function (namespace, socket, channel, client, data) {
         var room = channel.get("name");
         var dice = "d20";
-        var diceResult;
+        var diceResult = 0;
         
         if (data.dice !== '') {
 					dice = data.dice.substring(0, data.dice.length).trim();
           
           var diceType = 20;
           var diceMultiple = 1;
+          
           if(dice.match(/^(\d|)(d|)(2|3|4|6|8|12|20|100)$/)){
             if(dice.match(/^(\d|)d/)){
-              diceType = dice.replace(/(\d|)d/, "").trim(); 
+              diceType = dice.replace(/(\dd|)(d|)/, "").trim();
+              
               if(dice.match(/(\d)d/)){
                 diceMultiple = dice.replace(/d(2|3|4|6|8|12|20|100)$/, "").trim(); 
               }
+            }else{
+              diceType = dice;
             }
+            
           }else{
             dice = "d20"; 
           }
           
-          diceResult = (1 + Math.floor(Math.random()* diceType) * diceMultiple);
+          if(diceMultiple > 1){
+            var diceEach = "";
+            for (var i=0; i<diceMultiple; i++){
+              
+              roll = (1 + Math.floor(Math.random()* diceType));
+              diceResult = diceResult + roll;
+              if(i === 0){
+                diceEach = " " + roll + " ";
+              }else{
+                diceEach = diceEach + " + " + roll + " ";
+              }
+              
+            }
+            diceResult = diceEach + " = " + diceResult
+          }else{
+            diceResult = (1 + Math.floor(Math.random()* diceType));
+          }
+          
         }else{
           diceResult = (1 + Math.floor(Math.random()* 20));
         }
