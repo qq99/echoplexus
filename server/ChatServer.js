@@ -235,14 +235,42 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					body: "Please view the README for more information at https://github.com/qq99/echoplexus"
 				}, room));
 			},
-                        "roll": function (namespace, socket, channel, client, data) {
-                        	var room = channel.get("name");
-                        	
-        			socket.in(room)broadcast.emit('chat:' + room, serverSentMessage({
-          				body: "Rolled dice: " + Math.floor(Math.random()*21)
-        			}, room));
-      			},
-      			"chown": function (namespace, socket, channel, client, data) {
+      "roll": function (namespace, socket, channel, client, data) {
+        var room = channel.get("name");
+        var dice = "d20";
+        var diceResult;
+        
+        if (data.dice !== '') {
+					dice = data.dice.substring(0, data.dice.length).trim();
+          
+          var diceType = 20;
+          var diceMultiple = 1;
+          if(dice.match(/^(\d|)(d|)(2|3|4|6|8|12|20|100)$/)){
+            if(dice.match(/^(\d|)d/)){
+              diceType = dice.replace(/(\d|)d/, "").trim(); 
+              if(dice.match(/(\d)d/)){
+                diceMultiple = dice.replace(/d(2|3|4|6|8|12|20|100)$/, "").trim(); 
+              }
+            }
+          }else{
+            dice = "d20"; 
+          }
+          
+          diceResult = (1 + Math.floor(Math.random()* diceType) * diceMultiple);
+        }else{
+          diceResult = (1 + Math.floor(Math.random()* 20));
+        }
+        
+  			socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
+    				body: client.get("nick") + " rolled " + dice + " dice: " + diceResult
+  			}, room));
+
+        socket.in(room).emit('chat:' + room, serverSentMessage({
+            body: "You rolled " + dice + " dice: " + diceResult
+        }, room));
+
+      },
+      "chown": function (namespace, socket, channel, client, data) {
 				var room = channel.get("name");
 
 				if (typeof data.key === "undefined") return;
