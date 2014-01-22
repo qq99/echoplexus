@@ -237,7 +237,8 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			},
                         "roll": function (namespace, socket, channel, client, data) {
                         	var room = channel.get("name");
-        			socket.in(room).emit('chat:' + room, serverSentMessage({
+                        	
+        			socket.in(room)broadcast.emit('chat:' + room, serverSentMessage({
           				body: "Rolled dice: " + Math.floor(Math.random()*21)
         			}, room));
       			},
