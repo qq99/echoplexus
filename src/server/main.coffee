@@ -16,6 +16,7 @@ ChatServer       = require("./ChatServer.coffee").ChatServer
 CodeServer       = require("./CodeServer.coffee").CodeServer
 DrawServer       = require("./DrawServer.coffee").DrawServer
 CallServer       = require("./CallServer.coffee").CallServer
+InfoServer       = require("./InfoServer.coffee").InfoServer
 # UserServer       = require("./UserServer.coffee").UserServer
 EventBus         = require("./EventBus.coffee").EventBus()
 app              = express()
@@ -265,3 +266,12 @@ redisC.select 15, (err, reply) ->
     success: (effectiveRoom, socket, channel, client) ->
         room = channel.get('name')
         socket.emit "status:#{room}", active: !_.isEmpty(channel.call)
+
+  infoServer = new InfoServer sio, Channels, ChannelModel
+  infoServer.start
+    error: (err, socket, channel, client) ->
+        if (err)
+            console.log("InfoServer: ", err)
+
+    success: (effectiveRoom, socket, channel, client) ->
+

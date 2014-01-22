@@ -46,3 +46,17 @@ module.exports.HTMLSanitizer = class HTMLSanitizer
     div.innerHTML = htmlString
     clean(div)
     return div.innerHTML
+
+module.exports.versionStringToNumber = (versionString) ->
+  numeric = versionString.replace(/\./g,'').replace(/r/gi,'').split('')
+
+  sum = 0
+
+  i = numeric.length - 1
+  j = 0
+  while i >= 0 # fuckin coffeescript loops
+    sum += parseInt(numeric[i], 10) * Math.pow(10,j)
+    j++
+    i--
+
+  sum

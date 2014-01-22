@@ -10,6 +10,7 @@ ChatClient                = require('../modules/chat/client.js.coffee').ChatClie
 CodeClient                = require('../modules/code/client.js.coffee').CodeClient
 DrawingClient             = require('../modules/draw/client.js.coffee').DrawingClient
 CallClient                = require('../modules/call/client.js.coffee').CallClient
+InfoClient                = require('../modules/info/client.js.coffee').InfoClient
 utility                   = require("../utility.js.coffee")
 
 module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
@@ -18,7 +19,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
   template: channelSelectorTemplate
 
   loader: (new Loader()).modules
-  modules: [ChatClient, CodeClient, DrawingClient, CallClient]
+  modules: [ChatClient, CodeClient, DrawingClient, CallClient, InfoClient]
 
   initialize: ->
     self = this
@@ -265,7 +266,8 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     _.each @channels, (channel, channelName) ->
       channelViews = channel.modules
       _.each channelViews, (module) ->
-        $("#" + module.config.section).append module.view.$el  unless $("." + module.view.className + "[data-channel='" + channelName + "']").length
+        if module.config?
+          $("#" + module.config.section).append module.view.$el  unless $("." + module.view.className + "[data-channel='" + channelName + "']").length
 
 
 
