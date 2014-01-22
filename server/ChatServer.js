@@ -235,7 +235,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 					body: "Please view the README for more information at https://github.com/qq99/echoplexus"
 				}, room));
 			},
-		        "roll": function (namespace, socket, channel, client, data) {
+			"roll": function (namespace, socket, channel, client, data) {
 			        var room = channel.get("name");
 			        var dice = "d20";
 			        var diceResult = 0;
