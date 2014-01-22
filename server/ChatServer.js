@@ -266,7 +266,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
 			            for (var i=0; i<diceMultiple; i++){
 			              
 			              roll = (1 + Math.floor(Math.random()* diceType));
-			              diceResult = diceResult + roll;
+			              diceResult += roll;
 			              if(i === 0){
 			                diceEach = " " + roll + " ";
 			              }else{
