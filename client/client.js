@@ -350,8 +350,6 @@
 				socket.emit('help:' + room);
 			} else if (body.match(REGEXES.commands.roll)) {
 				body = body.replace(REGEXES.commands.roll, "").trim();
-				
-				
 				socket.emit('roll:' + room, {
 					dice: body
 				});
