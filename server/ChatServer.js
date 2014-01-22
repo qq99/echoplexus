@@ -238,7 +238,7 @@ exports.ChatServer = function (sio, redisC, EventBus, Channels, ChannelModel) {
                         "roll": function (namespace, socket, channel, client, data) {
                         	var room = channel.get("name");
         			socket.in(room).emit('chat:' + room, serverSentMessage({
-          				body: "Please view the README for more information at https://github.com/qq99/echoplexus"
+          				body: "Rolled dice: " + Math.floor(Math.random()*21)
         			}, room));
       			},
       			"chown": function (namespace, socket, channel, client, data) {
