@@ -2,6 +2,11 @@
 [echoplexus](https://echoplex.us) (v0.2.2)
 ==================
 
+Echoplexus with customizations.
+
+Customizations:
+* /roll - for rolling dice in D&D and other games. You can roll using any of the following formats: /roll (defaults to d20), /roll d12, /roll 6, and /roll 2d3. When rolling multiples each roll is displayed and added together. Only dice available are 2, 3, 4, 6, 8, 10, 12, 20 100, trying anything else will default to a d20.  
+
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
 
 [Parlez-vous français? Continuez ici](https://github.com/tetalab/echoplexus/)
@@ -103,6 +108,8 @@ The currently implemented list of permissions (and their defaults) includes:
   - canSpeak: true
   - canPullLogs: true
   - canUploadFile: null
+
+- `/roll [((1d20|d20|20)|)] )`: will roll a 1d20. When rolling multiples each roll is displayed and added together. Only dice available are 2, 3, 4, 6, 8, 10, 12, 20 100, trying anything else will default to a d20.  
 
 *Note:* Nickname registrations are considered on a per-channel basis to increase the available nickspace for all users.  Thus, you will have to register for a specific nickname many times across each channel you join.
 

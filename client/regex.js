@@ -32,6 +32,7 @@
 			private: /^\/private/,
 			public: /^\/public/,
 			help: /^\/help/,
+			roll: /^\/(roll|r)( |)/,
 			password: /^\/(password|pw)/,
 			private_message: /^\/(pm|w|whisper|t|tell) /,
 			join: /^\/(join|j)/,
