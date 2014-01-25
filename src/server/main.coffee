@@ -184,16 +184,13 @@ redisC.select 15, (err, reply) ->
     error: (err, socket, channel, client, data) ->
       room = channel.get("name")
 
-      if err
-        if err instanceof ApplicationError.AuthenticationError
-          socket.in(room).emit("private:" + room)
-        else
-          socket.in(room).emit("chat:" + room, @serverSentMessage({
-            body: err.message
-          }, room))
+      if err and not err instanceof ApplicationError.AuthenticationError
+        socket.in(room).emit("chat:" + room, @serverSentMessage({
+          body: err.message
+        }, room))
 
-          console.log("ChatServer: ", err)
-        return
+        console.log("ChatServer: ", err)
+      return
     success: (effectiveRoom, socket, channel, client,data) ->
       room = channel.get("name")
       @subscribeSuccess(socket, client, channel)
@@ -240,7 +237,7 @@ redisC.select 15, (err, reply) ->
   codeServer = new CodeServer sio, Channels, ChannelModel
   codeServer.start
     error: (err, socket, channel, client) ->
-      if err
+      if err and not err instanceof ApplicationError.AuthenticationError
         console.log("CodeServer: ", err)
     success: (effectiveRoom, socket, channel, client) ->
       cc = @spawnCodeCache(effectiveRoom)
@@ -249,7 +246,7 @@ redisC.select 15, (err, reply) ->
   drawServer = new DrawServer sio, Channels, ChannelModel
   drawServer.start
     error: (err, socket, channel, client) ->
-      if err
+      if err and not err instanceof ApplicationError.AuthenticationError
         return
     success: (effectiveRoom, socket, channel, client) ->
       room = channel.get("name")
@@ -260,8 +257,8 @@ redisC.select 15, (err, reply) ->
   callServer = new CallServer sio, Channels, ChannelModel
   callServer.start
     error: (err, socket, channel, client) ->
-        if (err)
-            console.log("CallServer: ", err)
+      if err and not err instanceof ApplicationError.AuthenticationError
+          console.log("CallServer: ", err)
 
     success: (effectiveRoom, socket, channel, client) ->
         room = channel.get('name')
@@ -270,8 +267,15 @@ redisC.select 15, (err, reply) ->
   infoServer = new InfoServer sio, Channels, ChannelModel
   infoServer.start
     error: (err, socket, channel, client) ->
-        if (err)
-            console.log("InfoServer: ", err)
+      room = channel.get("name")
+
+      if err and err instanceof ApplicationError.AuthenticationError
+        console.log("InfoServer: ", err)
+        socket.in(room).emit("private:" + room)
+      else
+        socket.in(room).emit("chat:" + room, @serverSentMessage({
+          body: err.message
+        }, room))
 
     success: (effectiveRoom, socket, channel, client) ->
 

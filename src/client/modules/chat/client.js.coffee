@@ -377,10 +377,11 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     $.when(acked).fail (err) =>
       if !@hidden
         showPrivateOverlay()
-        growl = new Mewl(
-          title: @channelName + ": Error"
-          body: err
-        )
+        if password
+          growl = new Mewl(
+            title: @channelName + ": Error"
+            body: err
+          )
 
     acked.promise()
 
@@ -393,6 +394,12 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     $(".chatarea", @$el).html @chatLog.$el
     @$el.attr "data-channel", @channelName
     @$el.append @inputTemplate(encrypted: (typeof @me.cryptokey isnt "undefined" and @me.cryptokey isnt null))
+
+  channelIsPrivate: =>
+    @channel.isPrivate = true
+    showPrivateOverlay() if !@hidden
+
+    @autoAuth()
 
   checkToNotify: (msg) ->
 
@@ -499,12 +506,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @persistentLog.add message.toJSON()
         @chatLog.renderChatMessage message
 
-      private: =>
-        @channel.isPrivate = true
-        showPrivateOverlay() if !@hidden
-
-        @autoAuth()
-
       webshot: (msg) =>
         @chatLog.renderWebshot msg
 
@@ -577,6 +578,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
 
   attachEvents: ->
+    window.events.on "private:#{@channelName}", @channelIsPrivate
+
     window.events.on "chat:broadcast", (data) =>
       @me.speak
         body: data.body

@@ -20,6 +20,9 @@ module.exports.InfoClient = class InfoClient extends Backbone.View
   listen: ->
     socket = @socket
     @socketEvents =
+      private: =>
+        window.events.trigger("private:#{@channelName}")
+
       "info:latest_supported_client_version": (msg) =>
         window.checkingVersion = false
         theirs = utility.versionStringToNumber(msg)
