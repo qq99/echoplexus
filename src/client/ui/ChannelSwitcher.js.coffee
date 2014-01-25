@@ -61,11 +61,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
         channelName = prompt("Which channel?")
         @joinAndShowChannel channelName
       else
-        $input = $(this).siblings("input")
-        if $input.is(":visible")
-          $input.fadeOut()
-        else
-          $input.fadeIn()
+        @$el.find("input.channelName").toggle()
 
     # join a channel by typing in the name after clicking the "+ Join Channel" button and clicking enter
     @$el.on "keydown", "input.channelName", (ev) ->
