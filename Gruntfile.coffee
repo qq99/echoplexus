@@ -148,7 +148,7 @@ module.exports = (grunt) ->
       workspaces: ["build"]
 
   # loading local tasks
-  grunt.loadTasks "tasks"
+  #grunt.loadTasks "tasks"
 
   # loading external tasks (aka: plugins)
   # Loads all plugins that match "grunt-", in this case all of our current plugins
