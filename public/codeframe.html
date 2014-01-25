@@ -6,8 +6,18 @@
 		var HANDLERS = {
 			js: function(code){
 				var html = code['html'],
-					js = '(function(window,$,_,undefined){ ' + code['js'] + ' })(window,$,_);', //Don't allow user to override basic api's
+					js = code['js'],
 					result = '';
+
+				// attempt to see whether they included a return statement or not
+				lines = js.split("\n")
+				lastLine = lines[lines.length - 1]
+				if (lastLine.indexOf("return") !== 0) {
+					lines[lines.length - 1] = "return " + lastLine;
+					js = lines.join('\n');
+				}
+
+				js = '(function(window,$,_,undefined){ ' + js + ' })(window,$,_);'; //Don't allow user to override basic api's
 				$('body').html(html);
 				try {
 					if (typeof code['js'] !== "undefined" && code['js'] !== "")
@@ -22,7 +32,7 @@
 			if (!window.location.hasOwnProperty("origin")) {
 			    window.origin = window.location.origin = window.location.protocol + "//" + window.location.host;
 			}
-			window.parent.postMessage("ready","*");
+
 			$(window).on('message', function(e){
 				e = e.originalEvent;
 				var data = JSON.parse(decodeURI(e.data));
