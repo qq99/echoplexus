@@ -91,9 +91,9 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
     $(window).on "message", (e) =>
       try
         data = JSON.parse(decodeURI(e.originalEvent.data))
-        @updateREPL data.result  if data.channel is @channelName
+        @updateREPLText data.result  if data.channel is @channelName
       catch ex
-        @updateREPL ex.toString()
+        @updateREPLText ex.toString()
 
     @$el.on "click", ".evaluate", (ev) =>
       ev.preventDefault()
@@ -114,7 +114,7 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
     iframe.src = iframe.src
     @isIframeAvailable = false
 
-  updateREPL: (result) ->
+  updateREPLText: (result) ->
     if _.isObject(result)
       result = JSON.stringify(result)
     else if typeof result is "undefined"
