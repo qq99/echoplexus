@@ -1,7 +1,7 @@
 {
   "name": "echoplexus",
   "main": "index.nw.html",
-  "version": "0.2.0",
+  "version": "0.2.3",
   "description": "A modular, anonymous, real-time chatting system.",
   "scripts": {
     "test": "bower install; grunt build; testem ci --launch chrome --file ./testem.json"
