@@ -80,4 +80,10 @@ server {
     }
     access_log /var/log/nginx/echoplexus/access.ssl.log;
     error_log /var/log/nginx/echoplexus/error.ssl.log;
+
+    gzip on;
+    gzip_types text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_vary on;
+    gzip_comp_level 9;
+
 }
