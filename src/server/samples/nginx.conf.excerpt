@@ -1,0 +1,18 @@
+# within your nginx.conf, you'll need to add the following:
+
+# ...
+
+http {
+  #...
+  # other stuff
+
+  map $http_upgrade $connection_upgrade {
+      default upgrade;
+      ''      close;
+  }
+
+  # ...
+  # other stuff
+}
+
+# ...
