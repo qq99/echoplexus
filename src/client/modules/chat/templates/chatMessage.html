@@ -3,18 +3,18 @@
 	<div class="message-options">
 		<% if (mine && mID) { %>
 		<div class="chatMessage-edit">
-			<i class="icon-pencil"></i>
+			<i class="fa fa-pencil"></i>
 		</div>
 		<% } %>
 	</div>
 	<div data-timestamp="<%= timestamp %>" class="time"><%- humanTime %></div>
 	<div class="nick <%= nickClasses %>" style="color: <%= color %>">
 		<% if (is_encrypted) { %>
-		<i class="icon-key encrypted"></i>
+		<i class="fa fa-key encrypted"></i>
 		<% } %>
 
 		<% if (identified) { %>
-		<i class="icon-lock ident yes"></i>
+		<i class="fa fa-lock ident yes"></i>
 		<% } %>
 
 
@@ -22,14 +22,14 @@
 
 		<% if (mID) { %>
 		<div class="nick-decorators">
-			<i class="icon-reply"></i>
+			<i class="fa fa-reply reply-button"></i>
 		</div>
 		<% } %>
 	</div>
 	<div class="body">
 		<% if (isPrivateMessage) { %>
 			<span class="private-icon" title="This is a private message.  Only people who had your nickname at the time of sending have received it.">
-				<i class="icon-long-arrow-right"></i>
+				<i class="fa fa-long-arrow-right"></i>
 			</span>
 		<% } %>
 

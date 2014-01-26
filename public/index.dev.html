@@ -6,7 +6,6 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no">
 	<link rel="shortcut icon" type="image/png" href="/favicon.png" />
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
-	<link href='//fonts.googleapis.com/css?family=Noto+Sans:700,400italic,700italic,400' rel='stylesheet' type='text/css'>
 </head>
 <body>
 	<nav class="header">
@@ -20,7 +19,7 @@
 			<div class="header">
 				<div class="button-obscura">
 					<h1 class="button global-options tabButton" data-target="#global-options">
-						<i class="icon-cogs"></i>
+						<i class="icon fa fa-cogs"></i>
 						<span class="button-description long">Global Options</span>
 					</h1>
 				</div>
@@ -35,7 +34,7 @@
 			<div id="info-overlay">
 				<section id="is-private">
 					<div class="locked">
-						<i class="icon icon-lock"></i>
+						<i class="icon fa fa-lock"></i>
 					</div>
 					<p>This channel is private.</p>
 					<p>Please enter the password.</p>
@@ -102,7 +101,7 @@
 		<script type="text/template" id="buttonTemplate">
 			<div class="button-obscura">
 				<h1 class="button tabButton<%= active ? ' active' : '' %>" data-target="#<%= section%>">
-					<i class="icon-<%=icon%>"></i>
+					<i class="fa <%=icon%>"></i>
 					<span class="button-description"><%= title %></span>
 				</h1>
 			</div>
@@ -116,6 +115,6 @@
 	<script src="/js/vendor.min.js"></script>
 	<script src="/js/app.min.js"></script>
 	<!-- endbuild -->
-	<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.0/css/font-awesome.css" rel="stylesheet">
+	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 </body>
 </html>

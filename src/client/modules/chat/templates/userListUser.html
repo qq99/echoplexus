@@ -5,7 +5,7 @@
 			data-tooltip-title="Encrypted"
 			data-tooltip-body="This user is using encryption.  If you wish to talk to him, you'll need to use the same password."
 			class='tooltip-target encrypted'>
-				<i class="icon-key encrypted"></i>
+				<i class="icon fa fa-key encrypted"></i>
 		</span>
 	<% } %>
 	<% if (identified) { %>
@@ -14,7 +14,7 @@
 			data-tooltip-body="This user has confirmed his identity with the server."
 			data-tooltip-class="ident success"
 			class='tooltip-target ident yes'>
-				<i class="icon-lock"></i>
+				<i class="icon fa fa-lock"></i>
 		</span>
 	<% } else { %>
 		<span
@@ -22,13 +22,13 @@
 			data-tooltip-body="This user has not confirmed his identity with the server.  He could be anyone!"
 			data-tooltip-class="ident warn"
 			class='tooltip-target ident no'>
-				<i class="icon-unlock-alt"></i>
+				<i class="icon fa fa-unlock-alt"></i>
 		</span>
 	<% } %>
 
 	<% if (operator) { %>
 	<span class="operator" title="This user is the channel operator.">
-		<i class="icon-legal"></i>
+		<i class="icon fa fa-gavel"></i>
 	</span>
 	<% } %>
 
@@ -44,7 +44,7 @@
 	<% } %>
 	<% if (inCall === true) { %>
 		<span class="inCall" title="In call">
-			<i class="icon-phone"></i>
+			<i class="fa fa-phone"></i>
 		</span>
 	<% } %>
 </div>

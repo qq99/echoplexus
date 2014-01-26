@@ -212,7 +212,7 @@ redisC.select 15, (err, reply) ->
           msg = @serverSentMessage({
             body: data
           }, room)
-          msg.nickname = "<i class='icon-github'></i>"
+          msg.nickname = "<i class='fa fa-github-alt'></i>"
           msg.trustworthiness = "limited"
 
           @storePersistent msg, room, =>

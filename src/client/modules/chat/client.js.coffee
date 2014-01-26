@@ -171,7 +171,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     "click button.deleteLocalStorage": "deleteLocalStorage"
     "click button.deleteLocalStorageAndQuit": "logOut"
     "click button.clearChatlog": "clearChatlog"
-    "click .icon-reply": "reply"
+    "click .reply-button": "reply"
     "keydown .chatinput textarea": "handleChatInputKeydown"
     "click button.not-encrypted": "showCryptoModal"
     "click button.encrypted": "clearCryptoKey"

@@ -1,26 +1,26 @@
 module.exports.Modules =[
     {
         name: 'chat',
-        icon: 'comments-alt',
+        icon: 'fa-comments-o',
         title: 'Chat',
         section: 'chatting',
         active: true
     },
     {
         name: 'code',
-        icon: 'code',
+        icon: 'fa-code',
         title: 'Code',
         section: 'coding'
     },
     {
         name: 'draw',
-        icon: 'pencil',
+        icon: 'fa-pencil-square-o',
         title: 'Draw',
         section: 'drawing'
     },
     {
         name:'call',
-        icon: 'phone',
+        icon: 'fa-phone',
         title: 'Call',
         section: 'calling'
     }

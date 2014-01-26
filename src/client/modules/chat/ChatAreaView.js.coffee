@@ -176,7 +176,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       $button.toggleClass("hide").toggleClass "show"
 
       # change the icon
-      $button.find("i").toggleClass("icon-collapse-alt").toggleClass "icon-expand-alt"
+      $button.find("i").toggleClass("fa-minus-square-o").toggleClass "fa-plus-square-o"
 
       # toggle the displayed view (.min|.max)
       $button.closest(".media-item").toggleClass "minimized"

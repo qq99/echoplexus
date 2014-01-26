@@ -1,26 +1,8 @@
-@include keyframes(ringing) {
-	100% {
-		@include transform(rotate(0deg));
-	}
-	20% {
-		@include transform(rotate(0deg));
-	}
-	15% {
-		@include transform(rotate(-6deg));
-	}
-	10% {
-		@include transform(rotate(6deg));
-	}
-	5% {
-		@include transform(rotate(-6deg));
-	}
-	0% {
-		@include transform(rotate(6deg));
-	}
-}
-
-$active-color: green;
-$inactive-color: rgb(157, 38, 29);
+$active-color           : green;
+$inactive-color         : rgb(157, 38, 29);
+$join-call-button-width : 15em;
+$call-button-height     : 5em;
+$call-button-width      : 6em;
 
 .callClient {
 	height:100%;
@@ -45,7 +27,7 @@ $inactive-color: rgb(157, 38, 29);
 		color:rgb(157, 38, 29);
 	}
 }
-$join-call-button-width: 15em;
+
 .no-call {
 	h1, h2 {
 		border: none;
@@ -61,13 +43,6 @@ $join-call-button-width: 15em;
 		display:block;
 		font-size:6em;
 		text-shadow:1px 1px 5px rgba(0,0,0,0.75);
-		&.ringing {
-			color:green;
-			@include animation(ringing 1s infinite);
-		}
-		&.idle {
-			color:#333;
-		}
 	}
 	p {
 		font-size:1em;
@@ -79,27 +54,27 @@ $join-call-button-width: 15em;
 		width:2 * $join-call-button-width;
 		margin:auto;
 		margin-top:1em;
-	}
-	.btn {
-		float:left;
-		@include unselectable();
-		@include transition(all 0.5s ease-in-out);
-		cursor:pointer;
-		padding:4em;
-		border-radius:1em;
-		width:$join-call-button-width;
-		margin:0 auto 2em auto;
-		&:hover {
-			background:rgba(0,0,0,0.3);
-			.icon.idle {
-				color:yellow;
+		.btn {
+			float:left;
+			@include unselectable();
+			@include transition(all 0.5s ease-in-out);
+			cursor:pointer;
+			padding:4em;
+			border-radius:1em;
+			width:$join-call-button-width;
+			margin:0 auto 2em auto;
+			&:hover {
+				background:rgba(0,0,0,0.3);
+				.icon {
+					color: greenyellow;
+				}
 			}
 		}
 	}
 }
 
 .unmuted {
-	.icon-ban-circle {
+	.disabled-state {
 		opacity:0;
 	}
 }
@@ -123,8 +98,7 @@ $join-call-button-width: 15em;
 	display:none;
 }
 
-$call-button-height:5em;
-$call-button-width:6em;
+
 .call-controls {
 	position:absolute;
 	width:100%;

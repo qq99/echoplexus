@@ -4,10 +4,10 @@
 	-webkit-box-sizing:border-box;
 }
 
-$active-color: rgba(71,178,250,0.7);
-$pretty-font-family: 'Noto Sans', sans-serif;
-$monospace:'Droid Sans Mono', monospace;
-$timestamp-width: 12em;
+$active-color       : rgba(71,178,250,0.7);
+$pretty-font-family : 'Open Sans', 'Noto Sans', sans-serif;
+$monospace          : 'Droid Sans Mono', monospace;
+$timestamp-width    : 12em;
 
 .death-warning {
 	color:red;
@@ -1482,13 +1482,13 @@ body {
 			width:100%;
 			display:block;
 		}
-		.icon-pencil {
+		.pencil-button {
 			color:gold;
 		}
-		.icon-eraser {
+		.eraser-button {
 			color:pink;
 		}
-		.icon-tint {
+		.tint-button {
 			color:red;
 		}
 	}
@@ -1596,10 +1596,7 @@ body {
 		font-size: 6em;
 		color: #1a1a1a;
 		text-align: center;
-		.icon-ban-circle {
-			color:rgba(157, 38, 29,0.85);
-		}
-		.icon-eye-open {
+		.fa-eye-slash {
 			color:yellow;
 		}
 	}
