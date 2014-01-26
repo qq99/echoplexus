@@ -1,4 +1,4 @@
 {
-	"directory": "/client/lib/",
+	"directory": "/vendor/",
 	"json" : "bower.json"
 }

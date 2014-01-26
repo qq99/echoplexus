@@ -1,5 +1,5 @@
 [![Stories in Ready](https://badge.waffle.io/qq99/echoplexus.png)](http://waffle.io/qq99/echoplexus)
-[echoplexus](https://echoplex.us) (v0.2.2)
+[echoplexus](https://echoplex.us) (v0.2.3)
 ==================
 
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
@@ -81,7 +81,6 @@ Currently Supported Commands:
 - `/register [some_password]`: Facilitates linkable anonymity; people talking to you yesterday can rest assured you're the same person today (and not an impersonator trying to steal your nickname) by registering and identifying.
 - `/identify [your_password]`: Assume command of your nickname, and get a green lock icon beside it (signifying to others that you are identified).
 - `/private [channel_password]`: Makes a channel private.  Only those with the password may enter it.
-- `/password [channel_password]`: Supply the password to a private channel after joining it.  Incorrect attempts will notify everybody in the room.
 - `/public`: Make the private channel a public channel.
 - `/whisper [nickname]`: Send a private message that is visible to anybody with the nickname you've supplied.  Aliases: `/w`, `/tell`, `/t`, `/pm`.  *Pro-tip:* Press "ctrl+r" to quick-reply to the last person who has whispered you.
 - `/pull [N]`: Sync the N latest chat messages that you've missed while you weren't connected to the channel.  Currently, maximum is set to 100 for UI responsiveness until a more efficient rendering method is added.
@@ -91,10 +90,10 @@ Currently Supported Commands:
 - `/edit #[integer] [new body text]`: Changes the body text of a specific message to something else.  Useful for correcting typos and censoring yourself.  You can also double click on a chat message to edit inline-- press enter to confirm, escape or click elsewhere to cancel.
 - `>>[integer]`: Quotes a specific chat message.  Clicking the Reply icon on the chat message will automatically add this for you.
 - `/chown [password]`: Become the channel owner.  This gives you all permissions in the channel and allows you to `/chmod`
-- `/chmod [optional username] [(+|-)permissionName]`:  This allows you to selectively toggle on/off certain permissions for the particular channel or user.  User permissions are checked first, and if not set, then channel permissions are checked.  If a username is not supplied, then the permission is specified at the channel level.
+- `/chmod [(+|-)permissionName] [optional username]`:  This allows you to selectively toggle on/off certain permissions for the particular channel or user.  User permissions are checked first, and if not set, then channel permissions are checked.  If a username is not supplied, then the permission is specified at the channel level.
 
 Example:
-  - `/chmod -canSpeak`: now everyone in the channel can't speak unless you do `/chmod [username] +canSpeak` to selectively enable it for a specific user.
+  - `/chmod -canSpeak`: now everyone in the channel can't speak unless you do `/chmod +canSpeak [username]` to selectively enable it for a specific user.
 
 The currently implemented list of permissions (and their defaults) includes:
   - canSetTopic: null

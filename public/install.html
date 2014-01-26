@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<head>
+
+  <script>
+    function installApplication () {
+      var manifestLocation = window.location.protocol + "//" + window.location.host + "/manifest.webapp";
+      console.log("Attempting to install from", manifestLocation);
+      var installApp = navigator.mozApps.install(manifestLocation);
+
+      // Successful install
+      installApp.onsuccess = function(data) {
+          console.log("Success, app installed!");
+      };
+
+      // Install failed
+      installApp.onerror = function() {
+          console.log("Install failed\n\n:" + installApp.error.name);
+      };
+    }
+  </script>
+</head>
+<body>
+  <button onclick="installApplication()">Install</button>
+</body>
+

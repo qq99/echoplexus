@@ -1,0 +1,89 @@
+#
+# Rewrite any http requests for domain.com to https://domain.com
+#
+server {
+   listen 80;
+   server_name chat.echoplex.us;
+   return 301 https://chat.echoplex.us$request_uri;
+}
+
+#
+# HTTP server definition
+# uncomment me if you wish to run a non-SSL installation
+#
+#server {
+#    listen 80;
+#    server_name chat.echoplex.us;
+#    proxy_buffering off;
+#    location / {
+#        proxy_pass http://localhost:8080;
+#        proxy_http_version 1.1;
+#        proxy_set_header Upgrade $http_upgrade;
+#        proxy_set_header Connection $connection_upgrade;
+#    }
+#    access_log /var/log/nginx/echoplexus/access.log;
+#    error_log /var/log/nginx/echoplexus/error.log;
+#}
+
+#
+# HTTPS server def'n
+#
+server {
+    listen 443;
+    server_name chat.echoplex.us;
+
+    # This should match what you set @ server/config.coffee for:
+    # server_hosted_file_transfer.size_limit (note diff units!)
+    client_max_body_size 10M;
+
+    ssl on;
+    ssl_certificate /path/to/ssl.crt;
+    ssl_certificate_key /path/to/ssl.key;
+
+    # enable session resumption to improve https performance
+    # http://vincent.bernat.im/en/blog/2011-ssl-session-reuse-rfc5077.html
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_timeout 5m;
+
+
+    # enables server-side protection from BEAST attacks
+    # http://blog.ivanristic.com/2013/09/is-beast-still-a-threat.html
+    ssl_prefer_server_ciphers on;
+
+    # disable SSLv3(enabled by default since nginx 0.8.19) since it's less secure then TLS http://en.wikipedia.org/wiki/Secure_Sockets_Layer#SSL_3.0
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+
+    # ciphers chosen for forward secrecy and compatibility
+    # http://blog.ivanristic.com/2013/08/configuring-apache-nginx-and-openssl-for-forward-secrecy.html
+    ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:ECDHE-RSA-RC4-SHA:ECDHE-ECDSA-RC4-SHA:RC4-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!3DES:!MD5:!PSK';
+
+    # config to enable HSTS(HTTP Strict Transport Security) https://developer.mozilla.org/en-US/docs/Security/HTTP_Strict_Transport_Security
+    # to avoid ssl stripping https://en.wikipedia.org/wiki/SSL_stripping#SSL_stripping
+    add_header Strict-Transport-Security "max-age=31536000; includeSubdomains;";
+
+    proxy_buffering off; # may interfere with websockets if on
+
+    # serve up all static webshots / user uploads via nginx
+    # don't bother proxying them to express
+    # !replace `/home/sandbox` with the path of the user running echoplexus!
+    location /sandbox/ {
+    	autoindex on;
+    	alias /home/sandbox/echoplexus/public/sandbox/;
+    	try_files $uri $uri/ =404;
+    }
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+    access_log /var/log/nginx/echoplexus/access.ssl.log;
+    error_log /var/log/nginx/echoplexus/error.ssl.log;
+
+    gzip on;
+    gzip_types text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_vary on;
+    gzip_comp_level 9;
+
+}

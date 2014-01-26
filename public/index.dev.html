@@ -3,6 +3,7 @@
 <head>
 	<title>echoplexus</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, user-scalable=no">
 	<link rel="shortcut icon" type="image/png" href="/favicon.png" />
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
 	<link href='//fonts.googleapis.com/css?family=Noto+Sans:700,400italic,700italic,400' rel='stylesheet' type='text/css'>
@@ -13,7 +14,7 @@
 	</nav>
 	<nav class="functionality">
 		<div id="buttons">
-			
+
 		</div>
 		<div class="options-list">
 			<div class="header">
@@ -30,49 +31,65 @@
 
 	</header>
 	<section id="main">
-		<section id="panes">
-			<section id="global-options">
-				<h1>Global Options</h1>
-				<div class="options">
-					<div class="option">
-						<input id="suppress_join" type="checkbox" />
-						<label for="suppress_join">Hide Join/Part Messages</label>
+		<div id="main-ui">
+			<div id="info-overlay">
+				<section id="is-private">
+					<div class="locked">
+						<i class="icon icon-lock"></i>
 					</div>
-					<div class="option">
-						<input id="highlight_mine" type="checkbox" />
-						<label for="highlight_mine">Highlight messages sent by me</label>
+					<p>This channel is private.</p>
+					<p>Please enter the password.</p>
+					<input id="channel-password" type="password">
+					<div class="remember-password">
+						<input id="remember-password-checkbox" type="checkbox" checked>
+						<label for="remember-password-checkbox">Remember this</label>
 					</div>
-					<div class="option">
-						<input type="checkbox" id="suppress_client">
-						<label for="suppress_client">Hide Client Messages</label>
+				</section>
+			</div>
+			<section id="panes">
+				<section id="global-options">
+					<h1>Global Options</h1>
+					<div class="options">
+						<div class="option">
+							<input id="suppress_join" type="checkbox" />
+							<label for="suppress_join">Hide Join/Part Messages</label>
+						</div>
+						<div class="option">
+							<input id="highlight_mine" type="checkbox" />
+							<label for="highlight_mine">Highlight messages sent by me</label>
+						</div>
+						<div class="option">
+							<input type="checkbox" id="suppress_client">
+							<label for="suppress_client">Hide Client Messages</label>
+						</div>
+						<div class="option">
+							<input type="checkbox" id="suppress_identity_acknowledgements">
+							<label for="suppress_identity_acknowledgements">Hide Identity Acknowledgement Messages</label>
+						</div>
+						<div class="option">
+							<input type="checkbox" id="auto_scroll">
+							<label for="auto_scroll">Auto Scroll to New Messages</label>
+						</div>
+						<div class="option">
+							<input id="show_OS_notifications" type="checkbox" />
+							<label for="show_OS_notifications">Show OS Notifications</label>
+						</div>
+						<div class="option">
+							<input id="show_mewl" type="checkbox" />
+							<label for="show_mewl">Show Mewl Notifications</label>
+						</div>
+						<div class="option">
+							<input id="prefer_24hr_clock" type="checkbox" />
+							<label for="prefer_24hr_clock">24 Hour Clock</label>
+						</div>
+						<div class="option">
+							<input id="join_default_channel" type="checkbox" />
+							<label for="join_default_channel">Join channel "/" on start</label>
+						</div>
 					</div>
-					<div class="option">
-						<input type="checkbox" id="suppress_identity_acknowledgements">
-						<label for="suppress_identity_acknowledgements">Hide Identity Acknowledgement Messages</label>
-					</div>
-					<div class="option">
-						<input type="checkbox" id="auto_scroll">
-						<label for="auto_scroll">Auto Scroll to New Messages</label>
-					</div>
-					<div class="option">
-						<input id="show_OS_notifications" type="checkbox" />
-						<label for="show_OS_notifications">Show OS Notifications</label>
-					</div>
-					<div class="option">
-						<input id="show_mewl" type="checkbox" />
-						<label for="show_mewl">Show Mewl Notifications</label>
-					</div>
-					<div class="option">
-						<input id="prefer_24hr_clock" type="checkbox" />
-						<label for="prefer_24hr_clock">24 Hour Clock</label>
-					</div>
-					<div class="option">
-						<input id="join_default_channel" type="checkbox" />
-						<label for="join_default_channel">Join channel "/" on start</label>
-					</div>
-				</div>
+				</section>
 			</section>
-		</section>
+		</div>
 	</section>
 	<div id="ghetto_templates">
 		<span id="linklog-options" class="options">options</span>
@@ -96,7 +113,8 @@
 	</div>
 	<script src="/socket.io/socket.io.js"></script>
 	<!-- build:js client/app.min.js -->
-	<script data-main="client/app" src="client/lib/requirejs/require.js"></script>
+	<script src="/js/vendor.min.js"></script>
+	<script src="/js/app.min.js"></script>
 	<!-- endbuild -->
 	<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.0/css/font-awesome.css" rel="stylesheet">
 </body>

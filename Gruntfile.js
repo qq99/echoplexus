@@ -27,6 +27,9 @@ module.exports = function(grunt) {
         files: {
           '<%= index.build %>': '<%= index.dev %>'
         }
+      },
+      build: {
+
       }
     },
     'useminPrepare':{
@@ -58,10 +61,40 @@ module.exports = function(grunt) {
         })
       }
     },
+    mocha: {
+      // Test all files ending in .html anywhere inside the test directory.
+      browser: ['tests/testrunner.html'],
+      options: {
+        reporter: 'Nyan', // Duh!
+        run: true
+      }
+    },
     strip: {
       dist: {
         src: '<%= requirejs.dist.options.out %>',
         dest: '<%= requirejs.dist.options.out %>'
+      }
+    },
+    coffee: {
+      src: {
+        options: {
+          bare: true
+        },
+        expand: true,
+        cwd: 'src',
+        src: ['**/*.coffee'],
+        dest: 'build',
+        ext: '.js'
+      },
+      test: {
+        options: {
+          bare: true
+        },
+        expand: true,
+        cwd: 'tests',
+        src: ['**/*.coffee'],
+        dest: 'tests',
+        ext: '.js'
       }
     },
     //CSS
@@ -88,7 +121,8 @@ module.exports = function(grunt) {
           "<%= client_dir %>app.min.js",
           "<%= public_dir %>css/main.css",
           "<%= public_dir %>css/",
-          "<%= public_dir %>index.build.html"
+          "<%= public_dir %>index.build.html",
+          "build/*"
         ]
       },
       nw: {
@@ -118,7 +152,7 @@ module.exports = function(grunt) {
           {expand: true, src: ['node_modules/growl/**']},
       		{expand: true, src: ['**/*'], cwd: '<%= public_dir %>'},
       		{
-            expand: true, 
+            expand: true,
             src: _.union([
                 '<%= client_dir %>**',
                 '!<%= client_dir %>lib/**',
@@ -140,16 +174,20 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-css');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
+  grunt.loadNpmTasks('grunt-contrib-coffee');
   grunt.loadNpmTasks('grunt-strip');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-htmlmin');
   grunt.loadNpmTasks('grunt-usemin');
   grunt.loadNpmTasks('grunt-exec');
   grunt.loadNpmTasks('grunt-contrib-compress');
+  grunt.loadNpmTasks('grunt-mocha');
 
   // Default task.
   grunt.registerTask('default', ['clean','copy','useminPrepare','requirejs','strip','usemin','htmlmin','sass','cssmin']);
-  grunt.registerTask('dev', ['clean','sass']);
+  grunt.registerTask('dev', ['clean','coffee:src','sass']);
+  grunt.registerTask('test', ['mocha']);
+  grunt.registerTask('compile', ['coffee']);
   grunt.registerTask('nw', ['clean', 'sass', 'compress:pack_app']);
   grunt.registerTask('nw_launch', ['nw', 'exec:launch_app']);
 
