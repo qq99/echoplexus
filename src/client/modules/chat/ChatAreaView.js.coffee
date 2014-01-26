@@ -34,6 +34,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     "click .media-opt-in .opt-in": "allowMedia"
     "click .media-opt-in .opt-out": "disallowMedia"
     "click .chatMessage-edit": "beginEdit"
+    "click .toggle-support-bar": "toggleSupportBar"
     "mouseenter .quotation": "showQuotationContext"
     "mouseleave .quotation": "hideQuotationContext"
     "blur .body[contenteditable='true']": "stopInlineEdit"
@@ -536,3 +537,15 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
   showYoutubeVideo: (ev) ->
     $(ev.currentTarget).hide()
     $(ev.currentTarget).siblings(".video").show()
+
+  toggleSupportBar: (ev) ->
+    $target = $(ev.currentTarget)
+    $button = $target.find(".btn")
+
+    if $button.hasClass("fa-caret-right")
+      $button.removeClass("fa-caret-right").addClass("fa-caret-left")
+    else
+      $button.removeClass("fa-caret-left").addClass("fa-caret-right")
+
+    $target.parents(".supportbar").toggleClass("expanded").siblings(".chatlog").toggleClass("expanded")
+
