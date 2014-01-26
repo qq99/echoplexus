@@ -8,28 +8,12 @@ Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
 
 Join the developer chat @ [chat.echoplex.us/echodev](https://chat.echoplex.us/echodev "Echoplexus Developer Chat")
 
+[What's new?](https://github.com/qq99/echoplexus/blob/master/CHANGELOG.md "Echoplexus Changelog")
+
 In a nutshell
 -------------
 
 Echoplexus is an anonymous, web-based, IRC-like chatting platform that makes its best effort to respect your privacy.  It allows you to create public or private channels.  You can secure a pseudonym for linkable anonymity (think: `/msg nickserv register ____`.  You can code and draw together in real time.  **As of v0.2.0, you can make Peer2Peer video and voice calls with the people in your channel.**
-
-Coming up in 0.2.3
-------------------
-
-Major:
-
-- [x] Complete rewrite in coffeescript
-- [x] Unit tests with `testem`
-- [x] Re-tooled and remove `requirejs` in favour of `browserify`
-- [x] GitHub postreceive hook support, displaying the commit names & links to the commits
-- [x] Firefox Marketplace App that can [be install here](https://chat.echoplex.us/install.html), creating a usable mobile app for Firefox OS, Android via 'Firefox Beta for Android', and desktop clients via Firefox Aurora/Nightly
-- [ ] Mobile styles and touch gesture support
-- [ ] Automated unit tests via travis
-
-Minor:
-- no longer hear yourself talking when in a call
-- improved subdivision algorithm of Call panel, proved correctness with unit tests
-- miscelaneous other bug fixes uncovered by unit tests
 
 Future Goals
 ------------
@@ -91,6 +75,7 @@ Currently Supported Commands:
 - `>>[integer]`: Quotes a specific chat message.  Clicking the Reply icon on the chat message will automatically add this for you.
 - `/chown [password]`: Become the channel owner.  This gives you all permissions in the channel and allows you to `/chmod`
 - `/chmod [(+|-)permissionName] [optional username]`:  This allows you to selectively toggle on/off certain permissions for the particular channel or user.  User permissions are checked first, and if not set, then channel permissions are checked.  If a username is not supplied, then the permission is specified at the channel level.
+- `/github track [github repo URL]`: This generates a URL that you can add to your repo's postreceive hooks on Github.
 
 Example:
   - `/chmod -canSpeak`: now everyone in the channel can't speak unless you do `/chmod +canSpeak [username]` to selectively enable it for a specific user.
@@ -102,6 +87,7 @@ The currently implemented list of permissions (and their defaults) includes:
   - canSpeak: true
   - canPullLogs: true
   - canUploadFile: null
+  - canSetGithubPostReceiveHooks: null
 
 *Note:* Nickname registrations are considered on a per-channel basis to increase the available nickspace for all users.  Thus, you will have to register for a specific nickname many times across each channel you join.
 
