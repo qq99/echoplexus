@@ -6,7 +6,7 @@ Major:
 - Unit tests with `testem`
 - Re-tooled and remove `requirejs` in favour of `browserify`
 - GitHub postreceive hook support, displaying the commit names & links to the commits
-- Firefox Marketplace App that can [be installed here](https://chat.echoplex.us/install.html), creating a usable mobile app for Firefox OS, Android via 'Firefox Beta for Android', and desktop clients via Firefox Aurora/Nightly
+- Firefox Marketplace App that can [be installed here](https://chat.echoplex.us/install.html) or [on the Firefox Marketplace](https://marketplace.firefox.com/app/echoplexus), creating a usable mobile app for Firefox OS, Android via 'Firefox Beta for Android', and desktop clients via Firefox Aurora/Nightly.  If you're a server operator, you can install your own copy by visiting https://yourechoplex.us/install.html
 - Mobile styles and touch gesture support
 - Automated unit tests via travis
 - no longer hear yourself talking when in a call
