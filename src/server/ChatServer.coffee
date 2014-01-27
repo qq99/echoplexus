@@ -200,7 +200,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			dice = "d20"
 			diceResult = 0
                         
-			if data.dice !== ''
+			if data.dice isnt ""
 				dice = data.dice.substring(0, data.dice.length).trim()
 				diceType = 20
 				diceMultiple = 1
@@ -213,23 +213,24 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					else
 						diceType = dice
 				else
-                         		dice = "d20"
+          dice = "d20"
 
-				if diceMultiple > 1
-                         		diceEach = ""
-					for i=0; i<diceMultiple; i++
-						roll = (1 + Math.floor(Math.random() * diceType))
-						diceResult += roll
-	                         		if i === 0
-	                         			diceEach = " " + roll + " "
-						else
-	                         			diceEach = diceEach + " + " + roll + " "
-						diceResult = diceEach + " = " + diceResult
-	                        else
-					diceResult = (1 + Math.floor(Math.random() * diceType))
-                        
+        if diceMultiple > 1
+          diceEach = ""
+          i = 0
+          while i < diceMultiple
+            roll = (1 + Math.floor(Math.random() * diceType))
+            diceResult += roll
+            if i is 0
+              diceEach = " " + roll + " "
+            else
+              diceEach = diceEach + " + " + roll + " "
+            i++
+          diceResult = diceEach + " = " + diceResult
+        else
+          diceResult = (1 + Math.floor(Math.random() * diceType))         
 			else
-				diceResult = (1 + Math.floor(Math.random() * 20))
+		    diceResult = (1 + Math.floor(Math.random() * 20))
                         
 			socket.in(room).broadcast.emit('chat:' + room, serverSentMessage({
 				body: client.get("nick") + " rolled " + dice + " dice: " + diceResult
