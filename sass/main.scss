@@ -9,6 +9,7 @@ $pretty-font-family : 'Open Sans', 'Noto Sans', sans-serif;
 $monospace          : 'Droid Sans Mono', monospace;
 $timestamp-width    : 12em;
 $chatinput-height   : 6em;
+$darkgrey 					: #111;
 
 .death-warning {
 	color:red;
@@ -182,13 +183,9 @@ a {
 }
 
 #is-private {
+	@include panel;
 	display:none;
-	font-family:$pretty-font-family;
-	width:100%;
-	height:100%;
-	position:absolute;
-	left:0;
-	top:0;
+	font-family: $pretty-font-family;
 	z-index:1000;
 	padding: 20em 25%;
 	text-align:center;
@@ -212,12 +209,8 @@ a {
 }
 
 #main {
-	position:absolute;
-	top:0;
-	left:0;
+	@include panel;
 	padding-left:30px;
-	width:100%;
-	height:100%;
 	max-height:100%;
 	max-width:100%;
 	padding-top:40px;
@@ -231,7 +224,7 @@ a {
 	border:0;
 	margin:0;
 	padding:0.25em 0.75em;
-	background:#111;
+	background: $darkgrey;
 	color:#777;
 	border:1px solid #333;
 	position:relative;
@@ -264,30 +257,23 @@ button.fancy {
 }
 
 nav.header {
-	position:absolute;
-	top:0;
-	left:0;
-	height:30px;
+	@include panel;
+	height: 30px;
 	z-index:120;
 	background:rgba(0,0,0,0.4);
-	width:100%;
 	display:none; // temp
+}
+
+#buttons {
+	height: 100%;
 }
 
 nav.functionality {
 	@include unselectable;
-
-	#buttons {
-		height: 100%;
-	}
-
-	background:#111;
-	position: absolute;
-	width:30px;
+	@include panel;
+	width: 30px;
+	background: $darkgrey;
 	z-index: 120;
-	top:0;
-	left:0;
-	height:100%;
 	// padding-top:30px;
 	h1 {
 		@include transition(all 0.25s ease-in-out);
@@ -507,7 +493,7 @@ header {
 				width:2em;
 				font-size:1.3em;
 				font-style:normal;
-				background:#111;
+				background: $darkgrey;
 				vertical-align: middle;
 				color:#333;
 				border:1px solid transparent;
@@ -801,7 +787,7 @@ $supportbar-width: 300px;
 				color:#efefef;
 				background:#222;
 			}
-			background:#111;
+			background:$darkgrey;
 			overflow:hidden;
 			padding:0.75em 1em;
 			font-size:1em;
@@ -1432,7 +1418,7 @@ body {
 	$arrow-width:10px;
 	$arrow-height:5px;
 	position: absolute;
-	background: #111;
+	background: $darkgrey;
 	margin-top:10px;
 	width: 16em;
 	font-size: 1em;
