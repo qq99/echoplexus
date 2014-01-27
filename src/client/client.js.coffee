@@ -301,7 +301,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     else if body.match(REGEXES.commands.help)
       socket.emit "help:" + room
     else if body.match(REGEXES.commands.roll)
-      body = body.replace(REGEXES.commands.roll, "").trim();
+      body = body.replace(REGEXES.commands.roll, "").trim()
       socket.emit 'roll:' + room,
         dice: body
 
