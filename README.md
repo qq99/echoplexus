@@ -147,7 +147,7 @@ HTTP API
 
 There's not much at the moment, but there is at least one endpoint exposed:
 
-`GET` -> `/api/channels` returns a list of all public channels that at one point had a user join since the server was started.  Contains the following pieces of information for each channel: `name`, `topic`, `private`, `hasOwner`, `numActiveClients`, `numClients`  There's nothing fancy here, but it might be useful for future integrations
+- `GET /api/channels`: returns a list of all public channels that at one point had a user join since the server was started.  Contains the following pieces of information for each channel: `name`, `topic`, `private`, `hasOwner`, `numActiveClients`, `numClients`  There's nothing fancy here, but it might be useful for future integrations
 
 Install
 -------
