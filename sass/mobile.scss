@@ -2,7 +2,7 @@
   .supportbar {
     display: none;
   }
-  .chatlog {
+  .chatarea {
     padding-right: 0px;
   }
 
@@ -12,12 +12,13 @@
 
   #main {
     padding-left: 0;
+    padding-top: 0;
   }
   nav.functionality {
     display: none;
   }
   #chatting {
-    .chatarea {
+    .messages-pane {
       padding-bottom: 3em;
     }
     .chatinput {

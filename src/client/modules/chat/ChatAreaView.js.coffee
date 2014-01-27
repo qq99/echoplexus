@@ -405,7 +405,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         i--
 
       # attempt to select this early message:
-      $target = $(".chatlog .chatMessage[rel='" + candidate + "']", @$el)
+      $target = $(".messages .chatMessage[rel='" + candidate + "']", @$el)
       if $target.length # it was in the DOM, so we can insert the current message after it
         if i is -1
           $target.last().before $chatMessage # .last() just in case there can be more than one $target
@@ -547,5 +547,5 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     else
       $button.removeClass("fa-caret-left").addClass("fa-caret-right")
 
-    $target.parents(".supportbar").toggleClass("expanded").siblings(".chatlog").toggleClass("expanded")
+    $target.parents(".supportbar").toggleClass("expanded").siblings(".chatarea").toggleClass("expanded")
 

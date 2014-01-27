@@ -391,9 +391,9 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   render: ->
     @$el.html @template()
-    $(".chatarea", @$el).html @chatLog.$el
+    $(".chat-panel", @$el).html @chatLog.$el
     @$el.attr "data-channel", @channelName
-    @$el.append @inputTemplate(encrypted: (typeof @me.cryptokey isnt "undefined" and @me.cryptokey isnt null))
+    @$el.find(".chatarea-contents").append @inputTemplate(encrypted: (typeof @me.cryptokey isnt "undefined" and @me.cryptokey isnt null))
 
   channelIsPrivate: =>
     @channel.isPrivate = true

@@ -209,7 +209,7 @@ $(document).ready ->
 
   # quick reply to PM:
   key "ctrl+r", ->
-    replyTo = $(".chatlog:visible .chatMessage.private:not(.me)").last().find(".nick").text().trim()
+    replyTo = $(".messages:visible .chatMessage.private:not(.me)").last().find(".nick").text().trim()
     $chatInput = $(".chatinput:visible textarea")
     currentBuffer = undefined
     currentBuffer = $chatInput.val()

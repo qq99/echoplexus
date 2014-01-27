@@ -8,6 +8,7 @@ $active-color       : rgba(71,178,250,0.7);
 $pretty-font-family : 'Open Sans', 'Noto Sans', sans-serif;
 $monospace          : 'Droid Sans Mono', monospace;
 $timestamp-width    : 12em;
+$chatinput-height   : 6em;
 
 .death-warning {
 	color:red;
@@ -15,6 +16,14 @@ $timestamp-width    : 12em;
 
 span.channelName {
 	color:green;
+}
+
+@mixin panel {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
 }
 
 @mixin clearfix {
@@ -575,6 +584,11 @@ header {
 		height:100%;
 		width:100%;
 		overflow: hidden;
+		&.pinned {
+			position: relative;
+			float: left;
+			width: 50%;
+		}
 	}
 }
 
@@ -727,11 +741,10 @@ $supportbar-width: 300px;
 #chatting {
 	position: absolute;
 	height:100%;
-	$chatinput-height:6em;
-	.chatarea {
+
+	.chat-panel {
 		position:relative;
 		height:100%;
-		padding-bottom:$chatinput-height;
 		& > div {
 			height:100%;
 			padding-bottom:0;
@@ -745,7 +758,7 @@ $supportbar-width: 300px;
 	}
 	.chatinput {
 		width:100%;
-		padding:1em $supportbar-width 0 1em;
+		padding:1em 1em 0 1em;
 		position:absolute;
 		bottom:0;
 		left:0;
@@ -850,7 +863,7 @@ $room-specific-height: 80px;
 	width:100%;
 	padding-bottom:1em;
 }
-.chatlog {
+.chatarea {
 	position:relative;
 	overflow:hidden;
 	max-height:100%;
@@ -868,6 +881,19 @@ $room-specific-height: 80px;
 		overflow-y:auto;
 	}
 }
+.chatarea-contents {
+	position: relative;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+}
+
+.messages-pane {
+	@include panel;
+	padding-bottom: $chatinput-height;
+}
+
 .supportbar {
 	height:100%;
 	width: 0;
