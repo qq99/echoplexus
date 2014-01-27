@@ -29,7 +29,7 @@ module.exports.REGEXES =
     chmod: /^\/chmod /
     reply: /(>>|&gt;&gt;)(\d+)/g
     github: /^\/github /
-    roll: /^\/roll /
+    roll: /^\/(roll|r)( |)/
 
   github_subcommands:
     track: /^track/
