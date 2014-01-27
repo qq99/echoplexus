@@ -206,7 +206,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				diceType = 20
 				diceMultiple = 1
         
-			if data.dice isnt "" 
+			if dice isnt "d20"
     		if dice.match(/^(\d|)(d|)(2|3|4|6|8|10|12|20|100)$/)
     			if dice.match(/^(\d|)d/)
     				diceType = dice.replace(/(\dd|)(d|)/, "").trim()
@@ -233,7 +233,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
           diceResult = (1 + Math.floor(Math.random() * diceType))         
 			else
 		    diceResult = (1 + Math.floor(Math.random() * 20))
-		    dice = "d20"
                         
 			socket.in(room).broadcast.emit('chat:' + room, @serverSentMessage({
 				body: client.get("nick") + " rolled " + dice + " dice: " + diceResult
