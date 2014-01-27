@@ -587,7 +587,7 @@ header {
 		height:100%;
 		width:100%;
 		overflow: hidden;
-		&.pinned {
+		&.pinned-section {
 			position: relative;
 			float: left;
 			width: 50%;
@@ -648,6 +648,14 @@ header {
 		height:100%;
 		padding-bottom:0;
 	}
+}
+
+.pin-button {
+	position: absolute;
+	z-index: 1000;
+	font-size:1.5em;
+	right:0.5em;
+	top:0;
 }
 
 .chatChannel {
@@ -748,6 +756,10 @@ header {
 	}
 }
 
+.btn {
+	cursor: pointer;
+}
+
 .channel-options {
 	height:2em;
 }
@@ -798,7 +810,7 @@ header {
 	.toggle-support-bar {
 		display: block;
 		position: absolute;
-		left:-15px;
+		left:-30px;
 		top:50%;
 		font-size: 3em;
 		margin-top: -1em;

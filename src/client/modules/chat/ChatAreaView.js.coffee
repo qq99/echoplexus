@@ -35,6 +35,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     "click .media-opt-in .opt-out": "disallowMedia"
     "click .chatMessage-edit": "beginEdit"
     "click .toggle-support-bar": "toggleSupportBar"
+    "click .pin-button": "pinChat"
     "mouseenter .quotation": "showQuotationContext"
     "mouseleave .quotation": "hideQuotationContext"
     "blur .body[contenteditable='true']": "stopInlineEdit"
@@ -121,12 +122,26 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       userlistClasses = "maximized"
     else # user hasn't actually made a choice (null value)
       linklogClasses = "not-initialized"
+
     @$el.html @template(
       roomName: @room
       linklogClasses: linklogClasses
       optInClasses: optInClasses
       userlistClasses: userlistClasses
+      pinned: window.chatIsPinned
     )
+
+    @stickit window.GlobalUIState,
+      "i.pin":
+        attributes: [{
+          name: 'class'
+          observe: 'chatIsPinned'
+          onGet: 'formatPinned'
+        }]
+
+  formatPinned: (isPinned) ->
+    return 'fa fa-expand' if isPinned
+    return 'fa fa-compress'
 
   unminimizeMediaLog: -> # nb: not the opposite of maximize
     # resets the state to the null choice
@@ -318,7 +333,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       sanitizer = new HTMLSanitizer
       body = sanitizer.sanitize(body, ["A", "I", "IMG","UL","LI"], ["href", "title", "class", "src", "target", "rel"])
       nickname = sanitizer.sanitize(nickname, ["I"], ["class"])
-      console.log nickname
     else
       body = _.escape(body)
       nickname = _.escape(nickname)
@@ -549,3 +563,14 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
     $target.parents(".supportbar").toggleClass("expanded").siblings(".chatarea").toggleClass("expanded")
 
+  pinChat: (ev) ->
+    $target = $(ev.currentTarget)
+
+    window.GlobalUIState.set('chatIsPinned', !window.GlobalUIState.get('chatIsPinned'))
+
+    $("#chatting").toggleClass("pinned-section")
+    if window.GlobalUIState.get('chatIsPinned')
+      $(".tabButton").not("[data-target='#chatting']").first().click() # as soon as we pin the chat, we'll click the next module open
+    else
+      $("#panes > section").hide() # hide everything
+      $(".tabButton[data-target='#chatting']").click() # make it as if chat were active for the very first time

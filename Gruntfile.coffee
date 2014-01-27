@@ -30,6 +30,7 @@ module.exports = (grunt) ->
           "vendor/moment/moment.js"
           "vendor/underscore/underscore.js"
           "vendor/backbone/backbone.js"
+          "vendor/backbone.stickit/backbone.stickit.js"
           "vendor/codemirror/lib/codemirror.js"
           "vendor/codemirror/mode/xml/xml.js"
           "vendor/codemirror/mode/css/css.js"

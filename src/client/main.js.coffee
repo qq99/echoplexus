@@ -21,6 +21,9 @@ window.hidePrivateOverlay = ->
   $("#is-private, #info-overlay").hide()
   $("#panes").show()
 
+window.GlobalUIState = new Backbone.Model
+  chatIsPinned: false
+
 DEBUG = true  if typeof DEBUG is "undefined"
 
 
@@ -239,10 +242,17 @@ $(document).ready ->
     ev.preventDefault()
     $(this).removeClass "activity"
     element = $(this).data("target")
+
     if $(element + ":visible").length is 0
       $(".tabButton").removeClass "active"
       $(this).addClass "active"
-      $("#panes > section").not(element).hide()
+
+      if window.GlobalUIState.get('chatIsPinned')
+        $(element).addClass('pinned-section') # we'll pin the other module we clicked on too
+        $("#panes > section").not(element).not('#chatting').hide() # and hide everything except the #chatting and intended module
+      else
+        $(element).removeClass('pinned-section') #
+        $("#panes > section").not(element).hide()
 
       $(element).show()
 
