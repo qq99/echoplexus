@@ -152,3 +152,15 @@ $call-button-width      : 6em;
 		}
 	}
 }
+
+.videos {
+	width:100%;
+}
+.in-call {
+	.videos {
+		position:absolute;
+		height:100%;
+		width:100%;
+		padding-bottom:$my-stream-height;
+	}
+}
