@@ -218,7 +218,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
                         
 				if diceMultiple > 1
                          		diceEach = ""
-					for var i=0; i<diceMultiple; i++
+					for i=0; i<diceMultiple; i++
 						roll = (1 + Math.floor(Math.random()* diceType))
 						diceResult += roll
 	                         		if i === 0
