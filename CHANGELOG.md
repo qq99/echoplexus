@@ -10,6 +10,8 @@ Major:
 - Mobile styles and touch gesture support
 - Automated unit tests via travis
 - no longer hear yourself talking when in a call
+- fontawesome 4.0.3
+- ability to pin the Chat panel in an open state
 
 Minor:
 - improved subdivision algorithm of Call panel, proved correctness with unit tests
