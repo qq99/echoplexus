@@ -203,7 +203,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			if data.dice !== ''
 				dice = data.dice.substring(0, data.dice.length).trim()
 				diceType = 20
-                         	diceMultiple = 1
+				diceMultiple = 1
                         
 			if dice.match(/^(\d|)(d|)(2|3|4|6|8|10|12|20|100)$/)
 				if dice.match(/^(\d|)d/)
