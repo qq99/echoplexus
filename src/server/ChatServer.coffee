@@ -17,6 +17,9 @@ DEBUG 						= config.DEBUG
 GithubWebhook 		= require("./GithubWebhookIntegration.coffee")
 EventBus 					= require("./EventBus.coffee").EventBus()
 
+# Extensions:
+Dice 							= require("./extensions/dice.coffee").Dice
+
 module.exports.ChatServer = class ChatServer extends AbstractServer
 	name: "ChatServer"
 	namespace: "/chat"
@@ -197,51 +200,18 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 		"roll": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
-			dice = "d20"
-			diceResult = 0
+			dice = data.dice
 
-      # I really do not understand why these cant be in the same if statement
-			if data.dice isnt ""
-				dice = data.dice.substring(0, data.dice.length).trim()
-				diceType = 20
-				diceMultiple = 1
-        
-			if dice isnt "d20"
-    		if dice.match(/^(\d|)(d|)(2|3|4|6|8|10|12|20|100)$/)
-    			if dice.match(/^(\d|)d/)
-    				diceType = dice.replace(/(\dd|)(d|)/, "").trim()
-    				if dice.match(/(\d)d/)
-    					diceMultiple = dice.replace(/d(2|3|4|6|8|10|12|20|100)$/, "").trim()
-    				else
-    					diceType = dice
-    			else
-            dice = "d20"
+			result = Dice::formatResult Dice::parseAndRollDice(dice)
 
-        if diceMultiple > 1
-          diceEach = ""
-          i = 0
-          while i < diceMultiple
-            roll = (1 + Math.floor(Math.random() * diceType))
-            diceResult += roll
-            if i is 0
-              diceEach = " " + roll + " "
-            else
-              diceEach = diceEach + " + " + roll + " "
-            i++
-          diceResult = diceEach + " = " + diceResult
-        else
-          diceResult = (1 + Math.floor(Math.random() * diceType))         
-			else
-		    diceResult = (1 + Math.floor(Math.random() * 20))
-                        
 			socket.in(room).broadcast.emit('chat:' + room, @serverSentMessage({
-				body: client.get("nick") + " rolled " + dice + " dice: " + diceResult
+				body: "#{client.get("nick")} #{result}"
 			}, room))
-                        
+
 			socket.in(room).emit('chat:' + room, @serverSentMessage({
-				body: "You rolled " + dice + " dice: " + diceResult
+				body: "You #{result}"
 			}, room))
-                        
+
 
 		"chown": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")

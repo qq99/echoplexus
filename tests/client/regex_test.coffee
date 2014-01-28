@@ -235,6 +235,17 @@ describe 'Regexes', ->
       it 'matches anywhere in the string', ->
         assertMatches("I think >>55 is completely wrong.", @re)
 
+    describe 'roll', ->
+      beforeEach ->
+        @re = regexes.commands.roll
+      it 'matches /roll', ->
+        assertMatches("/roll", @re)
+      it 'matches /roll with a dice', ->
+        assertMatches("/roll 1d20", @re)
+        assertMatches("/roll 3d9", @re)
+      it 'does not match in the middle of a string', ->
+        assertNoMatches(" /roll 5d50", @re)
+
   describe 'colors', ->
     describe 'hex', ->
       beforeEach ->
