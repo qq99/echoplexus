@@ -76,7 +76,7 @@ Currently Supported Commands:
 - `/chown [password]`: Become the channel owner.  This gives you all permissions in the channel and allows you to `/chmod`
 - `/chmod [(+|-)permissionName] [optional username]`:  This allows you to selectively toggle on/off certain permissions for the particular channel or user.  User permissions are checked first, and if not set, then channel permissions are checked.  If a username is not supplied, then the permission is specified at the channel level.
 - `/github track [github repo URL]`: This generates a URL that you can add to your repo's postreceive hooks on Github.
-- `/roll [((1d20|d20|20)|)] )`: will roll a 1d20.  When rolling multiples, each roll is displayed then added together.  Trying to roll an invalid dice format will default to a d20.
+- `/roll [1d20|2d30|5d6] )`: will roll a 1d20.  When rolling multiples, each roll is displayed then added together.  Trying to roll an invalid dice format will default to a d20.
 Aliases: `/r`
 
 Example:
