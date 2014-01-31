@@ -54,8 +54,6 @@ else # web browser
 
 $(document).ready ->
 
-  globalOptions = new Options()
-
   # messy, hacky, but make it safer for now
   turnOffLiveReload = ->
     $(".livereload").attr "checked", false
@@ -118,6 +116,7 @@ $(document).ready ->
     "reconnection delay": 2000
     "max reconnection attempts": 1000
 
+  globalOptions = new Options()
   channelSwitcher = new ChannelSwitcher()
   $("header").append channelSwitcher.$el
   notifications.enable()

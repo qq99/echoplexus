@@ -20,10 +20,9 @@ $(document).ready ->
     suppress_join: true
     highlight_mine: true
     prefer_24hr_clock: false
-    suppress_client: true
+    suppress_client: false
     show_OS_notifications: true
     suppress_identity_acknowledgements: true
-    join_default_channel: true
     auto_scroll: true
 
   # grab the query params:

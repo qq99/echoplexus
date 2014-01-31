@@ -182,7 +182,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     "click .upload": "uploadFile"
 
   _scrollSyncLogs: (ev) ->
-
     # make a note of how tall in scrollable px the messages area used to be
     @previousScrollHeight = ev.currentTarget.scrollHeight
 

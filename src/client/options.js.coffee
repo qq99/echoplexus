@@ -18,7 +18,7 @@ module.exports.Options = class Options
 
     #Check if the options are in the cookie, if so update the value
     valueFromCookie = $.cookie(option)
-    value = valueFromCookie if (valueFromCookie isnt null) and (typeof valueFromCookie isnt "undefined")
+    value = JSON.parse(valueFromCookie) if (valueFromCookie isnt null) and (typeof valueFromCookie isnt "undefined")
     window.OPTIONS[option] = value
     if value
       $("body").addClass option
@@ -36,9 +36,12 @@ module.exports.Options = class Options
       else
         $("body").removeClass option
 
+  updateAllOptions: () ->
+    _.each window.OPTIONS, @updateOption
+
   constructor: (@options) ->
     if !@options
       @options = @defaults
 
     window.OPTIONS = @options
-    _.each window.OPTIONS, @updateOption
+    @updateAllOptions()
