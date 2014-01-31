@@ -37,6 +37,7 @@ Known Issues:
 Install the required server-side packages
 
     $ npm install
+    $ npm install -g coffee grunt grunt-cli (probably need `sudo`)
 
 ### bower Packages
 Install the required client-side libraries
