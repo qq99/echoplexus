@@ -213,7 +213,9 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     # can't simply use last-child, since the last child may be display:none
     # if the user is hiding join/part
     latestMessage = ($(".messages .chatMessage:visible", @$el).last())[0] # so we get all visible, then take the last of that
-    latestMessage.scrollIntoView()  if typeof latestMessage isnt "undefined"
+
+    # do not use scrollIntoView since that messes with the page if iframed
+    $(".messages")[0].scrollTop = latestMessage.offsetTop if typeof latestMessage isnt "undefined"
 
   replaceChatMessage: (msg) ->
     msgHtml = @renderChatMessage(msg, # render the altered message, but don't insert it yet
