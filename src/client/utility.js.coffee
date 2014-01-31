@@ -3,6 +3,12 @@
 #    useful extensions to global objects, if they must be made, should be made here
 #
 
+# attempt to determine their browsing environment
+ua = window.ua =
+  firefox: !!navigator.mozConnection #Firefox 12+
+  chrome: !!window.chrome
+  node_webkit: typeof process isnt "undefined" and process.versions and !!process.versions["node-webkit"]
+
 # clean up this global stuff!
 if Storage
   # extend the local storage protoype if it exists

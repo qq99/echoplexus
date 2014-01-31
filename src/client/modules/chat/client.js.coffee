@@ -441,7 +441,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
 
       # do not show a growl for this channel's chat if we're looking at it
-      if OPTIONS.show_mewl and (@hidden or not chatModeActive())
+      if (@hidden or not chatModeActive())
         growl = new Mewl(
           title: @channelName + ":  " + fromNick
           body: msgBody

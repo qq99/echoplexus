@@ -48,6 +48,10 @@ module.exports = (grunt) ->
           main: "src/client/main.js.coffee"
           compiled: "<%= public_dir %>js/app.min.js"
 
+        embedded:
+          main: "src/embedded-client/main.js.coffee"
+          compiled: "<%= public_dir %>js/embedded.app.min.js"
+
       templates:
         src: "app/templates/**/*.hb"
         compiled: "generated/template-cache.js"
@@ -57,17 +61,27 @@ module.exports = (grunt) ->
       dist:
         files:
           '<%= public_dir %>css/main.css' : 'sass/combined.scss'
+          '<%= public_dir %>css/embedded.css' : 'sass/embedded.scss'
+
     cssmin:
       dist:
         src: '<%= public_dir %>css/main.css'
         dest: '<%= public_dir %>css/main.css'
-
-
+      embedded:
+        src: '<%= public_dir %>css/embedded.css'
+        dest: '<%= public_dir %>css/embedded.css'
 
     browserify:
       app:
         files:
           "<%= files.js.app.compiled %>" : "<%= files.js.app.main %>"
+        options:
+          debug: true
+          transform: ["coffeeify", "node-underscorify"]
+
+      embedded:
+        files:
+          "<%= files.js.embedded.compiled %>" : "<%= files.js.embedded.main %>"
         options:
           debug: true
           transform: ["coffeeify", "node-underscorify"]
@@ -92,8 +106,8 @@ module.exports = (grunt) ->
         tasks: ["concat_sourcemap"]
 
       coffee:
-        files: ["src/client/**/*.coffee", "src/client/**/*.html"]
-        tasks: ["browserify", "concat_sourcemap"]
+        files: ["src/client/**/*.coffee", "src/client/**/*.html", "src/embedded-client/**/*.coffee", "src/embedded-client/**/*.html"]
+        tasks: ["browserify:app", "browserify:embedded", "concat_sourcemap"]
 
       sass:
         files: ["<%= files.sass.src %>"]

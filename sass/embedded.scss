@@ -1,0 +1,98 @@
+@import "_prefixer.scss";
+@import "_transition.scss";
+@import "_transform.scss";
+@import "_keyframes.scss";
+@import "_animation.scss";
+@import "view_modifiers";
+
+$link: #3af;
+
+// a sensible box model that makes all of this possible
+* {
+  box-sizing:border-box;
+  -moz-box-sizing:border-box;
+  -webkit-box-sizing:border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+a {
+  color: $link;
+}
+
+.pin-button, .supportbar, .not-encrypted, .channel-options {
+  display: none;
+}
+.time {
+  float:right;
+}
+.chatMessage {
+  border-radius:5px;
+  background: #efefef;
+  padding:1em;
+  margin:1em 1.5em;
+  &:nth-child(2n) {
+    background: #f0f0f0;
+  }
+}
+
+.messages-pane, .chatinput {
+  position: absolute;
+}
+.chat-input-control, textarea {
+  width: 100%;
+  height:100%;
+}
+.chat-input-control {
+  padding: 0.5em 1em;
+}
+textarea {
+  padding:1em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+}
+.messages-pane {
+  width:100%;
+  height:90%;
+  overflow-y: scroll;
+}
+.chatinput {
+  width:100%;
+  height:10%;
+  bottom: 0;
+}
+.nick-decorators {
+  float:left;
+  padding-right: 0.5em;
+}
+.nick {
+  text-shadow: 1px 1px 0px #ccc;
+}
+.time {
+  color: #666;
+  font-size:0.9em;
+}
+.chatMessage-edit {
+  font-size: 0.8em;
+  display: inline-block;
+  cursor: pointer;
+  &::after {
+    content: "Edit message";
+    color: $link;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+}

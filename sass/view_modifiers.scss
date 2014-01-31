@@ -22,4 +22,9 @@ body {
       display:none;
     }
   }
+  &.show_mewl {
+    .growl {
+      display: block;
+    }
+  }
 }

@@ -140,10 +140,9 @@ module.exports.CallClient = class CallClient extends Backbone.View
         body: clientNick + " joined the call!"
         tag: "callStatus"
 
-      if window.OPTIONS.show_mewl
-        mewl = new Mewl
-          title: @channelName
-          body: clientNick + " joined the call!"
+      mewl = new Mewl
+        title: @channelName
+        body: clientNick + " joined the call!"
 
     # on peer leaving the call:
     @rtc.on "disconnected_stream", (clientID) =>

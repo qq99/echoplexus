@@ -1,12 +1,5 @@
 <div class="chatMessage <%= classes %>" rel="<%= timestamp %>" data-sequence="<%= mID %>">
 	<a name="<%- room + mID %>"></a>
-	<div class="message-options">
-		<% if (mine && mID) { %>
-		<div class="chatMessage-edit">
-			<i class="fa fa-pencil"></i>
-		</div>
-		<% } %>
-	</div>
 	<div data-timestamp="<%= timestamp %>" class="time"><%- humanTime %></div>
 	<div class="nick <%= nickClasses %>" style="color: <%= color %>">
 		<% if (is_encrypted) { %>
@@ -23,6 +16,13 @@
 		<% if (mID) { %>
 		<div class="nick-decorators">
 			<i class="fa fa-reply reply-button"></i>
+		</div>
+		<% } %>
+	</div>
+	<div class="message-options">
+		<% if (mine && mID) { %>
+		<div class="chatMessage-edit">
+			<i class="fa fa-pencil"></i>
 		</div>
 		<% } %>
 	</div>

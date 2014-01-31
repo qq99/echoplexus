@@ -357,7 +357,10 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       chatMessageClasses = ""
       nickClasses = ""
       humanTime = undefined
-      if not opts.delayInsert and not msg.get("fromBatch")
+
+      if not opts.delayInsert
+        humanTime = moment(msg.get("timestamp")).fromNow()
+      else if (new Date()) - msg.get("timestamp") > 1000*60*60*2
         humanTime = moment(msg.get("timestamp")).fromNow()
       else
         humanTime = @renderPreferredTimestamp(msg.get("timestamp"))

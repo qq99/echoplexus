@@ -2,6 +2,7 @@ ChannelSwitcher   = require("./ui/ChannelSwitcher.js.coffee").ChannelSwitcher
 Notifications     = require("./ui/Notifications.js.coffee").Notifications
 Faviconizer       = require("./ui/Faviconizer.js.coffee").Faviconizer
 TouchGestures     = require("./ui/TouchGestures.js.coffee").TouchGestures
+Options           = require("./options.js.coffee").Options
 utility           = require("./utility.js.coffee")
 require("./events.js.coffee")()
   # require "./modules/user_info/UserData.js.coffee"
@@ -39,14 +40,8 @@ window.COOKIE_OPTIONS =
 # require secure cookies if the protocol is https
 window.COOKIE_OPTIONS.secure = true if window.location.protocol is "https:"
 
-# attempt to determine their browsing environment
-ua = window.ua =
-  firefox: !!navigator.mozConnection #Firefox 12+
-  chrome: !!window.chrome
-  node_webkit: typeof process isnt "undefined" and process.versions and !!process.versions["node-webkit"]
-
 # determine the echoplexus host based on environment
-if ua.node_webkit
+if window.ua.node_webkit
   if DEBUG
     window.SOCKET_HOST = "http://localhost:8080" # default host for debugging
   else
@@ -59,53 +54,7 @@ else # web browser
 
 $(document).ready ->
 
-  # tooltip stuff:s
-  # search up to find the true tooltip target
-
-  # consider these persistent options
-  # we use a cookie for these since they're small and more compatible
-  #autoscroll to new chat messages
-  updateOption = (value, option) ->
-    $option = $("#" + option)
-
-    #Check if the options are in the cookie, if so update the value
-    value = ($.cookie(option) isnt "false")  if typeof $.cookie(option) isnt "undefined"
-    window.OPTIONS[option] = value
-    if value
-      $("body").addClass option
-      $option.attr "checked", "checked"
-    else
-      $("body").removeClass option
-      $option.removeAttr "checked"
-
-    # bind events to the click of the element of the same ID as the option's key
-    $option.on "click", ->
-      $.cookie option, $(this).prop("checked"), window.COOKIE_OPTIONS
-      OPTIONS[option] = not OPTIONS[option]
-      if OPTIONS[option]
-        $("body").addClass option
-      else
-        $("body").removeClass option
-
-
-  # chat.scroll();
-  # update all options we know about
-
-  # ghetto templates:
-
-  # reconnect the socket manually using the navigator's onLine property
-  # don't bind this too early, just in case it interferes with the normal sequence of events
-
-  # the socket.io reconnect doesn't always fire after waking up from computer sleep
-  # I assume this is due to max reconnection attempts being reached while disconnected, but who knows for sure
-  # assuming it'll re-use the cnxn params we used below
-  # the faviconizer is handled seperately by the chat client.
-  # it listens to sio.reconnected and so-on, because we cannot assume chat is ready just because the browser
-  # has regained network connectivity
-  # Perhaps that should be moved out of chat client, handled in ONE place. namely, this place
-
-  # when the navigator goes offline, we'll attempt to set their icon to reflect that
-  # this might be redundant, but is a good assumption when you're not running it on localhost
+  globalOptions = new Options()
 
   # messy, hacky, but make it safer for now
   turnOffLiveReload = ->
@@ -133,20 +82,6 @@ $(document).ready ->
     $("body .tooltip").fadeOut ->
       $(this).remove()
 
-
-  window.OPTIONS =
-    show_mewl: true
-    suppress_join: false
-    highlight_mine: true
-    prefer_24hr_clock: true
-    suppress_client: false
-    show_OS_notifications: true
-    suppress_identity_acknowledgements: false
-    join_default_channel: true
-    auto_scroll: true
-
-  _.each window.OPTIONS, updateOption
-
   tooltipTemplate = $("#tooltip").html()
   window.notifications = new Notifications()
   $(window).on("blur", ->
@@ -160,11 +95,19 @@ $(document).ready ->
       win.requestAttention false
 
   setTimeout (->
+    # reconnect the socket manually using the navigator's onLine property
+    # don't bind this too early, just in case it interferes with the normal sequence of events
     $(window).on "online", ->
       console.log "attempting to force a sio reconnect"
+      # the socket.io reconnect doesn't always fire after waking up from computer sleep
+      # I assume this is due to max reconnection attempts being reached while disconnected, but who knows for sure
+      # assuming it'll re-use the cnxn params we used below
       io.connect window.location.origin
 
   ), 5000
+
+  # when the navigator goes offline, we'll attempt to set their icon to reflect that
+  # this might be redundant, but is a good assumption when you're not running it on localhost
   $(window).on "offline", ->
     console.log "navigator has no internet connectivity"
     faviconizer.setDisconnected()
@@ -275,3 +218,4 @@ $(document).ready ->
 
   if utility.isMobile()
     Gestures = new TouchGestures
+
