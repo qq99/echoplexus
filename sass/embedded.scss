@@ -106,3 +106,9 @@ textarea {
     text-decoration: underline;
   }
 }
+
+body.highlight_mine {
+  .chatMessage.me {
+    background: #dedede;
+  }
+}

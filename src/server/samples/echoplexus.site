@@ -61,6 +61,10 @@ server {
     # to avoid ssl stripping https://en.wikipedia.org/wiki/SSL_stripping#SSL_stripping
     add_header Strict-Transport-Security "max-age=31536000; includeSubdomains;";
 
+    # if you wish to embed, set up a different site for embed.echoplex.us
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Frame-Options sameorigin;
+
     proxy_buffering off; # may interfere with websockets if on
 
     # serve up all static webshots / user uploads via nginx
