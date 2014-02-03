@@ -36,6 +36,10 @@ $room-specific-height : 80px;
 	color:red;
 }
 
+.emoji {
+	width: 20px;
+}
+
 span.channelName {
 	color:green;
 }
@@ -43,8 +47,8 @@ span.channelName {
 @mixin panel {
 	position: absolute;
 	top: 0;
-	left: 0;
 	width: 100%;
+	left: 0;
 	height: 100%;
 }
 

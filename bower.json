@@ -17,7 +17,8 @@
     "keymaster": "latest",
     "backbone": "~1.0.0",
     "hammerjs": "~1.0.6",
-    "backbone.stickit": "~0.7.0"
+    "backbone.stickit": "~0.7.0",
+    "emojify.js": "*"
   },
   "devDependencies": {
     "sinon": "~1.7.3",

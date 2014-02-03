@@ -38,6 +38,7 @@ module.exports = (grunt) ->
           "vendor/codemirror/mode/htmlmixed/htmlmixed.js"
           "vendor/codemirror/mode/htmlembedded/htmlembedded.js"
           "vendor/hammerjs/hammer.js"
+          "vendor/emojify.js/emojify.min.js"
           "lib/CryptoJS-3.1.2/components/core.js"
           "lib/CryptoJS-3.1.2/components/enc-base64.js"
           "lib/CryptoJS-3.1.2/components/enc-utf16.js"
@@ -135,6 +136,13 @@ module.exports = (grunt) ->
         files:
           "generated/index.html" : "<%= files.html.src %>"
           "dist/index.html"      : "<%= files.html.src %>"
+      emojify:
+        files: [
+          expand: true
+          src: "vendor/emojify.js/images/**"
+          flatten: true
+          dest: "public/images/emoji"
+        ]
 
     server:
       base: "#{process.env.SERVER_BASE || 'generated'}"

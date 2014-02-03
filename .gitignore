@@ -1,4 +1,5 @@
 node_modules
+public/images
 .sass-cache
 public/css
 config.js
