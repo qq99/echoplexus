@@ -67,12 +67,17 @@ module.exports.Log = class Log
     id = parseInt(id, 10)
     @latestID = id  if id > @latestID
 
+  has: (byID) ->
+    @known.indexOf(byID) >= 0
+
   knownIDs: ->
     return if !Storage?
     # compile a list of the message IDs we know about
-    known = _.without(_.map(@log, (obj) ->
+    known = _.map @log, (obj) ->
       obj.mID
-    ), `undefined`)
+    known = _.without known, 'undefined'
+    known = _.uniq known
+    @known = known # store it a while
     known
 
   getMessage: (byID) ->

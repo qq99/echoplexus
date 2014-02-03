@@ -468,9 +468,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
         while i < l
           msg = JSON.parse(msgs[i])
-          @persistentLog.add msg
-          msg.fromBatch = true
-          @chatLog.renderChatMessage new ChatMessage(msg)
+          if not @persistentLog.has(msg.mID)
+            @persistentLog.add msg
+            msg.fromBatch = true
+            @chatLog.renderChatMessage new ChatMessage(msg)
           i++
 
         if @previousScrollHeight
