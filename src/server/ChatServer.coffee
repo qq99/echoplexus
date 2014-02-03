@@ -147,6 +147,40 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 	      # return the altered message object
 	      callback null, msg
 
+	registerNick: (data, socket, client, channel) ->
+		room = channel.get("name")
+		nick = client.get("nick")
+
+		redisC.sismember "users:#{room}", nick, (err, reply) =>
+			throw err if err
+			if !reply # nick is not in use
+				try # try crypto & persistence
+					crypto.randomBytes 256, (ex, buf) =>
+						throw ex if ex
+						salt = buf.toString()
+						crypto.pbkdf2 data.password, salt, 4096, 256, (err, derivedKey) =>
+							throw err if err
+
+							redisC.sadd "users:#{room}", nick, (err, reply) ->
+								throw err if err
+							redisC.hset "salts:#{room}", nick, salt, (err, reply) ->
+								throw err if err
+							redisC.hset "passwords:#{room}", nick, derivedKey.toString(), (err, reply) ->
+								throw err if err
+
+							client.set("identified", true)
+							socket.in(room).emit('chat:' + room, @serverSentMessage({
+								body: "You have registered your nickname.  Please remember your password."
+							}, room))
+				catch e
+					socket.in(room).emit('chat:' + room, @serverSentMessage({
+						body: "Error in registering your nickname: " + e
+					}, room))
+			else # nick is already in use
+				socket.in(room).emit('chat:' + room, @serverSentMessage({
+					body: "That nickname is already registered by somebody."
+				}, room))
+
 	createWebshot: (data, room) ->
 		if config.chat?.webshot_previews?.enabled?
 			# strip out other things the client is doing before we attempt to render the web page
@@ -593,36 +627,12 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 		"register_nick": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
-			nick = client.get("nick")
-			redisC.sismember "users:#{room}", nick, (err, reply) =>
-				throw err if err
-				if !reply # nick is not in use
-					try # try crypto & persistence
-						crypto.randomBytes 256, (ex, buf) =>
-							throw ex if ex
-							salt = buf.toString()
-							crypto.pbkdf2 data.password, salt, 4096, 256, (err, derivedKey) =>
-								throw err if err
 
-								redisC.sadd "users:#{room}", nick, (err, reply) ->
-									throw err if err
-								redisC.hset "salts:#{room}", nick, salt, (err, reply) ->
-									throw err if err
-								redisC.hset "passwords:#{room}", nick, derivedKey.toString(), (err, reply) ->
-									throw err if err
-
-								client.set("identified", true)
-								socket.in(room).emit('chat:' + room, @serverSentMessage({
-									body: "You have registered your nickname.  Please remember your password."
-								}, room))
-					catch e
-						socket.in(room).emit('chat:' + room, @serverSentMessage({
-							body: "Error in registering your nickname: " + e
-						}, room))
-				else # nick is already in use
-					socket.in(room).emit('chat:' + room, @serverSentMessage({
-						body: "That nickname is already registered by somebody."
-					}, room))
+			if data.password and data.password.length >= 6
+				@registerNick(data, socket, client, channel)
+			else
+				socket.emit "chat:#{room}", @serverSentMessage
+					body: "Error: Your registration password must be at least 6 characters"
 
 		"in_call": (namespace, socket, channel, client) ->
 			client.set("inCall", true)
