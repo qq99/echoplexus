@@ -357,6 +357,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       body = body.replace(REGEXES.urls.all_others, "<a rel=\"noreferrer\" target=\"_blank\" href=\"$1\">$1</a>")
       body = body.replace(REGEXES.users.mentions, "<span class=\"mention\">$1</span>")
 
+      body = emojify.run(body)
+
     if body.length # if there's anything left in the body,
       chatMessageClasses = ""
       nickClasses = ""
@@ -392,8 +394,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         mine: ((if msg.get("you") then true else false))
         identified: ((if msg.get("identified") then true else false))
       )
-
-      chat = emojify.run(chat)
 
       unless opts.delayInsert
         self.insertChatMessage
