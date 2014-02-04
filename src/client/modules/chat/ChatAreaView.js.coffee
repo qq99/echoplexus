@@ -393,11 +393,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         identified: ((if msg.get("identified") then true else false))
       )
 
-      # hyper inefficient, but should do until I manage to fork the repo to be able to run on an arbitrary string
-      el = $(chat)[0]
-      emojify.run(el)
-
-      chat = el.outerHTML;
+      chat = emojify.run(chat)
 
       unless opts.delayInsert
         self.insertChatMessage
