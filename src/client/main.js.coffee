@@ -139,11 +139,11 @@ $(document).ready ->
 
 
   # change channels:
-  key "alt+right, alt+k", ->
+  key "⌘+ctrl+right, alt+k, ctrl+shift+right", ->
     window.events.trigger "nextChannel"
     false
 
-  key "alt+left, alt+j", ->
+  key "⌘+ctrl+left, alt+j, ctrl+shift+left", ->
     window.events.trigger "previousChannel"
     false
 
@@ -167,13 +167,13 @@ $(document).ready ->
   # change tabs:
   tabs = $("#buttons .tabButton")
   activeTabIndex = $("#buttons .active").index()
-  key "alt+shift+right, alt+shift+k, alt+shift+d", ->
+  key "⌘+ctrl+down, alt+shift+k, alt+shift+d", ->
     activeTabIndex += 1
     activeTabIndex = activeTabIndex % tabs.length # prevent array OOB
     $(tabs[activeTabIndex]).trigger "click"
     false # don't trigger alt+right => "History Forward"
 
-  key "alt+shift+left, alt+shift+j, alt+shift+s", ->
+  key "⌘+ctrl+up, alt+shift+j, alt+shift+s", ->
     activeTabIndex -= 1
     # prevent array OOB
     activeTabIndex = tabs.length - 1  if activeTabIndex < 0
