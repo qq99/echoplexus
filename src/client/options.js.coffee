@@ -2,12 +2,12 @@ module.exports.Options = class Options
 
   defaults:
     show_mewl: true
-    suppress_join: false
+    suppress_join: true
     highlight_mine: true
     prefer_24hr_clock: true
-    suppress_client: false
+    suppress_client: true
     show_OS_notifications: true
-    suppress_identity_acknowledgements: false
+    suppress_identity_acknowledgements: true
     join_default_channel: true
     auto_scroll: true
 

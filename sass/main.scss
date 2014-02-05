@@ -1142,9 +1142,6 @@ header {
 		float:left;
 		margin-right:10px;
 	}
-	&.fromlog {
-		opacity:0.5;
-	}
 	&:nth-child(2n) {
 		background:#2f2f2f;
 		background:rgba(100,100,127,0.1);
@@ -1154,6 +1151,13 @@ header {
 		background:rgba(109,116,255,0.15);
 		.time {
 			color:#efefef;
+		}
+	}
+	&.fromlog {
+		background: #1f1f1f;
+		background:rgba(100,100,127,0.1);
+		.body {
+			color: #888;
 		}
 	}
 	&.private.me, &.private {
