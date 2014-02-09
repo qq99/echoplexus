@@ -15,19 +15,6 @@ sdpConstraints =
     OfferToReceiveAudio: true
     OfferToReceiveVideo: true
 
-# check whether data channel is supported:
-supportsDataChannel = (->
-  try
-    pc = new PeerConnection(stunIceConfig(), pcDataChannelConfig)
-    channel = pc.createDataChannel("supportCheck",
-      reliable: false
-    )
-    channel.close()
-    return true
-  catch e # raises exception if createDataChannel is not supported
-    return false
-)()
-
 # create a polyfilled config for the PeerConnection polyfill object, using google's STUN servers
 stunIceConfig = ->
 
@@ -40,6 +27,19 @@ stunIceConfig = ->
     _ff_peerConnectionConfig
   else
     _chrome_peerConnectionConfig
+
+# check whether data channel is supported:
+supportsDataChannel = (->
+  try
+    pc = new PeerConnection(stunIceConfig(), {optional: [{RtpDataChannels: true}]})
+    channel = pc.createDataChannel("supportCheck",
+      reliable: false
+    )
+    channel.close()
+    return true
+  catch e # raises exception if createDataChannel is not supported
+    return false
+)()
 
 # New syntax of getXXXStreams method in M26.
 preferOpus = (sdp) ->
@@ -117,11 +117,7 @@ mergeConstraints = (cons1, cons2) ->
 
 
 
-pcDataChannelConfig = optional: [
-  RtpDataChannels: true
-,
-  DtlsSrtpKeyAgreement: true
-]
+pcDataChannelConfig = optional: [{DtlsSrtpKeyAgreement: true}, {RtpDataChannels: true}, {DtlsSrtpKeyAgreement: true}]
 pcConfig = optional: [DtlsSrtpKeyAgreement: true]
 
 if navigator.webkitGetUserMedia
@@ -247,7 +243,7 @@ module.exports.RTC = class RTC extends Backbone.Model
     if typeof @peerConnections[targetClientID] isnt "undefined" # don't create it twice!
       console.warn "Tried to create a peer connection, but we already had one for this target client.  This is probably a latent bug."
       return
-    pc = @peerConnections[targetClientID] = new PeerConnection(stunIceConfig(), pcConfig)
+    pc = @peerConnections[targetClientID] = new PeerConnection(stunIceConfig(), pcDataChannelConfig)
 
     # when we learn about our own ice candidates
     pc.onicecandidate = (event) ->
@@ -257,23 +253,15 @@ module.exports.RTC = class RTC extends Backbone.Model
           candidate: event.candidate.candidate
           id: targetClientID
 
-
     pc.onopen = ->
       console.log "stream opened"
 
-    pc.onaddstream = (event) ->
+    pc.onaddstream = (event) =>
       console.log "remote stream added", targetClientID
       self.trigger "added_remote_stream",
         stream: event.stream
         socketID: targetClientID
-#
-#			if (rtc.dataChannelSupport) {
-#				pc.ondatachannel = function(evt) {
-#					if (rtc.debug) console.log('data channel connecting ' + targetClientID);
-#					rtc.addDataChannel(targetClientID, evt.channel);
-#				};
-#			}
-#
+
     pc
 
   createPeerConnections: ->
@@ -289,6 +277,8 @@ module.exports.RTC = class RTC extends Backbone.Model
     self = this
     _.each self.localStreams, (stream) ->
       pc.addStream stream
+
+    @createDataChannel(pc, "test", true)
 
     pc.createOffer ((description) ->
 
@@ -309,6 +299,8 @@ module.exports.RTC = class RTC extends Backbone.Model
     pc = @createPeerConnection(socketId)
     _.each @localStreams, (stream) ->
       pc.addStream stream
+
+    @createDataChannel(pc, "test", false)
 
     pc.setRemoteDescription new NativeRTCSessionDescription(sdp)
     pc.createAnswer ((session_description) ->
@@ -376,84 +368,31 @@ module.exports.RTC = class RTC extends Backbone.Model
         _.each stream.getAudioTracks(), (track) ->
           track.enabled = opts.audio
 
-  # createDataChannel: function(pcOrId, label) {
-  # 	if (!this.dataChannelSupport) {
-  # 		//TODO this should be an exception
-  # 		alert('webRTC data channel is not yet supported in this browser,' +
-  # 			' or you must turn on experimental flags');
-  # 		return;
-  # 	}
+  createDataChannel: (peerConnection, label, sender) ->
+    if !supportsDataChannel
+      console.error "Your browser does not support WebRTC data channels"
+      return
 
-  # 	var id, pc;
-  # 	if (typeof(pcOrId) === 'string') {
-  # 		id = pcOrId;
-  # 		pc = rtc.peerConnections[pcOrId];
-  # 	} else {
-  # 		pc = pcOrId;
-  # 		id = undefined;
-  # 		for (var key in rtc.peerConnections) {
-  # 			if (rtc.peerConnections[key] === pc) id = key;
-  # 		}
-  # 	}
+    peerConnection.ondatachannel = (event) =>
+      dataChannel = event.channel
 
-  # 	if (!id) throw new Error('attempt to createDataChannel with unknown id');
+      console.log "Received data channel: ", event
+      @attachDataChannelEvents(dataChannel, label)
 
-  # 	if (!pc || !(pc instanceof PeerConnection)) throw new Error('attempt to createDataChannel without peerConnection');
+    if sender
+      console.log "Initiating data channel"
+      dataChannel = peerConnection.createDataChannel(label, {reliable: false})
+      @attachDataChannelEvents(dataChannel, label)
 
-  # 	// need a label
-  # 	label = label || 'fileTransfer' || String(id);
+  attachDataChannelEvents: (dataChannel, label) ->
+    dataChannel.onerror = (error) ->
+      console.error "DC:#{label} error:", error
 
-  # 	// chrome only supports reliable false atm.
-  # 	var options = {
-  # 		reliable: false
-  # 	};
+    dataChannel.onmessage = (event) ->
+      console.log "DC:#{label} rec:", event.data
 
-  # 	var channel;
-  # 	try {
-  # 		if (rtc.debug) console.log('createDataChannel ' + id);
-  # 		channel = pc.createDataChannel(label, options);
-  # 	} catch (error) {
-  # 		if (rtc.debug) console.log('seems that DataChannel is NOT actually supported!');
-  # 		throw error;
-  # 	}
+    dataChannel.onopen = ->
+      dataChannel.send("Hello World!")
 
-  # 	return rtc.addDataChannel(id, channel);
-  # },
-
-  # addDataChannel: function (id, channel) {
-  # 	return;
-  # 	channel.onopen = function() {
-  # 		if (rtc.debug) console.log('data stream open ' + id);
-  # 		rtc.fire('data stream open', channel);
-  # 	};
-
-  # 	channel.onclose = function(event) {
-  # 		delete rtc.dataChannels[id];
-  # 		delete rtc.peerConnections[id];
-  # 		delete rtc.peerIDs[id];
-  # 		if (rtc.debug) console.log('data stream close ' + id);
-  # 		rtc.fire('data stream close', channel);
-  # 	};
-
-  # 	channel.onmessage = function(message) {
-  # 		if (rtc.debug) console.log('data stream message ' + id);
-  # 		rtc.fire('data stream data', channel, message.data);
-  # 	};
-
-  # 	channel.onerror = function(err) {
-  # 		if (rtc.debug) console.log('data stream error ' + id + ': ' + err);
-  # 		rtc.fire('data stream error', channel, err);
-  # 	};
-
-  # 	// track dataChannel
-  # 	rtc.dataChannels[id] = channel;
-  # 	return channel;
-  # },
-
-  # addDataChannels: function () {
-  # 	if (!rtc.dataChannelSupport) return;
-
-  # 	for (var connection in rtc.peerConnections) {
-  # 		rtc.createDataChannel(connection);
-  # 	}
-  # }
+    dataChannel.onclose = ->
+      console.log "DC:#{label} closed"
