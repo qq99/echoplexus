@@ -198,27 +198,24 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     if body.match(REGEXES.commands.nick) # /nick [nickname]
       body = body.replace(REGEXES.commands.nick, "").trim()
       @setNick body, room
-      $.cookie "nickname:" + room, body, window.COOKIE_OPTIONS
-      $.removeCookie "ident_pw:" + room, window.COOKIE_OPTIONS # clear out the old saved nick
+      $.cookie "nickname:#{room}", body, window.COOKIE_OPTIONS
+      $.removeCookie "ident_pw:#{room}", window.COOKIE_OPTIONS # clear out the old saved nick
     else if body.match(REGEXES.commands.private) # /private [password]
       body = body.replace(REGEXES.commands.private, "").trim()
-      socket.emit "make_private:" + room,
+      socket.emit "make_private:#{room}",
         password: body
-        room: room
 
-      $.cookie "channel_pw:" + room, body, window.COOKIE_OPTIONS
+      $.cookie "channel_pw:#{room}", body, window.COOKIE_OPTIONS
     else if body.match(REGEXES.commands.public) # /public
       body = body.replace(REGEXES.commands.public, "").trim()
-      socket.emit "make_public:" + room,
-        room: room
+      socket.emit "make_public:#{room}"
 
     else if body.match(REGEXES.commands.register) # /register [password]
       body = body.replace(REGEXES.commands.register, "").trim()
-      socket.emit "register_nick:" + room,
+      socket.emit "register_nick:#{room}",
         password: body
-        room: room
 
-      $.cookie "ident_pw:" + room, body, window.COOKIE_OPTIONS
+      $.cookie "ident_pw:#{room}", body, window.COOKIE_OPTIONS
     else if body.match(REGEXES.commands.identify) # /identify [password]
       body = body.replace(REGEXES.commands.identify, "").trim()
       @identify body, room
@@ -227,14 +224,12 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       if @cryptokey
         encrypted_topic = cryptoWrapper.encryptObject(body, @cryptokey)
         body = "-"
-        socket.emit "topic:" + room,
+        socket.emit "topic:#{room}",
           encrypted_topic: encrypted_topic
-          room: room
 
       else
-        socket.emit "topic:" + room,
+        socket.emit "topic:#{room}",
           topic: body
-          room: room
 
     else if body.match(REGEXES.commands.private_message) # /tell [nick] [message]
       body = body.replace(REGEXES.commands.private_message, "").trim()
@@ -265,7 +260,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     else if body.match(REGEXES.commands.set_color) # /color
       body = body.replace(REGEXES.commands.set_color, "").trim()
-      socket.emit "user:set_color:" + room,
+      socket.emit "user:set_color:#{room}",
         userColorString: body
 
     else if matches = body.match(REGEXES.commands.edit) # editing
@@ -279,12 +274,12 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       if @cryptokey
         data.encrypted = cryptoWrapper.encryptObject(data.body, @cryptokey)
         data.body = "-"
-      socket.emit "chat:edit:" + room, data
+      socket.emit "chat:edit:#{room}", data
     else if body.match(REGEXES.commands.leave) # leaving
-      window.events.trigger "leave:" + room
+      window.events.trigger "leave:#{room}"
     else if body.match(REGEXES.commands.chown) # become owner
       body = body.replace(REGEXES.commands.chown, "").trim()
-      socket.emit "chown:" + room,
+      socket.emit "chown:#{room}",
         key: body
 
     else if body.match(REGEXES.commands.chmod) # change permissions
