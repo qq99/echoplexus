@@ -39,7 +39,6 @@ module.exports.ColorModel = class ColorModel extends Backbone.Model
       callback? null
     else
       callback? new Error("Invalid colour; you must supply a valid CSS hex color code (e.g., '#efefef', '#fff')")
-      return
 
   setFromHex: (hexString) ->
 
@@ -48,9 +47,6 @@ module.exports.ColorModel = class ColorModel extends Backbone.Model
     hexString = hexString.substring(1)  if hexString.charAt(0) is "#"
     # e.g. fff -> ffffff
     hexString += hexString  if hexString.length is 3
-    r = undefined
-    g = undefined
-    b = undefined
     r = parseInt(hexString.substring(0, 2), 16)
     g = parseInt(hexString.substring(2, 4), 16)
     b = parseInt(hexString.substring(4, 6), 16)
@@ -104,15 +100,14 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
   inactive: (reason, room, socket) ->
     reason = reason or "User idle."
-    socket.emit "chat:idle:" + room,
+    socket.emit "chat:idle:#{room}",
       reason: reason
-      room: room
 
     @set "idle", true
 
   active: (room, socket) ->
     if @get("idle") # only send over wire if we're inactive
-      socket.emit "chat:unidle:" + room
+      socket.emit "chat:unidle:#{room}"
       @set "idle", false
 
   getNick: (cryptoKey) ->
@@ -142,12 +137,10 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
   identify: (pw, room, ack) ->
     $.cookie "ident_pw:" + room, pw, window.COOKIE_OPTIONS
-    @socket.emit "identify:" + room,
+    @socket.emit "identify:#{room}",
       password: pw
-      room: room
     , ->
       ack.resolve() if ack
-
 
   is: (otherModel) ->
     @attributes.id is otherModel.attributes.id
