@@ -186,10 +186,12 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     # else we just do nothing.
 
-  speak: (msg, socket) ->
-    self = this
-    body = msg.body
-    room = msg.room
+  speak: (msg) ->
+    self   = this
+    socket = @get("socket")
+    body   = msg.body
+    room   = @get("room")
+
     matches = undefined
     window.events.trigger "speak", socket, this, msg
     return  unless body # if there's no body, we probably don't want to do anything

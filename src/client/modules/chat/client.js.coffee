@@ -585,8 +585,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     window.events.on "chat:broadcast", (data) =>
       @me.speak
         body: data.body
-        room: @channelName
-      , @socket
 
     window.events.on "channelPassword:#{@channelName}", (data) =>
       @authenticate data.password
@@ -638,8 +636,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         else
           @me.speak
             body: userInput
-            room: @channelName
-          , @socket
         $this.val ""
         @scrollback.reset()
 
