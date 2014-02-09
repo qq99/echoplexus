@@ -79,7 +79,9 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @scrollback = new Scrollback()
     @persistentLog = new Log(namespace: @channelName)
 
-    @me = new ClientModel(socket: @socket)
+    @me = new ClientModel
+      socket: @socket
+      room: opts.room
     @me.peers = @channel.clients # let the client have access to all the users in the channel
 
     @chatLog = new ChatAreaView

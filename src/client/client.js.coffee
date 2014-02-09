@@ -152,6 +152,40 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
   is: (otherModel) ->
     @attributes.id is otherModel.attributes.id
 
+  sendPrivateMessage: (toUsername, body, socket) ->
+    room = @get('room')
+    socket.emit "private_message:" + room,
+      body: body
+      room: room
+      directedAt: toUsername
+
+  sendEncryptedPrivateMessage: (toUsername, body, socket) ->
+    room = @get('room')
+    # decrypt the list of our peers (we don't have their unencrypted stored in plaintext anywhere)
+    peerNicks = _.map @peers.models, (peer) =>
+      peer.getNick @cryptokey
+
+    ciphernicks = [] # we could potentially be targeting multiple people with the same nick in our whisper
+
+    # check this decrypted list for the target nick
+    i = 0
+    while i < peerNicks.length
+      # if it matches, we'll keep track of their ciphernick to send to the server
+      ciphernicks.push @peers.at(i).get("encrypted_nick")["ct"]  if peerNicks[i] is toUsername
+      i++
+
+    # if anyone was actually a recipient, we'll encrypt the message and send it
+    if ciphernicks.length
+      encrypted = cryptoWrapper.encryptObject(body, @cryptokey) # encrypt the body text
+      body = "-" # clean it immediately after encrypting it
+      socket.emit "private_message:" + room,
+        encrypted: encrypted
+        ciphernicks: ciphernicks
+        body: body
+        room: room
+
+    # else we just do nothing.
+
   speak: (msg, socket) ->
     self = this
     body = msg.body
@@ -205,49 +239,12 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       targetNick = body.split(" ") # take the first token to mean the
       if targetNick.length # only do something if they've specified a target
         targetNick = targetNick[0]
-        # remove the leading "@" symbol while we match against it; TODO: validate username characters not to include special symbols
-        targetNick = targetNick.substring(1)  if targetNick.charAt(0) is "@"
+        targetNick = targetNick.substring(1)  if targetNick.charAt(0) is "@" # remove the leading "@" symbol while we match against it; TODO: validate username characters not to include special symbols
 
-        #
-        #						check to see if we're in encrypted mode;
-        #						if we are, then we probably don't care about pm'ing a non-encrypted
-        #						user, and so we'll pm their ciphernick instead
-        #
         if @cryptokey
-
-          # decrypt the list of our peers (we don't have their unencrypted stored in plaintext anywhere)
-          peerNicks = _.map(@peers.models, (peer) ->
-            peer.getNick self.cryptokey
-          )
-          ciphernicks = [] # we could potentially be targeting multiple people with the same nick in our whisper
-
-          # check this decrypted list for the target nick
-          i = 0
-
-          while i < peerNicks.length
-
-            # if it matches, we'll keep track of their ciphernick to send to the server
-            ciphernicks.push @peers.at(i).get("encrypted_nick")["ct"]  if peerNicks[i] is targetNick
-            i++
-
-          # if anyone was actually a recipient, we'll encrypt the message and send it
-          if ciphernicks.length
-
-            # encrypt the body text
-            encrypted = cryptoWrapper.encryptObject(body, @cryptokey)
-            body = "-" # clean it immediately after encrypting it
-            socket.emit "private_message:" + room,
-              encrypted: encrypted
-              ciphernicks: ciphernicks
-              body: body
-              room: room
-
-        # else we just do nothing.
-        else # it wasn't sent while encrypted, the simple case
-          socket.emit "private_message:" + room,
-            body: body
-            room: room
-            directedAt: targetNick
+          @sendEncryptedPrivateMessage(targetNick, body, socket)
+        else
+          @sendPrivateMessage(targetNick, body, socket)
 
     else if body.match(REGEXES.commands.pull_logs) # pull
       body = body.replace(REGEXES.commands.pull_logs, "").trim()
