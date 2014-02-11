@@ -1061,13 +1061,28 @@ header {
 }
 
 .youtubeEmbed {
+	cursor: pointer;
 	.imageThumbnail {
 		@include transition(all 0.5s ease-in-out);
 		opacity:0.55;
 	}
+	.play-icon {
+		@include transition(all 0.5s ease-in-out);
+		color: white;
+		display: block;
+		width: 100%;
+		position: absolute;
+		font-size: 5em;
+		margin-top: 70px;
+		text-align: center;
+	}
 	&:hover {
 		.imageThumbnail {
 			opacity:1;
+		}
+		.play-icon {
+			color: #c22;
+			opacity: 0;
 		}
 	}
 	.video {
