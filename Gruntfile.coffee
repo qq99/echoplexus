@@ -167,6 +167,12 @@ module.exports = (grunt) ->
         src: "<%= files.js.app.compiled %>" # input from the concat_sourcemap process
         dest: "<%= public_dir %>js/app.min.js"
 
+      vendor:
+        sourceMapIn: "<%= public_dir %>js/vendor.min.js.map"
+        sourceMap:   "<%= public_dir %>js/vendor.min.js.map"
+        src: "<%= public_dir %>js/vendor.min.js"
+        dest: "<%= public_dir %>js/vendor.min.js"
+
     clean:
       workspaces: ["build"]
 
