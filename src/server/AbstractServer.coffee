@@ -25,7 +25,7 @@ module.exports.AbstractServer = class AbstractServer
       )
 
       # bind the pre-filtered event
-      socket.on eventName + ":" + namespace, authFiltered
+      socket.on "#{eventName}:#{namespace}", authFiltered
 
   start: (callback) ->
     server = this
@@ -40,7 +40,7 @@ module.exports.AbstractServer = class AbstractServer
         client = undefined
         channel = undefined
         if typeof subchannel isnt "undefined"
-          effectiveRoom = channelName + ":" + subchannel
+          effectiveRoom = "#{channelName}:#{subchannel}"
         else
           effectiveRoom = channelName
 
@@ -90,7 +90,7 @@ module.exports.AbstractServer = class AbstractServer
           # DEBUG && console.log("Killing (d/c) ", client.cid, " from ", channelName);
           channel.clients.remove client  if typeof client isnt "undefined"
           _.each server.events, (value, key) ->
-            socket.removeAllListeners key + ":" + channelName
+            socket.removeAllListeners "#{key}:#{channelName}"
 
 
 
@@ -100,4 +100,4 @@ module.exports.AbstractServer = class AbstractServer
           # DEBUG && console.log("Killing (left) ", client.cid, " from ", channelName);
           channel.clients.remove client  if typeof client isnt "undefined"
           _.each server.events, (value, key) ->
-            socket.removeAllListeners key + ":" + channelName
+            socket.removeAllListeners "#{key}:#{channelName}"

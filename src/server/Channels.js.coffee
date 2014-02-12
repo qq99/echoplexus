@@ -75,7 +75,7 @@ module.exports.ServerChannelModel = class ServerChannelModel extends ChannelMode
   getPermissions: ->
     room = @get("name")
 
-    redisC.hget "permissions:" + room, "channel_perms", (err, reply) =>
+    redisC.hget "permissions:#{room}", "channel_perms", (err, reply) =>
       throw err  if err
       if reply
         stored_permissions = JSON.parse(reply)
@@ -83,7 +83,7 @@ module.exports.ServerChannelModel = class ServerChannelModel extends ChannelMode
 
   persistPermissions: ->
     room = @get("name")
-    redisC.hset "permissions:" + room, "channel_perms", JSON.stringify(@permissions.toJSON())
+    redisC.hset "permissions:#{room}", "channel_perms", JSON.stringify(@permissions.toJSON())
 
   getOwner: ->
     channelName = @get("name")

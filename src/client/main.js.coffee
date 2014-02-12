@@ -160,7 +160,7 @@ $(document).ready ->
     currentBuffer = $chatInput.val()
 
     # prepend the command and the user string
-    $chatInput.val "/w " + replyTo + " " + currentBuffer  if replyTo isnt "" and currentBuffer.indexOf("/w " + replyTo) is -1
+    $chatInput.val "/w #{reployTo} #{currentBuffer}" if replyTo and currentBuffer.indexOf("/w #{reployTo}") is -1
     false # don't trigger browser's autoreload
 
 
@@ -183,22 +183,24 @@ $(document).ready ->
   $(".tabButton").on "click", (ev) ->
     ev.preventDefault()
     $(this).removeClass "activity"
-    element = $(this).data("target")
+    elementSelector = $(this).data("target")
 
-    if $(element + ":visible").length is 0
+    if $("#{elementSelector}:visible").length is 0
       $(".tabButton").removeClass "active"
       $(this).addClass "active"
 
       if window.GlobalUIState.get('chatIsPinned')
-        $(element).addClass('pinned-section') # we'll pin the other module we clicked on too
-        $("#panes > section").not(element).not('#chatting').hide() # and hide everything except the #chatting and intended module
+        $(elementSelector).addClass('pinned-section') # we'll pin the other module we clicked on too
+        $("#panes > section").not(elementSelector).not('#chatting').hide() # and hide everything except the #chatting and intended module
       else
-        $(element).removeClass('pinned-section') #
-        $("#panes > section").not(element).hide()
+        $(elementSelector).removeClass('pinned-section') #
+        $("#panes > section").not(elementSelector).hide()
 
-      $(element).show()
+      $(elementSelector).show()
 
-      window.events.trigger "sectionActive:" + element.substring(1) # sloppy, forgive me
+      elementName = elementSelector.replace("#", "") # was an ID, we'll turn it into a nameless string
+
+      window.events.trigger "sectionActive:#{elementName}"
 
 
   window.events.on "chat:activity", (data) ->

@@ -56,7 +56,7 @@ module.exports.ColorModel = class ColorModel extends Backbone.Model
       b: b
 
   toRGB: ->
-    "rgb(" + @attributes.r + "," + @attributes.g + "," + @attributes.b + ")"
+    "rgb(#{@attributes.r}, #{@attributes.g}, #{@attributes.b})"
 
 module.exports.ClientsCollection = class ClientsCollection extends Backbone.Collection
   model: exports.ClientModel
@@ -89,8 +89,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     @set "permissions", new PermissionModel()
 
   channelAuth: (pw, room, ack) ->
-    $.cookie "channel_pw:" + room, pw, window.COOKIE_OPTIONS
-    @socket.emit "join_private:" + room,
+    $.cookie "channel_pw:#{room}", pw, window.COOKIE_OPTIONS
+    @socket.emit "join_private:#{room}",
       password: pw
       room: room
     , (err) ->
@@ -121,14 +121,14 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     nick
 
   setNick: (nick, room, ack) ->
-    $.cookie "nickname:" + room, nick, window.COOKIE_OPTIONS
+    $.cookie "nickname:#{room}", nick, window.COOKIE_OPTIONS
     if @cryptokey
       @set "encrypted_nick", cryptoWrapper.encryptObject(nick, @cryptokey),
         silent: true
 
       nick = "-"
 
-    @socket.emit "nickname:" + room,
+    @socket.emit "nickname:#{room}",
       nick: nick
       encrypted_nick: @get("encrypted_nick")
     , ->
@@ -136,7 +136,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
 
   identify: (pw, room, ack) ->
-    $.cookie "ident_pw:" + room, pw, window.COOKIE_OPTIONS
+    $.cookie "ident_pw:#{room}", pw, window.COOKIE_OPTIONS
     @socket.emit "identify:#{room}",
       password: pw
     , ->
@@ -147,7 +147,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
   sendPrivateMessage: (toUsername, body, socket) ->
     room = @get('room')
-    socket.emit "private_message:" + room,
+    socket.emit "private_message:#{room}",
       body: body
       room: room
       directedAt: toUsername
@@ -171,7 +171,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     if ciphernicks.length
       encrypted = cryptoWrapper.encryptObject(body, @cryptokey) # encrypt the body text
       body = "-" # clean it immediately after encrypting it
-      socket.emit "private_message:" + room,
+      socket.emit "private_message:#{room}",
         encrypted: encrypted
         ciphernicks: ciphernicks
         body: body
@@ -277,7 +277,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     else if body.match(REGEXES.commands.chmod) # change permissions
       body = body.replace(REGEXES.commands.chmod, "").trim()
-      socket.emit "chmod:" + room,
+      socket.emit "chmod:#{room}",
         body: body
 
     else if body.match(REGEXES.commands.broadcast) # broadcast to speak to all open channels at once
@@ -286,10 +286,10 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         body: body
 
     else if body.match(REGEXES.commands.help)
-      socket.emit "help:" + room
+      socket.emit "help:#{room}"
     else if body.match(REGEXES.commands.roll)
       body = body.replace(REGEXES.commands.roll, "").trim()
-      socket.emit 'roll:' + room,
+      socket.emit "roll:#{room}",
         dice: body
 
     else if body.match(REGEXES.commands.github)

@@ -51,11 +51,11 @@ module.exports.ServerClient = class ServerClient extends Client
     nick = @get("nick")
 
     # check to see if a token already exists for the user
-    redisC.hget "identity_token:" + room, nick, (err, reply) =>
+    redisC.hget "identity_token:#{room}", nick, (err, reply) =>
       callback err  if err
       unless reply # if not, make a new one
         token = uuid.v4()
-        redisC.hset "identity_token:" + room, nick, token, (err, reply) => # persist it
+        redisC.hset "identity_token:#{room}", nick, token, (err, reply) => # persist it
           throw err  if err
           @identity_token = token # store it on the client object
           callback null
@@ -95,7 +95,7 @@ module.exports.ServerClient = class ServerClient extends Client
     nick = @get("nick")
     identity_token = @identity_token
 
-    redisC.hset "permissions:" + room, nick + ":" + identity_token, JSON.stringify(@get("permissions").toJSON())
+    redisC.hset "permissions:#{room}", "#{nick}:#{identity_token}", JSON.stringify(@get("permissions").toJSON())
 
   metadataToArray: ->
     data = []
@@ -110,7 +110,7 @@ module.exports.ServerClient = class ServerClient extends Client
       room = @get("room")
       nick = @get("nick")
       data = @metadataToArray()
-      redisC.hmset "users:room:" + nick, data, (err, reply) ->
+      redisC.hmset "users:room:#{nick}", data, (err, reply) ->
         throw err  if err
         callback null
 
@@ -119,7 +119,7 @@ module.exports.ServerClient = class ServerClient extends Client
       room = @get("room")
       nick = @get("nick")
       fields = {}
-      redisC.hmget "users:room:" + nick, @supported_metadata, (err, reply) =>
+      redisC.hmget "users:room:#{nick}", @supported_metadata, (err, reply) =>
         throw err  if err
 
         # console.log("metadata:", reply);

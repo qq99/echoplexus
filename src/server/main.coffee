@@ -185,7 +185,7 @@ redisC.select 15, (err, reply) ->
       room = channel.get("name")
 
       if err and not err instanceof ApplicationError.AuthenticationError
-        socket.in(room).emit("chat:" + room, @serverSentMessage({
+        socket.in(room).emit("chat:#{room}", @serverSentMessage({
           body: err.message
         }, room))
 
@@ -232,7 +232,7 @@ redisC.select 15, (err, reply) ->
               if err
                 console.log("Error persisting a file upload notification to redis", err.message, msg)
 
-              sio.of(@namespace).in(room).emit("chat:" + room, msg)
+              sio.of(@namespace).in(room).emit("chat:#{room}", msg)
 
   codeServer = new CodeServer sio, Channels, ChannelModel
   codeServer.start
@@ -271,9 +271,9 @@ redisC.select 15, (err, reply) ->
 
       if err and err instanceof ApplicationError.AuthenticationError
         console.log("InfoServer: ", err)
-        socket.in(room).emit("private:" + room)
+        socket.in(room).emit("private:#{room}")
       else
-        socket.in(room).emit("chat:" + room, @serverSentMessage({
+        socket.in(room).emit("chat:#{room}", @serverSentMessage({
           body: err.message
         }, room))
 
