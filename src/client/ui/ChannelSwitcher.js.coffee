@@ -57,12 +57,11 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     $(window).on "unload", @quickKill
 
   attachEvents: ->
-    self = this
-    window.events.on "joinChannel", (channel) ->
-      self.joinAndShowChannel channel
+    window.events.on "joinChannel", (channel) =>
+      @joinAndShowChannel channel
 
-    window.events.on "leaveChannel", (channel) ->
-      self.leaveChannel channel
+    window.events.on "leaveChannel", (channel) =>
+      @leaveChannel channel
 
     window.events.on "channelPassword", (data) =>
       window.events.trigger "channelPassword:#{@activeChannel}",
@@ -77,26 +76,25 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
         @$el.find("input.channelName").toggle()
 
     # join a channel by typing in the name after clicking the "+ Join Channel" button and clicking enter
-    @$el.on "keydown", "input.channelName", (ev) ->
+    @$el.on "keydown", "input.channelName", (ev) =>
       if ev.keyCode is 13 # enter key
-        channelName = $(this).val()
+        channelName = $(ev.currentTarget).val()
         ev.preventDefault()
-        self.joinAndShowChannel channelName
+        @joinAndShowChannel channelName
 
 
     # kill the channel when clicking the channel button's close icon
-    @$el.on "click", ".channels .channelBtn .close", (ev) ->
-      $chatButton = $(this).parents(".channelBtn")
+    @$el.on "click", ".channels .channelBtn .close", (ev) =>
+      $chatButton = $(ev.currentTarget).parents(".channelBtn")
       channel = $chatButton.data("channel")
       ev.stopPropagation() # prevent the event from bubbling up to the .channelBtn bound below
       ev.preventDefault()
-      self.leaveChannel channel
-
+      @leaveChannel channel
 
     # make the channel corresponding to the clicked channel button active:
-    @$el.on "click", ".channels .channelBtn", (ev) ->
-      channel = $(this).data("channel")
-      self.showChannel channel
+    @$el.on "click", ".channels .channelBtn", (ev) =>
+      channel = $(ev.currentTarget).data("channel")
+      @showChannel channel
 
     window.events.on "nextChannel", @showNextChannel
     window.events.on "previousChannel", @showPreviousChannel
@@ -172,8 +170,6 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     typeof @activeChannel isnt "undefined"
 
   showChannel: (channelName) ->
-    self = this
-
     channel = @channels[channelName]
     if channel.isPrivate && !channel.authenticated
       showPrivateOverlay()
@@ -183,12 +179,10 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     channelsToDeactivate = _.without(_.keys(@channels), channelName)
 
     # tell the views to deactivate
-    _.each channelsToDeactivate, (channelName) ->
-      _.each self.channels[channelName].modules, (module) ->
+    _.each channelsToDeactivate, (channelName) =>
+      _.each @channels[channelName].modules, (module) ->
         module.view.$el.hide()
         module.view.trigger "hide"
-
-
 
     # style the buttons depending on which view is active
     $(".channels .channelBtn", @$el).removeClass "active"
@@ -203,9 +197,9 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     @activeChannel = channelName
 
     # allow the user to know that his channel can be joined via URL slug by updating the URL
-
     # replaceState rather than pushing to keep Back/Forward intact && because we have no other option to perform here atm
-    history.replaceState null, "", channelName  if not window.ua.node_webkit and history.replaceState
+    unless window.ua.node_webkit
+      history.replaceState null, "", channelName  if history.replaceState
 
     # keep track of which one we were viewing:
     window.localStorage.setObj "activeChannel", channelName
@@ -217,7 +211,6 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     $(".channels .channelBtn[data-channel='" + fromChannel + "']").addClass "activity"  if fromChannel isnt @activeChannel
 
   joinChannel: (channelName) ->
-    self = this
 
     if !@channels[channelName]?
       channel =
@@ -247,9 +240,9 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
         modInstance.view.$el.hide()
         channel.modules.push modInstance
 
-      self.channels[channelName] = channel
-      self.loading -= 1
-      self.render()
+      @channels[channelName] = channel
+      @loading -= 1
+      @render()
 
     @sortedChannelNames.push channelName
     @sortedChannelNames = _.sortBy(@sortedChannelNames, (key) ->
@@ -258,8 +251,8 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     @sortedChannelNames = _.uniq(@sortedChannelNames)
 
     # listen for leave events for the newly created channel
-    window.events.on "leave:" + channelName, ->
-      self.leaveChannel channelName
+    window.events.on "leave:" + channelName, =>
+      @leaveChannel channelName
 
 
     # update stored channels for revisit/refresh
@@ -281,7 +274,6 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
 
   joinAndShowChannel: (channelName) ->
-    self = this
     return  if typeof channelName is "undefined" or channelName is null # prevent null channel names
     # keep channel names consistent with URL slug
     channelName = "/" + channelName  if channelName.charAt(0) isnt "/"
