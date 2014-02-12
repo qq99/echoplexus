@@ -56,7 +56,7 @@ module.exports.prettyPrint = (githubResponse) ->
   branchURL = "#{r.repository.url}/tree/#{branchName}"
 
   "<img class='fl' src='#{module.exports.gravatarURL(r.pusher.email)}'></img>
-  #{r.pusher.name} just pushed #{r.commits.length} #{pluralize('commit', r.commits.length)} to
+  <a href='https://github.com/#{r.pusher.name}'>#{r.pusher.name}</a> just pushed #{r.commits.length} #{pluralize('commit', r.commits.length)} to
   <a href='#{r.repository.url}' target='_blank' title='#{r.repository.name} on GitHub'>#{r.repository.name}</a> (<a href='#{branchURL}' target='_blank' title='#{branchName} branch'>#{branchName}</a>)
   <ul>
     #{details}
