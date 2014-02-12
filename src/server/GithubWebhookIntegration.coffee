@@ -50,11 +50,14 @@ module.exports.prettyPrint = (githubResponse) ->
   details = for c in r.commits
     "<li><a rel='noreferrer' target='_blank' href='#{c.url}'>#{c.message}</a></li>"
 
-  details = details.join("") # override default join which uses ,
+  details = details.join("") # override default join which uses ','
+
+  branchName = r.ref.replace("refs/heads/", "")
+  branchURL = "#{r.repository.url}/tree/#{branchName}"
 
   "<img class='fl' src='#{module.exports.gravatarURL(r.pusher.email)}'></img>
   #{r.pusher.name} just pushed #{r.commits.length} #{pluralize('commit', r.commits.length)} to
-  <a href='#{r.repository.url}' target='_blank' title='#{r.repository.name} on GitHub'>#{r.repository.name}</a>
+  <a href='#{r.repository.url}' target='_blank' title='#{r.repository.name} on GitHub'>#{r.repository.name}</a> (<a href='#{branchURL}' target='_blank' title='#{branchName} branch'>#{branchName}</a>)
   <ul>
     #{details}
   </ul>"
