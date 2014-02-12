@@ -50,6 +50,8 @@ module.exports.prettyPrint = (githubResponse) ->
   details = for c in r.commits
     "<li><a rel='noreferrer' target='_blank' href='#{c.url}'>#{c.message}</a></li>"
 
+  details = details.join("") # override default join which uses ,
+
   "<img class='fl' src='#{module.exports.gravatarURL(r.pusher.email)}'></img>
   #{r.pusher.name} just pushed #{r.commits.length} #{pluralize('commit', r.commits.length)} to
   <a href='#{r.repository.url}' target='_blank' title='#{r.repository.name} on GitHub'>#{r.repository.name}</a>
