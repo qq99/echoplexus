@@ -394,7 +394,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @$el.html @template()
     $(".chat-panel", @$el).html @chatLog.$el
     @$el.attr "data-channel", @channelName
-    @$el.find(".chatarea-contents").append @inputTemplate(encrypted: (typeof @me.cryptokey isnt "undefined" and @me.cryptokey isnt null))
+    @rerenderInputBox()
 
   channelIsPrivate: =>
     @channel.isPrivate = true
@@ -720,7 +720,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   rerenderInputBox: ->
     $(".chatinput", @$el).remove() # remove old
     # re-render the chat input area now that we've encrypted:
-    @$el.append @inputTemplate(encrypted: (typeof @me.cryptokey isnt "undefined"))
+    @$el.find(".chatarea-contents").append @inputTemplate(encrypted: (!!@me.cryptokey))
 
   showCryptoModal: ->
     modal = new CryptoModal(channelName: @channelName)
@@ -730,7 +730,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         window.localStorage.setItem "chat:cryptokey:#{@channelName}", data.key
 
       @rerenderInputBox()
-      $(".chatinput textarea", @$el).focus()
+      _.defer ->
+        $(".chatinput textarea", @$el).focus()
       @me.setNick @me.get("nick"), @channelName
 
   clearCryptoKey: ->
