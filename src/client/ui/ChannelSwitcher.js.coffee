@@ -22,24 +22,37 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
   modules: [ChatClient, CodeClient, DrawingClient, CallClient, InfoClient]
 
   initialize: ->
-    self = this
-    joinChannels = window.localStorage.getObj("joined_channels") or []
     _.bindAll this
+
     @sortedChannelNames = []
-    @loading = 0 #Wether scripts are loading (async lock)
-    @channels = {}
-    joinChannels = []  unless joinChannels.length
+    @channels           = {}
+
+    joinChannels        = window.localStorage.getObj("joined_channels") or []
+    storedActiveChannel = window.localStorage.getObj("activeChannel")
 
     # some users don't like being in channel '/' on start
-    joinChannels.push "/"  if OPTIONS.join_default_channel
-    joinChannels.push window.location.pathname  unless window.ua.node_webkit
-    _.each _.uniq(joinChannels), (chan) ->
-      self.joinChannel chan
+    joinChannels.unshift "/" if OPTIONS.join_default_channel
+    joinChannels = _.uniq(joinChannels)
 
-    if window.localStorage.getObj("activeChannel")
-      self.showChannel window.localStorage.getObj("activeChannel")
-    else
-      self.showChannel "/" # show the default
+    # node_webkit cannot specify channel to join via URL
+    unless window.ua.node_webkit
+      channelFromSlug = window.location.pathname
+      if joinChannels.indexOf(channelFromSlug) < 0
+        storedActiveChannel = channelFromSlug
+        joinChannels.push channelFromSlug
+
+    for channel in joinChannels
+      @joinChannel channel
+
+    # join and show the last active channel immediately
+    if storedActiveChannel
+      @showChannel storedActiveChannel
+    else if joinChannels.length
+      @showChannel joinChannels[0]
+
+
+
+
     @attachEvents()
     $(window).on "unload", @quickKill
 
