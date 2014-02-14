@@ -139,11 +139,11 @@ $(document).ready ->
 
 
   # change channels:
-  key "⌘+ctrl+right, alt+k, ctrl+shift+right", ->
+  key "⌘+ctrl+right, alt+k, ctrl+alt+right", ->
     window.events.trigger "nextChannel"
     false
 
-  key "⌘+ctrl+left, alt+j, ctrl+shift+left", ->
+  key "⌘+ctrl+left, alt+j, ctrl+alt+left", ->
     window.events.trigger "previousChannel"
     false
 
