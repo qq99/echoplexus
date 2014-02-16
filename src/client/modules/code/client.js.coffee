@@ -44,6 +44,7 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
       room: @channelName
       subchannel: "js"
       editor: @editors["js"]
+      channel: @channel
 
     @syncedHtml = new SyncedEditor
       clients: @channel.get("clients")
@@ -51,6 +52,7 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
       room: @channelName
       subchannel: "html"
       editor: @editors["html"]
+      channel: @channel
 
     @repl = $(".jsREPL .output", @$el)
     @attachEvents()
