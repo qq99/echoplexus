@@ -73,8 +73,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @module = opts.module
     @socket = io.connect(@config.host + "/chat")
     @channel = opts.channel
-    @channel.clients.model = ClientModel
     @channelName = opts.room
+    @channel.get("clients").model = ClientModel
     @autocomplete = new Autocomplete()
     @scrollback = new Scrollback()
     @persistentLog = new Log(namespace: @channelName)
@@ -82,15 +82,15 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @me = new ClientModel
       socket: @socket
       room: opts.room
-    @me.peers = @channel.clients # let the client have access to all the users in the channel
+      peers: @channel.get("clients")
 
     @chatLog = new ChatAreaView
       room: @channelName
       persistentLog: @persistentLog
       me: @me
 
-    @me.cryptokey = window.localStorage.getItem("chat:cryptokey:" + @channelName)
-    delete @me.cryptokey  if @me.cryptokey is ""
+    if cryptokey = @channel.get("cryptokey")
+      @me.cryptokey = cryptokey
 
     @me.persistentLog = @persistentLog
     @listen()
@@ -109,10 +109,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       l = entries.length
 
       while i < l
-        model = new ChatMessage(entries[i])
-        entry = @chatLog.renderChatMessage(model,
+        msg = new ChatMessage(entries[i])
+        entry = @chatLog.renderChatMessage @decryptChatMessage(msg),
           delayInsert: true
-        )
+
         renderedEntries.push entry
         i++
       @chatLog.insertBatch renderedEntries
@@ -120,7 +120,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     # triggered by ChannelSwitcher:
     @on "show", @show
     @on "hide", @hide
-    @channel.clients.on "change:nick", (model, changedAttributes) =>
+    @channel.get("clients").on "change:nick", (model, changedAttributes) =>
       prevName = undefined
       currentName = model.getNick(@me.cryptokey)
       if @me.is(model)
@@ -137,7 +137,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         class: "identity ack"
       )
 
-    @channel.clients.on "add", (model) =>
+    @channel.get("clients").on "add", (model) =>
       @chatLog.renderChatMessage new ChatMessage(
         body: model.getNick(@me.cryptokey) + " has joined the room."
         type: "SYSTEM"
@@ -146,7 +146,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         class: "join"
       )
 
-    @channel.clients.on "remove", (model) =>
+    @channel.get("clients").on "remove", (model) =>
       @chatLog.renderChatMessage new ChatMessage(
         body: model.getNick(@me.cryptokey) + " has left the room."
         type: "SYSTEM"
@@ -155,11 +155,14 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         class: "part"
       )
 
-    @channel.clients.on "add remove reset change", (model) =>
-      @chatLog.renderUserlist @channel.clients
-      @autocomplete.setPool _.map(@channel.clients.models, (user) =>
-        user.getNick @me.cryptokey
+    @channel.get("clients").on "add remove reset change", (model) =>
+      clients = @channel.get("clients")
+
+      @chatLog.renderUserlist clients
+      @autocomplete.setPool _.map(clients.models, (user) =>
+        @me.getNickOf(user)
       )
+      @me.set("peers", clients)
 
 
     # doesn't work when defined as a backbone event :(
@@ -449,6 +452,21 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         )
     msg
 
+  decryptChatMessage: (msg) ->
+    # in place substitution of ciphertext to plaintext, if it exists
+    if msg.get("encrypted_nick")
+      nickname = cryptoWrapper.decryptObject(msg.get("encrypted_nick"), @me.cryptokey)
+      msg.set("nickname", nickname)
+      msg.unset("encrypted_nick")
+
+    if msg.get("encrypted")
+      body = cryptoWrapper.decryptObject(msg.get("encrypted"), @me.cryptokey)
+      msg.set("body", body)
+      msg.unset("encrypted")
+      msg.set("was_encrypted", true)
+
+    msg
+
   listen: ->
     socket = @socket
     @socketEvents =
@@ -461,7 +479,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @scrollback.replace message.getBody(@me.cryptokey), "/edit ##{message.get("mID")} #{message.getBody(@me.cryptokey)}"  if message.get("you")
         @checkToNotify message
         @persistentLog.add message.toJSON()
-        @chatLog.renderChatMessage message
+        @chatLog.renderChatMessage @decryptChatMessage(message)
 
       "chat:batch": (msgs) =>
         msg = undefined
@@ -473,7 +491,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
           if not @persistentLog.has(msg.mID)
             @persistentLog.add msg
             msg.fromBatch = true
-            @chatLog.renderChatMessage new ChatMessage(msg)
+            @chatLog.renderChatMessage @decryptChatMessage(new ChatMessage(msg))
           i++
 
         if @previousScrollHeight
@@ -483,7 +501,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @scrollSyncLocked = false # unlock the lock on scrolling to sync logs
 
       "client:changed": (alteredClient) =>
-        prevClient = @channel.clients.findWhere(id: alteredClient.id)
+        prevClient = @channel.get("clients").findWhere(id: alteredClient.id)
         alteredClient.color = new ColorModel(alteredClient.color)  if alteredClient.color
         if prevClient
           prevClient.set alteredClient
@@ -497,16 +515,16 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
             @me.unset "encrypted_nick"  if !alteredClient.encrypted_nick?
         # backbone won't unset undefined
         else # there was no previous client by this id
-          @channel.clients.add alteredClient
+          @channel.get("clients").add alteredClient
 
       "client:removed": (alteredClient) =>
-        prevClient = @channel.clients.remove(id: alteredClient.id)
+        prevClient = @channel.get("clients").remove(id: alteredClient.id)
 
       private_message: (msg) =>
         message = new ChatMessage(msg)
         msg = @checkToNotify(message)
         @persistentLog.add message.toJSON()
-        @chatLog.renderChatMessage message
+        @chatLog.renderChatMessage @decryptChatMessage(message)
 
       webshot: (msg) =>
         @chatLog.renderWebshot msg
@@ -526,7 +544,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       userlist: (msg) =>
 
         # update the pool of possible autocompletes
-        @channel.clients.reset msg.users
+        @channel.get("clients").reset msg.users
 
       "chat:currentID": (msg) =>
         missed = undefined
@@ -558,7 +576,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @me.antiforgery_token = msg.antiforgery_token if msg.antiforgery_token
 
       file_uploaded: (msg) =>
-        fromClient = @channel.clients.findWhere(id: msg.from_user)
+        fromClient = @channel.get("clients").findWhere(id: msg.from_user)
         return if typeof !fromClient?
 
         if @me.is(fromClient)
@@ -566,13 +584,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         else
           nick = fromClient.getNick(@me.cryptokey)
 
-        chatMessage = new ChatMessage
+        msg = new ChatMessage
           body: "#{nick} uploaded a file: #{msg.path}"
           timestamp: new Date().getTime()
           nickname: ""
 
-        @chatLog.renderChatMessage chatMessage
-        @persistentLog.add chatMessage.toJSON()
+        @chatLog.renderChatMessage @decryptChatMessage(msg)
+        @persistentLog.add msg.toJSON()
 
     _.each @socketEvents, (value, key) =>
       # listen to a subset of event
@@ -726,6 +744,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     modal = new CryptoModal(channelName: @channelName)
     modal.on "setKey", (data) =>
       if data.key isnt ""
+        @channel.set("cryptokey", data.key)
         @me.cryptokey = data.key
         window.localStorage.setItem "chat:cryptokey:#{@channelName}", data.key
 

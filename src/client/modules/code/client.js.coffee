@@ -39,14 +39,14 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
 
   initializeEditors: ->
     @syncedJs = new SyncedEditor
-      clients: @channel.clients
+      clients: @channel.get("clients")
       host: @config.host
       room: @channelName
       subchannel: "js"
       editor: @editors["js"]
 
     @syncedHtml = new SyncedEditor
-      clients: @channel.clients
+      clients: @channel.get("clients")
       host: @config.host
       room: @channelName
       subchannel: "html"

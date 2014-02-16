@@ -120,6 +120,11 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         nick = encrypted_nick.ct
     nick
 
+  getNickOf: (other) ->
+    return unless @cryptokey
+
+    other.getNick(@cryptokey)
+
   setNick: (nick, room, ack) ->
     $.cookie "nickname:#{room}", nick, window.COOKIE_OPTIONS
     if @cryptokey
@@ -153,9 +158,10 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       directedAt: toUsername
 
   sendEncryptedPrivateMessage: (toUsername, body, socket) ->
-    room = @get('room')
+    room  = @get('room')
+    peers = @get('peers')
     # decrypt the list of our peers (we don't have their unencrypted stored in plaintext anywhere)
-    peerNicks = _.map @peers.models, (peer) =>
+    peerNicks = _.map peers.models, (peer) =>
       peer.getNick @cryptokey
 
     ciphernicks = [] # we could potentially be targeting multiple people with the same nick in our whisper
@@ -164,7 +170,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     i = 0
     while i < peerNicks.length
       # if it matches, we'll keep track of their ciphernick to send to the server
-      ciphernicks.push @peers.at(i).get("encrypted_nick")["ct"]  if peerNicks[i] is toUsername
+      ciphernicks.push peers.at(i).get("encrypted_nick")["ct"]  if peerNicks[i] is toUsername
       i++
 
     # if anyone was actually a recipient, we'll encrypt the message and send it
