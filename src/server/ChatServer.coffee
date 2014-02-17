@@ -212,6 +212,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		room  = channel.get("name")
 		nick  = client.get("nick")
 
+		console.log "storing #{token} at token:identity:#{room}:#{nick}"
 		redisC.psetex "token:identity:#{room}:#{nick}", 30*24*60*60*1000, token, (err, reply) =>
 			@setIdentified(socket, client, channel)
 
