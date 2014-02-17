@@ -40,6 +40,36 @@ describe 'ClientModel', ->
       assert !@other.is(@subject), "Other client has same ID as subject client"
       assert @subject.is(@subject)
 
+  describe '#identify', ->
+    it 'should emit the correct event', ->
+      @subject.identify('foobar')
+      assert @fakeSocket.emit.calledWith('identify:/', {password: 'foobar'})
+
+  describe '#identify_via_token', ->
+    it 'should emit the correct event', ->
+      @subject.identify_via_token('foobar')
+      assert @fakeSocket.emit.calledWith('verify_identity_token:/', {token: 'foobar'})
+
+  describe '#authenticate_via_password', ->
+    it 'should emit the correct event', ->
+      @subject.authenticate_via_password('foobar')
+      assert @fakeSocket.emit.calledWith('join_private:/', {password: 'foobar'})
+
+  describe '#authenticate_via_token', ->
+    it 'should emit the correct event', ->
+      @subject.authenticate_via_token('foobar')
+      assert @fakeSocket.emit.calledWith('join_private:/', {token: 'foobar'})
+
+  describe '#sendPrivateMessage', ->
+    it 'should emit the correct event', ->
+      @subject.sendPrivateMessage("Bob", "What's up?")
+      assert @fakeSocket.emit.calledWith('private_message:/', {directedAt: 'Bob', body: "What's up?"})
+
+  describe '#sendEdit', ->
+    it 'should emit the correct event', ->
+      @subject.sendEdit(10, "oops")
+      assert @fakeSocket.emit.calledWith("chat:edit:/", {mID: 10, body: "oops"})
+
   describe "#speak", ->
     describe '/nick', ->
       beforeEach ->
@@ -102,12 +132,12 @@ describe 'ClientModel', ->
     describe '/tell', ->
       it 'fires a request', ->
         @subjectSays '/tell qq99 hey yo'
-        assert @fakeSocket.emit.calledWith('private_message:/', {body: 'qq99 hey yo', room: '/', directedAt: 'qq99'})
+        assert @fakeSocket.emit.calledWith('private_message:/', {body: 'qq99 hey yo', directedAt: 'qq99'})
         assert @fakeSocket.emit.calledOnce
 
       it 'works when the recipient name is prefixed with @', ->
         @subjectSays '/tell @qq99 hey yo'
-        assert @fakeSocket.emit.calledWith('private_message:/', {body: '@qq99 hey yo', room: '/', directedAt: 'qq99'})
+        assert @fakeSocket.emit.calledWith('private_message:/', {body: '@qq99 hey yo', directedAt: 'qq99'})
         assert @fakeSocket.emit.calledOnce
 
     describe '/color', ->

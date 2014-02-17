@@ -92,7 +92,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     room = @get('room')
     @socket.emit "join_private:#{room}",
       password: pw
-      room: room
     , (err) ->
       ack.rejectWith(this, [err]) if ack and err
       ack.resolve() if ack
@@ -101,7 +100,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     room = @get('room')
     @socket.emit "join_private:#{room}",
       token: token
-      room: room
     , (err) ->
       ack.rejectWith(this, [err]) if ack and err
       ack.resolve() if ack
@@ -152,7 +150,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     , ->
       ack.resolve() if ack
 
-  identify: (pw, room, ack) ->
+  identify: (pw, ack) ->
+    room = @get('room')
     @socket.emit "identify:#{room}",
       password: pw
     , ->
@@ -161,11 +160,10 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
   is: (otherModel) ->
     @attributes.id is otherModel.attributes.id
 
-  sendPrivateMessage: (toUsername, body, socket) ->
+  sendPrivateMessage: (toUsername, body) ->
     room = @get('room')
-    socket.emit "private_message:#{room}",
+    @socket.emit "private_message:#{room}",
       body: body
-      room: room
       directedAt: toUsername
 
   sendEdit: (mID, newBody) ->
@@ -180,7 +178,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     @socket.emit "chat:edit:#{room}", data
 
-  sendEncryptedPrivateMessage: (toUsername, body, socket) ->
+  sendEncryptedPrivateMessage: (toUsername, body) ->
     room  = @get('room')
     peers = @get('peers')
     # decrypt the list of our peers (we don't have their unencrypted stored in plaintext anywhere)
@@ -200,11 +198,10 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     if ciphernicks.length
       encrypted = cryptoWrapper.encryptObject(body, @cryptokey) # encrypt the body text
       body = "-" # clean it immediately after encrypting it
-      socket.emit "private_message:#{room}",
+      @socket.emit "private_message:#{room}",
         encrypted: encrypted
         ciphernicks: ciphernicks
         body: body
-        room: room
 
     # else we just do nothing.
 
@@ -236,7 +233,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         password: body
     else if body.match(REGEXES.commands.identify) # /identify [password]
       body = body.replace(REGEXES.commands.identify, "").trim()
-      @identify body, room
+      @identify body
     else if body.match(REGEXES.commands.topic) # /topic [My channel topic]
       body = body.replace(REGEXES.commands.topic, "").trim()
       if @cryptokey
@@ -257,9 +254,9 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         targetNick = targetNick.substring(1)  if targetNick.charAt(0) is "@" # remove the leading "@" symbol while we match against it; TODO: validate username characters not to include special symbols
 
         if @cryptokey
-          @sendEncryptedPrivateMessage(targetNick, body, socket)
+          @sendEncryptedPrivateMessage(targetNick, body)
         else
-          @sendPrivateMessage(targetNick, body, socket)
+          @sendPrivateMessage(targetNick, body)
 
     else if body.match(REGEXES.commands.pull_logs) # pull
       body = body.replace(REGEXES.commands.pull_logs, "").trim()
