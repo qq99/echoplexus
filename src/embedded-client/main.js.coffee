@@ -41,7 +41,7 @@ $(document).ready ->
     "reconnection delay": 2000
     "max reconnection attempts": 1000
 
-  channel =
+  channel = new Backbone.Model
     clients: new ClientsCollection()
     modules: []
     authenticated: false
