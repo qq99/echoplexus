@@ -210,7 +210,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
   speak: (msg) ->
     self   = this
-    socket = @get("socket")
+    socket = @socket
     body   = msg.body
     room   = @get("room")
 
@@ -226,8 +226,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       body = body.replace(REGEXES.commands.private, "").trim()
       socket.emit "make_private:#{room}",
         password: body
-
-      $.cookie "channel_pw:#{room}", body, window.COOKIE_OPTIONS
     else if body.match(REGEXES.commands.public) # /public
       body = body.replace(REGEXES.commands.public, "").trim()
       socket.emit "make_public:#{room}"
@@ -236,8 +234,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       body = body.replace(REGEXES.commands.register, "").trim()
       socket.emit "register_nick:#{room}",
         password: body
-
-      $.cookie "ident_pw:#{room}", body, window.COOKIE_OPTIONS
     else if body.match(REGEXES.commands.identify) # /identify [password]
       body = body.replace(REGEXES.commands.identify, "").trim()
       @identify body, room

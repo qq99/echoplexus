@@ -48,4 +48,4 @@ describe 'ColorModel', ->
 
   describe '#toRGB', ->
     it 'should convert to rgb() CSS format correctly', ->
-      assert.equal 'rgb(111,222,94)', @subject.toRGB()
+      assert.equal 'rgb(111, 222, 94)', @subject.toRGB()

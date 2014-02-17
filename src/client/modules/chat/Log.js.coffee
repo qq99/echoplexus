@@ -75,7 +75,7 @@ module.exports.Log = class Log
     # compile a list of the message IDs we know about
     known = _.map @log, (obj) ->
       obj.mID
-    known = _.without known, 'undefined'
+    known = _.without known, undefined
     known = _.uniq known
     @known = known # store it a while
     known

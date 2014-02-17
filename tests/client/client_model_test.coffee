@@ -3,7 +3,6 @@ ClientModel  = client.ClientModel
 
 describe 'ClientModel', ->
   beforeEach ->
-    @subject = new ClientModel
     window.events =
       trigger: stub()
 
@@ -12,13 +11,14 @@ describe 'ClientModel', ->
     @fakeSocket =
       emit: stub()
 
-    @subject.socket = @fakeSocket
+    @subject = new ClientModel
+      socket: @fakeSocket
+      room: '/'
 
     @subjectSays = (string) =>
       @subject.speak({
-        body: string,
-        room: '/'
-      }, @fakeSocket)
+        body: string
+      })
 
   describe 'constructors', ->
     it 'should create a new Permissions model attribute on creation', ->
@@ -46,7 +46,7 @@ describe 'ClientModel', ->
         @subjectSays '/nick Foobar'
 
       it 'fires a request to change the nickname', ->
-        assert @fakeSocket.emit.calledWith('nickname:/')
+        assert.equal true, @fakeSocket.emit.calledWith('nickname:/')
         assert @fakeSocket.emit.calledOnce
       it 'should immediately update the nickname cookie', ->
         assert $.cookie.calledWith('nickname:/', 'Foobar')
@@ -58,10 +58,10 @@ describe 'ClientModel', ->
         @subjectSays '/private Super secret password'
 
       it 'fires a request to update the channel password', ->
-        assert @fakeSocket.emit.calledWith('make_private:/', {password: "Super secret password", room: "/"})
+        assert @fakeSocket.emit.calledWith('make_private:/', {password: "Super secret password"})
         assert @fakeSocket.emit.calledOnce
-      it 'should remember the channel password cookie', ->
-        assert $.cookie.calledWith('channel_pw:/', 'Super secret password')
+      it 'should not remember the channel password', ->
+        assert.equal false, $.cookie.called
 
     describe '/public', ->
       beforeEach ->
@@ -76,27 +76,27 @@ describe 'ClientModel', ->
         @subjectSays '/register mynickpw'
 
       it 'fires a request', ->
-        assert @fakeSocket.emit.calledWith('register_nick:/', {password: 'mynickpw', room: '/'})
+        assert @fakeSocket.emit.calledWith('register_nick:/', {password: 'mynickpw'})
         assert @fakeSocket.emit.calledOnce
-      it 'remembers the nick pw', ->
-        assert $.cookie.calledWith('ident_pw:/', 'mynickpw')
+      it 'does not remember the nick pw', ->
+        assert.equal false, $.cookie.called
 
     describe '/identify', ->
       beforeEach ->
         @subjectSays '/identify mynickpw'
 
       it 'fires a request', ->
-        assert @fakeSocket.emit.calledWith('identify:/', {password: 'mynickpw', room: '/'})
+        assert @fakeSocket.emit.calledWith('identify:/', {password: 'mynickpw'})
         assert @fakeSocket.emit.calledOnce
-      it 'remembers the nick pw', ->
-        assert $.cookie.calledWith('ident_pw:/', 'mynickpw')
+      it 'does not remember the nick pw', ->
+        assert.equal false, $.cookie.called
 
     describe '/topic', ->
       beforeEach ->
         @subjectSays '/topic test'
 
       it 'fires a request', ->
-        assert @fakeSocket.emit.calledWith('topic:/', {topic: 'test', room: '/'})
+        assert @fakeSocket.emit.calledWith('topic:/', {topic: 'test'})
         assert @fakeSocket.emit.calledOnce
 
     describe '/tell', ->
@@ -134,7 +134,7 @@ describe 'ClientModel', ->
         assert not $.cookie.called
 
     describe '/leave', ->
-      it 'should trigger an event on the global eventbus', ->
+      it 'should trigger an event', ->
         @subjectSays '/leave'
 
         assert window.events.trigger.calledWith("leave:/")
