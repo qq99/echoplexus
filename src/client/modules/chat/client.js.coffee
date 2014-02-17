@@ -324,7 +324,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   kill: ->
     $(window).off "resize", @chatLog.scrollToLatest
-    console.log 'kill'
     window.events.off "channelPassword:#{@channelName}"
     @socket.emit "unsubscribe:" + @channelName
     _.each @socketEvents, (method, key) =>
@@ -405,7 +404,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @rerenderInputBox()
 
   channelIsPrivate: =>
-    console.log @channel, 'is private'
     @channel.isPrivate = true
     showPrivateOverlay() if !@hidden
 
