@@ -440,7 +440,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					ack?("Wrong password")
 				else
 					ack?(null)
-					@generateAuthenticationToken(socket, client, channel)
+					@generateAuthenticationToken(socket, client, channel) if !data.token
 
 		"nickname": (namespace, socket, channel, client, data, ack) ->
 			room = channel.get("name")
@@ -639,6 +639,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			console.log "verify token for token:identity:#{room}:#{nick}"
 			redisC.get "token:identity:#{room}:#{nick}", (err, reply) =>
 				throw err if err
+
+				console.log "supplied: #{token}, got: #{reply}"
 
 				if reply and reply == token
 					@setIdentified(socket, client, channel)
