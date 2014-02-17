@@ -2,4 +2,4 @@ language: node_js
 node_js:
   - "0.10.10"
 before_script:
-  - npm install -g grunt grunt-cli
+  - npm install -g grunt grunt-cli testem coffee-script
