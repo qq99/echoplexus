@@ -1,65 +1,65 @@
-_ 								= require("underscore")
-config 						= require('./config.coffee').Configuration
-AbstractServer 		= require('./AbstractServer.coffee').AbstractServer
-Client 						= require('../client/client.js.coffee').ClientModel
-Clients 					= require('../client/client.js.coffee').ClientsCollection
+_                 = require("underscore")
+config            = require('./config.coffee').Configuration
+AbstractServer    = require('./AbstractServer.coffee').AbstractServer
+Client            = require('../client/client.js.coffee').ClientModel
+Clients           = require('../client/client.js.coffee').ClientsCollection
 
-async 						= require("async")
-spawn 						= require("child_process").spawn
+async             = require("async")
+spawn             = require("child_process").spawn
 
-fs 								= require("fs")
-crypto 						= require("crypto")
-uuid 							= require("node-uuid")
-ApplicationError 	= require("./Error.js.coffee")
-redisC 						= require("./RedisClient.coffee").RedisClient()
-REGEXES 					= require("../client/regex.js.coffee").REGEXES
-DEBUG 						= config.DEBUG
-GithubWebhook 		= require("./GithubWebhookIntegration.coffee")
-EventBus 					= require("./EventBus.coffee").EventBus()
+fs                = require("fs")
+crypto            = require("crypto")
+uuid              = require("node-uuid")
+ApplicationError  = require("./Error.js.coffee")
+redisC            = require("./RedisClient.coffee").RedisClient()
+REGEXES           = require("../client/regex.js.coffee").REGEXES
+DEBUG             = config.DEBUG
+GithubWebhook     = require("./GithubWebhookIntegration.coffee")
+EventBus          = require("./EventBus.coffee").EventBus()
 
 # Extensions:
-Dice 							= require("./extensions/dice.coffee").Dice
+Dice              = require("./extensions/dice.coffee").Dice
 
 module.exports.ChatServer = class ChatServer extends AbstractServer
 	name: "ChatServer"
 	namespace: "/chat"
 
 	updatePersistedMessage: (room, mID, newMessage, callback) ->
-	  mID = parseInt(mID, 10)
-	  newBody = newMessage.body
-	  newEncryptedText = undefined
-	  alteredMsg = undefined
+		mID = parseInt(mID, 10)
+		newBody = newMessage.body
+		newEncryptedText = undefined
+		alteredMsg = undefined
 
-	  # get the pure message
-	  redisC.hget "chatlog:#{room}", mID, (err, reply) ->
-	    throw err  if err
-	    alteredMsg = JSON.parse(reply) # parse it
+		# get the pure message
+		redisC.hget "chatlog:#{room}", mID, (err, reply) ->
+			throw err  if err
+			alteredMsg = JSON.parse(reply) # parse it
 
-	    # is it within an allowable time period?  if not set, allow it
-	    if config.chat and config.chat.edit and config.chat.edit.maximum_time_delta
-	      oldestPossible = Number(new Date()) - config.chat.edit.maximum_time_delta # now - delta
-	      callback new Error("Message too old to be edited")  if alteredMsg.timestamp < oldestPossible
-	    # trying to edit something too far back in time
-	    alteredMsg.body = newBody # alter it
-	    alteredMsg.encrypted = newMessage.encrypted  if typeof newMessage.encrypted isnt "undefined"
+			# is it within an allowable time period?  if not set, allow it
+			if config.chat and config.chat.edit and config.chat.edit.maximum_time_delta
+				oldestPossible = Number(new Date()) - config.chat.edit.maximum_time_delta # now - delta
+				callback new Error("Message too old to be edited")  if alteredMsg.timestamp < oldestPossible
+			# trying to edit something too far back in time
+			alteredMsg.body = newBody # alter it
+			alteredMsg.encrypted = newMessage.encrypted  if typeof newMessage.encrypted isnt "undefined"
 
-	    # overwrite the old message with the altered chat message
-	    redisC.hset "chatlog:#{room}", mID, JSON.stringify(alteredMsg), (err, reply) ->
-	      throw err  if err
-	      callback null, alteredMsg
+			# overwrite the old message with the altered chat message
+			redisC.hset "chatlog:#{room}", mID, JSON.stringify(alteredMsg), (err, reply) ->
+				throw err  if err
+				callback null, alteredMsg
 
 	urlRoot: ->
-	  if config.host.USE_PORT_IN_URL
-	    config.host.SCHEME + "://" + config.host.FQDN + ":" + config.host.PORT + "/"
-	  else
-	    config.host.SCHEME + "://" + config.host.FQDN + "/"
+		if config.host.USE_PORT_IN_URL
+			config.host.SCHEME + "://" + config.host.FQDN + ":" + config.host.PORT + "/"
+		else
+			config.host.SCHEME + "://" + config.host.FQDN + "/"
 
 	serverSentMessage: (msg, room) ->
-	  _.extend msg,
-	    nickname: config.features.SERVER_NICK
-	    type: "SYSTEM"
-	    timestamp: Number(new Date())
-	    room: room
+		_.extend msg,
+			nickname: config.features.SERVER_NICK
+			type: "SYSTEM"
+			timestamp: Number(new Date())
+			room: room
 
 	publishUserList: (channel) ->
 		room = channel.get("name")
@@ -128,24 +128,24 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 	storePersistent: (msg, room, callback) ->
 
-	  # store in redis
-	  redisC.hget "channels:currentMessageID", room, (err, reply) ->
-	    callback err  if err
+		# store in redis
+		redisC.hget "channels:currentMessageID", room, (err, reply) ->
+			callback err  if err
 
-	    # update where we keep track of the sequence number:
-	    mID = 0
-	    mID = parseInt(reply, 10)  if reply
-	    redisC.hset "channels:currentMessageID", room, mID + 1
+			# update where we keep track of the sequence number:
+			mID = 0
+			mID = parseInt(reply, 10)  if reply
+			redisC.hset "channels:currentMessageID", room, mID + 1
 
-	    # alter the message object itself
-	    msg.mID = mID
+			# alter the message object itself
+			msg.mID = mID
 
-	    # store the message
-	    redisC.hset "chatlog:#{room}", mID, JSON.stringify(msg), (err, reply) ->
-	      callback err  if err
+			# store the message
+			redisC.hset "chatlog:#{room}", mID, JSON.stringify(msg), (err, reply) ->
+				callback err  if err
 
-	      # return the altered message object
-	      callback null, msg
+				# return the altered message object
+				callback null, msg
 
 	registerNick: (data, socket, client, channel) ->
 		room = channel.get("name")
@@ -172,6 +172,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 							socket.in(room).emit("chat:#{room}", @serverSentMessage({
 								body: "You have registered your nickname.  Please remember your password."
 							}, room))
+
+							@generateIdentityToken(socket, client, channel)
 				catch e
 					socket.in(room).emit("chat:#{room}", @serverSentMessage({
 						body: "Error in registering your nickname: " + e
@@ -180,6 +182,43 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				socket.in(room).emit("chat:#{room}", @serverSentMessage({
 					body: "That nickname is already registered by somebody."
 				}, room))
+
+	failedIdentification: (socket, client, channel) ->
+		nick = client.get("nick")
+		room = channel.get("name")
+
+		client.set("identified", false)
+		socket.in(room).emit("chat:#{room}", @serverSentMessage({
+			class: "identity err",
+			body: "Wrong password for #{nick}"
+		}, room))
+		socket.in(room).broadcast.emit("chat:#{room}", @serverSentMessage({
+			class: "identity err",
+			body: "#{nick} just failed to identify himself"
+		}, room))
+
+	setIdentified: (socket, client, channel) ->
+		room = channel.get("name")
+		nick = client.get("nick")
+
+		client.set("identified", true)
+		socket.in(room).emit("chat:#{room}", @serverSentMessage({
+			class: "identity ack",
+			body: "You are now identified for #{nick}"
+		}, room))
+
+	generateIdentityToken: (socket, client, channel) ->
+		token = uuid.v4()
+		room  = channel.get("name")
+		nick  = client.get("nick")
+
+		redisC.psetex "token:identity:#{room}:#{nick}", 30*24*60*60*1000, token, (err, reply) =>
+			@setIdentified(socket, client, channel)
+
+			socket.in(room).emit("token:#{room}", {
+				token: token
+				type: "identity"
+			})
 
 	createWebshot: (data, room) ->
 		if config.chat?.webshot_previews?.enabled?
@@ -398,12 +437,12 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			prevName = client.get("nick")
 
 			client.set "identified", false,
-			  silent: true
+				silent: true
 
 			client.unset "encrypted_nick"
 			if data.encrypted_nick?
-			  newName = "-"
-			  client.set "encrypted_nick", data.encrypted_nick
+				newName = "-"
+				client.set "encrypted_nick", data.encrypted_nick
 
 			if newName == ""
 				socket.in(room).emit("chat:#{room}", @serverSentMessage({
@@ -481,8 +520,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		"chat:unidle": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 			client.set
-			  idle: false
-			  idleSince: null
+				idle: false
+				idleSince: null
 
 		"private_message": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
@@ -580,9 +619,30 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 						redisC.hset "chatlog:identity_tokens:#{room}", mID, client.identity_token, (err, reply) ->
 							throw err if err
 
+		"verify_identity_token": (namespace, socket, channel, client, data) ->
+			token = data.token
+			room = channel.get("name")
+			nick = client.get("nick")
+
+			console.log "verify token for token:identity:#{room}:#{nick}"
+			redisC.get "token:identity:#{room}:#{nick}", (err, reply) =>
+				throw err if err
+
+				if reply and reply == token
+					@setIdentified(socket, client, channel)
+				else if !reply
+					socket.in(room).emit("chat:#{room}", @serverSentMessage({
+						class: "identity err",
+						body: "Expired identity token for #{nick}, or #{nick} is not registered"
+					}, room))
+				else
+					@failedIdentification(socket, client, channel)
+
 		"identify": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 			nick = client.get("nick")
+
+			console.log 'trying to identify via password'
 
 			try
 				redisC.sismember "users:#{room}", nick, (err, reply) =>
@@ -603,23 +663,11 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 								throw err if err
 
 								# TODO: does not output the right nick while encrypted, may not be necessary as this functionality might change (re: GPG/PGP)
-								if (derivedKey.toString() != stored.password) # FAIL
-									client.set("identified", false)
-									socket.in(room).emit("chat:#{room}", @serverSentMessage({
-										class: "identity err",
-										body: "Wrong password for #{nick}"
-									}, room))
-									socket.in(room).broadcast.emit("chat:#{room}", @serverSentMessage({
-										class: "identity err",
-										body: "#{nick} just failed to identify himself"
-									}, room))
-
+								if (derivedKey.toString() != stored.password)
+									@failedIdentification(socket, client, channel)
 								else # ident'd
-									client.set("identified", true)
-									socket.in(room).emit("chat:#{room}", @serverSentMessage({
-										class: "identity ack",
-										body: "You are now identified for #{nick}"
-									}, room))
+									@generateIdentityToken(socket, client, channel)
+
 			catch e # identification error
 				socket.in(room).emit("chat:#{room}", @serverSentMessage({
 					body: "Error identifying yourself: " + e

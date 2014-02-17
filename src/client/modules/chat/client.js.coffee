@@ -359,9 +359,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   autoIdent: ->
     acked = $.Deferred()
-    storedIdent = $.cookie("ident_pw:" + @channelName)
-    if storedIdent
-      @me.identify storedIdent, @channelName, acked
+
+    identityToken = $.cookie("token:identity:#{@channelName}")
+    if identityToken
+      @me.verify_identity_token identityToken, acked
     else
       acked.reject()
     acked.promise()
@@ -541,6 +542,9 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       "client:id": (msg) =>
         @me.set "id", msg.id
 
+      "token": (msg) =>
+        $.cookie "token:#{msg.type}:#{@channelName}", msg.token, window.COOKIE_OPTIONS
+
       userlist: (msg) =>
 
         # update the pool of possible autocompletes
@@ -714,7 +718,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     # clears all sensitive information:
     $.cookie "nickname:" + @channelName, null
-    $.cookie "ident_pw:" + @channelName, null
+    $.cookie "token:identity:#{@channelName}", null
     $.cookie "channel_pw:" + @channelName, null
     @clearCryptoKey() # delete their stored key
     @deleteLocalStorage()

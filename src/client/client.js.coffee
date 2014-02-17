@@ -137,9 +137,14 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     , ->
       ack.resolve() if ack
 
+  verify_identity_token: (token, ack) ->
+    room = @get('room')
+    @socket.emit "verify_identity_token:#{room}",
+      token: token
+    , ->
+      ack.resolve() if ack
 
   identify: (pw, room, ack) ->
-    $.cookie "ident_pw:#{room}", pw, window.COOKIE_OPTIONS
     @socket.emit "identify:#{room}",
       password: pw
     , ->
