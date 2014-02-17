@@ -212,8 +212,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		room  = channel.get("name")
 		nick  = client.get("nick")
 
-		console.log "storing #{token} at token:identity:#{room}:#{nick}"
-		redisC.psetex "token:identity:#{room}:#{nick}", 30*24*60*60*1000, token, (err, reply) =>
+		redisC.setex "token:identity:#{room}:#{nick}", 30*24*60*60, token, (err, reply) =>
 			@setIdentified(socket, client, channel)
 
 			socket.in(room).emit("token:#{room}", {
@@ -226,7 +225,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		room  = channel.get("name")
 		nick  = client.get("nick")
 
-		redisC.psetex "token:authentication:#{token}", 30*24*60*60*1000, room, (err, reply) =>
+		redisC.setex "token:authentication:#{token}", 30*24*60*60, room, (err, reply) =>
 
 			socket.in(room).emit("token:#{room}", {
 				token: token
@@ -637,11 +636,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			room = channel.get("name")
 			nick = client.get("nick")
 
-			console.log "verify token for token:identity:#{room}:#{nick}"
 			redisC.get "token:identity:#{room}:#{nick}", (err, reply) =>
 				throw err if err
-
-				console.log "supplied: #{token}, got: #{reply}"
 
 				if reply and reply == token
 					@setIdentified(socket, client, channel)
