@@ -99,6 +99,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         ev.preventDefault()
         userInput = $this.text().trim()
         if userInput isnt oldText
+          console.log "edit:commit:" + @room
           window.events.trigger "edit:commit:" + @room,
             mID: mID
             newText: userInput

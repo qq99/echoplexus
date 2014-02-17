@@ -168,6 +168,18 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       room: room
       directedAt: toUsername
 
+  sendEdit: (mID, newBody) ->
+    room = @get('room')
+    data =
+      body: newBody
+      mID: mID
+
+    if @cryptokey
+      data.encrypted = cryptoWrapper.encryptObject(newBody, @cryptokey)
+      data.body = "-"
+
+    @socket.emit "chat:edit:#{room}", data
+
   sendEncryptedPrivateMessage: (toUsername, body, socket) ->
     room  = @get('room')
     peers = @get('peers')
@@ -275,16 +287,9 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     else if matches = body.match(REGEXES.commands.edit) # editing
       mID = matches[2]
-      data = undefined
       body = body.replace(REGEXES.commands.edit, "").trim()
-      data =
-        mID: mID
-        body: body
 
-      if @cryptokey
-        data.encrypted = cryptoWrapper.encryptObject(data.body, @cryptokey)
-        data.body = "-"
-      socket.emit "chat:edit:#{room}", data
+      @sendEdit(mID, body)
     else if body.match(REGEXES.commands.leave) # leaving
       window.events.trigger "leave:#{room}"
     else if body.match(REGEXES.commands.chown) # become owner

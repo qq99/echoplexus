@@ -540,7 +540,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         message = new ChatMessage(msg)
         msg = @checkToNotify(message) # the edit might have been to add a "@nickname", so check again to notify
         @persistentLog.replaceMessage message.toJSON() # replace the message with the edited version in local storage
-        @chatLog.replaceChatMessage message # replace the message with the edited version in the chat log
+        @chatLog.replaceChatMessage @decryptChatMessage(message) # replace the message with the edited version in the chat log
 
       "client:id": (msg) =>
         @me.set "id", msg.id
@@ -633,9 +633,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     # finalize the edit
     window.events.on "edit:commit:#{@channelName}", (data) =>
-      @socket.emit "chat:edit:#{@channelName}",
-        mID: data.mID
-        body: data.newText
+      @me.sendEdit data.mID, data.newText
 
     # let the chat server know our call status so we can advertise that to other users
     window.events.on "in_call:#{@channelName}", (data) =>
