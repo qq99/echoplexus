@@ -212,7 +212,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		room  = channel.get("name")
 		nick  = client.get("nick")
 
-		redisC.setex "token:identity:#{room}:#{nick}", 30*24*60*60, token, (err, reply) =>
+		redisC.setex "token:identity:#{room}:#{token}", 30*24*60*60, nick, (err, reply) =>
 			@setIdentified(socket, client, channel)
 
 			socket.in(room).emit("token:#{room}", {
@@ -636,10 +636,10 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			room = channel.get("name")
 			nick = client.get("nick")
 
-			redisC.get "token:identity:#{room}:#{nick}", (err, reply) =>
+			redisC.get "token:identity:#{room}:#{token}", (err, reply) =>
 				throw err if err
 
-				if reply and reply == token
+				if reply and reply == nick
 					@setIdentified(socket, client, channel)
 				else if !reply
 					socket.in(room).emit("chat:#{room}", @serverSentMessage({
