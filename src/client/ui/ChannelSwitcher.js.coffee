@@ -110,7 +110,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     # https://github.com/qq99/echoplexus/issues/118
     # so the server doesn't attempt to keep them alive for any more than necessary, the client should be nice and tell us it's leaving
     _.each @channels, (channel) ->
-      _.each channel.modules, (module) ->
+      _.each channel.get("modules"), (module) ->
         module.view.kill()
 
 
@@ -119,7 +119,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
     # don't leave an undefined channel or the last channel
     return  if (typeof channelName is "undefined") or (@sortedChannelNames.length is 1)
-    channelViews = @channels[channelName].modules
+    channelViews = @channels[channelName].get("modules")
     $channelButton = @$el.find(".channelBtn[data-channel='" + channelName + "']")
 
     # remove the views, then their $els
@@ -180,7 +180,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
     # tell the views to deactivate
     _.each channelsToDeactivate, (channelName) =>
-      _.each @channels[channelName].modules, (module) ->
+      _.each @channels[channelName].get("modules"), (module) ->
         module.view.$el.hide()
         module.view.trigger "hide"
 
@@ -189,7 +189,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     $(".channels .channelBtn[data-channel='" + channelName + "']", @$el).addClass("active").removeClass "activity"
 
     # send events to the view we're showing:
-    _.each channel.modules, (module) ->
+    _.each channel.get("modules"), (module) ->
       module.view.$el.show()
       module.view.trigger "show"
 
@@ -213,11 +213,15 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
   joinChannel: (channelName) ->
 
     if !@channels[channelName]?
-      channel =
+      cryptokey = window.localStorage.getItem("chat:cryptokey:#{channelName}")
+      cryptokey = undefined if cryptokey == ''
+
+      channel = new Backbone.Model
         clients: new ClientsCollection()
         modules: []
         authenticated: false
         isPrivate: false
+        cryptokey: cryptokey
 
       # create an instance of each module:
       _.each @modules, (ClientModule, idx) =>
@@ -238,7 +242,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
           config: @loader[idx]
 
         modInstance.view.$el.hide()
-        channel.modules.push modInstance
+        channel.get("modules").push modInstance
 
       @channels[channelName] = channel
       @loading -= 1
@@ -266,7 +270,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
     # clear out old pane:
     _.each @channels, (channel, channelName) ->
-      channelViews = channel.modules
+      channelViews = channel.get("modules")
       _.each channelViews, (module) ->
         if module.config?
           $("#" + module.config.section).append module.view.$el  unless $("." + module.view.className + "[data-channel='" + channelName + "']").length

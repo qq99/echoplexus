@@ -88,15 +88,21 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     @socket = opts.socket  if opts and opts.socket
     @set "permissions", new PermissionModel()
 
-  channelAuth: (pw, room, ack) ->
-    $.cookie "channel_pw:#{room}", pw, window.COOKIE_OPTIONS
+  authenticate_via_password: (pw, ack) ->
+    room = @get('room')
     @socket.emit "join_private:#{room}",
       password: pw
-      room: room
     , (err) ->
       ack.rejectWith(this, [err]) if ack and err
       ack.resolve() if ack
 
+  authenticate_via_token: (token, ack) ->
+    room = @get('room')
+    @socket.emit "join_private:#{room}",
+      token: token
+    , (err) ->
+      ack.rejectWith(this, [err]) if ack and err
+      ack.resolve() if ack
 
   inactive: (reason, room, socket) ->
     reason = reason or "User idle."
@@ -120,6 +126,9 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         nick = encrypted_nick.ct
     nick
 
+  getNickOf: (other) ->
+    other.getNick(@cryptokey)
+
   setNick: (nick, room, ack) ->
     $.cookie "nickname:#{room}", nick, window.COOKIE_OPTIONS
     if @cryptokey
@@ -134,9 +143,15 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     , ->
       ack.resolve() if ack
 
+  identify_via_token: (token, ack) ->
+    room = @get('room')
+    @socket.emit "verify_identity_token:#{room}",
+      token: token
+    , ->
+      ack.resolve() if ack
 
-  identify: (pw, room, ack) ->
-    $.cookie "ident_pw:#{room}", pw, window.COOKIE_OPTIONS
+  identify: (pw, ack) ->
+    room = @get('room')
     @socket.emit "identify:#{room}",
       password: pw
     , ->
@@ -145,17 +160,29 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
   is: (otherModel) ->
     @attributes.id is otherModel.attributes.id
 
-  sendPrivateMessage: (toUsername, body, socket) ->
+  sendPrivateMessage: (toUsername, body) ->
     room = @get('room')
-    socket.emit "private_message:#{room}",
+    @socket.emit "private_message:#{room}",
       body: body
-      room: room
       directedAt: toUsername
 
-  sendEncryptedPrivateMessage: (toUsername, body, socket) ->
+  sendEdit: (mID, newBody) ->
     room = @get('room')
+    data =
+      body: newBody
+      mID: mID
+
+    if @cryptokey
+      data.encrypted = cryptoWrapper.encryptObject(newBody, @cryptokey)
+      data.body = "-"
+
+    @socket.emit "chat:edit:#{room}", data
+
+  sendEncryptedPrivateMessage: (toUsername, body) ->
+    room  = @get('room')
+    peers = @get('peers')
     # decrypt the list of our peers (we don't have their unencrypted stored in plaintext anywhere)
-    peerNicks = _.map @peers.models, (peer) =>
+    peerNicks = _.map peers.models, (peer) =>
       peer.getNick @cryptokey
 
     ciphernicks = [] # we could potentially be targeting multiple people with the same nick in our whisper
@@ -164,24 +191,23 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     i = 0
     while i < peerNicks.length
       # if it matches, we'll keep track of their ciphernick to send to the server
-      ciphernicks.push @peers.at(i).get("encrypted_nick")["ct"]  if peerNicks[i] is toUsername
+      ciphernicks.push peers.at(i).get("encrypted_nick")["ct"]  if peerNicks[i] is toUsername
       i++
 
     # if anyone was actually a recipient, we'll encrypt the message and send it
     if ciphernicks.length
       encrypted = cryptoWrapper.encryptObject(body, @cryptokey) # encrypt the body text
       body = "-" # clean it immediately after encrypting it
-      socket.emit "private_message:#{room}",
+      @socket.emit "private_message:#{room}",
         encrypted: encrypted
         ciphernicks: ciphernicks
         body: body
-        room: room
 
     # else we just do nothing.
 
   speak: (msg) ->
     self   = this
-    socket = @get("socket")
+    socket = @socket
     body   = msg.body
     room   = @get("room")
 
@@ -197,8 +223,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       body = body.replace(REGEXES.commands.private, "").trim()
       socket.emit "make_private:#{room}",
         password: body
-
-      $.cookie "channel_pw:#{room}", body, window.COOKIE_OPTIONS
     else if body.match(REGEXES.commands.public) # /public
       body = body.replace(REGEXES.commands.public, "").trim()
       socket.emit "make_public:#{room}"
@@ -207,11 +231,9 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       body = body.replace(REGEXES.commands.register, "").trim()
       socket.emit "register_nick:#{room}",
         password: body
-
-      $.cookie "ident_pw:#{room}", body, window.COOKIE_OPTIONS
     else if body.match(REGEXES.commands.identify) # /identify [password]
       body = body.replace(REGEXES.commands.identify, "").trim()
-      @identify body, room
+      @identify body
     else if body.match(REGEXES.commands.topic) # /topic [My channel topic]
       body = body.replace(REGEXES.commands.topic, "").trim()
       if @cryptokey
@@ -232,9 +254,9 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         targetNick = targetNick.substring(1)  if targetNick.charAt(0) is "@" # remove the leading "@" symbol while we match against it; TODO: validate username characters not to include special symbols
 
         if @cryptokey
-          @sendEncryptedPrivateMessage(targetNick, body, socket)
+          @sendEncryptedPrivateMessage(targetNick, body)
         else
-          @sendPrivateMessage(targetNick, body, socket)
+          @sendPrivateMessage(targetNick, body)
 
     else if body.match(REGEXES.commands.pull_logs) # pull
       body = body.replace(REGEXES.commands.pull_logs, "").trim()
@@ -258,16 +280,9 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     else if matches = body.match(REGEXES.commands.edit) # editing
       mID = matches[2]
-      data = undefined
       body = body.replace(REGEXES.commands.edit, "").trim()
-      data =
-        mID: mID
-        body: body
 
-      if @cryptokey
-        data.encrypted = cryptoWrapper.encryptObject(data.body, @cryptokey)
-        data.body = "-"
-      socket.emit "chat:edit:#{room}", data
+      @sendEdit(mID, body)
     else if body.match(REGEXES.commands.leave) # leaving
       window.events.trigger "leave:#{room}"
     else if body.match(REGEXES.commands.chown) # become owner

@@ -4,7 +4,7 @@
   "version": "0.2.3",
   "description": "A modular, anonymous, real-time chatting system.",
   "scripts": {
-    "test": "bower install; grunt build; testem ci --launch chrome --file ./testem.json"
+    "test": "bower install; grunt build; testem ci --launch phantomjs --file ./testem.json"
   },
   "repository": {
     "type": "git",

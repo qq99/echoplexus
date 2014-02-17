@@ -99,6 +99,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         ev.preventDefault()
         userInput = $this.text().trim()
         if userInput isnt oldText
+          console.log "edit:commit:" + @room
           window.events.trigger "edit:commit:" + @room,
             mID: mID
             newText: userInput
@@ -259,17 +260,9 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
   renderChatMessage: (msg, opts) ->
     self = this
-    body = undefined
-    nickname = undefined
+    body = msg.get("body")
+    nickname = msg.get("nickname")
 
-    if typeof msg.get("encrypted_nick") isnt "undefined"
-      nickname = cryptoWrapper.decryptObject(msg.get("encrypted_nick"), @me.cryptokey)
-    else
-      nickname = msg.get("nickname")
-    if typeof msg.get("encrypted") isnt "undefined"
-      body = cryptoWrapper.decryptObject(msg.get("encrypted"), @me.cryptokey)
-    else
-      body = msg.get("body")
     opts = {}  if !opts
     if @autoloadMedia and msg.get("class") isnt "identity" and msg.get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar
       # put image links on the side:
@@ -381,7 +374,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       chatMessageClasses += " me "  if msg.get("you")
       chat = self.chatMessageTemplate(
         nickname: nickname
-        is_encrypted: (typeof msg.get("encrypted") isnt "undefined")
+        is_encrypted: !!msg.get("was_encrypted")
         mID: msg.get("mID")
         color: msg.get("color")
         body: body
@@ -469,7 +462,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     $mediaPane.html ""
 
   renderUserlist: (users) ->
-    self = this
     $userlist = $(".userlist .body", @$el)
     if users # if we have users
       # keep track of what the chat client tells us
@@ -480,11 +472,11 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       userHTML = ""
       nActive = 0
       total = 0
-      _.each users.models, (user) ->
-        nickname = user.getNick(self.me.cryptokey)
+      _.each users.models, (user) =>
+        nickname = @me.getNickOf(user)
 
         # add him to the visual display
-        userItem = self.userTemplate(
+        userItem = @userTemplate(
           nick: nickname
           using_encryption: (typeof user.get("encrypted_nick") isnt "undefined")
           id: user.id
@@ -494,7 +486,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
           idleSince: user.get("idleSince")
           operator: user.get("operator")
           inCall: user.get("inCall")
-          me: (user.get("id") is self.me.get("id"))
+          me: user.is(@me)
         )
         nActive += 1  unless user.get("idle")
         total += 1

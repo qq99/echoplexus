@@ -3,7 +3,6 @@ ClientModel  = client.ClientModel
 
 describe 'ClientModel', ->
   beforeEach ->
-    @subject = new ClientModel
     window.events =
       trigger: stub()
 
@@ -12,13 +11,14 @@ describe 'ClientModel', ->
     @fakeSocket =
       emit: stub()
 
-    @subject.socket = @fakeSocket
+    @subject = new ClientModel
+      socket: @fakeSocket
+      room: '/'
 
     @subjectSays = (string) =>
       @subject.speak({
-        body: string,
-        room: '/'
-      }, @fakeSocket)
+        body: string
+      })
 
   describe 'constructors', ->
     it 'should create a new Permissions model attribute on creation', ->
@@ -40,13 +40,43 @@ describe 'ClientModel', ->
       assert !@other.is(@subject), "Other client has same ID as subject client"
       assert @subject.is(@subject)
 
+  describe '#identify', ->
+    it 'should emit the correct event', ->
+      @subject.identify('foobar')
+      assert @fakeSocket.emit.calledWith('identify:/', {password: 'foobar'})
+
+  describe '#identify_via_token', ->
+    it 'should emit the correct event', ->
+      @subject.identify_via_token('foobar')
+      assert @fakeSocket.emit.calledWith('verify_identity_token:/', {token: 'foobar'})
+
+  describe '#authenticate_via_password', ->
+    it 'should emit the correct event', ->
+      @subject.authenticate_via_password('foobar')
+      assert @fakeSocket.emit.calledWith('join_private:/', {password: 'foobar'})
+
+  describe '#authenticate_via_token', ->
+    it 'should emit the correct event', ->
+      @subject.authenticate_via_token('foobar')
+      assert @fakeSocket.emit.calledWith('join_private:/', {token: 'foobar'})
+
+  describe '#sendPrivateMessage', ->
+    it 'should emit the correct event', ->
+      @subject.sendPrivateMessage("Bob", "What's up?")
+      assert @fakeSocket.emit.calledWith('private_message:/', {directedAt: 'Bob', body: "What's up?"})
+
+  describe '#sendEdit', ->
+    it 'should emit the correct event', ->
+      @subject.sendEdit(10, "oops")
+      assert @fakeSocket.emit.calledWith("chat:edit:/", {mID: 10, body: "oops"})
+
   describe "#speak", ->
     describe '/nick', ->
       beforeEach ->
         @subjectSays '/nick Foobar'
 
       it 'fires a request to change the nickname', ->
-        assert @fakeSocket.emit.calledWith('nickname:/')
+        assert.equal true, @fakeSocket.emit.calledWith('nickname:/')
         assert @fakeSocket.emit.calledOnce
       it 'should immediately update the nickname cookie', ->
         assert $.cookie.calledWith('nickname:/', 'Foobar')
@@ -58,10 +88,10 @@ describe 'ClientModel', ->
         @subjectSays '/private Super secret password'
 
       it 'fires a request to update the channel password', ->
-        assert @fakeSocket.emit.calledWith('make_private:/', {password: "Super secret password", room: "/"})
+        assert @fakeSocket.emit.calledWith('make_private:/', {password: "Super secret password"})
         assert @fakeSocket.emit.calledOnce
-      it 'should remember the channel password cookie', ->
-        assert $.cookie.calledWith('channel_pw:/', 'Super secret password')
+      it 'should not remember the channel password', ->
+        assert.equal false, $.cookie.called
 
     describe '/public', ->
       beforeEach ->
@@ -76,38 +106,38 @@ describe 'ClientModel', ->
         @subjectSays '/register mynickpw'
 
       it 'fires a request', ->
-        assert @fakeSocket.emit.calledWith('register_nick:/', {password: 'mynickpw', room: '/'})
+        assert @fakeSocket.emit.calledWith('register_nick:/', {password: 'mynickpw'})
         assert @fakeSocket.emit.calledOnce
-      it 'remembers the nick pw', ->
-        assert $.cookie.calledWith('ident_pw:/', 'mynickpw')
+      it 'does not remember the nick pw', ->
+        assert.equal false, $.cookie.called
 
     describe '/identify', ->
       beforeEach ->
         @subjectSays '/identify mynickpw'
 
       it 'fires a request', ->
-        assert @fakeSocket.emit.calledWith('identify:/', {password: 'mynickpw', room: '/'})
+        assert @fakeSocket.emit.calledWith('identify:/', {password: 'mynickpw'})
         assert @fakeSocket.emit.calledOnce
-      it 'remembers the nick pw', ->
-        assert $.cookie.calledWith('ident_pw:/', 'mynickpw')
+      it 'does not remember the nick pw', ->
+        assert.equal false, $.cookie.called
 
     describe '/topic', ->
       beforeEach ->
         @subjectSays '/topic test'
 
       it 'fires a request', ->
-        assert @fakeSocket.emit.calledWith('topic:/', {topic: 'test', room: '/'})
+        assert @fakeSocket.emit.calledWith('topic:/', {topic: 'test'})
         assert @fakeSocket.emit.calledOnce
 
     describe '/tell', ->
       it 'fires a request', ->
         @subjectSays '/tell qq99 hey yo'
-        assert @fakeSocket.emit.calledWith('private_message:/', {body: 'qq99 hey yo', room: '/', directedAt: 'qq99'})
+        assert @fakeSocket.emit.calledWith('private_message:/', {body: 'qq99 hey yo', directedAt: 'qq99'})
         assert @fakeSocket.emit.calledOnce
 
       it 'works when the recipient name is prefixed with @', ->
         @subjectSays '/tell @qq99 hey yo'
-        assert @fakeSocket.emit.calledWith('private_message:/', {body: '@qq99 hey yo', room: '/', directedAt: 'qq99'})
+        assert @fakeSocket.emit.calledWith('private_message:/', {body: '@qq99 hey yo', directedAt: 'qq99'})
         assert @fakeSocket.emit.calledOnce
 
     describe '/color', ->
@@ -134,7 +164,7 @@ describe 'ClientModel', ->
         assert not $.cookie.called
 
     describe '/leave', ->
-      it 'should trigger an event on the global eventbus', ->
+      it 'should trigger an event', ->
         @subjectSays '/leave'
 
         assert window.events.trigger.calledWith("leave:/")

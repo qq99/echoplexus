@@ -246,7 +246,9 @@ module.exports.ServerChannelModel = class ServerChannelModel extends ChannelMode
         client.set "authenticated", true
         client.trigger "authenticated", client
 
-  authenticate: (client, channelPassword, callback) ->
+  authenticate: (client, data, callback) ->
+    password = data.password
+    token = data.token
     socket = client.socketRef
     channelName = @attributes.name
 
@@ -256,25 +258,48 @@ module.exports.ServerChannelModel = class ServerChannelModel extends ChannelMode
       callback new Error("An error occured while attempting to join the channel.")  if err
       if privateChannel
 
-        # get the salt and salted+hashed password
-        async.parallel {
-          salt: (callback) ->
-            redisC.hget "channels:" + channelName, "salt", callback
-          password: (callback) ->
-            redisC.hget "channels:" + channelName, "password", callback
-        }, (err, stored) =>
-          callback err  if err
+        if password
+          @authenticateViaPassword(client, password, callback)
+        else if token
+          @authenticateViaToken(client, token, callback)
+        else
+          callback new ApplicationError.AuthenticationError("This channel is private.")
 
-          crypto.pbkdf2 channelPassword, stored.salt, 4096, 256, (err, derivedKey) =>
-            callback err  if err
-            if derivedKey.toString() isnt stored.password # auth failure
-              callback new ApplicationError.AuthenticationError("Incorrect password.")
-            else # auth success
-              @authenticationSuccess client
-              callback null, true
       else
         @authenticationSuccess client
         callback null, true
+
+  authenticateViaPassword: (client, password, callback) ->
+    channelName = @attributes.name
+
+    # get the salt and salted+hashed password
+    async.parallel {
+      salt: (callback) ->
+        redisC.hget "channels:" + channelName, "salt", callback
+      password: (callback) ->
+        redisC.hget "channels:" + channelName, "password", callback
+    }, (err, stored) =>
+      callback err  if err
+
+      crypto.pbkdf2 password, stored.salt, 4096, 256, (err, derivedKey) =>
+        callback err  if err
+        if derivedKey.toString() isnt stored.password # auth failure
+          callback new ApplicationError.AuthenticationError("Incorrect password.")
+        else # auth success
+          @authenticationSuccess client
+          callback null, true
+
+  authenticateViaToken: (client, token, callback) ->
+    room = @attributes.name
+
+    redisC.get "token:authentication:#{token}", (err, reply) =>
+      throw err if err
+
+      if reply and reply == room
+        @authenticationSuccess client
+        callback null, true
+      else
+        callback new ApplicationError.AuthenticationError("Incorrect token.")
 
 module.exports.ChannelsCollection = class ChannelsCollection extends Backbone.Collection
   initialize: (instances, options) ->

@@ -15,6 +15,7 @@ module.exports.SyncedEditor = class SyncedEditor extends Backbone.View
     @clients = opts.clients
     @channelName = opts.room
     @subchannelName = opts.subchannel
+    @channel = opts.channel
     @channelKey = @channelName + ":" + @subchannelName
     @socket = io.connect(opts.host + "/code")
     @active = false
@@ -88,10 +89,10 @@ module.exports.SyncedEditor = class SyncedEditor extends Backbone.View
           i++
 
       "code:cursorActivity": (data) => # show the other users' cursors in our view
-        console.log 'cursor ', data
         return  if not @active or not codingModeActive()
         pos = editor.cursorCoords(data.cursor, "local") # their position
         fromClient = @clients.get(data.id) # our knowledge of their client object
+        fromNick = fromClient.getNick(@channel.get("cryptokey"))
         return  if !fromClient? # this should never happen
 
         # try to find an existing ghost cursor:
@@ -99,7 +100,7 @@ module.exports.SyncedEditor = class SyncedEditor extends Backbone.View
         unless $ghostCursor.length # if non-existent, create one
           $ghostCursor = $("<div class='ghost-cursor' rel='#{@channelKey}#{data.id}'></div>")
           $(editor.getWrapperElement()).find(".CodeMirror-lines > div").append $ghostCursor
-          $ghostCursor.append "<div class='user'>#{fromClient.get("nick")}</div>"
+          $ghostCursor.append "<div class='user'>#{fromNick}</div>"
         clientColor = fromClient.get("color").toRGB()
         $ghostCursor.css
           background: clientColor
