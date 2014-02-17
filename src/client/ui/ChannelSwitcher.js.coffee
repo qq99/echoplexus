@@ -119,7 +119,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
     # don't leave an undefined channel or the last channel
     return  if (typeof channelName is "undefined") or (@sortedChannelNames.length is 1)
-    channelViews = @channels[channelName].modules
+    channelViews = @channels[channelName].get("modules")
     $channelButton = @$el.find(".channelBtn[data-channel='" + channelName + "']")
 
     # remove the views, then their $els
@@ -180,7 +180,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
     # tell the views to deactivate
     _.each channelsToDeactivate, (channelName) =>
-      _.each @channels[channelName].modules, (module) ->
+      _.each @channels[channelName].get("modules"), (module) ->
         module.view.$el.hide()
         module.view.trigger "hide"
 

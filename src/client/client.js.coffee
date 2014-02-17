@@ -121,8 +121,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     nick
 
   getNickOf: (other) ->
-    return unless @cryptokey
-
     other.getNick(@cryptokey)
 
   setNick: (nick, room, ack) ->
