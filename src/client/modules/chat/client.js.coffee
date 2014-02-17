@@ -385,11 +385,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     $.when(acked).fail (err) =>
       if !@hidden
         showPrivateOverlay()
-        if password
-          growl = new Mewl(
-            title: @channelName + ": Error"
-            body: err
-          )
+        growl = new Mewl(
+          title: @channelName + ": Error"
+          body: err
+        )
 
     acked.promise()
 
@@ -718,7 +717,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   logOut: (ev) ->
 
     # clears all sensitive information:
-    $.cookie "nickname:" + @channelName, null
+    $.cookie "nickname:#{@channelName}", null
     $.cookie "token:identity:#{@channelName}", null
     $.cookie "token:authentication:#{@channelName}", null
     @clearCryptoKey() # delete their stored key
@@ -760,6 +759,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   clearCryptoKey: ->
     delete @me.cryptokey
+    @channel.unset("cryptokey")
 
     @rerenderInputBox()
     window.localStorage.setItem "chat:cryptokey:" + @channelName, ""
