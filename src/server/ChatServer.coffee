@@ -220,6 +220,18 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				type: "identity"
 			})
 
+	generateAuthenticationToken: (socket, client, channel) ->
+		token = uuid.v4()
+		room  = channel.get("name")
+		nick  = client.get("nick")
+
+		redisC.psetex "token:authentication:#{token}", 30*24*60*60*1000, room, (err, reply) =>
+
+			socket.in(room).emit("token:#{room}", {
+				token: token
+				type: "authentication"
+			})
+
 	createWebshot: (data, room) ->
 		if config.chat?.webshot_previews?.enabled?
 			# strip out other things the client is doing before we attempt to render the web page
@@ -411,10 +423,9 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				@broadcast socket, channel, "This channel is now private.  Please remember your password."
 
 		"join_private": (namespace, socket, channel, client, data, ack) ->
-			password = data.password
 			room = channel.get("name")
 
-			channel.authenticate client, password, (err, response) =>
+			channel.authenticate client, data, (err, response) =>
 				if err
 					if err.message instanceof ApplicationError.AuthenticationError
 						if err.message == "Incorrect password."
@@ -429,6 +440,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					ack?("Wrong password")
 				else
 					ack?(null)
+					@generateAuthenticationToken(socket, client, channel)
 
 		"nickname": (namespace, socket, channel, client, data, ack) ->
 			room = channel.get("name")

@@ -367,11 +367,15 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       acked.reject()
     acked.promise()
 
-  authenticate: (password) ->
+  authenticate: (data) ->
     acked = $.Deferred()
+    password = data.password
+    token = data.token
 
     if password
-      @me.channelAuth password, @channelName, acked if password
+      @me.authenticate_via_password password, acked
+    else if token
+      @me.authenticate_via_token token, acked
     else
       acked.reject()
 
@@ -391,8 +395,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     acked.promise()
 
   autoAuth: ->
-    storedAuth = $.cookie("channel_pw:" + @channelName)
-    return @authenticate(storedAuth)
+    storedAuth = $.cookie("token:authentication:#{@channelName}")
+    return @authenticate(token: storedAuth)
 
   render: ->
     @$el.html @template()
@@ -401,6 +405,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @rerenderInputBox()
 
   channelIsPrivate: =>
+    console.log @channel, 'is private'
     @channel.isPrivate = true
     showPrivateOverlay() if !@hidden
 
@@ -609,7 +614,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         body: data.body
 
     window.events.on "channelPassword:#{@channelName}", (data) =>
-      @authenticate data.password
+      @authenticate(password: data.password)
 
     window.events.on "unidle", =>
       if @$el.is(":visible") and @me?
@@ -719,7 +724,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     # clears all sensitive information:
     $.cookie "nickname:" + @channelName, null
     $.cookie "token:identity:#{@channelName}", null
-    $.cookie "channel_pw:" + @channelName, null
+    $.cookie "token:authentication:#{@channelName}", null
     @clearCryptoKey() # delete their stored key
     @deleteLocalStorage()
     window.events.trigger "leaveChannel", @channelName

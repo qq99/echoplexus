@@ -88,8 +88,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     @socket = opts.socket  if opts and opts.socket
     @set "permissions", new PermissionModel()
 
-  channelAuth: (pw, room, ack) ->
-    $.cookie "channel_pw:#{room}", pw, window.COOKIE_OPTIONS
+  authenticate_via_password: (pw, ack) ->
+    room = @get('room')
     @socket.emit "join_private:#{room}",
       password: pw
       room: room
@@ -97,6 +97,14 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       ack.rejectWith(this, [err]) if ack and err
       ack.resolve() if ack
 
+  authenticate_via_token: (token, ack) ->
+    room = @get('room')
+    @socket.emit "join_private:#{room}",
+      token: token
+      room: room
+    , (err) ->
+      ack.rejectWith(this, [err]) if ack and err
+      ack.resolve() if ack
 
   inactive: (reason, room, socket) ->
     reason = reason or "User idle."
