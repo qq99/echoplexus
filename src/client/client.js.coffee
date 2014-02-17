@@ -145,7 +145,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     , ->
       ack.resolve() if ack
 
-  verify_identity_token: (token, ack) ->
+  identify_via_token: (token, ack) ->
     room = @get('room')
     @socket.emit "verify_identity_token:#{room}",
       token: token

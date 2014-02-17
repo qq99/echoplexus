@@ -361,7 +361,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     identityToken = $.cookie("token:identity:#{@channelName}")
     if identityToken
-      @me.verify_identity_token identityToken, acked
+      @me.identify_via_token identityToken, acked
     else
       acked.reject()
     acked.promise()
