@@ -1,4 +1,3 @@
-[![echoplexus](https://echoplex.us/img/echoplexus-logo.png)](https://echoplex.us)
 [echoplexus](https://echoplex.us) (v0.2.3)
 ==================
 
