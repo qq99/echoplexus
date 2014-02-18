@@ -1,4 +1,5 @@
 [![Stories in Ready](https://badge.waffle.io/qq99/echoplexus.png)](http://waffle.io/qq99/echoplexus)
+[![Build Status](http://img.shields.io/travis/qq99/echoplexus.svg)](https://travis-ci.org/qq99/echoplexus)
 [echoplexus](https://echoplex.us) (v0.2.3)
 ==================
 
