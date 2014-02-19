@@ -1,8 +1,8 @@
 [echoplexus](https://echoplex.us) (v0.2.3)
 ==================
 
-[![Stories in Ready](//badge.waffle.io/qq99/echoplexus.png)](http://waffle.io/qq99/echoplexus)
-[![Build Status](//img.shields.io/travis/qq99/echoplexus.svg)](https://travis-ci.org/qq99/echoplexus)
+[![Stories in Ready](https://badge.waffle.io/qq99/echoplexus.png)](http://waffle.io/qq99/echoplexus)
+[![Build Status](https://img.shields.io/travis/qq99/echoplexus.svg)](https://travis-ci.org/qq99/echoplexus)
 
 Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
 
@@ -144,20 +144,4 @@ Specific things that will not work as a result:
   - PhantomJS webshot previews (since the server can't read the body text to screenshot the URL)
   - Identity (since the server doesn't know your nickname)
 
-With encryption, not even the server operators of echoplexus will be able to read your chats.  A standalone pre-packaged application is in the works (via `node-webkit`) for those wary that the operator might corrupt the encryption JS supplied to the user.
-
-HTTP API
---------
-
-There's not much at the moment, but there is at least one endpoint exposed:
-
-- `GET /api/channels`: returns a list of all public channels that at one point had a user join since the server was started.  Contains the following pieces of information for each channel: `name`, `topic`, `private`, `hasOwner`, `numActiveClients`, `numClients`  There's nothing fancy here, but it might be useful for future integrations
-
-Install
--------
-
-See [INSTALL.md](https://github.com/qq99/echoplexus/blob/master/INSTALL.md).
-
-License:
--------
-GPLv3 and MIT
+With encryption, not even the 
