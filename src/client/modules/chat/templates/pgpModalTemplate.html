@@ -1,0 +1,42 @@
+<div class="modal centered">
+  <h1>PGP</h1>
+  <section class="intro active">
+    <p>To better secure your identity, you can choose to use a PGP key to sign and/or encrypt your messages.  This can eliminate the need to share a secret to exchange messages securely, which is prone to user error and forgetfulness.</p>
+    <p>After selecting a keypair, you can choose to sign all outgoing messages.  Once people mark your public key as trusted, any message you send can be verified by them as having been sent by you.</p>
+    <p>If you're chatting with other people who have also supplied PGP keys, you can also encrypt your communications.</p>
+    <div class="field">
+      <button class="generate-keypair">Generate a keypair</button>
+      <button class="cancel">Use a keypair I supply</button>
+    </div>
+    <p class="death-warning">If you choose to supply your own key, be sure that it's one you are comfortable with losing.</p>
+  </section>
+  <section class="generate-keypair">
+    <div class="field">
+      <label for="pgp-key-type">Key Type:</label>
+      <span>RSA</span>
+    </div>
+    <div class="field">
+      <label for="pgp-key-size">Key Size:</label>
+      <select id="pgp-key-size">
+        <option value="1024">1024</option>
+        <option value="2048" selected>2048</option>
+        <option value="4096">4096</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="pgp-name">Name:</label>
+      <input id="pgp-name" type="text">
+    </div>
+    <div class="field">
+      <label for="pgp-email">Email:</label>
+      <input id="pgp-email" type="text">
+    </div>
+    <div class="field">
+      <label for="pgp-password-challenge">Passphrase:</label>
+      <input id="pgp-password-challenge" type="password">
+    </div>
+    <div class="field">
+      <button class="finalize-generate-keypair">Generate</button>
+    </div>
+  </section>
+</div>

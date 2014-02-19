@@ -1310,14 +1310,15 @@ header {
 }
 .modal {
 	font-family:$pretty-font-family;
-	border-radius:10px;
 	position:relative;
 	width:30em;
 	background:#1d1f1f;
-	box-shadow:inset 0px 0px 20px rgba(0,0,0,0.8);
+	box-shadow:inset -2px -2px 0px -1px rgba(155,225,255,0.1);
 	padding:2em;
 	height:30em;
 	overflow:hidden;
+	z-index:2;
+
 	&.centered {
 		top:50%;
 		margin:auto;
@@ -1348,19 +1349,11 @@ header {
 		text-align: center;
 		text-shadow:-1px -1px 0px rgba(255,255,255,0.1);
 	}
-}
 
-.crypto-key-popup {
-	z-index:2;
-	.anti-surveillance {
-		@include unselectable();
-		float:left;
-		margin:0 0.25em 0 0;
-		font-size: 6em;
-		color: #1a1a1a;
-		text-align: center;
-		.fa-eye-slash {
-			color:yellow;
+	section {
+		display: none;
+		&.active {
+			display: block;
 		}
 	}
 	.field {
@@ -1376,6 +1369,21 @@ header {
 	button {
 		@include fancyButton;
 		text-transform: none;
+	}
+}
+
+.crypto-key-popup {
+	z-index:2;
+	.anti-surveillance {
+		@include unselectable();
+		float:left;
+		margin:0 0.25em 0 0;
+		font-size: 6em;
+		color: #1a1a1a;
+		text-align: center;
+		.fa-eye-slash {
+			color:yellow;
+		}
 	}
 }
 

@@ -2,6 +2,7 @@ chatpanelTemplate       = require("./templates/chatPanel.html")
 chatinputTemplate       = require("./templates/chatInput.html")
 fileUploadTemplate      = require("./templates/fileUpload.html")
 cryptoModalTemplate     = require("./templates/channelCryptokeyModal.html")
+pgpModalTemplate        = require("./templates/pgpModalTemplate.html")
 REGEXES                 = require("../../regex.js.coffee").REGEXES
 Faviconizer             = require("../../ui/Faviconizer.js.coffee").Faviconizer
 Autocomplete            = require("./Autocomplete.js.coffee").Autocomplete
@@ -18,6 +19,23 @@ cryptoWrapper           = new CryptoWrapper
 
 
 faviconizer = new Faviconizer
+
+module.exports.PGPModal = class PGPModal extends Backbone.View
+  className: "backdrop"
+  template: pgpModalTemplate
+
+  events:
+    "click .generate-keypair": "showKeypairGeneration"
+
+  initialize: (opts) ->
+    _.bindAll this
+    _.extend this, opts
+    @$el.html @template(opts)
+    $("body").append @$el
+
+  showKeypairGeneration: ->
+    @$el.find("section").removeClass("active")
+    @$el.find("section.generate-keypair").addClass("active")
 
 module.exports.CryptoModal = class CryptoModal extends Backbone.View
   className: "backdrop"
@@ -179,6 +197,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     "click .reply-button": "reply"
     "keydown .chatinput textarea": "handleChatInputKeydown"
     "click button.not-encrypted": "showCryptoModal"
+    "click button.pgp-settings": "showPGPModal"
     "click button.encrypted": "clearCryptoKey"
     "dragover .linklog": "showDragUIHelper"
     "dragleave .drag-mask": "hideDragUIHelper"
@@ -756,6 +775,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       _.defer ->
         $(".chatinput textarea", @$el).focus()
       @me.setNick @me.get("nick"), @channelName
+
+  showPGPModal: ->
+    console.log 'showing pgpmodal'
+    modal = new PGPModal(channelName: @channelName)
 
   clearCryptoKey: ->
     delete @me.cryptokey
