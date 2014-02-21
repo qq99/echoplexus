@@ -39,7 +39,6 @@ module.exports = (grunt) ->
           "vendor/codemirror/mode/htmlembedded/htmlembedded.js"
           "vendor/hammerjs/hammer.js"
           "vendor/emojify.js/emojify.js"
-          "lib/openpgpjs/openpgp.min.js"
           "lib/CryptoJS-3.1.2/components/core.js"
           "lib/CryptoJS-3.1.2/components/enc-base64.js"
           "lib/CryptoJS-3.1.2/components/enc-utf16.js"
@@ -144,6 +143,10 @@ module.exports = (grunt) ->
           flatten: true
           dest: "public/images/emoji"
         ]
+      openpgp:
+        files:
+          "<%= public_dir %>js/openpgp.min.js": "lib/openpgpjs/openpgp.min.js"
+          "<%= public_dir %>js/openpgp.worker.js": "lib/openpgpjs/openpgp.worker.js"
 
     server:
       base: "#{process.env.SERVER_BASE || 'generated'}"

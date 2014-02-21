@@ -1319,6 +1319,14 @@ header {
 	overflow:hidden;
 	z-index:2;
 
+	.close-button {
+		position: absolute;
+		top: 0;
+		right: 0;
+		z-index: 2;
+		background: #333;
+	}
+
 	&.centered {
 		top:50%;
 		margin:auto;
@@ -1333,7 +1341,13 @@ header {
 	.field {
 		label {
 			display:inline-block;
-			width:10em;
+			width:auto;
+			margin-bottom: 0.5em
+		}
+		label.description {
+			font-size:0.9em;
+			float:right;
+			color: #777;
 		}
 		input {
 
@@ -1359,8 +1373,7 @@ header {
 	.field {
 		margin:1em 0 ;
 	}
-	input {
-		@include cool-button;
+	input[type='text'], input[type='password'] {
 		min-height:2em;
 		height:2em;
 		width:100%;

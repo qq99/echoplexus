@@ -20,22 +20,82 @@ cryptoWrapper           = new CryptoWrapper
 
 faviconizer = new Faviconizer
 
+module.exports.PGPSettings = class PGPSettings extends Backbone.Model
+  initialize: (opts) ->
+    # requires channelName
+    _.bindAll this
+    _.extend this, opts
+
+    @set 'armored_keypair', localStorage.getObj "pgp:keypair:#{@channelName}"
+    @set 'sign?', localStorage.getObj "pgp:sign?:#{@channelName}"
+    @set 'encrypt?', localStorage.getObj "pgp:encrypt?:#{@channelName}"
+
+    this.on "change", @save
+
+  save: ->
+    localStorage.setObj "pgp:keypair:#{@channelName}", @get('keypair')
+    localStorage.setObj "pgp:sign?:#{@channelName}", @get('sign?')
+    localStorage.setObj "pgp:encrypt?:#{@channelName}", @get('encrypt?')
+
 module.exports.PGPModal = class PGPModal extends Backbone.View
   className: "backdrop"
   template: pgpModalTemplate
 
+  bindings:
+    "#pgp-sign-outgoing": "sign?"
+
   events:
-    "click .generate-keypair": "showKeypairGeneration"
+    "click button.generate-keypair": -> @changeSection("generate-keypair")
+    "click button.finalize-generate-keypair": "generateKeypair"
+    "click .close-button": "destroy"
 
   initialize: (opts) ->
     _.bindAll this
     _.extend this, opts
     @$el.html @template(opts)
+
+    @pgp_settings = new PGPSettings
+      channelName: @channelName
+
+    if @pgp_settings.get("armored_keypair")
+      @changeSection 'pgp-options'
+
+    this.stickit(@pgp_settings)
+
     $("body").append @$el
 
-  showKeypairGeneration: ->
+  destroy: ->
+    @$el.remove()
+
+  changeSection: (section) ->
+    console.log 'showing section', section
     @$el.find("section").removeClass("active")
-    @$el.find("section.generate-keypair").addClass("active")
+    @$el.find("section.#{section}").addClass("active")
+
+  generateKeypair: ->
+    keytype    = 1
+    keysize    = parseInt(@$el.find("#pgp-key-size").val(), 10) || 2048
+    name       = @$el.find("#pgp-name").val() || @me.getNick()
+    email      = @$el.find("#pgp-email").val() || "#{@me.getNick()}@echoplex.us"
+    passphrase = @$el.find("#pgp-passphrase-challenge").val() || ""
+
+    pgp_name = "#{name} <#{email}>"
+
+    @changeSection("pgp-generating")
+    try
+      armored_keypair = openpgp.generateKeyPair keytype, keysize, pgp_name, passphrase, (err, result) =>
+        @pgp_settings.set
+          'keypair': {
+            private: result.privateKeyArmored
+            public: result.publicKeyArmored
+          }
+          'sign?': true
+          'encrypt?': false
+
+        @changeSection("pgp-options")
+
+    catch e
+      console.error "Something went wrong in generating PGP keypair! #{e}"
 
 module.exports.CryptoModal = class CryptoModal extends Backbone.View
   className: "backdrop"
@@ -777,8 +837,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       @me.setNick @me.get("nick"), @channelName
 
   showPGPModal: ->
-    console.log 'showing pgpmodal'
-    modal = new PGPModal(channelName: @channelName)
+    modal = new PGPModal(channelName: @channelName, me: @me)
 
   clearCryptoKey: ->
     delete @me.cryptokey

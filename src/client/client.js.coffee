@@ -117,6 +117,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       @set "idle", false
 
   getNick: (cryptoKey) ->
+    cryptoKey = cryptoKey || @cryptokey
     nick = @get("nick")
     encrypted_nick = @get("encrypted_nick")
     if typeof encrypted_nick isnt "undefined"

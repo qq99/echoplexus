@@ -7,6 +7,7 @@ utility           = require("./utility.js.coffee")
 require("./events.js.coffee")()
   # require "./modules/user_info/UserData.js.coffee"
 
+openpgp.initWorker('js/openpgp.worker.js')
 
 # will be removed
 window.codingModeActive = -> # sloppy, forgive me

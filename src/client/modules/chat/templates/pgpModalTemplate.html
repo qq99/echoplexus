@@ -1,5 +1,9 @@
 <div class="modal centered">
+  <div class="close close-button">
+    <i class="fa fa-times"></i>
+  </div>
   <h1>PGP</h1>
+  <!-- intro -->
   <section class="intro active">
     <p>To better secure your identity, you can choose to use a PGP key to sign and/or encrypt your messages.  This can eliminate the need to share a secret to exchange messages securely, which is prone to user error and forgetfulness.</p>
     <p>After selecting a keypair, you can choose to sign all outgoing messages.  Once people mark your public key as trusted, any message you send can be verified by them as having been sent by you.</p>
@@ -10,6 +14,7 @@
     </div>
     <p class="death-warning">If you choose to supply your own key, be sure that it's one you are comfortable with losing.</p>
   </section>
+  <!-- generate -->
   <section class="generate-keypair">
     <div class="field">
       <label for="pgp-key-type">Key Type:</label>
@@ -22,21 +27,42 @@
         <option value="2048" selected>2048</option>
         <option value="4096">4096</option>
       </select>
+      <label for="pgp-key-size" class="description">bits</label>
     </div>
     <div class="field">
       <label for="pgp-name">Name:</label>
+      <label for="pgp-name" class="description">optional</label>
       <input id="pgp-name" type="text">
     </div>
     <div class="field">
       <label for="pgp-email">Email:</label>
+      <label for="pgp-email" class="description">optional</label>
       <input id="pgp-email" type="text">
     </div>
     <div class="field">
-      <label for="pgp-password-challenge">Passphrase:</label>
-      <input id="pgp-password-challenge" type="password">
+      <label for="pgp-passphrase-challenge">Passphrase:</label>
+      <label for="pgp-passphrase-challenge" class="description">optional for short-lived ephemeral identities</label>
+      <input id="pgp-passphrase-challenge" type="password">
     </div>
     <div class="field">
       <button class="finalize-generate-keypair">Generate</button>
+    </div>
+  </section>
+  <!-- generating -->
+  <section class="pgp-generating">
+    <p>Generating!</p>
+    <p>Your browser may lock up temporarily!  Please wait, as this may take a while.</p>
+  </section>
+  <!-- options -->
+  <section class="pgp-options">
+    <div class="field">
+      <input id="pgp-sign-outgoing" type="checkbox" checked>
+      <label for="pgp-sign-outgoing">Sign outgoing messages</label>
+    </div>
+    <div class="field">
+      <input id="pgp-encrypt-outgoing" type="checkbox">
+      <label for="pgp-encrypt-outgoing">Encrypt outgoing messages to trusted people</label>
+      <p>This option will make encrypt your chats by the public key of each recipient you trust that is currently active in the channel.</p>
     </div>
   </section>
 </div>
