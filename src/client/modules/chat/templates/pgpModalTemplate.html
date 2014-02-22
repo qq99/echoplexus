@@ -2,7 +2,7 @@
   <div class="close close-button">
     <i class="fa fa-times"></i>
   </div>
-  <h1>PGP</h1>
+  <h1 class="modal-title">PGP</h1>
   <!-- intro -->
   <section class="intro active">
     <p>To better secure your identity, you can choose to use a PGP key to sign and/or encrypt your messages.  This can eliminate the need to share a secret to exchange messages securely, which is prone to user error and forgetfulness.</p>
@@ -63,6 +63,24 @@
       <input id="pgp-encrypt-outgoing" type="checkbox">
       <label for="pgp-encrypt-outgoing">Encrypt outgoing messages to trusted people</label>
       <p>This option will make encrypt your chats by the public key of each recipient you trust that is currently active in the channel.</p>
+    </div>
+    <div class="field">
+      <button class="view-key-information">View Keypair Information</button>
+    </div>
+  </section>
+  <!-- keypair info -->
+  <section class="pgp-keypair-information">
+    <div class="field">
+      <label>User ID:</label>
+      <span class="pgp-user-id"></span>
+    </div>
+    <div class="field">
+      <label for="pgp-armored-private">Armored Private Key</label>
+      <textarea id="pgp-armored-private" readonly></textarea>
+    </div>
+    <div class="field">
+      <label for="pgp-armored-public">Armored Public Key</label>
+      <textarea id="pgp-armored-public" readonly></textarea>
     </div>
   </section>
 </div>
