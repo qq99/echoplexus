@@ -30,6 +30,7 @@ module.exports.REGEXES =
     reply: /(>>|&gt;&gt;)(\d+)/g
     github: /^\/github /
     roll: /^\/(roll|r)( |)/
+    destroy: /^\/destroy/
 
   github_subcommands:
     track: /^track/

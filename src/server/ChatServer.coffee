@@ -147,6 +147,17 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				# return the altered message object
 				callback null, msg
 
+	destroyChannelLogs: (room, callback) ->
+
+		redisC.del "chatlog:#{room}", (err, reply) ->
+			callback err if err
+
+			redisC.hset "channels:currentMessageID", room, 0, (err, reply) ->
+				callback err if err
+
+				console.log 'success path'
+				callback null
+
 	registerNick: (data, socket, client, channel) ->
 		room = channel.get("name")
 		nick = client.get("nick")
@@ -480,6 +491,19 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				body: channel.get("topicObj")
 			})
 
+		"destroy_logs": (namespace, socket, channel, client, data) ->
+			room = channel.get("name")
+
+			if !channel.hasPermission(client, "canDeleteLogs")
+				@emitGenericPermissionsError(socket, client)
+				return
+
+			@destroyChannelLogs room, (err, result) =>
+				if err
+					@broadcast(socket, channel, "Error destroying chatlogs for #{room}.")
+				else
+					@broadcast(socket, channel, "Chatlogs for #{room} have been erased.")
+
 		"chat:edit": (namespace, socket, channel, client, data) ->
 			if config.chat?.edit?
 				return if not config.chat.edit.enabled
@@ -490,7 +514,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			editResultCallback = (err, msg) =>
 				if err
 					socket.in(room).emit("chat:#{room}", @serverSentMessage({
-						type: "SERVER",
 						body: err.message
 					}, room))
 					return

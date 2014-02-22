@@ -80,6 +80,7 @@ Currently Supported Commands:
 - `/github track [github repo URL]`: This generates a URL that you can add to your repo's postreceive hooks on Github.
 - `/roll [1d20|2d30|5d6] )`: will roll a 1d20.  When rolling multiples, each roll is displayed then added together.  Trying to roll an invalid dice format will default to a d20.
 Aliases: `/r`
+- `/destroy`: If you are the channel owner, you can delete the entire chatlog history for the channel in question.  There is no recovery!
 
 Example:
   - `/chmod -canSpeak`: now everyone in the channel can't speak unless you do `/chmod +canSpeak [username]` to selectively enable it for a specific user.
