@@ -155,7 +155,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			redisC.hset "channels:currentMessageID", room, 0, (err, reply) ->
 				callback err if err
 
-				console.log 'success path'
+				console.log "Chatlog deleted for #{room}"
 				callback null
 
 	registerNick: (data, socket, client, channel) ->
@@ -733,7 +733,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				return
 
 			GithubWebhook.allowRepository room, repoUrl, (err, token) =>
-				console.log err, token
 				if err
 					socket.in(room).emit("chat:#{room}", @serverSentMessage({
 						body: err.toString()
