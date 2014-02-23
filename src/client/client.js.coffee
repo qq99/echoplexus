@@ -85,8 +85,16 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       @set "color", new exports.ColorModel(opts.color)
     else
       @set "color", new exports.ColorModel()
-    @socket = opts.socket  if opts and opts.socket
+    @socket = opts.socket if opts?.socket
+    @pgp_settings = opts.pgp_settings if opts?.pgp_settings
     @set "permissions", new PermissionModel()
+
+  getPGPFingerprint: ->
+    if pub = @get('armored_public_key')
+      dearmored = openpgp.key.readArmored(pub)
+      fingerprint = dearmored.keys[0]?.primaryKey?.getFingerprint()
+    else
+      null
 
   authenticate_via_password: (pw, ack) ->
     room = @get('room')

@@ -478,6 +478,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         # add him to the visual display
         userItem = @userTemplate(
           nick: nickname
+          has_public_key: !!user.get("armored_public_key")
+          fingerprint: user.getPGPFingerprint()
           using_encryption: (typeof user.get("encrypted_nick") isnt "undefined")
           id: user.id
           color: user.get("color").toRGB()

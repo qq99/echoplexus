@@ -616,6 +616,11 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					return
 				client.trigger("change", client) # setting sub-model won't trigger change on main, so we fire it manually
 
+		"set_public_key": (namespace, socket, channel, client, data) ->
+			if data.armored_public_key
+				client.set('armored_public_key', data.armored_public_key)
+				@publishUserList(channel)
+
 		"chat": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 

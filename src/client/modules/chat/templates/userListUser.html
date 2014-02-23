@@ -8,6 +8,14 @@
 				<i class="icon fa fa-key encrypted"></i>
 		</span>
 	<% } %>
+	<% if (has_public_key) { %>
+		<span
+			data-tooltip-title="PGP Public Key Fingerprint"
+			data-tooltip-body="<%= fingerprint %>"
+			class='tooltip-target'>
+				<i class="icon fa fa-key"></i>
+		</span>
+	<% } %>
 	<% if (identified) { %>
 		<span
 			data-tooltip-title="Identified"

@@ -10,16 +10,19 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
     "#pgp-armored-private":
       observe: 'armored_keypair'
       onGet: (value, options) ->
-        return value.private
+        return value?.private
     "#pgp-armored-public":
       observe: 'armored_keypair'
       onGet: (value, options) ->
-        return value.public
+        return value?.public
     ".pgp-user-id": "user_id"
+    ".pgp-fingerprint": "fingerprint"
 
   events:
     "click button.generate-keypair": -> @changeSection("generate-keypair")
     "click button.view-key-information": -> @changeSection("pgp-keypair-information")
+    "click button.view-pgp-options": -> @changeSection("pgp-options")
+    "click button.destroy-keypair": "destroyKeypair"
     "click button.finalize-generate-keypair": "generateKeypair"
     "click .close-button": "destroy"
 
@@ -45,6 +48,10 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
     @$el.find("section").removeClass("active")
     @$el.find("section.#{section}").addClass("active")
 
+  destroyKeypair: ->
+    @pgp_settings.destroy()
+    @changeSection("intro")
+
   generateKeypair: ->
     keytype    = 1
     keysize    = parseInt(@$el.find("#pgp-key-size").val(), 10) || 2048
@@ -65,7 +72,7 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
           'sign?': true
           'encrypt?': false
 
-        @changeSection("pgp-options")
+        @changeSection("pgp-keypair-information")
 
     catch e
       console.error "Something went wrong in generating PGP keypair! #{e}"

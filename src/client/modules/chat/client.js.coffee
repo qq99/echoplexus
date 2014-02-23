@@ -87,6 +87,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       socket: @socket
       room: opts.room
       peers: @channel.get("clients")
+      pgp_settings: @pgp_settings
 
     @chatLog = new ChatAreaView
       room: @channelName
@@ -342,6 +343,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       timestamp: new Date().getTime()
       nickname: ""
       class: "client"
+
+    if pub = @pgp_settings.get("armored_keypair")?.public
+      @socket.emit "set_public_key:#{@channelName}",
+        armored_public_key: pub
 
     # attempt to automatically /nick and /ident
     $.when(@autoNick()).done =>
