@@ -4,6 +4,7 @@ Faviconizer       = require("./ui/Faviconizer.js.coffee").Faviconizer
 TouchGestures     = require("./ui/TouchGestures.js.coffee").TouchGestures
 Options           = require("./options.js.coffee").Options
 utility           = require("./utility.js.coffee")
+Keystore          = require("./keystore.js.coffee").Keystore
 require("./events.js.coffee")()
   # require "./modules/user_info/UserData.js.coffee"
 
@@ -37,6 +38,8 @@ notifications = new Notifications()
 window.COOKIE_OPTIONS =
   path: "/"
   expires: 14
+
+window.KEYSTORE = new Keystore()
 
 # require secure cookies if the protocol is https
 window.COOKIE_OPTIONS.secure = true if window.location.protocol is "https:"

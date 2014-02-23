@@ -169,6 +169,20 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       )
       @me.set("peers", clients)
 
+      # update keystore
+      _.map clients.models, (user) =>
+        if armored_public_key = user.get("armored_public_key")
+          KEYSTORE.add(user.getPGPFingerprint(), armored_public_key, @me.getNickOf(user))
+
+    # add my own key to keystore
+    @me.pgp_settings.on "change:armored_keypair", (model, armored_keypair) =>
+      @me.set("armored_public_key", armored_keypair.public)
+      my_fingerprint = @me.getPGPFingerprint()
+      KEYSTORE.add(my_fingerprint, armored_keypair.public, @me.getNick())
+      KEYSTORE.trust(my_fingerprint)
+
+      @socket.emit "set_public_key:#{@channelName}",
+        armored_public_key: armored_keypair.public
 
     # doesn't work when defined as a backbone event :(
     @scrollSyncLogs = _.throttle(@_scrollSyncLogs, 500) # so we don't sync too quickly
