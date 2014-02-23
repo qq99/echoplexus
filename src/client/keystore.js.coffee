@@ -12,21 +12,23 @@ module.exports.Keystore = class Keystore
     _.bindAll this
     @keystore = localStorage.getObj("keystore") || {}
 
-  add: (fingerprint, armored_key, nick) ->
+  add: (fingerprint, armored_key, nick, channel) ->
     if !@keystore[fingerprint]
       @keystore[fingerprint] =
         armored_key: armored_key
         last_used_by: nick
         first_used_at: (new Date()).getTime()
         last_used_at: (new Date()).getTime()
+        last_used_in: channel
         trusted: false
       @save()
     else
-      @markSeen(fingerprint, nick)
+      @markSeen(fingerprint, nick, channel)
 
-  markSeen: (fingerprint, nick) ->
+  markSeen: (fingerprint, nick, channel) ->
     @keystore[fingerprint].last_used_at = (new Date()).getTime()
     @keystore[fingerprint].last_used_by = nick
+    @keystore[fingerprint].last_used_in = channel
     @save()
 
   is_trusted: (fingerprint) ->

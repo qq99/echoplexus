@@ -172,13 +172,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       # update keystore
       _.map clients.models, (user) =>
         if armored_public_key = user.get("armored_public_key")
-          KEYSTORE.add(user.getPGPFingerprint(), armored_public_key, @me.getNickOf(user))
+          KEYSTORE.add(user.getPGPFingerprint(), armored_public_key, @me.getNickOf(user), @channelName)
 
     # add my own key to keystore
     @me.pgp_settings.on "change:armored_keypair", (model, armored_keypair) =>
       @me.set("armored_public_key", armored_keypair.public)
       my_fingerprint = @me.getPGPFingerprint()
-      KEYSTORE.add(my_fingerprint, armored_keypair.public, @me.getNick())
+      KEYSTORE.add(my_fingerprint, armored_keypair.public, @me.getNick(), @channelName)
       KEYSTORE.trust(my_fingerprint)
 
       @socket.emit "set_public_key:#{@channelName}",
