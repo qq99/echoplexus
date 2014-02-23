@@ -29,11 +29,16 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
     @set 'sign?', null
     @set 'encrypt?', null
 
-  usablePrivateKey: ->
-    if !@usablePrivateKey
-      dearmored_private = @get('armored_keypair').private
+  usablePrivateKey: (passphrase = '') ->
+    if !@privatekey
+      dearmored_privs = openpgp.key.readArmored @get('armored_keypair').private
+      decrypted = dearmored_privs.keys[0].decrypt(passphrase)
+      if decrypted
+        @privatekey = dearmored_privs.keys
+      else
+        console.error "Unable to decrypt private key"
 
-    return @usablePrivateKey
+    return @privatekey
 
   sign: (message) ->
     openpgp.signClearMessage(@usablePrivateKey(), message)

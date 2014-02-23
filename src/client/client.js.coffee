@@ -169,6 +169,14 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
   is: (otherModel) ->
     @attributes.id is otherModel.attributes.id
 
+  signMessage: (msg) ->
+    msg.body = @pgp_settings.sign(msg.body)
+    msg.signed = true
+    msg.encrypted = false
+    msg.fingerprint = @pgp_settings.get("fingerprint")
+
+    return msg
+
   sendPrivateMessage: (toUsername, body) ->
     room = @get('room')
     @socket.emit "private_message:#{room}",
@@ -333,4 +341,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       if @cryptokey
         msg.encrypted = cryptoWrapper.encryptObject(msg.body, @cryptokey)
         msg.body = "-"
+
+      if @pgp_settings?.get("sign?")
+        msg = @signMessage(msg)
+
       socket.emit "chat:#{room}", msg

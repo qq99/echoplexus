@@ -506,7 +506,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @scrollback.replace message.getBody(@me.cryptokey), "/edit ##{message.get("mID")} #{message.getBody(@me.cryptokey)}"  if message.get("you")
         @checkToNotify message
         @persistentLog.add message.toJSON()
-        @chatLog.renderChatMessage @decryptChatMessage(message)
+        decryptedMessage = @decryptChatMessage(message)
+        @chatLog.renderChatMessage decryptedMessage
 
       "chat:batch": (msgs) =>
         msg = undefined

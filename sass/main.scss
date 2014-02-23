@@ -1156,6 +1156,10 @@ header {
 	height:auto;
 	position:relative;
 	margin: 0;
+	.reply-button {
+		position:absolute;
+		left: -10px;
+	}
 	.fl {
 		float:left;
 		margin-right:10px;
@@ -1251,15 +1255,20 @@ header {
 	.mention {
 		font-weight: bold;
 	}
-	.message-options {
+	.time, .message-options {
 		@include transition(opacity 0.5s ease-in-out);
-		right:$timestamp-width;
+	}
+	.message-options {
+		right:0;
 		position:absolute;
 		top:0;
 		opacity:0;
 		z-index:5;
 	}
 	&:hover {
+		.time {
+			opacity:0;
+		}
 		.message-options {
 			opacity:1;
 		}

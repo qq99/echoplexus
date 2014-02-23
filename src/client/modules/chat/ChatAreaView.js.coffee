@@ -263,6 +263,24 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     body = msg.get("body")
     nickname = msg.get("nickname")
 
+    if msg.get("signed") and !msg.get("encrypted")
+      message = openpgp.cleartext.readArmored(body)
+      key = KEYSTORE.get(msg.get("fingerprint"))
+      dearmored = openpgp.key.readArmored(key.armored_key)
+      verification = openpgp.verifyClearSignedMessage(dearmored.keys, message)
+
+      body = verification.text
+      if verification.signatures?[0].valid
+        msg.set("pgp_verified", true)
+      else
+        msg.set("pgp_verified", false)
+
+    else if !msg.get("signed") and msg.get("encrypted")
+      throw "Not implemented yet"
+    else if msg.get("signed") and msg.get("encrypted")
+      throw "Not implemented yet"
+
+
     opts = {}  if !opts
     if @autoloadMedia and msg.get("class") isnt "identity" and msg.get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar
       # put image links on the side:
@@ -386,6 +404,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         isPrivateMessage: (msg.get("type") and msg.get("type") is "private")
         mine: ((if msg.get("you") then true else false))
         identified: ((if msg.get("identified") then true else false))
+        fingerprint: msg.get("fingerprint")
+        pgp_verified: msg.get("pgp_verified")
       )
 
       unless opts.delayInsert

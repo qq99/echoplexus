@@ -10,16 +10,19 @@
 		<i class="fa fa-lock ident yes"></i>
 		<% } %>
 
+		<% if (pgp_verified) { %>
+		<i class="pgp-verification-icon fa fa-check-circle-o" data-fingerprint="<%= fingerprint %>" title="PGP Fingerprint: <%= fingerprint %>"></i>
+		<% } %>
+
 
 		<%= nickname %>
-
+	</div>
+	<div class="message-options">
 		<% if (mID) { %>
 		<div class="nick-decorators">
 			<i class="fa fa-reply reply-button"></i>
 		</div>
 		<% } %>
-	</div>
-	<div class="message-options">
 		<% if (mine && mID) { %>
 		<div class="chatMessage-edit">
 			<i class="fa fa-pencil"></i>
