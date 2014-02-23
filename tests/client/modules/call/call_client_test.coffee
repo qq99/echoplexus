@@ -38,10 +38,10 @@ describe 'CallClient', ->
       assert.equal undefined, @subject.$el.attr("style")
 
       @subject.trigger("hide")
-      assert.equal "display: none; ", @subject.$el.attr("style")
+      assert.equal "none", @subject.$el[0].style.display
 
       @subject.trigger("show")
-      assert.equal "display: block; ", @subject.$el.attr("style")
+      assert.equal "block", @subject.$el[0].style.display
 
   describe '#listen', ->
     beforeEach ->

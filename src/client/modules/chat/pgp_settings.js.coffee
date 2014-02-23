@@ -5,8 +5,8 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
     _.extend this, opts
 
     this.on "change:armored_keypair", (model, armored_keypair) ->
-      priv = openpgp.key.readArmored(armored_keypair.private)
-      pub = openpgp.key.readArmored(armored_keypair.public)
+      priv = openpgp.key.readArmored(armored_keypair?.private)
+      pub = openpgp.key.readArmored(armored_keypair?.public)
       uid = priv.keys[0]?.users[0]?.userId?.userid
       @set 'user_id', uid if uid
 

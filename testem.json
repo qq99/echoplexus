@@ -9,6 +9,7 @@
   ],
   "serve_files": [
     "public/js/vendor.min.js",
+    "public/js/openpgp.min.js",
     "vendor/sinon/lib/sinon.js",
     "vendor/sinon/lib/sinon/match.js",
     "vendor/sinon/lib/sinon/call.js",
