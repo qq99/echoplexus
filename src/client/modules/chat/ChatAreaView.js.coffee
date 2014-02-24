@@ -274,9 +274,10 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
       body = verification.text
       if verification.signatures?[0].valid
-        msg.set("pgp_verified", true)
+        msg.set "pgp_verified", true
+        msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
       else
-        msg.set("pgp_verified", false)
+        msg.set "pgp_verified", false
 
     else if !msg.get("signed") and msg.get("encrypted")
       throw "Not implemented yet"
@@ -409,6 +410,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         identified: ((if msg.get("identified") then true else false))
         fingerprint: msg.get("fingerprint")
         pgp_verified: msg.get("pgp_verified")
+        trust_status: msg.get("trust_status")
       )
 
       unless opts.delayInsert

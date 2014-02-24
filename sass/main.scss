@@ -1173,6 +1173,12 @@ header {
 	}
 	.pgp-verification-icon {
 		color: orange;
+		&.trusted {
+			color: green;
+		}
+		&.untrusted {
+			color: red;
+		}
 	}
 	.fl {
 		float:left;
