@@ -485,10 +485,10 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		"directed_message": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 
-			data.color = client.get("color").toRGB()
-			data.nickname = client.get("nick")
+			data.color          = client.get("color").toRGB()
+			data.nickname       = client.get("nick")
 			data.encrypted_nick = client.get("encrypted_nick")
-			data.timestamp = Number(new Date())
+			data.timestamp      = Number(new Date())
 
 			for c in channel.clients.models
 				if c.get(data.key) == data.value
@@ -503,12 +503,12 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 			# only send a message if it has a body & is directed at someone
 			if data.body
-				data.color = client.get("color").toRGB()
-				data.nickname = client.get("nick")
+				data.color          = client.get("color").toRGB()
+				data.nickname       = client.get("nick")
 				data.encrypted_nick = client.get("encrypted_nick")
-				data.timestamp = Number(new Date())
-				data.type = "private"
-				data.class = "private"
+				data.timestamp      = Number(new Date())
+				data.type           = "private"
+				data.class          = "private"
 
 				# find the sockets of the clients matching the nick in question
 				# we must do more work to match ciphernicks
