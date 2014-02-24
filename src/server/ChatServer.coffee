@@ -386,9 +386,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			newName = data.nick
 			prevName = client.get("nick")
 
-			client.set "identified", false,
-				silent: true
-
 			client.unset "encrypted_nick"
 			if data.encrypted_nick?
 				newName = "-"
@@ -434,7 +431,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		"chat:edit": (namespace, socket, channel, client, data) ->
 			if config.chat?.edit?
 				return if not config.chat.edit.enabled
-				return if not config.chat.edit.allow_unidentified && not client.get("identified")
+				return if not config.chat.edit.allow_unidentified && not client.get("fingerprint")
 
 			room = channel.get("name")
 			mID = parseInt(data.mID, 10)
@@ -485,6 +482,18 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				idle: false
 				idleSince: null
 
+		"directed_message": (namespace, socket, channel, client, data) ->
+			room = channel.get("name")
+
+			data.color = client.get("color").toRGB()
+			data.nickname = client.get("nick")
+			data.encrypted_nick = client.get("encrypted_nick")
+			data.timestamp = Number(new Date())
+
+			for c in channel.clients.models
+				if c.get(data.key) == data.value
+					c.socketRef.emit("private_message:#{room}", data)
+
 		"private_message": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 
@@ -500,7 +509,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				data.timestamp = Number(new Date())
 				data.type = "private"
 				data.class = "private"
-				data.identified = client.get("identified")
 
 				# find the sockets of the clients matching the nick in question
 				# we must do more work to match ciphernicks
@@ -563,7 +571,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				data.nickname = client.get("nick")
 				data.encrypted_nick = client.get("encrypted_nick")
 				data.timestamp = Number(new Date())
-				data.identified = client.get("identified")
 
 				# store in redis
 				@storePersistent data, room, (err, msg) =>

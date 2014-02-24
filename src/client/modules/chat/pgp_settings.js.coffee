@@ -43,11 +43,18 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
   sign: (message) ->
     openpgp.signClearMessage(@usablePrivateKey(), message)
 
+  usablePublicKey: (armored_public_key) ->
+    dearmored_pubs = openpgp.key.readArmored(armored_public_key)
+    dearmored_pubs.keys
+
   encrypt: (pubkey, message) ->
-    openpgp.encryptMessage(pubkey, message)
+
+    openpgp.encryptMessage(@usablePublicKey(pubkey), message)
 
   encryptAndSign: (pubkey, message) ->
-    openpgp.signAndEncryptMessage(pubkey, @usablePrivateKey(), message)
+    pub = @usablePublicKey(pubkey)
+    priv = @usablePrivateKey()
+    openpgp.signAndEncryptMessage(pub, priv[0], message)
 
   trust: (key) ->
     # mark a key as trusted

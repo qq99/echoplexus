@@ -162,6 +162,33 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     return msg
 
+  sendSignedEncryptedMessage: (msg) ->
+    room = @get('room')
+    peers = @get('peers')
+
+    destination_peers = []
+    for peer in peers.models
+      pubkey = peer.get("armored_public_key")
+      fingerprint = peer.getPGPFingerprint()
+
+      if pubkey and fingerprint and KEYSTORE.is_trusted(fingerprint)
+        destination_peers.push {
+          nick: peer.getNick()
+          armored_public_key: peer.get("armored_public_key")
+          fingerprint: fingerprint
+        }
+
+
+    for peer in destination_peers
+      encrypted_result = @pgp_settings.encryptAndSign peer.armored_public_key, msg.body
+
+      @socket.emit "directed_message:#{room}",
+        body: encrypted_result
+        key: "fingerprint"
+        value: peer.fingerprint
+      # - send each message to the endpoint
+      # - like sendPrivateMessage, but key off of the fingerprint for addressing on server side
+
   sendPrivateMessage: (toUsername, body) ->
     room = @get('room')
     @socket.emit "private_message:#{room}",
@@ -313,13 +340,15 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
           repoUrl: args
 
     else unless body.match(REGEXES.commands.failed_command) # match all
-      # NOOP
-      # send it out to the world!
+      if @pgp_settings?.get("sign?") and !@pgp_settings?.get("encrypt?")
+        msg = @signMessage(msg)
+      else if @pgp_settings?.get("sign?") and @pgp_settings?.get("encrypt?")
+        @sendSignedEncryptedMessage(msg)
+        return
+
+
       if @cryptokey
         msg.encrypted = cryptoWrapper.encryptObject(msg.body, @cryptokey)
         msg.body = "-"
-
-      if @pgp_settings?.get("sign?")
-        msg = @signMessage(msg)
 
       socket.emit "chat:#{room}", msg

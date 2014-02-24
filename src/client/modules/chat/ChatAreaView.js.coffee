@@ -267,17 +267,20 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     nickname = msg.get("nickname")
 
     if msg.get("signed") and !msg.get("encrypted")
-      message = openpgp.cleartext.readArmored(body)
-      key = KEYSTORE.get(msg.get("fingerprint"))
-      dearmored = openpgp.key.readArmored(key.armored_key)
-      verification = openpgp.verifyClearSignedMessage(dearmored.keys, message)
+      try
+        message = openpgp.cleartext.readArmored(body)
+        key = KEYSTORE.get(msg.get("fingerprint"))
+        dearmored = openpgp.key.readArmored(key.armored_key)
+        verification = openpgp.verifyClearSignedMessage(dearmored.keys, message)
 
-      body = verification.text
-      if verification.signatures?[0].valid
-        msg.set "pgp_verified", true
-        msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
-      else
-        msg.set "pgp_verified", false
+        body = verification.text
+        if verification.signatures?[0].valid
+          msg.set "pgp_verified", true
+          msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
+        else
+          msg.set "pgp_verified", false
+      catch
+        console.error "Unable to verify PGP signed message"
 
     else if !msg.get("signed") and msg.get("encrypted")
       throw "Not implemented yet"
