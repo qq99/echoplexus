@@ -10,8 +10,6 @@ module.exports.REGEXES =
 
   commands:
     nick: /^\/(nick|n) /
-    register: /^\/register/
-    identify: /^\/(identify|id)/
     topic: /^\/(topic) /
     broadcast: /^\/(broadcast|bc) /
     failed_command: /^\//

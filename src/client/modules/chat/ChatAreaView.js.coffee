@@ -36,6 +36,9 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     "click .chatMessage-edit": "beginEdit"
     "click .toggle-support-bar": "toggleSupportBar"
     "click .pin-button": "pinChat"
+    "click .pgp-fingerprint-icon.trusted": "untrustFingerprint"
+    "click .pgp-fingerprint-icon.untrusted": "neutralTrustFingerprint"
+    "click .pgp-fingerprint-icon.unknown": "trustFingerprint"
     "mouseenter .quotation": "showQuotationContext"
     "mouseleave .quotation": "hideQuotationContext"
     "blur .body[contenteditable='true']": "stopInlineEdit"
@@ -483,6 +486,9 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
   renderUserlist: (users) ->
     $userlist = $(".userlist .body", @$el)
+    users = @cached_users if !users # use a local copy
+
+    @cached_users = users
     if users # if we have users
       # keep track of what the chat client tells us
       @knownUsers = users
@@ -500,6 +506,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
           nick: nickname
           has_public_key: !!user.get("armored_public_key")
           fingerprint: user.getPGPFingerprint()
+          fingerprint_trust: KEYSTORE.trust_status(user.getPGPFingerprint())
           using_encryption: (typeof user.get("encrypted_nick") isnt "undefined")
           id: user.id
           color: user.get("color").toRGB()
@@ -598,3 +605,18 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     else
       $("#panes > section").hide() # hide everything
       $(".tabButton[data-target='#chatting']").click() # make it as if chat were active for the very first time
+
+  untrustFingerprint: (ev) ->
+    fingerprint = $(ev.currentTarget).data("fingerprint")
+    KEYSTORE.untrust(fingerprint)
+    @renderUserlist()
+
+  trustFingerprint: (ev) ->
+    fingerprint = $(ev.currentTarget).data("fingerprint")
+    KEYSTORE.trust(fingerprint)
+    @renderUserlist()
+
+  neutralTrustFingerprint: (ev) ->
+    fingerprint = $(ev.currentTarget).data("fingerprint")
+    KEYSTORE.neutral(fingerprint)
+    @renderUserlist()

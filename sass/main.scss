@@ -843,6 +843,17 @@ header {
 	width:100%;
 	overflow-y:auto;
 	font-family: $pretty-font-family;
+	.pgp-fingerprint-icon {
+		&.unknown {
+			color: orange;
+		}
+		&.trusted {
+			color: green;
+		}
+		&.untrusted {
+			color: red;
+		}
+	}
 	.nick {
 		max-width:12em;
 		text-overflow:ellipsis;
@@ -1159,6 +1170,9 @@ header {
 	.reply-button {
 		position:absolute;
 		left: -10px;
+	}
+	.pgp-verification-icon {
+		color: orange;
 	}
 	.fl {
 		float:left;

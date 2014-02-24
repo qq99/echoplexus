@@ -78,24 +78,6 @@ describe 'Regexes', ->
       it 'does not match in the middle of a string', ->
         assertNoMatches("type /nick to set your nick", @re)
 
-    describe 'register', ->
-      beforeEach ->
-        @re = regexes.commands.register
-      it 'matches /register', ->
-        assertMatches("/register password", @re)
-      it 'does not match in the middle of a string', ->
-        assertNoMatches("type /register [password] to register", @re)
-
-    describe 'identify', ->
-      beforeEach ->
-        @re = regexes.commands.identify
-      it 'matches /identify', ->
-        assertMatches("/identify password", @re)
-      it 'matches /id', ->
-        assertMatches("/id password", @re)
-      it 'does not match in the middle of a string', ->
-        assertNoMatches(" /identify test", @re)
-
     describe 'topic', ->
       beforeEach ->
         @re = regexes.commands.topic

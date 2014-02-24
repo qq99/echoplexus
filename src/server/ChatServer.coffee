@@ -158,79 +158,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				console.log "Chatlog deleted for #{room}"
 				callback null
 
-	registerNick: (data, socket, client, channel) ->
-		room = channel.get("name")
-		nick = client.get("nick")
-
-		redisC.sismember "users:#{room}", nick, (err, reply) =>
-			throw err if err
-			if !reply # nick is not in use
-				try # try crypto & persistence
-					crypto.randomBytes 256, (ex, buf) =>
-						throw ex if ex
-						salt = buf.toString()
-						crypto.pbkdf2 data.password, salt, 4096, 256, (err, derivedKey) =>
-							throw err if err
-
-							redisC.sadd "users:#{room}", nick, (err, reply) ->
-								throw err if err
-							redisC.hset "salts:#{room}", nick, salt, (err, reply) ->
-								throw err if err
-							redisC.hset "passwords:#{room}", nick, derivedKey.toString(), (err, reply) ->
-								throw err if err
-
-							client.set("identified", true)
-							socket.in(room).emit("chat:#{room}", @serverSentMessage({
-								body: "You have registered your nickname.  Please remember your password."
-							}, room))
-
-							@generateIdentityToken(socket, client, channel)
-				catch e
-					socket.in(room).emit("chat:#{room}", @serverSentMessage({
-						body: "Error in registering your nickname: " + e
-					}, room))
-			else # nick is already in use
-				socket.in(room).emit("chat:#{room}", @serverSentMessage({
-					body: "That nickname is already registered by somebody."
-				}, room))
-
-	failedIdentification: (socket, client, channel) ->
-		nick = client.get("nick")
-		room = channel.get("name")
-
-		client.set("identified", false)
-		socket.in(room).emit("chat:#{room}", @serverSentMessage({
-			class: "identity err",
-			body: "Wrong password for #{nick}"
-		}, room))
-		socket.in(room).broadcast.emit("chat:#{room}", @serverSentMessage({
-			class: "identity err",
-			body: "#{nick} just failed to identify himself"
-		}, room))
-
-	setIdentified: (socket, client, channel) ->
-		room = channel.get("name")
-		nick = client.get("nick")
-
-		client.set("identified", true)
-		socket.in(room).emit("chat:#{room}", @serverSentMessage({
-			class: "identity ack",
-			body: "You are now identified for #{nick}"
-		}, room))
-
-	generateIdentityToken: (socket, client, channel) ->
-		token = uuid.v4()
-		room  = channel.get("name")
-		nick  = client.get("nick")
-
-		redisC.setex "token:identity:#{room}:#{token}", 30*24*60*60, nick, (err, reply) =>
-			@setIdentified(socket, client, channel)
-
-			socket.in(room).emit("token:#{room}", {
-				token: token
-				type: "identity"
-			})
-
 	generateAuthenticationToken: (socket, client, channel) ->
 		token = uuid.v4()
 		room  = channel.get("name")
@@ -658,59 +585,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					if client.identity_token
 						redisC.hset "chatlog:identity_tokens:#{room}", mID, client.identity_token, (err, reply) ->
 							throw err if err
-
-		"verify_identity_token": (namespace, socket, channel, client, data) ->
-			token = data.token
-			room = channel.get("name")
-			nick = client.get("nick")
-
-			redisC.get "token:identity:#{room}:#{token}", (err, reply) =>
-				throw err if err
-
-				if reply and reply == nick
-					@setIdentified(socket, client, channel)
-				else if !reply
-					socket.in(room).emit("chat:#{room}", @serverSentMessage({
-						class: "identity err",
-						body: "Expired identity token for #{nick}, or #{nick} is not registered"
-					}, room))
-				else
-					@failedIdentification(socket, client, channel)
-
-		"identify": (namespace, socket, channel, client, data) ->
-			room = channel.get("name")
-			nick = client.get("nick")
-
-			console.log 'trying to identify via password'
-
-			try
-				redisC.sismember "users:#{room}", nick, (err, reply) =>
-					if !reply
-						socket.in(room).emit("chat:#{room}", @serverSentMessage({
-							class: "identity err",
-							body: "There's no registration on file for #{nick}"
-						}, room))
-					else
-						async.parallel {
-							salt: (callback) ->
-								redisC.hget("salts:#{room}", nick, callback)
-							password: (callback) ->
-								redisC.hget("passwords:#{room}", nick, callback)
-						}, (err, stored) =>
-							throw err if err
-							crypto.pbkdf2 data.password, stored.salt, 4096, 256, (err, derivedKey) =>
-								throw err if err
-
-								# TODO: does not output the right nick while encrypted, may not be necessary as this functionality might change (re: GPG/PGP)
-								if (derivedKey.toString() != stored.password)
-									@failedIdentification(socket, client, channel)
-								else # ident'd
-									@generateIdentityToken(socket, client, channel)
-
-			catch e # identification error
-				socket.in(room).emit("chat:#{room}", @serverSentMessage({
-					body: "Error identifying yourself: " + e
-				}, room))
 
 		"register_nick": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")

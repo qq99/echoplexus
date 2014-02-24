@@ -38,7 +38,7 @@ module.exports.Keystore = class Keystore
     return @keystore[fingerprint]?.trusted
 
   is_untrusted: (fingerprint) ->
-    return @keystore[fingerprint]?.trusted
+    return @keystore[fingerprint]?.untrusted
 
   trust_status: (fingerprint) ->
     return "trusted" if @is_trusted(fingerprint)
@@ -53,8 +53,13 @@ module.exports.Keystore = class Keystore
 
   untrust: (fingerprint) ->
     @keystore[fingerprint].trusted = false
-    @keystore[fingeprrint].untrusted = true
+    @keystore[fingerprint].untrusted = true
     @keystore[fingerprint].untrusted_at = (new Date()).getTime()
+    @save()
+
+  neutral: (fingerprint) ->
+    @keystore[fingerprint].trusted = false
+    @keystore[fingerprint].untrusted = false
     @save()
 
   list: ->

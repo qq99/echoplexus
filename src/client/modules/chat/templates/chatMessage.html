@@ -12,9 +12,9 @@
 
 		<% if (pgp_verified) { %>
 		<i class="pgp-verification-icon fa fa-check-circle-o" data-fingerprint="<%= fingerprint %>" title="PGP Fingerprint: <%= fingerprint %>"></i>
+		<% } else if (fingerprint && !pgp_verified) { %>
+		<i class="pgp-verification-failure-icon fa fa-times" data-fingerprint="<%= fingerprint %>" title="PGP Fingerprint: <%= fingerprint %>"></i>
 		<% } %>
-
-
 		<%= nickname %>
 	</div>
 	<div class="message-options">
