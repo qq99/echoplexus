@@ -612,13 +612,16 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     fingerprint = $(ev.currentTarget).data("fingerprint")
     KEYSTORE.untrust(fingerprint)
     @renderUserlist()
+    $(".pgp-verification-icon", @$el).removeClass("trusted unknown").addClass("untrusted")
 
   trustFingerprint: (ev) ->
     fingerprint = $(ev.currentTarget).data("fingerprint")
     KEYSTORE.trust(fingerprint)
     @renderUserlist()
+    $(".pgp-verification-icon", @$el).removeClass("untrusted unknown").addClass("trusted")
 
   neutralTrustFingerprint: (ev) ->
     fingerprint = $(ev.currentTarget).data("fingerprint")
     KEYSTORE.neutral(fingerprint)
     @renderUserlist()
+    $(".pgp-verification-icon", @$el).removeClass("untrusted trusted").addClass("unknown")
