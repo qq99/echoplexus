@@ -171,7 +171,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			})
 
 	createWebshot: (data, room) ->
-		if config.chat?.webshot_previews?.enabled?
+		if config.chat?.webshot_previews?.enabled
 			# strip out other things the client is doing before we attempt to render the web page
 			urls = data.body.replace(REGEXES.urls.image, "")
 							.replace(REGEXES.urls.youtube,"")
