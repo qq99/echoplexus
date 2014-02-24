@@ -586,15 +586,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 						redisC.hset "chatlog:identity_tokens:#{room}", mID, client.identity_token, (err, reply) ->
 							throw err if err
 
-		"register_nick": (namespace, socket, channel, client, data) ->
-			room = channel.get("name")
-
-			if data.password and data.password.length >= 6
-				@registerNick(data, socket, client, channel)
-			else
-				socket.emit "chat:#{room}", @serverSentMessage
-					body: "Error: Your registration password must be at least 6 characters"
-
 		"in_call": (namespace, socket, channel, client) ->
 			client.set("inCall", true)
 
