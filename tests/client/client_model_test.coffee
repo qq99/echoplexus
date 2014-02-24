@@ -40,16 +40,6 @@ describe 'ClientModel', ->
       assert !@other.is(@subject), "Other client has same ID as subject client"
       assert @subject.is(@subject)
 
-  describe '#identify', ->
-    it 'should emit the correct event', ->
-      @subject.identify('foobar')
-      assert @fakeSocket.emit.calledWith('identify:/', {password: 'foobar'})
-
-  describe '#identify_via_token', ->
-    it 'should emit the correct event', ->
-      @subject.identify_via_token('foobar')
-      assert @fakeSocket.emit.calledWith('verify_identity_token:/', {token: 'foobar'})
-
   describe '#authenticate_via_password', ->
     it 'should emit the correct event', ->
       @subject.authenticate_via_password('foobar')
@@ -100,26 +90,6 @@ describe 'ClientModel', ->
       it 'fires a request to make the channel public', ->
         assert @fakeSocket.emit.calledWith('make_public:/')
         assert @fakeSocket.emit.calledOnce
-
-    describe '/register', ->
-      beforeEach ->
-        @subjectSays '/register mynickpw'
-
-      it 'fires a request', ->
-        assert @fakeSocket.emit.calledWith('register_nick:/', {password: 'mynickpw'})
-        assert @fakeSocket.emit.calledOnce
-      it 'does not remember the nick pw', ->
-        assert.equal false, $.cookie.called
-
-    describe '/identify', ->
-      beforeEach ->
-        @subjectSays '/identify mynickpw'
-
-      it 'fires a request', ->
-        assert @fakeSocket.emit.calledWith('identify:/', {password: 'mynickpw'})
-        assert @fakeSocket.emit.calledOnce
-      it 'does not remember the nick pw', ->
-        assert.equal false, $.cookie.called
 
     describe '/topic', ->
       beforeEach ->

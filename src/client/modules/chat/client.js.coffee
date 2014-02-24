@@ -363,8 +363,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         armored_public_key: pub
 
     # attempt to automatically /nick and /ident
-    $.when(@autoNick()).done =>
-      @autoIdent()
+    @autoNick()
 
     # start the countdown for idle
     @startIdleTimer()
@@ -376,16 +375,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     storedNick = $.cookie("nickname:" + @channelName)
     if storedNick
       @me.setNick storedNick, @channelName, acked
-    else
-      acked.reject()
-    acked.promise()
-
-  autoIdent: ->
-    acked = $.Deferred()
-
-    identityToken = $.cookie("token:identity:#{@channelName}")
-    if identityToken
-      @me.identify_via_token identityToken, acked
     else
       acked.reject()
     acked.promise()

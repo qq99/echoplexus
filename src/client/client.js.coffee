@@ -65,7 +65,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
   supported_metadata: ["email", "website_url", "country_code", "gender"]
   defaults:
     nick: "Anonymous"
-    identified: false
     idle: false
     isServer: false
     authenticated: false
@@ -152,20 +151,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     , ->
       ack.resolve() if ack
 
-  identify_via_token: (token, ack) ->
-    room = @get('room')
-    @socket.emit "verify_identity_token:#{room}",
-      token: token
-    , ->
-      ack.resolve() if ack
-
-  identify: (pw, ack) ->
-    room = @get('room')
-    @socket.emit "identify:#{room}",
-      password: pw
-    , ->
-      ack.resolve() if ack
-
   is: (otherModel) ->
     @attributes.id is otherModel.attributes.id
 
@@ -243,14 +228,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     else if body.match(REGEXES.commands.public) # /public
       body = body.replace(REGEXES.commands.public, "").trim()
       socket.emit "make_public:#{room}"
-
-    else if body.match(REGEXES.commands.register) # /register [password]
-      body = body.replace(REGEXES.commands.register, "").trim()
-      socket.emit "register_nick:#{room}",
-        password: body
-    else if body.match(REGEXES.commands.identify) # /identify [password]
-      body = body.replace(REGEXES.commands.identify, "").trim()
-      @identify body
     else if body.match(REGEXES.commands.topic) # /topic [My channel topic]
       body = body.replace(REGEXES.commands.topic, "").trim()
       if @cryptokey
