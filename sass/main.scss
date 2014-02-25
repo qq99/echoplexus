@@ -1167,10 +1167,7 @@ header {
 	height:auto;
 	position:relative;
 	margin: 0;
-	.reply-button {
-		position:absolute;
-		left: -10px;
-	}
+
 	.pgp-verification-icon {
 		color: orange;
 		&.trusted {
@@ -1179,6 +1176,12 @@ header {
 		&.untrusted {
 			color: red;
 		}
+	}
+	.pgp-armored-body {
+		display: none;
+	}
+	.pgp-verification-failure-icon {
+		color: red;
 	}
 	.fl {
 		float:left;
@@ -1256,14 +1259,6 @@ header {
 		text-overflow:ellipsis;
 		white-space:nowrap;
 		overflow:hidden;
-		.nick-decorators {
-			@include transition(all 0.5s ease-in-out);
-			padding:0.25em 0.5em;
-			position:absolute;
-			left:0;
-			top:0;
-			opacity:0;
-		}
 		&.system {
 			color:#CC2222;
 		}
@@ -1284,15 +1279,16 @@ header {
 		top:0;
 		opacity:0;
 		z-index:5;
+		> div {
+			display: inline-block;
+
+		}
 	}
 	&:hover {
 		.time {
 			opacity:0;
 		}
 		.message-options {
-			opacity:1;
-		}
-		.nick-decorators {
 			opacity:1;
 		}
 	}

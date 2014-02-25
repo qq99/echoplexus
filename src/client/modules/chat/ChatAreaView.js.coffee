@@ -39,6 +39,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     "click .pgp-fingerprint-icon.trusted": "untrustFingerprint"
     "click .pgp-fingerprint-icon.untrusted": "neutralTrustFingerprint"
     "click .pgp-fingerprint-icon.unknown": "trustFingerprint"
+    "click .btn.toggle-armored": "toggleArmored"
     "mouseenter .quotation": "showQuotationContext"
     "mouseleave .quotation": "hideQuotationContext"
     "blur .body[contenteditable='true']": "stopInlineEdit"
@@ -268,12 +269,13 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
     if msg.get("signed") and !msg.get("encrypted")
       try
+        msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
         message = openpgp.cleartext.readArmored(body)
+        body = message.text
         key = KEYSTORE.get(msg.get("fingerprint"))
         dearmored = openpgp.key.readArmored(key.armored_key)
         verification = openpgp.verifyClearSignedMessage(dearmored.keys, message)
 
-        body = verification.text
         if verification.signatures?[0].valid
           msg.set "pgp_verified", true
           msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
@@ -281,6 +283,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
           msg.set "pgp_verified", false
       catch
         console.error "Unable to verify PGP signed message"
+        msg.set "pgp_verified", false
 
     else if !msg.get("signed") and msg.get("encrypted")
       throw "Not implemented yet"
@@ -400,6 +403,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       chat = self.chatMessageTemplate(
         nickname: nickname
         is_encrypted: !!msg.get("was_encrypted")
+        pgp_armored: msg.get("pgp_armored") || null
         mID: msg.get("mID")
         color: msg.get("color")
         body: body
@@ -610,6 +614,16 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     else
       $("#panes > section").hide() # hide everything
       $(".tabButton[data-target='#chatting']").click() # make it as if chat were active for the very first time
+
+  toggleArmored: (ev) ->
+    $message = $(ev.currentTarget).parents(".chatMessage")
+    console.log 'wat'
+   # if $message.hasClass("showing-armored")
+    #  $message.removeClass("showing-armored")
+    $(".pgp-armored-body", $message).toggle()
+    $(".body-content", $message).toggle()
+   # else
+
 
   untrustFingerprint: (ev) ->
     fingerprint = $(ev.currentTarget).data("fingerprint")

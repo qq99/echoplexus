@@ -1,7 +1,7 @@
-<div class="chatMessage <%= classes %>" rel="<%= timestamp %>" data-sequence="<%= mID %>">
+<div class="chatMessage <%- classes %>" rel="<%- timestamp %>" data-sequence="<%- mID %>">
 	<a name="<%- room + mID %>"></a>
-	<div data-timestamp="<%= timestamp %>" class="time"><%- humanTime %></div>
-	<div class="nick <%= nickClasses %>" style="color: <%= color %>">
+	<div data-timestamp="<%- timestamp %>" class="time"><%- humanTime %></div>
+	<div class="nick <%- nickClasses %>" style="color: <%- color %>">
 		<% if (is_encrypted) { %>
 		<i class="fa fa-key encrypted"></i>
 		<% } %>
@@ -11,20 +11,25 @@
 		<% } %>
 
 		<% if (pgp_verified) { %>
-		<i class="pgp-verification-icon <%= trust_status %> fa fa-check-circle-o" data-fingerprint="<%= fingerprint %>" title="PGP Fingerprint: <%= fingerprint %>"></i>
+		<i class="pgp-verification-icon <%- trust_status %> fa fa-check-circle-o" data-fingerprint="<%- fingerprint %>" title="PGP Fingerprint: <%- fingerprint %>"></i>
 		<% } else if (fingerprint && !pgp_verified) { %>
-		<i class="pgp-verification-failure-icon fa fa-times" data-fingerprint="<%= fingerprint %>" title="PGP Fingerprint: <%= fingerprint %>"></i>
+		<i class="pgp-verification-failure-icon fa fa-times" data-fingerprint="<%- fingerprint %>" title="PGP Fingerprint: <%- fingerprint %>"></i>
 		<% } %>
-		<%= nickname %>
+		<%- nickname %>
 	</div>
 	<div class="message-options">
+		<% if (pgp_armored) { %>
+		<div class="btn toggle-armored">
+			<span>PGP</span>
+		</div>
+		<% } %>
 		<% if (mID) { %>
-		<div class="nick-decorators">
-			<i class="fa fa-reply reply-button"></i>
+		<div class="btn reply-button">
+			<i class="fa fa-reply"></i>
 		</div>
 		<% } %>
 		<% if (mine && mID) { %>
-		<div class="chatMessage-edit">
+		<div class="btn chatMessage-edit">
 			<i class="fa fa-pencil"></i>
 		</div>
 		<% } %>
@@ -36,6 +41,13 @@
 			</span>
 		<% } %>
 
-		<%= body %>
+		<% if (pgp_armored) { %>
+		<span class="pgp-armored-body">
+			<%= pgp_armored %>
+		</span>
+		<% } %>
+		<span class="body-content">
+			<%= body %>
+		</span>
 	</div>
 </div>
