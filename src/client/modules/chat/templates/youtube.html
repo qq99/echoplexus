@@ -1,6 +1,6 @@
 <div class="media-item youtubeEmbed">
 	<div class="media-buttons">
-		<a class="to-external" href="<%= originalSrc %>" target="_blank">
+		<a class="to-external" href="<%- originalSrc %>" target="_blank">
 			<span class="explanatory-text">Direct</span>
 			<i class="icon fa fa-external-link"></i>
 		</a>
@@ -16,12 +16,12 @@
 		<div class="max">
 			<div class="video">
 				<object width="254" height="200">
-	            	<param name="movie" value="<%= src %>&wmode=gpu"></param>
+	            	<param name="movie" value="<%- src %>&wmode=gpu"></param>
 	            	<param name="allowFullScreen" value="true"></param>
 	                <param name="allowscriptaccess" value="always"></param>
 	                <param name="wMode" value="gpu"></param>
 	                <embed
-	                	src="<%= src %>&wmode=gpu"
+	                	src="<%- src %>&wmode=gpu"
 	                	type="application/x-shockwave-flash"
 	                	allowscriptaccess="always"
 	                	allowfullscreen="true"
@@ -32,12 +32,12 @@
 	        </div>
 	        <div class="youtube imageThumbnail">
 	        	<i class="play-icon fa fa-youtube-play"></i>
-	        	<img src="<%= img_src %>">
+	        	<img src="<%- img_src %>">
 	        </div>
         </div>
 		<div class="min">
-			<a href="<%= originalSrc %>" target="_blank">
-				<%= originalSrc %>
+			<a href="<%- originalSrc %>" target="_blank">
+				<%- originalSrc %>
 			</a>
 		</div>
 	</div>

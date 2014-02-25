@@ -1,5 +1,5 @@
-<div class="user" rel="<%= id %>">
-	<span class="nick" style="color: <%= color %>"><%- nick %></span>
+<div class="user" rel="<%- id %>">
+	<span class="nick" style="color: <%- color %>"><%- nick %></span>
 	<% if (using_encryption) { %>
 		<span
 			data-tooltip-title="Encrypted"
@@ -11,9 +11,9 @@
 	<% if (has_public_key) { %>
 		<span
 			data-tooltip-title="PGP Public Key Fingerprint"
-			data-tooltip-body="<%= fingerprint %>"
+			data-tooltip-body="<%- fingerprint %>"
 			class='fingerprint tooltip-target'>
-				<i class="pgp-fingerprint-icon <%= fingerprint_trust %> fa fa-key" data-fingerprint="<%= fingerprint %>"></i>
+				<i class="pgp-fingerprint-icon <%- fingerprint_trust %> fa fa-key" data-fingerprint="<%- fingerprint %>"></i>
 		</span>
 	<% } %>
 
@@ -24,7 +24,7 @@
 	<% } %>
 
 	<% if (idle === true) { %>
-		<span class="idle" data-timestamp="<%= idleSince %>">
+		<span class="idle" data-timestamp="<%- idleSince %>">
 			<span class="zzz">Z
 				<span class="zzz">Z
 					<span class="zzz">Z

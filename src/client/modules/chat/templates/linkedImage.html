@@ -1,6 +1,6 @@
 <div class="media-item imageThumbnail">
 	<div class="media-buttons">
-		<a rel="noreferrer" class="to-external" href="<%= url %>" title="<%- title %>" target="_blank">
+		<a rel="noreferrer" class="to-external" href="<%- url %>" title="<%- title %>" target="_blank">
 			<span class="explanatory-text">Direct</span>
 			<i class="icon fa fa-external-link"></i>
 		</a>
@@ -14,13 +14,13 @@
 	</div>
 	<div class="media-object">
 		<div class="max">
-			<a rel="noreferrer" href="<%= url %>" target="_blank" title="<%- title %>">
-				<img src="<%= image_url %>" target="_blank" />
+			<a rel="noreferrer" href="<%- url %>" target="_blank" title="<%- title %>">
+				<img src="<%- image_url %>" target="_blank" />
 			</a>
 		</div>
 		<div class="min">
-			<a rel="noreferrer" href="<%= url %>" target="_blank" title="<%- title %>">
-				<%= url %>
+			<a rel="noreferrer" href="<%- url %>" target="_blank" title="<%- title %>">
+				<%- url %>
 			</a>
 		</div>
 	</div>
