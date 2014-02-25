@@ -156,8 +156,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
   signMessage: (msg) ->
     msg.body = @pgp_settings.sign(msg.body)
-    msg.signed = true
-    msg.encrypted = false
+    msg.pgp_signed = true
+    msg.pgp_encrypted = false
     msg.fingerprint = @pgp_settings.get("fingerprint")
 
     return msg
@@ -185,7 +185,10 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       @socket.emit "directed_message:#{room}",
         body: encrypted_result
         key: "fingerprint"
+        fingerprint: @pgp_settings.get("fingerprint")
         value: peer.fingerprint
+        pgp_encrypted: true
+        pgp_signed: true
       # - send each message to the endpoint
       # - like sendPrivateMessage, but key off of the fingerprint for addressing on server side
 

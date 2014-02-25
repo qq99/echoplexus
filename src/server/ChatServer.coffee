@@ -1,24 +1,27 @@
-_                 = require("underscore")
-config            = require('./config.coffee').Configuration
-AbstractServer    = require('./AbstractServer.coffee').AbstractServer
-Client            = require('../client/client.js.coffee').ClientModel
-Clients           = require('../client/client.js.coffee').ClientsCollection
+_                = require("underscore")
+config           = require('./config.coffee').Configuration
+AbstractServer   = require('./AbstractServer.coffee').AbstractServer
+Client           = require('../client/client.js.coffee').ClientModel
+Clients          = require('../client/client.js.coffee').ClientsCollection
 
-async             = require("async")
-spawn             = require("child_process").spawn
+async            = require("async")
+spawn            = require("child_process").spawn
 
-fs                = require("fs")
-crypto            = require("crypto")
-uuid              = require("node-uuid")
-ApplicationError  = require("./Error.js.coffee")
-redisC            = require("./RedisClient.coffee").RedisClient()
-REGEXES           = require("../client/regex.js.coffee").REGEXES
-DEBUG             = config.DEBUG
-GithubWebhook     = require("./GithubWebhookIntegration.coffee")
-EventBus          = require("./EventBus.coffee").EventBus()
+fs               = require("fs")
+crypto           = require("crypto")
+uuid             = require("node-uuid")
+ApplicationError = require("./Error.js.coffee")
+redisC           = require("./RedisClient.coffee").RedisClient()
+REGEXES          = require("../client/regex.js.coffee").REGEXES
+DEBUG            = config.DEBUG
+GithubWebhook    = require("./GithubWebhookIntegration.coffee")
+EventBus         = require("./EventBus.coffee").EventBus()
 
-# Extensions:
-Dice              = require("./extensions/dice.coffee").Dice
+# 3rd party
+openpgp          = require("../../lib/openpgpjs/openpgp.min.js")
+
+# Extensions     :
+Dice             = require("./extensions/dice.coffee").Dice
 
 module.exports.ChatServer = class ChatServer extends AbstractServer
 	name: "ChatServer"
@@ -554,6 +557,13 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		"set_public_key": (namespace, socket, channel, client, data) ->
 			if data.armored_public_key
 				client.set('armored_public_key', data.armored_public_key)
+				try
+					dearmored = openpgp.key.readArmored(data.armored_public_key)
+					fingerprint = dearmored.keys[0]?.primaryKey?.getFingerprint()
+					client.set('fingerprint', fingerprint)
+				catch
+					console.log 'Error reading armored public key'
+
 				@publishUserList(channel)
 
 		"chat": (namespace, socket, channel, client, data) ->

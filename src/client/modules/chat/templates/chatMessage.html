@@ -6,6 +6,10 @@
 		<i class="fa fa-key encrypted"></i>
 		<% } %>
 
+		<% if (pgp_encrypted) { %>
+		<i class="fa fa-lock encrypted"></i>
+		<% } %>
+
 		<% if (identified) { %>
 		<i class="fa fa-lock ident yes"></i>
 		<% } %>

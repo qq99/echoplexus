@@ -267,7 +267,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     body = msg.get("body")
     nickname = msg.get("nickname")
 
-    if msg.get("signed") and !msg.get("encrypted")
+    if msg.get("pgp_signed") and !msg.get("pgp_signed")
       try
         msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
         message = openpgp.cleartext.readArmored(body)
@@ -282,13 +282,30 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         else
           msg.set "pgp_verified", false
       catch
-        console.error "Unable to verify PGP signed message"
+        console.warn "Unable to verify PGP signed message"
         msg.set "pgp_verified", false
 
-    else if !msg.get("signed") and msg.get("encrypted")
+    else if !msg.get("pgp_signed") and msg.get("pgp_encrypted")
       throw "Not implemented yet"
-    else if msg.get("signed") and msg.get("encrypted")
-      throw "Not implemented yet"
+    else if msg.get("pgp_signed") and msg.get("pgp_encrypted")
+      try
+        msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
+        message = openpgp.message.readArmored(body)
+        key = KEYSTORE.get(msg.get("fingerprint"))
+        dearmored_pub = openpgp.key.readArmored(key.armored_key)
+        priv = @me.pgp_settings.usablePrivateKey()[0]
+
+        decrypted = openpgp.decryptAndVerifyMessage(priv, dearmored_pub.keys, message)
+        body = decrypted.text
+
+        if decrypted.signatures?[0].valid
+          msg.set "pgp_verified", true
+          msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
+        else
+          msg.set "pgp_verified", false
+      catch e
+        console.warn "Unable to decrypt PGP signed message"
+
 
 
     opts = {}  if !opts
@@ -403,6 +420,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       chat = self.chatMessageTemplate(
         nickname: nickname
         is_encrypted: !!msg.get("was_encrypted")
+        pgp_encrypted: msg.get("pgp_encrypted")
         pgp_armored: msg.get("pgp_armored") || null
         mID: msg.get("mID")
         color: msg.get("color")
@@ -617,13 +635,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
   toggleArmored: (ev) ->
     $message = $(ev.currentTarget).parents(".chatMessage")
-    console.log 'wat'
-   # if $message.hasClass("showing-armored")
-    #  $message.removeClass("showing-armored")
     $(".pgp-armored-body", $message).toggle()
     $(".body-content", $message).toggle()
-   # else
-
 
   untrustFingerprint: (ev) ->
     fingerprint = $(ev.currentTarget).data("fingerprint")
