@@ -48,7 +48,6 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
     dearmored_pubs.keys
 
   encrypt: (pubkey, message) ->
-
     openpgp.encryptMessage(@usablePublicKey(pubkey), message)
 
   encryptAndSign: (pubkey, message) ->

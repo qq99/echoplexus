@@ -36,6 +36,12 @@ module.exports.ServerClient = class ServerClient extends Client
         throw err  if err
         @getPermissions()
 
+    @on "change:encrypted_nick", (client, changed) =>
+      # changed is either undefined, or an object representing {ciphertext,salt,iv}
+      if changed # added a ciphernick
+        @set "ciphernick", changed.ct
+      else
+        @unset "ciphernick"
 
     Client::initialize.apply this, arguments
     @set "permissions", new PermissionModel()

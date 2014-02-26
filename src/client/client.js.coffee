@@ -162,10 +162,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     return msg
 
-  sendSignedEncryptedMessage: (msg) ->
-    room = @get('room')
+  getPGPPeers: ->
     peers = @get('peers')
-
     destination_peers = []
     for peer in peers.models
       pubkey = peer.get("armored_public_key")
@@ -178,6 +176,12 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
           fingerprint: fingerprint
         }
 
+    return destination_peers
+
+  sendSignedEncryptedMessage: (msg) ->
+    room              = @get('room')
+    destination_peers = @getPGPPeers()
+    my_fingerprint    = @pgp_settings.get("fingerprint")
 
     for peer in destination_peers
       encrypted_result = @pgp_settings.encryptAndSign peer.armored_public_key, msg.body
@@ -185,18 +189,37 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       @socket.emit "directed_message:#{room}",
         body: encrypted_result
         key: "fingerprint"
-        fingerprint: @pgp_settings.get("fingerprint")
+        fingerprint: my_fingerprint
         value: peer.fingerprint
         pgp_encrypted: true
         pgp_signed: true
-      # - send each message to the endpoint
-      # - like sendPrivateMessage, but key off of the fingerprint for addressing on server side
+
+  sendEncryptedMessage: (msg) ->
+    room              = @get('room')
+    destination_peers = @getPGPPeers()
+    my_fingerprint    = @pgp_settings.get("fingerprint")
+
+    for peer in destination_peers
+      encrypted_result = @pgp_settings.encrypt peer.armored_public_key, msg.body
+
+      @socket.emit "directed_message:#{room}",
+        body: encrypted_result
+        key: "fingerprint"
+        fingerprint: my_fingerprint
+        value: peer.fingerprint
+        pgp_encrypted: true
+        pgp_signed: false
 
   sendPrivateMessage: (toUsername, body) ->
     room = @get('room')
-    @socket.emit "private_message:#{room}",
+
+    @socket.emit "directed_message:#{room}",
       body: body
-      directedAt: toUsername
+      key: "nick"
+      value: toUsername
+      type: "private"
+      class: "private"
+      ack_requested: true
 
   sendEdit: (mID, newBody) ->
     room = @get('room')
@@ -230,10 +253,14 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     if ciphernicks.length
       encrypted = cryptoWrapper.encryptObject(body, @cryptokey) # encrypt the body text
       body = "-" # clean it immediately after encrypting it
-      @socket.emit "private_message:#{room}",
+      @socket.emit "directed_message:#{room}",
         encrypted: encrypted
-        ciphernicks: ciphernicks
+        key: "ciphernick"
+        value: ciphernicks
+        type: "private"
+        class: "private"
         body: body
+        ack_requested: true
 
     # else we just do nothing.
 
@@ -343,10 +370,16 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
           repoUrl: args
 
     else unless body.match(REGEXES.commands.failed_command) # match all
-      if @pgp_settings?.get("sign?") and !@pgp_settings?.get("encrypt?")
+      encrypt = @pgp_settings.get("encrypt?")
+      sign    = @pgp_settings.get("sign?")
+
+      if sign and !encrypt
         msg = @signMessage(msg)
-      else if @pgp_settings?.get("sign?") and @pgp_settings?.get("encrypt?")
-        @sendSignedEncryptedMessage(msg)
+      else if encrypt and !sign
+        @sendEncryptedMessage(msg)
+        return # directed message, so we don't emit to all
+      else if sign and encrypt
+        @sendSignedEncryptedMessage(msg) # directed message, so we don't emit to all
         return
 
 

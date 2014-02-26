@@ -262,51 +262,67 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     # show hide page title/excerpt
     $(ev.currentTarget).parents(".webshot-badge").toggleClass "active"
 
-  renderChatMessage: (msg, opts) ->
-    self = this
+  unwrapSigned: (msg) ->
     body = msg.get("body")
-    nickname = msg.get("nickname")
 
-    if msg.get("pgp_signed") and !msg.get("pgp_signed")
-      try
-        msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
-        message = openpgp.cleartext.readArmored(body)
-        body = message.text
-        key = KEYSTORE.get(msg.get("fingerprint"))
-        dearmored = openpgp.key.readArmored(key.armored_key)
-        verification = openpgp.verifyClearSignedMessage(dearmored.keys, message)
+    try
+      message      = openpgp.cleartext.readArmored(body)
+      key          = KEYSTORE.get(msg.get("fingerprint"))
+      dearmored    = openpgp.key.readArmored(key.armored_key)
+      verification = openpgp.verifyClearSignedMessage(dearmored.keys, message)
 
-        if verification.signatures?[0].valid
-          msg.set "pgp_verified", true
-          msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
-        else
-          msg.set "pgp_verified", false
-      catch
-        console.warn "Unable to verify PGP signed message"
+      msg.set "body", verification.text
+      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
+
+      if verification.signatures?[0].valid
+        msg.set "pgp_verified", true
+        msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
+      else
         msg.set "pgp_verified", false
+    catch
+      console.warn "Unable to verify PGP signed message"
+      msg.set "pgp_verified", false
 
+    msg
+
+  unwrapSignedAndEncrypted: (msg) ->
+    body = msg.get("body")
+
+    try
+      message       = openpgp.message.readArmored(body)
+      key           = KEYSTORE.get(msg.get("fingerprint"))
+      dearmored_pub = openpgp.key.readArmored(key.armored_key)
+      priv          = @me.pgp_settings.usablePrivateKey()[0]
+      decrypted     = openpgp.decryptAndVerifyMessage(priv, dearmored_pub.keys, message)
+
+      msg.set "body", decrypted.text
+      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
+
+      if decrypted.signatures?[0].valid
+        msg.set "pgp_verified", true
+        msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
+      else
+        msg.set "pgp_verified", false
+    catch e
+      console.warn "Unable to decrypt PGP signed message"
+      msg.set "pgp_verified", false
+
+    msg
+
+  renderChatMessage: (msg, opts) ->
+    self      = this
+    nickname  = msg.get("nickname")
+    signed    = msg.get("pgp_signed")
+    encrypted = msg.get("pgp_encrypted")
+
+    if signed and !encrypted
+      msg = @unwrapSigned(msg)
     else if !msg.get("pgp_signed") and msg.get("pgp_encrypted")
-      throw "Not implemented yet"
+      console.error "Not implemented yet"
     else if msg.get("pgp_signed") and msg.get("pgp_encrypted")
-      try
-        msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
-        message = openpgp.message.readArmored(body)
-        key = KEYSTORE.get(msg.get("fingerprint"))
-        dearmored_pub = openpgp.key.readArmored(key.armored_key)
-        priv = @me.pgp_settings.usablePrivateKey()[0]
+      msg = @unwrapSignedAndEncrypted(msg)
 
-        decrypted = openpgp.decryptAndVerifyMessage(priv, dearmored_pub.keys, message)
-        body = decrypted.text
-
-        if decrypted.signatures?[0].valid
-          msg.set "pgp_verified", true
-          msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
-        else
-          msg.set "pgp_verified", false
-      catch e
-        console.warn "Unable to decrypt PGP signed message"
-
-
+    body = msg.get("body")
 
     opts = {}  if !opts
     if @autoloadMedia and msg.get("class") isnt "identity" and msg.get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar

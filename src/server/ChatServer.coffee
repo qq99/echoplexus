@@ -493,54 +493,21 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			data.encrypted_nick = client.get("encrypted_nick")
 			data.timestamp      = Number(new Date())
 
+			# O(n^2) in worst possible case
 			for c in channel.clients.models
-				if c.get(data.key) == data.value
+				compare_to = c.get(data.key) # the client value we're looking at
+				if data.value instanceof Array # can be a single message directed to a bunch of people
+					for item in data.value
+						if compare_to == item
+							c.socketRef.emit("private_message:#{room}", data)
+				else if compare_to == data.value # or a single message directed to a single person
 					c.socketRef.emit("private_message:#{room}", data)
 
-		"private_message": (namespace, socket, channel, client, data) ->
-			room = channel.get("name")
-
-			if !channel.hasPermission(client, "canSpeak")
-				@emitGenericPermissionsError(socket, client)
-				return
-
-			# only send a message if it has a body & is directed at someone
-			if data.body
-				data.color          = client.get("color").toRGB()
-				data.nickname       = client.get("nick")
-				data.encrypted_nick = client.get("encrypted_nick")
-				data.timestamp      = Number(new Date())
-				data.type           = "private"
-				data.class          = "private"
-
-				# find the sockets of the clients matching the nick in question
-				# we must do more work to match ciphernicks
-				if data.encrypted || data.ciphernicks
-					targetClients = []
-
-					# O(nm) if pm'ing everyone, most likely O(n) in the average case
-					_.each data.ciphernicks, (ciphernick) ->
-						for c in channel.clients.models
-							encryptedNick = c.get("encrypted_nick")
-
-							if encryptedNick && encryptedNick["ct"] == ciphernick
-								targetClients.push(c)
-
-					delete data.ciphernicks # no use sending this to other clients
-				else # it wasn't encrypted, just find the regular directedAt
-					targetClients = channel.clients.where({nick: data.directedAt}) # returns an array
-
-				if targetClients?.length
-					# send the pm to each client matching the name
-					_.each targetClients, (c) ->
-						c.socketRef.emit("private_message:#{room}", data)
-
-					# send it to the sender s.t. he knows that it went through
-					socket.in(room).emit("private_message:#{room}", _.extend(data, {
-						you: true
-					}))
-				else
-					# some kind of error message
+			# sometimes we want a copy of the message we send out
+			if data.ack_requested
+				socket.in(room).emit("private_message:#{room}", _.extend(data, {
+					you: true
+				}))
 
 		"user:set_color": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
