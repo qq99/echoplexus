@@ -53,7 +53,7 @@ describe 'ClientModel', ->
   describe '#sendPrivateMessage', ->
     it 'should emit the correct event', ->
       @subject.sendPrivateMessage("Bob", "What's up?")
-      assert @fakeSocket.emit.calledWith('private_message:/', {directedAt: 'Bob', body: "What's up?"})
+      assert @fakeSocket.emit.calledWith('directed_message:/', {key: 'nick', type: 'private', class: 'private', ack_requested: true, value: 'Bob', body: "What's up?"})
 
   describe '#sendEdit', ->
     it 'should emit the correct event', ->
@@ -102,13 +102,11 @@ describe 'ClientModel', ->
     describe '/tell', ->
       it 'fires a request', ->
         @subjectSays '/tell qq99 hey yo'
-        assert @fakeSocket.emit.calledWith('private_message:/', {body: 'qq99 hey yo', directedAt: 'qq99'})
-        assert @fakeSocket.emit.calledOnce
+        mock(@subject).expects('sendPrivateMessage').calledWith('qq99', 'hey yo')
 
       it 'works when the recipient name is prefixed with @', ->
         @subjectSays '/tell @qq99 hey yo'
-        assert @fakeSocket.emit.calledWith('private_message:/', {body: '@qq99 hey yo', directedAt: 'qq99'})
-        assert @fakeSocket.emit.calledOnce
+        mock(@subject).expects('sendPrivateMessage').calledWith('@qq99', 'hey yo')
 
     describe '/color', ->
       it 'fires a request', ->
