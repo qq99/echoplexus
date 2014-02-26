@@ -275,13 +275,13 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
 
       if verification.signatures?[0].valid
-        msg.set "pgp_verified", true
+        msg.set "pgp_verified", "signed"
         msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
       else
-        msg.set "pgp_verified", false
+        msg.set "pgp_verified", "signature_failure"
     catch
       console.warn "Unable to verify PGP signed message"
-      msg.set "pgp_verified", false
+      msg.set "pgp_verified", "signature_failure"
 
     msg
 
@@ -299,13 +299,13 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
 
       if decrypted.signatures?[0].valid
-        msg.set "pgp_verified", true
+        msg.set "pgp_verified", "signed"
         msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
       else
-        msg.set "pgp_verified", false
+        msg.set "pgp_verified", "signature_failure"
     catch e
       console.warn "Unable to decrypt PGP signed message"
-      msg.set "pgp_verified", false
+      msg.set "pgp_verified", "signature_failure"
 
     msg
 
@@ -324,7 +324,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     catch e
       console.warn "Unable to decrypt PGP signed message"
 
-    msg.set "pgp_verified", false
+    msg.set "pgp_verified", "not_signed"
 
     msg
 
@@ -677,16 +677,16 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     fingerprint = $(ev.currentTarget).data("fingerprint")
     KEYSTORE.untrust(fingerprint)
     @renderUserlist()
-    $(".pgp-verification-icon", @$el).removeClass("trusted unknown").addClass("untrusted")
+    $(".pgp-verification-icon .fa-check", @$el).removeClass("trusted unknown").addClass("untrusted")
 
   trustFingerprint: (ev) ->
     fingerprint = $(ev.currentTarget).data("fingerprint")
     KEYSTORE.trust(fingerprint)
     @renderUserlist()
-    $(".pgp-verification-icon", @$el).removeClass("untrusted unknown").addClass("trusted")
+    $(".pgp-verification-icon .fa-check", @$el).removeClass("untrusted unknown").addClass("trusted")
 
   neutralTrustFingerprint: (ev) ->
     fingerprint = $(ev.currentTarget).data("fingerprint")
     KEYSTORE.neutral(fingerprint)
     @renderUserlist()
-    $(".pgp-verification-icon", @$el).removeClass("untrusted trusted").addClass("unknown")
+    $(".pgp-verification-icon .fa-check", @$el).removeClass("untrusted trusted").addClass("unknown")

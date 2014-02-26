@@ -18,6 +18,8 @@ $chatinput-height     : 6em;
 $my-stream-height     : 103px;
 $room-specific-height : 80px;
 
+$nick-width           : 10em;
+
 ::-webkit-scrollbar {
 	width:10px;
 }
@@ -843,17 +845,7 @@ header {
 	width:100%;
 	overflow-y:auto;
 	font-family: $pretty-font-family;
-	.pgp-fingerprint-icon {
-		&.unknown {
-			color: orange;
-		}
-		&.trusted {
-			color: green;
-		}
-		&.untrusted {
-			color: red;
-		}
-	}
+
 	.nick {
 		max-width:12em;
 		text-overflow:ellipsis;
@@ -1162,26 +1154,29 @@ header {
 	}
 }
 
+.unknown {
+	color: orange;
+}
+.trusted {
+	color: green;
+}
+.untrusted {
+	color: red;
+}
+
 .chatMessage {
 	@include transition(all 0.25s ease-in-out);
 	height:auto;
 	position:relative;
 	margin: 0;
 
-	.pgp-verification-icon {
-		color: orange;
-		&.trusted {
-			color: green;
-		}
-		&.untrusted {
-			color: red;
-		}
-	}
 	.pgp-armored-body {
 		display: none;
 	}
-	.pgp-verification-failure-icon {
-		color: red;
+	.sub-icon {
+		text-shadow: -1px -1px 5px black;
+		top: 3px;
+		left: 4px;
 	}
 	.fl {
 		float:left;
@@ -1227,7 +1222,7 @@ header {
 			word-break:break-word;
 		}
 		width:100%;
-		padding-left:9em;
+		padding-left:$nick-width + 1em;
 		padding-right:8em;
 
 		border:1px solid transparent;
@@ -1255,7 +1250,7 @@ header {
 		left:0;
 		text-align: right;
 		color:#53D940;
-		width:8em;
+		width:$nick-width;
 		text-overflow:ellipsis;
 		white-space:nowrap;
 		overflow:hidden;
@@ -1264,6 +1259,15 @@ header {
 		}
 		&.me {
 			color:yellow;
+		}
+		.nickname {
+			margin-left:0.5em;
+		}
+		.fa-stack {
+			width:0.5em;
+		}
+		> span {
+			display: inline-block;
 		}
 	}
 

@@ -3,23 +3,40 @@
 	<div data-timestamp="<%- timestamp %>" class="time"><%- humanTime %></div>
 	<div class="nick <%- nickClasses %>" style="color: <%- color %>">
 		<% if (is_encrypted) { %>
-		<i class="fa fa-key encrypted"></i>
+		<span class="fa-stack" title="Shared secret encrypted">
+			<i class="fa fa-key fa-stack-1x encrypted"></i>
+		</span>
 		<% } %>
 
 		<% if (pgp_encrypted) { %>
-		<i class="fa fa-lock encrypted" title="PGP encrypted"></i>
+		<span class="fa-stack" title="PGP encrypted">
+			<i class="trusted fa fa-lock fa-stack-1x encrypted"></i>
+		</span>
 		<% } %>
 
-		<% if (identified) { %>
-		<i class="fa fa-lock ident yes"></i>
+		<% if (pgp_verified == "signed") { %>
+		<span
+			class="pgp-verification-icon fa-stack"
+			title="Signature success: This message was signed by key with fingerprint <%- fingerprint %>."
+			data-fingerprint="<%- fingerprint %>">
+			<i class="fa fa-user fa-stack-1x"></i>
+			<i class="<%- trust_status %> sub-icon fa fa-check fa-stack-1x"></i>
+		</span>
+		<% } else if (pgp_verified == "signature_failure") { %>
+		<span class="fa-stack" title="Signature failure: This message cannot be reliably linked to this user.">
+			<i class="fa fa-user fa-stack-1x"></i>
+			<i class="sub-icon death-warning fa fa-times fa-stack-1x"></i>
+		</span>
+		<% } else if (pgp_verified == "not_signed") { %>
+		<span class="fa-stack" title="No signature was provided">
+			<i class="fa fa-user fa-stack-1x"></i>
+			<i class="sub-icon death-warning fa fa-ban fa-stack-1x"></i>
+		</span>
 		<% } %>
 
-		<% if (pgp_verified) { %>
-		<i class="pgp-verification-icon <%- trust_status %> fa fa-check-circle-o" data-fingerprint="<%- fingerprint %>" title="PGP Fingerprint: <%- fingerprint %>"></i>
-		<% } else if (fingerprint && !pgp_verified) { %>
-		<i class="pgp-verification-failure-icon fa fa-times" data-fingerprint="<%- fingerprint %>" title="PGP Fingerprint: <%- fingerprint %>"></i>
-		<% } %>
-		<%- nickname %>
+		<span class="nickname" title="<%- nickname %>">
+			<%- nickname %>
+		</span>
 	</div>
 	<div class="message-options">
 		<% if (pgp_armored) { %>
