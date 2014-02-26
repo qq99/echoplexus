@@ -309,6 +309,25 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
     msg
 
+  unwrapEncrypted: (msg) ->
+    body = msg.get("body")
+
+    try
+      message       = openpgp.message.readArmored(body)
+      key           = KEYSTORE.get(msg.get("fingerprint"))
+      priv          = @me.pgp_settings.usablePrivateKey()[0]
+      decrypted     = openpgp.decryptMessage(priv, message)
+
+      msg.set "body", decrypted
+      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
+      msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
+    catch e
+      console.warn "Unable to decrypt PGP signed message"
+
+    msg.set "pgp_verified", false
+
+    msg
+
   renderChatMessage: (msg, opts) ->
     self      = this
     nickname  = msg.get("nickname")
@@ -317,9 +336,9 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
     if signed and !encrypted
       msg = @unwrapSigned(msg)
-    else if !msg.get("pgp_signed") and msg.get("pgp_encrypted")
-      console.error "Not implemented yet"
-    else if msg.get("pgp_signed") and msg.get("pgp_encrypted")
+    else if !signed and encrypted
+      msg = @unwrapEncrypted(msg)
+    else if signed and encrypted
       msg = @unwrapSignedAndEncrypted(msg)
 
     body = msg.get("body")
