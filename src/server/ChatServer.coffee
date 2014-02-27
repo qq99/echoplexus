@@ -173,14 +173,12 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				type: "authentication"
 			})
 
-	createWebshot: (data, room) ->
+	createWebshot: (body, from_mID, room) ->
 		if config.chat?.webshot_previews?.enabled
 			# strip out other things the client is doing before we attempt to render the web page
-			urls = data.body.replace(REGEXES.urls.image, "")
+			urls = body.replace(REGEXES.urls.image, "")
 							.replace(REGEXES.urls.youtube,"")
 							.match(REGEXES.urls.all_others)
-
-			from_mID = data.mID
 
 			if urls
 				for url in urls
@@ -203,8 +201,10 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 							try
 								pageData = JSON.parse(data.toString()) if data # explicitly cast it, who knows what type it is having come from a process
 							catch e # if the result was not JSON'able
+								console.log e
 
-						#screenshotter.stderr.on 'data', (data) ->
+						screenshotter.stderr.on 'data', (data) ->
+							console.log data
 
 						screenshotter.on "exit", (data) =>
 							# DEBUG && console.log('screenshotter exit: ' + data.toString())
@@ -556,7 +556,12 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					socket.in(room).broadcast.emit "chat:#{room}", msg
 					socket.in(room).emit "chat:#{room}", _.extend msg, you: true
 
-					@createWebshot(msg, room)
+					body = msg.body
+					try # not to use the entire armored PGP when we're scanning body for webshot-able URLs
+						message = openpgp.cleartext.readArmored(body)
+						body = message.text if message?.text?
+
+					@createWebshot(body, msg.mID, room)
 
 					if err
 						console.log("Was unable to persist a chat message", err.message, msg)
