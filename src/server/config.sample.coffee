@@ -9,6 +9,7 @@ exports.Configuration =
   redis:
     host: "127.0.0.1"
     port: 6379
+    select: 15
 
   ssl:
     USE_NODE_SSL: false # only necessary if you're not having nginx proxy through to node

@@ -1273,6 +1273,7 @@ hr {
 			height: 1.4em;
 		}
 		.fa-stack {
+			@include unselectable;
 			top: -0.35em;
 			height: 1.4em;
 			width:0.5em;

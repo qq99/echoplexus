@@ -1,6 +1,7 @@
 require("coffee-script")
 config           = require("./config.coffee").Configuration # deploy specific configuration
-redisC           = require("./RedisClient.coffee").RedisClient(config.redis?.port, config.redis?.host)
+redis_db         = config.redis?.select || 15
+redisC           = require("./RedisClient.coffee").RedisClient(config.redis?.port, config.redis?.host, redis_db)
 express          = require("express")
 _                = require("underscore")
 Backbone         = require("backbone")
@@ -17,7 +18,7 @@ CodeServer       = require("./CodeServer.coffee").CodeServer
 DrawServer       = require("./DrawServer.coffee").DrawServer
 CallServer       = require("./CallServer.coffee").CallServer
 InfoServer       = require("./InfoServer.coffee").InfoServer
-# UserServer       = require("./UserServer.coffee").UserServer
+# UserServer     = require("./UserServer.coffee").UserServer
 EventBus         = require("./EventBus.coffee").EventBus()
 app              = express()
 GithubWebhook    = require("./GithubWebhookIntegration.coffee")
@@ -177,8 +178,7 @@ ChannelStructures = require("./Channels.js.coffee")
 ChannelModel = ChannelStructures.ServerChannelModel
 Channels = new ChannelStructures.ChannelsCollection
 
-# use db 15:
-redisC.select 15, (err, reply) ->
+redisC.select redis_db, (err, reply) ->
   chatServer = new ChatServer sio, Channels, ChannelModel # start up the chat server
   chatServer.start
     error: (err, socket, channel, client, data) ->
