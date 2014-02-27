@@ -1261,9 +1261,13 @@ header {
 			color:yellow;
 		}
 		.nickname {
+			display:inline;
 			margin-left:0.5em;
+			height: 1.4em;
 		}
 		.fa-stack {
+			top: -0.35em;
+			height: 1.4em;
 			width:0.5em;
 		}
 		> span {
