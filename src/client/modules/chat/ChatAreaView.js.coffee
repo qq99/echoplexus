@@ -234,7 +234,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
   renderWebshot: (msg) ->
     $targetChat = @$el.find(".chatMessage[data-sequence='" + msg.from_mID + "']")
-    targetContent = $targetChat.find(".body").html().trim()
+    targetContent = $targetChat.find(".body-content").html().trim()
     urlLocation = targetContent.indexOf(msg.original_url) # find position in text
     badgeLocation = targetContent.indexOf(" ", urlLocation) # insert badge after that
     badge = @webshotBadgeTemplate(msg)
