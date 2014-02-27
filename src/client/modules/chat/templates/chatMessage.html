@@ -32,8 +32,12 @@
 			<i class="fa fa-user fa-stack-1x"></i>
 			<i class="sub-icon death-warning fa fa-ban fa-stack-1x"></i>
 		</span>
+		<% } else if (pgp_verified == "unknown_public_key") { %>
+		<span class="fa-stack" title="Cannot attempt to verify signature; unknown public key for fingerprint <%- fingerprint %>.">
+			<i class="fa fa-user fa-stack-1x"></i>
+			<i class="sub-icon unknown fa fa-question fa-stack-1x"></i>
+		</span>
 		<% } %>
-
 		<span class="nickname" title="<%- nickname %>">
 			<%- nickname %>
 		</span>

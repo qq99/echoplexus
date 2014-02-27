@@ -172,17 +172,18 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       # update keystore
       _.map clients.models, (user) =>
         if armored_public_key = user.get("armored_public_key")
-          KEYSTORE.add(user.getPGPFingerprint(), armored_public_key, @me.getNickOf(user), @channelName)
+          KEYSTORE.add(user.getPGPFingerprint(), armored_public_key, null, @me.getNickOf(user), @channelName)
 
     # add my own key to keystore
     @me.pgp_settings.on "change:armored_keypair", (model, armored_keypair) =>
-      @me.set("armored_public_key", armored_keypair.public)
-      my_fingerprint = @me.getPGPFingerprint()
-      KEYSTORE.add(my_fingerprint, armored_keypair.public, @me.getNick(), @channelName)
-      KEYSTORE.trust(my_fingerprint)
+      if armored_keypair
+        @me.set("armored_public_key", armored_keypair.public)
+        my_fingerprint = @me.getPGPFingerprint()
+        KEYSTORE.add(my_fingerprint, armored_keypair.public, armored_keypair.private, @me.getNick(), @channelName)
+        KEYSTORE.trust(my_fingerprint)
 
       @socket.emit "set_public_key:#{@channelName}",
-        armored_public_key: armored_keypair.public
+        armored_public_key: armored_keypair?.public
 
     # doesn't work when defined as a backbone event :(
     @scrollSyncLogs = _.throttle(@_scrollSyncLogs, 500) # so we don't sync too quickly
@@ -489,6 +490,9 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       chat: (msg) =>
         window.events.trigger "message", socket, @, msg
         message = new ChatMessage(msg)
+
+        if fingerprint = message.get("fingerprint")
+          KEYSTORE.markSeen(fingerprint, @me.getNick(), @channelName)
 
         # update our scrollback buffer so that we can quickly edit the message by pressing up/down
         # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"

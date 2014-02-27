@@ -266,13 +266,16 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     body = msg.get("body")
 
     try
+      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
       message      = openpgp.cleartext.readArmored(body)
+      msg.set "body", message.text
       key          = KEYSTORE.get(msg.get("fingerprint"))
+      if !key
+        msg.set "pgp_verified", "unknown_public_key"
       dearmored    = openpgp.key.readArmored(key.armored_key)
       verification = openpgp.verifyClearSignedMessage(dearmored.keys, message)
 
       msg.set "body", verification.text
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
 
       if verification.signatures?[0].valid
         msg.set "pgp_verified", "signed"
@@ -281,7 +284,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         msg.set "pgp_verified", "signature_failure"
     catch
       console.warn "Unable to verify PGP signed message"
-      msg.set "pgp_verified", "signature_failure"
 
     msg
 
@@ -289,14 +291,16 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     body = msg.get("body")
 
     try
+      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
       message       = openpgp.message.readArmored(body)
       key           = KEYSTORE.get(msg.get("fingerprint"))
+      if !key
+        msg.set "pgp_verified", "unknown_public_key"
       dearmored_pub = openpgp.key.readArmored(key.armored_key)
       priv          = @me.pgp_settings.usablePrivateKey()[0]
       decrypted     = openpgp.decryptAndVerifyMessage(priv, dearmored_pub.keys, message)
 
       msg.set "body", decrypted.text
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
 
       if decrypted.signatures?[0].valid
         msg.set "pgp_verified", "signed"
@@ -305,7 +309,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         msg.set "pgp_verified", "signature_failure"
     catch e
       console.warn "Unable to decrypt PGP signed message"
-      msg.set "pgp_verified", "signature_failure"
 
     msg
 
@@ -313,13 +316,13 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     body = msg.get("body")
 
     try
+      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
       message       = openpgp.message.readArmored(body)
       key           = KEYSTORE.get(msg.get("fingerprint"))
       priv          = @me.pgp_settings.usablePrivateKey()[0]
       decrypted     = openpgp.decryptMessage(priv, message)
 
       msg.set "body", decrypted
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
       msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
     catch e
       console.warn "Unable to decrypt PGP signed message"

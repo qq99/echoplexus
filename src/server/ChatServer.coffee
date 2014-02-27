@@ -530,8 +530,10 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					client.set('fingerprint', fingerprint)
 				catch
 					console.log 'Error reading armored public key'
+			else
+				client.unset('armored_public_key')
 
-				@publishUserList(channel)
+			@publishUserList(channel)
 
 		"chat": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")

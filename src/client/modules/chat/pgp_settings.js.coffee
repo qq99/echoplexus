@@ -20,14 +20,23 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
     this.on "change:encrypt? change:sign? change:armored_keypair", @save
 
   save: ->
+    console.log 'saved pgp settings for channel'
     localStorage.setObj "pgp:keypair:#{@channelName}", @get('armored_keypair')
     localStorage.setObj "pgp:sign?:#{@channelName}", @get('sign?')
     localStorage.setObj "pgp:encrypt?:#{@channelName}", @get('encrypt?')
 
-  destroy: ->
+  clear: ->
+    console.log 'cleared'
     @set 'armored_keypair', null
     @set 'sign?', null
     @set 'encrypt?', null
+
+  destroy: ->
+    @clear()
+
+    my_fingerprint = @get 'fingerprint'
+    KEYSTORE.untrust(my_fingerprint)
+    KEYSTORE.clean(my_fingerprint)
 
   usablePrivateKey: (passphrase = '') ->
     if !@privatekey

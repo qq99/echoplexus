@@ -10,9 +10,19 @@
     <p>If you're chatting with other people who have also supplied PGP keys, you can also encrypt your communications.</p>
     <div class="field">
       <button class="generate-keypair">Generate a keypair</button>
-      <button class="cancel">Use a keypair I supply</button>
+      <button class="use-own">Use a keypair I supply</button>
     </div>
-    <p class="death-warning">If you choose to supply your own key, be sure that it's one you are comfortable with losing.</p>
+    <hr>
+    <div class="field">
+      <select id="key-to-reuse">
+        <% for (var key in my_keys) { %>
+        <option value="<%- key %>"><%- key %> (last used in <%- my_keys[key].last_used_in %> as <%- my_keys[key].last_used_by %>)</option>
+        <% } %>
+      </select>
+    </div>
+    <div class="field">
+      <button class="re-use">Re-use this key</button>
+    </div>
   </section>
   <!-- generate -->
   <section class="generate-keypair">
@@ -66,6 +76,7 @@
     </div>
     <div class="field">
       <button class="view-key-information">Keypair Information</button>
+      <button class="stop-using">Stop using PGP</button>
     </div>
   </section>
   <!-- keypair info -->
@@ -90,6 +101,24 @@
     <div class="field">
       <button class="view-pgp-options">PGP Options</button>
       <button class="destroy-keypair">Destroy Keypair</button>
+    </div>
+  </section>
+  <!-- user supplied keypair -->
+  <section class="pgp-user-supplied">
+    <p class="death-warning">If you choose to supply your own key, be sure that it's one you are comfortable with losing.</p>
+    <div class="field">
+      <label for="pgp-user-supplied-armored-private">Armored Private Key</label>
+      <textarea id="pgp-user-supplied-armored-private"></textarea>
+    </div>
+    <div class="field">
+      <label for="pgp-user-supplied-armored-public">Armored Public Key</label>
+      <textarea id="pgp-user-supplied-armored-public"></textarea>
+    </div>
+    <div class="field">
+      <button class="use-key">Use these keys</button>
+    </div>
+    <div class="errors">
+
     </div>
   </section>
 </div>
