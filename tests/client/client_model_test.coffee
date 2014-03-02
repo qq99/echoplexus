@@ -20,6 +20,27 @@ describe 'ClientModel', ->
         body: string
       })
 
+    @fakeBob = new Backbone.Model
+      nick: 'Bob'
+      encrypted_nick:
+        ct: 'BobCiphernick'
+        iv: 'iv'
+        s: 's'
+
+    @fakeBob.getNick = ->
+      return 'Bob'
+
+    @fakeAlice = new Backbone.Model
+      nick: 'Alice'
+      encrypted_nick:
+        ct: 'AliceCiphernick'
+        iv: 'iv'
+        s: 's'
+
+    @fakeAlice.getNick = ->
+      return 'Alice'
+
+
   describe 'constructors', ->
     it 'should create a new Permissions model attribute on creation', ->
       assert @subject.get('permissions')
@@ -60,7 +81,7 @@ describe 'ClientModel', ->
       @subject.sendEdit(10, "oops")
       assert @fakeSocket.emit.calledWith("chat:edit:/", {mID: 10, body: "oops"})
 
-  describe "#speak", ->
+  describe "#speak special commands", ->
     describe '/nick', ->
       beforeEach ->
         @subjectSays '/nick Foobar'
@@ -157,6 +178,39 @@ describe 'ClientModel', ->
         assert @fakeSocket.emit.calledWith('help:/')
         assert @fakeSocket.emit.calledOnce
 
+    describe 'in pure plaintext', ->
+      beforeEach ->
+        @subject.unset 'cryptokey'
+        @subject.pgp_settings =
+          get: -> return false
+
+      it 'emits to everyone with no encrypted body', ->
+        @subjectSays "hi all"
+        assert @fakeSocket.emit.calledOnce
+        assert.equal "chat:/", @fakeSocket.emit.args[0][0]
+        assert.equal "hi all", @fakeSocket.emit.args[0][1].body
+        assert !@fakeSocket.emit.args[0][1].encrypted
+
+      it 'sends a private directed_message only to the users we want to chat with', ->
+        # the users are also in plaintext mode
+        @fakeAlice.unset('encrypted_nick')
+        @fakeBob.unset('encrypted_nick')
+
+        @subject.set 'peers', new Backbone.Collection([@fakeBob, @fakeAlice])
+
+        @subjectSays "/w @Alice hi all"
+        assert @fakeSocket.emit.calledOnce
+        assert.equal "directed_message:/", @fakeSocket.emit.args[0][0]
+        assert.equal "@Alice hi all", @fakeSocket.emit.args[0][1].body
+        assert.equal "private", @fakeSocket.emit.args[0][1].class
+        assert.equal "private", @fakeSocket.emit.args[0][1].type
+        assert.equal true, @fakeSocket.emit.args[0][1].ack_requested
+        assert !@fakeSocket.emit.args[0][1].encrypted
+        # routes to the right guy?
+        assert.equal "nick", @fakeSocket.emit.args[0][1].key
+        assert.equal 'Alice', @fakeSocket.emit.args[0][1].value
+        assert.equal "string", typeof @fakeSocket.emit.args[0][1].value
+
     describe 'while using a shared secret', ->
       describe 'with no PGP settings', ->
         beforeEach ->
@@ -173,18 +227,9 @@ describe 'ClientModel', ->
           assert @fakeSocket.emit.args[0][1].encrypted.iv
           assert @fakeSocket.emit.args[0][1].encrypted.s
 
-        it 'sends a private directed_message', ->
-          fakePeer = new Backbone.Model
-            nick: 'Bob'
-            encrypted_nick:
-              ct: 'BobCiphernick'
-              iv: 'iv'
-              s: 's'
+        it 'sends a private directed_message only to the users we want to chat with', ->
+          @subject.set 'peers', new Backbone.Collection([@fakeBob, @fakeAlice])
 
-          fakePeer.getNick = ->
-            return 'Bob'
-
-          @subject.set 'peers', new Backbone.Collection([fakePeer])
           @subjectSays '/w @Bob hello there'
           assert @fakeSocket.emit.calledOnce
           assert.equal "directed_message:/", @fakeSocket.emit.args[0][0]
@@ -199,3 +244,25 @@ describe 'ClientModel', ->
           assert.equal "ciphernick", @fakeSocket.emit.args[0][1].key
           assert.equal 'BobCiphernick', @fakeSocket.emit.args[0][1].value[0]
           assert.equal 1, @fakeSocket.emit.args[0][1].value.length
+
+        it 'sends a private message to all users that match the nick', ->
+
+          @fakeAlice.getNick = -> return "Bob"
+
+          @subject.set 'peers', new Backbone.Collection([@fakeBob, @fakeAlice])
+          @subjectSays '/w @Bob hello there'
+          assert @fakeSocket.emit.calledOnce
+          assert.equal "directed_message:/", @fakeSocket.emit.args[0][0]
+          assert.equal "-", @fakeSocket.emit.args[0][1].body
+          assert.equal "private", @fakeSocket.emit.args[0][1].class
+          assert.equal "private", @fakeSocket.emit.args[0][1].type
+          assert.equal true, @fakeSocket.emit.args[0][1].ack_requested
+          assert @fakeSocket.emit.args[0][1].encrypted.ct
+          assert @fakeSocket.emit.args[0][1].encrypted.iv
+          assert @fakeSocket.emit.args[0][1].encrypted.s
+          # routes to the right guy?
+          assert.equal "ciphernick", @fakeSocket.emit.args[0][1].key
+          assert.equal 'BobCiphernick', @fakeSocket.emit.args[0][1].value[0]
+          assert.equal 'AliceCiphernick', @fakeSocket.emit.args[0][1].value[1]
+          assert.equal 2, @fakeSocket.emit.args[0][1].value.length
+
