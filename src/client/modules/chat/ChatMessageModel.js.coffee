@@ -17,6 +17,7 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
 
     @me.on "change:cryptokey", (data) =>
       @decryptSharedSecret()
+      @unwrap()
 
     @format_body()
 
