@@ -25,16 +25,18 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
     if @get("encrypted_nick")
       try
         nickname = cryptoWrapper.decryptObject(@get("encrypted_nick"), cryptokey)
-        @set("nickname", nickname)
-        @unset("encrypted_nick")
+        if nickname
+          @set("nickname", nickname)
+          @unset("encrypted_nick")
       catch e
         @set("nickname", @get("encrypted_nick").ct)
 
     if @get("encrypted")
       try
         body = cryptoWrapper.decryptObject(@get("encrypted"), cryptokey)
-        @set("body", body)
-        @unset("encrypted")
+        if body
+          @set("body", body)
+          @unset("encrypted")
       catch e
         @set("body", @get("encrypted").ct)
 
