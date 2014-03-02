@@ -124,7 +124,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       @set "idle", false
 
   getNick: (cryptoKey) ->
-    cryptoKey = cryptoKey || @cryptokey
+    cryptoKey = cryptoKey || @get('cryptokey')
     nick = @get("nick")
     encrypted_nick = @get("encrypted_nick")
     if typeof encrypted_nick isnt "undefined"
@@ -135,12 +135,12 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     nick
 
   getNickOf: (other) ->
-    other.getNick(@cryptokey)
+    other.getNick(@get('cryptokey'))
 
   setNick: (nick, room, ack) ->
     $.cookie "nickname:#{room}", nick, window.COOKIE_OPTIONS
-    if @cryptokey
-      @set "encrypted_nick", cryptoWrapper.encryptObject(nick, @cryptokey),
+    if cryptokey = @get('cryptokey')
+      @set "encrypted_nick", cryptoWrapper.encryptObject(nick, cryptokey),
         silent: true
 
       nick = "-"
@@ -233,8 +233,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       body: newBody
       mID: mID
 
-    if @cryptokey
-      data.encrypted = cryptoWrapper.encryptObject(newBody, @cryptokey)
+    if cryptokey = @get('cryptokey')
+      data.encrypted = cryptoWrapper.encryptObject(newBody, cryptokey)
       data.body = "-"
 
     @socket.emit "chat:edit:#{room}", data
@@ -244,7 +244,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     peers = @get('peers')
     # decrypt the list of our peers (we don't have their unencrypted stored in plaintext anywhere)
     peerNicks = _.map peers.models, (peer) =>
-      peer.getNick @cryptokey
+      peer.getNick()
 
     ciphernicks = [] # we could potentially be targeting multiple people with the same nick in our whisper
 
@@ -257,7 +257,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     # if anyone was actually a recipient, we'll encrypt the message and send it
     if ciphernicks.length
-      encrypted = cryptoWrapper.encryptObject(body, @cryptokey) # encrypt the body text
+      cryptokey = @get('cryptokey')
+      encrypted = cryptoWrapper.encryptObject(body, cryptokey) # encrypt the body text
       body = "-" # clean it immediately after encrypting it
       @socket.emit "directed_message:#{room}",
         encrypted: encrypted
@@ -271,8 +272,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     # else we just do nothing.
 
   sendMessage: (msg) ->
-    if @cryptokey
-      msg.encrypted = cryptoWrapper.encryptObject(msg.body, @cryptokey)
+    if cryptokey = @get('cryptokey')
+      msg.encrypted = cryptoWrapper.encryptObject(msg.body, cryptokey)
       msg.body = "-"
 
     @socket.emit "chat:#{@get('room')}", msg
@@ -300,8 +301,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       socket.emit "make_public:#{room}"
     else if body.match(REGEXES.commands.topic) # /topic [My channel topic]
       body = body.replace(REGEXES.commands.topic, "").trim()
-      if @cryptokey
-        encrypted_topic = cryptoWrapper.encryptObject(body, @cryptokey)
+      if cryptokey = @get('cryptokey')
+        encrypted_topic = cryptoWrapper.encryptObject(body, cryptokey)
         body = "-"
         socket.emit "topic:#{room}",
           encrypted_topic: encrypted_topic
@@ -317,7 +318,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         targetNick = targetNick[0]
         targetNick = targetNick.substring(1)  if targetNick.charAt(0) is "@" # remove the leading "@" symbol while we match against it; TODO: validate username characters not to include special symbols
 
-        if @cryptokey
+        if @get('cryptokey')
           @sendEncryptedPrivateMessage(targetNick, body)
         else
           @sendPrivateMessage(targetNick, body)

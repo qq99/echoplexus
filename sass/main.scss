@@ -1225,7 +1225,7 @@ hr {
 		}
 		&.keyblocked {
 			.body-content {
-				display: none;
+				display: none !important;
 			}
 			.un-keyblock {
 				display: block;

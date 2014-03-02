@@ -199,8 +199,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
   renderChatMessage: (msg, opts) ->
     @messages = @messages || (new ChatMessageCollection())
 
-    msg.me = @me
-    msg.unwrap()
     chatMessageView = new ChatMessageView
       model: msg
       me: @me

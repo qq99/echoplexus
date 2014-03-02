@@ -89,7 +89,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       me: @me
 
     if cryptokey = @channel.get("cryptokey")
-      @me.cryptokey = cryptokey
+      @me.set 'cryptokey', cryptokey
 
     @me.persistentLog = @persistentLog
     @listen()
@@ -105,47 +105,47 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       entries = @persistentLog.all()
 
       for entry in entries
-        msg = new ChatMessage(entry)
+        msg = new ChatMessage(entry, {me: @me})
         msg.set "from_log", true
-        entry = @chatLog.renderChatMessage @decryptChatMessage(msg)
+        entry = @chatLog.renderChatMessage msg
 
     # triggered by ChannelSwitcher:
     @on "show", @show
     @on "hide", @hide
     @channel.get("clients").on "change:nick", (model, changedAttributes) =>
       prevName = undefined
-      currentName = model.getNick(@me.cryptokey)
+      currentName = model.getNick()
       if @me.is(model)
         prevName = "You are"
       else
         prevClient = new ClientModel(model.previousAttributes())
-        prevName = prevClient.getNick(@me.cryptokey)
+        prevName = prevClient.getNick()
         prevName += " is"
-      @chatLog.renderChatMessage new ChatMessage(
+      @chatLog.renderChatMessage new ChatMessage({
         body: prevName + " now known as " + currentName
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "identity ack"
-      )
+      }, {me: @me})
 
     @channel.get("clients").on "add", (model) =>
-      @chatLog.renderChatMessage new ChatMessage(
-        body: model.getNick(@me.cryptokey) + " has joined the room."
+      @chatLog.renderChatMessage new ChatMessage({
+        body: model.getNick() + " has joined the room."
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "join"
-      )
+      }, {me: @me})
 
     @channel.get("clients").on "remove", (model) =>
-      @chatLog.renderChatMessage new ChatMessage(
-        body: model.getNick(@me.cryptokey) + " has left the room."
+      @chatLog.renderChatMessage new ChatMessage({
+        body: model.getNick() + " has left the room."
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "part"
-      )
+      }, {me: @me})
 
     @channel.get("clients").on "add remove reset change", (model) =>
       clients = @channel.get("clients")
@@ -296,12 +296,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   bindReconnections: ->
     #Bind the disconnnections, send message on disconnect
     @socket.on "disconnect", =>
-      @chatLog.renderChatMessage new ChatMessage
+      @chatLog.renderChatMessage new ChatMessage({
         body: "Disconnected from the server"
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "client"
+      }, {me: @me})
 
       window.disconnected = true
       faviconizer.setDisconnected()
@@ -309,12 +310,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     #On reconnection attempts, print out the retries
     @socket.on "reconnecting", (nextRetry) =>
-      @chatLog.renderChatMessage new ChatMessage
+      @chatLog.renderChatMessage new ChatMessage({
         body: "Connection lost, retrying in " + nextRetry / 1000.0 + " seconds"
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "client"
+      }, {me: @me})
 
     #On successful reconnection, render the chatmessage, and emit a subscribe event
     @socket.on "reconnect", =>
@@ -339,12 +341,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
 
   postSubscribe: (data) ->
-    @chatLog.renderChatMessage new ChatMessage
+    @chatLog.renderChatMessage new ChatMessage({
       body: "Connected. Now talking in channel " + @channelName
       type: "SYSTEM"
       timestamp: new Date().getTime()
       nickname: ""
       class: "client"
+    }, {me: @me})
 
     if pub = @pgp_settings.get("armored_keypair")?.public
       @socket.emit "set_public_key:#{@channelName}",
@@ -412,13 +415,11 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   checkToNotify: (msg) ->
 
     # scan through the message and determine if we need to notify somebody that was mentioned:
-    msgBody = msg.getBody(@me.cryptokey)
-    myNick = @me.getNick(@me.cryptokey)
+    msgBody = msg.get("body")
+    myNick = @me.getNick()
     msgClass = msg.get("class")
     fromNick = msg.get("nickname")
     atMyNick = "@" + myNick
-    encrypted_nick = msg.get("encrypted_nick")
-    fromNick = cryptoWrapper.decryptObject(encrypted_nick, @me.cryptokey)  if encrypted_nick
 
     # check to see if me.nick is contained in the msgme.
     if (msgBody.toLowerCase().indexOf(atMyNick.toLowerCase()) isnt -1) or (msgBody.toLowerCase().indexOf("@all") isnt -1)
@@ -456,45 +457,30 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         )
     msg
 
-  decryptChatMessage: (msg) ->
-    # in place substitution of ciphertext to plaintext, if it exists
-    if msg.get("encrypted_nick")
-      nickname = cryptoWrapper.decryptObject(msg.get("encrypted_nick"), @me.cryptokey)
-      msg.set("nickname", nickname)
-      msg.unset("encrypted_nick")
-
-    if msg.get("encrypted")
-      body = cryptoWrapper.decryptObject(msg.get("encrypted"), @me.cryptokey)
-      msg.set("body", body)
-      msg.unset("encrypted")
-      msg.set("was_encrypted", true)
-
-    msg
-
   listen: ->
     socket = @socket
     @socketEvents =
       chat: (msg) =>
         window.events.trigger "message", socket, @, msg
-        message = new ChatMessage(msg)
+        message = new ChatMessage(msg, {me: @me})
 
         if fingerprint = message.get("fingerprint")
           KEYSTORE.markSeen(fingerprint, @me.getNick(), @channelName)
 
         # update our scrollback buffer so that we can quickly edit the message by pressing up/down
         # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
-        @scrollback.replace message.getBody(@me.cryptokey), "/edit ##{message.get("mID")} #{message.getBody(@me.cryptokey)}"  if message.get("you")
+        body = message.get("body")
+        @scrollback.replace body, "/edit ##{message.get("mID")} #{body}" if message.get("you")
         @checkToNotify message
-        @persistentLog.add message.toJSON()
-        decryptedMessage = @decryptChatMessage(message)
-        @chatLog.renderChatMessage decryptedMessage
+        @persistentLog.add msg
+        @chatLog.renderChatMessage message
 
       "chat:batch": (msgs) =>
         for msg in msgs
           msg = JSON.parse(msg)
           if not @persistentLog.has(msg.mID)
             @persistentLog.add msg
-            @chatLog.renderChatMessage @decryptChatMessage(new ChatMessage(msg))
+            @chatLog.renderChatMessage new ChatMessage(msg, {me: @me})
 
         if @previousScrollHeight # for syncing while scrolling
           chatlog = @chatLog.$el.find(".messages")[0]
@@ -523,10 +509,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         prevClient = @channel.get("clients").remove(id: alteredClient.id)
 
       private_message: (msg) =>
-        message = new ChatMessage(msg)
+        message = new ChatMessage(msg, {me: @me})
         msg = @checkToNotify(message)
         @persistentLog.add message.toJSON()
-        @chatLog.renderChatMessage @decryptChatMessage(message)
+        @chatLog.renderChatMessage message
 
       webshot: (msg) =>
         @chatLog.renderWebshot msg
@@ -535,10 +521,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @postSubscribe()
 
       "chat:edit": (msg) =>
-        message = new ChatMessage(msg)
+        message = new ChatMessage(msg, {me: @me})
         msg = @checkToNotify(message) # the edit might have been to add a "@nickname", so check again to notify
         @persistentLog.replaceMessage message.toJSON() # replace the message with the edited version in local storage
-        @chatLog.replaceChatMessage @decryptChatMessage(message) # replace the message with the edited version in the chat log
+        @chatLog.replaceChatMessage message # replace the message with the edited version in the chat log
 
       "client:id": (msg) =>
         @me.set "id", msg.id
@@ -568,8 +554,11 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         # attempt to parse the msg.body as a JSON object
         try # if it succeeds, it was an encrypted object
           encrypted_topic = JSON.parse(msg.body)
-          if @me.cryptokey
-            topic = cryptoWrapper.decryptObject(encrypted_topic, @me.cryptokey)
+          if cryptokey = @me.get('cryptokey')
+            try
+              topic = cryptoWrapper.decryptObject(encrypted_topic, cryptokey)
+            catch e
+              topic = encrypted_topic.ct
           else
             topic = encrypted_topic.ct
         catch e
@@ -587,14 +576,15 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         if @me.is(fromClient)
           nick = "You"
         else
-          nick = fromClient.getNick(@me.cryptokey)
+          nick = fromClient.getNick()
 
-        msg = new ChatMessage
+        msg = new ChatMessage({
           body: "#{nick} uploaded a file: #{msg.path}"
           timestamp: new Date().getTime()
           nickname: ""
+        }, {me: @me})
 
-        @chatLog.renderChatMessage @decryptChatMessage(msg)
+        @chatLog.renderChatMessage msg
         @persistentLog.add msg.toJSON()
 
     _.each @socketEvents, (value, key) =>
@@ -741,14 +731,14 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   rerenderInputBox: ->
     $(".chatinput", @$el).remove() # remove old
     # re-render the chat input area now that we've encrypted:
-    @$el.find(".chatarea-contents").append @inputTemplate(encrypted: (!!@me.cryptokey))
+    @$el.find(".chatarea-contents").append @inputTemplate(encrypted: !!@me.get('cryptokey'))
 
   showCryptoModal: ->
     modal = new CryptoModal(channelName: @channelName)
     modal.on "setKey", (data) =>
       if data.key isnt ""
         @channel.set("cryptokey", data.key)
-        @me.cryptokey = data.key
+        @me.set("cryptokey", data.key)
         window.localStorage.setItem "chat:cryptokey:#{@channelName}", data.key
 
       @rerenderInputBox()
@@ -763,7 +753,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       pgp_settings: @pgp_settings
 
   clearCryptoKey: ->
-    delete @me.cryptokey
+    @me.unset 'cryptokey'
     @channel.unset("cryptokey")
 
     @rerenderInputBox()

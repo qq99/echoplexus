@@ -36,11 +36,8 @@ module.exports.CryptoWrapper = class CryptoWrapper
     JSON.parse enciphered.toString() # format it back into an object for sending over socket.io
 
   decryptObject: (encipheredObj, key) ->
-    throw "decryptObject: missing a parameter."  if typeof encipheredObj is "undefined"
-    # if we have no key, display the ct
-    return encipheredObj.ct  if typeof key is "undefined"
-    decipheredString = undefined
-    decipheredObj = undefined
+    throw "No enciphered object supplied"  if !encipheredObj
+    throw "No key supplied" if !key
 
     # attempt to decrypt the result:
     try
@@ -49,7 +46,4 @@ module.exports.CryptoWrapper = class CryptoWrapper
       )
       decipheredString = decipheredObj.toString(CryptoJS.enc.Utf8)
     catch e # if it fails nastily, output the ciphertext
-      decipheredString = encipheredObj.ct
-    # if it failed gracefully, output the ciphertext
-    decipheredString = encipheredObj.ct  if decipheredString is ""
-    decipheredString # it may not always be a stringified representation of an object, so we'll just return the string
+      throw e

@@ -5,11 +5,40 @@ REGEXES                     = require("../../regex.js.coffee").REGEXES
 module.exports.ChatMessage = class ChatMessage extends Backbone.Model
   idAttribute: 'mID'
 
-  getBody: (cryptoKey) ->
-    body = @get("body")
-    encrypted_body = @get("encrypted")
-    body = cryptoWrapper.decryptObject(encrypted_body, cryptoKey)  if (typeof cryptoKey isnt "undefined") and (cryptoKey isnt "") and (typeof encrypted_body isnt "undefined")
-    body
+  initialize: (model, opts) ->
+    _.bindAll this
+    _.extend this, opts
+
+    @decryptSharedSecret()
+    @unwrap()
+
+    @me.on "change:cryptokey", (data) =>
+      @decryptSharedSecret()
+      @format_body()
+
+    @format_body()
+
+  decryptSharedSecret: () ->
+    cryptokey = @me.get("cryptokey")
+    return if @get("was_encrypted") # it's already decrypted
+
+    if @get("encrypted_nick")
+      try
+        nickname = cryptoWrapper.decryptObject(@get("encrypted_nick"), cryptokey)
+        @set("nickname", nickname)
+        @unset("encrypted_nick")
+      catch e
+        @set("nickname", @get("encrypted_nick").ct)
+
+    if @get("encrypted")
+      try
+        body = cryptoWrapper.decryptObject(@get("encrypted"), cryptokey)
+        @set("body", body)
+        @unset("encrypted")
+      catch e
+        @set("body", @get("encrypted").ct)
+
+    #console.log body, nickname
 
   unwrapSigned: (msg) ->
     return if @unwrapped
@@ -97,11 +126,8 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
 
     msg
 
-
-  initialize: ->
-    _.bindAll this
-
   unwrap: ->
+    return if @get('encrypted')
     signed    = @get("pgp_signed")
     encrypted = @get("pgp_encrypted")
 
@@ -111,8 +137,6 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
       @unwrapEncrypted()
     else if signed and encrypted
       @unwrapSignedAndEncrypted()
-
-    @format_body()
 
   format_body: ->
     msg = this
