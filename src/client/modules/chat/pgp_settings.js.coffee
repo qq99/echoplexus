@@ -5,7 +5,7 @@ PGPPassphraseModal = class PGPPassphraseModal extends Backbone.View
   template: pgpPassphraseModalTemplate
 
   events:
-    "click #unlock-key": "unlock"
+    "keydown #pgp-passphrase": "unlock"
     "click .close-button": "destroy"
 
   initialize: (opts) ->
@@ -16,10 +16,14 @@ PGPPassphraseModal = class PGPPassphraseModal extends Backbone.View
 
     $("body").append @$el
 
+    _.defer =>
+      @$el.find("input").focus()
+
   destroy: ->
     @$el.remove()
 
   unlock: (ev) ->
+    return unless ev.keyCode == 13
     $passphraseEl = $("#pgp-passphrase")
     passphrase = $passphraseEl.val()
     $passphraseEl.val("")
