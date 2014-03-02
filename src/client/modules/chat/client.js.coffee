@@ -17,6 +17,7 @@ CryptoWrapper           = require("../../CryptoWrapper.coffee").CryptoWrapper
 cryptoWrapper           = new CryptoWrapper
 PGPSettings             = require("./pgp_settings.js.coffee").PGPSettings
 PGPModal                = require("./pgp_modal.js.coffee").PGPModal
+ChatMessage             = require("./ChatMessageModel.js.coffee").ChatMessage
 
 faviconizer = new Faviconizer
 
@@ -46,13 +47,6 @@ module.exports.CryptoModal = class CryptoModal extends Backbone.View
       key: key
 
     @remove()
-
-module.exports.ChatMessage = class ChatMessage extends Backbone.Model
-  getBody: (cryptoKey) ->
-      body = @get("body")
-      encrypted_body = @get("encrypted")
-      body = cryptoWrapper.decryptObject(encrypted_body, cryptoKey)  if (typeof cryptoKey isnt "undefined") and (cryptoKey isnt "") and (typeof encrypted_body isnt "undefined")
-      body
 
 module.exports.ChatClient = class ChatClient extends Backbone.View
 
@@ -109,18 +103,11 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     # if there's something in the persistent chatlog, render it:
     unless @persistentLog.empty()
       entries = @persistentLog.all()
-      renderedEntries = []
-      i = 0
-      l = entries.length
 
-      while i < l
-        msg = new ChatMessage(entries[i])
-        entry = @chatLog.renderChatMessage @decryptChatMessage(msg),
-          delayInsert: true
-
-        renderedEntries.push entry
-        i++
-      @chatLog.insertBatch renderedEntries
+      for entry in entries
+        msg = new ChatMessage(entry)
+        msg.set "from_log", true
+        entry = @chatLog.renderChatMessage @decryptChatMessage(msg)
 
     # triggered by ChannelSwitcher:
     @on "show", @show
@@ -503,19 +490,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @chatLog.renderChatMessage decryptedMessage
 
       "chat:batch": (msgs) =>
-        msg = undefined
-        i = 0
-        l = msgs.length
-
-        while i < l
-          msg = JSON.parse(msgs[i])
+        for msg in msgs
+          msg = JSON.parse(msg)
           if not @persistentLog.has(msg.mID)
             @persistentLog.add msg
-            msg.fromBatch = true
             @chatLog.renderChatMessage @decryptChatMessage(new ChatMessage(msg))
-          i++
 
-        if @previousScrollHeight
+        if @previousScrollHeight # for syncing while scrolling
           chatlog = @chatLog.$el.find(".messages")[0]
           chatlog.scrollTop = chatlog.scrollHeight - @previousScrollHeight
 

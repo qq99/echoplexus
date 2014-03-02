@@ -1,14 +1,15 @@
 chatareaTemplate            = require("./templates/chatArea.html")
-chatMessageTemplate         = require("./templates/chatMessage.html")
-linkedImageTemplate         = require("./templates/linkedImage.html")
 userListUserTemplate        = require("./templates/userListUser.html")
-youtubeTemplate             = require("./templates/youtube.html")
-webshotBadgeTemplate        = require("./templates/webshotBadge.html")
 REGEXES                     = require("../../regex.js.coffee").REGEXES
 CryptoWrapper               = require("../../CryptoWrapper.coffee").CryptoWrapper
 HTMLSanitizer               = require("../../utility.js.coffee").HTMLSanitizer
+ChatMessageView             = require("./ChatMessageView.js.coffee").ChatMessageView
 cryptoWrapper               = new CryptoWrapper
+ChatMessage                 = require("./ChatMessageModel.js.coffee").ChatMessage
 
+ChatMessageCollection = class ChatMessageCollection extends Backbone.Collection
+  comparator: 'timestamp'
+  model: ChatMessage
 
 module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
@@ -21,11 +22,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
   # templates:
   template: chatareaTemplate
-  chatMessageTemplate: chatMessageTemplate
-  linkedImageTemplate: linkedImageTemplate
   userTemplate: userListUserTemplate
-  youtubeTemplate: youtubeTemplate
-  webshotBadgeTemplate: webshotBadgeTemplate
 
   events:
     "click .clearMediaLog": "clearMedia"
@@ -33,23 +30,14 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     "click .maximizeMediaLog": "unminimizeMediaLog"
     "click .media-opt-in .opt-in": "allowMedia"
     "click .media-opt-in .opt-out": "disallowMedia"
-    "click .chatMessage-edit": "beginEdit"
     "click .toggle-support-bar": "toggleSupportBar"
     "click .pin-button": "pinChat"
     "click .pgp-fingerprint-icon.trusted": "untrustFingerprint"
     "click .pgp-fingerprint-icon.untrusted": "neutralTrustFingerprint"
     "click .pgp-fingerprint-icon.unknown": "trustFingerprint"
-    "click .btn.toggle-armored": "toggleArmored"
     "mouseenter .quotation": "showQuotationContext"
     "mouseleave .quotation": "hideQuotationContext"
-    "blur .body[contenteditable='true']": "stopInlineEdit"
-    "keydown .body[contenteditable='true']": "onInlineEdit"
-    "dblclick .chatMessage.me:not(.private)": "beginInlineEdit"
-    "click .edit-profile": "editProfile"
-    "click .view-profile": "viewProfile"
-    "mouseover .chatMessage": "showSentAgo"
     "mouseover .user": "showIdleAgo"
-    "click .webshot-badge .badge-title": "toggleBadge"
     "click .quotation": "addQuotationHighlight"
     "click .youtube.imageThumbnail": "showYoutubeVideo"
 
@@ -75,46 +63,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     @render()
     @attachEvents()
 
-  beginInlineEdit: (ev) ->
-    $chatMessage = $(ev.target).parents(".chatMessage")
-    oldText = undefined
-    $chatMessage.find(".webshot-badge").remove()
-    oldText = $chatMessage.find(".body").text().trim()
 
-    # store the old text with the node
-    $chatMessage.data "oldText", oldText
 
-    # make the entry editable
-    $chatMessage.find(".body").attr("contenteditable", "true").focus()
-
-  stopInlineEdit: (ev) ->
-    $(ev.target).removeAttr("contenteditable").blur()
-
-  onInlineEdit: (ev) ->
-    return  if ev.ctrlKey or ev.shiftKey # we don't fire any events when these keys are pressed
-    $this = $(ev.target)
-    $chatMessage = $this.parents(".chatMessage")
-    oldText = $chatMessage.data("oldText")
-    mID = $chatMessage.data("sequence")
-    switch ev.keyCode
-
-      # enter:
-      when 13
-        ev.preventDefault()
-        userInput = $this.text().trim()
-        if userInput isnt oldText
-          console.log "edit:commit:" + @room
-          window.events.trigger "edit:commit:" + @room,
-            mID: mID
-            newText: userInput
-
-          @stopInlineEdit ev
-        else
-          @stopInlineEdit ev
-
-      # escape
-      when 27
-        @stopInlineEdit ev
 
   render: ->
     linklogClasses = ""
@@ -170,12 +120,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     window.localStorage.setItem "autoloadMedia:" + @room, true
     $(".linklog", @$el).removeClass "not-initialized"
 
-  beginEdit: (ev) ->
-    mID = $(ev.target).parents(".chatMessage").data("sequence")
-    if mID
-      window.events.trigger "beginEdit:" + @room,
-        mID: mID
-
 
   attachEvents: ->
 
@@ -225,12 +169,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       $(".messages")[0].scrollTop = latestMessage.offsetTop if typeof latestMessage isnt "undefined"
 
   replaceChatMessage: (msg) ->
-    msgHtml = @renderChatMessage(msg, # render the altered message, but don't insert it yet
-      delayInsert: true
-    )
-    $oldMsg = $(".chatMessage[data-sequence='" + msg.get("mID") + "']", @$el)
-    $oldMsg.after msgHtml
-    $oldMsg.remove()
+    @messages.add(msg, {merge: true})
 
   renderWebshot: (msg) ->
     $targetChat = @$el.find(".chatMessage[data-sequence='" + msg.from_mID + "']")
@@ -257,271 +196,24 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     # modify content of user-sent chat message
     $targetChat.find(".body").html targetContent
 
-  toggleBadge: (ev) ->
-
-    # show hide page title/excerpt
-    $(ev.currentTarget).parents(".webshot-badge").toggleClass "active"
-
-  unwrapSigned: (msg) ->
-    body = msg.get("body")
-
-    try
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
-      message      = openpgp.cleartext.readArmored(body)
-      msg.set "body", message.text
-      key          = KEYSTORE.get(msg.get("fingerprint"))
-      if !key
-        msg.set "pgp_verified", "unknown_public_key"
-      dearmored    = openpgp.key.readArmored(key.armored_key)
-      verification = openpgp.verifyClearSignedMessage(dearmored.keys, message)
-
-      msg.set "body", verification.text
-
-      if verification.signatures?[0].valid
-        msg.set "pgp_verified", "signed"
-        msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
-      else
-        msg.set "pgp_verified", "signature_failure"
-    catch
-      console.warn "Unable to verify PGP signed message"
-
-    msg
-
-  unwrapSignedAndEncrypted: (msg) ->
-    body = msg.get("body")
-
-    try
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
-      message       = openpgp.message.readArmored(body)
-      key           = KEYSTORE.get(msg.get("fingerprint"))
-      if !key
-        msg.set "pgp_verified", "unknown_public_key"
-      dearmored_pub = openpgp.key.readArmored(key.armored_key)
-      priv          = @me.pgp_settings.usablePrivateKey()[0]
-      decrypted     = openpgp.decryptAndVerifyMessage(priv, dearmored_pub.keys, message)
-
-      msg.set "body", decrypted.text
-
-      if decrypted.signatures?[0].valid
-        msg.set "pgp_verified", "signed"
-        msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
-      else
-        msg.set "pgp_verified", "signature_failure"
-    catch e
-      console.warn "Unable to decrypt PGP signed message"
-
-    msg
-
-  unwrapEncrypted: (msg) ->
-    body = msg.get("body")
-
-    try
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
-      message       = openpgp.message.readArmored(body)
-      key           = KEYSTORE.get(msg.get("fingerprint"))
-      priv          = @me.pgp_settings.usablePrivateKey()[0]
-      decrypted     = openpgp.decryptMessage(priv, message)
-
-      msg.set "body", decrypted
-      msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
-    catch e
-      console.warn "Unable to decrypt PGP signed message"
-
-    msg.set "pgp_verified", "not_signed"
-
-    msg
-
   renderChatMessage: (msg, opts) ->
-    self      = this
-    nickname  = msg.get("nickname")
-    signed    = msg.get("pgp_signed")
-    encrypted = msg.get("pgp_encrypted")
+    @messages = @messages || (new ChatMessageCollection())
 
-    if signed and !encrypted
-      msg = @unwrapSigned(msg)
-    else if !signed and encrypted
-      msg = @unwrapEncrypted(msg)
-    else if signed and encrypted
-      msg = @unwrapSignedAndEncrypted(msg)
+    chatMessageView = new ChatMessageView
+      model: msg
+      me: @me
 
-    body = msg.get("body")
+    msg.view = chatMessageView
 
-    opts = {}  if !opts
-    if @autoloadMedia and msg.get("class") isnt "identity" and msg.get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar
-      # put image links on the side:
-      images = undefined
-      if images = body.match(REGEXES.urls.image)
-        i = 0
-        l = images.length
+    @messages.add msg # proper sorting collection needed
 
-        while i < l
-          href = images[i]
-
-          # only do it if it's an image we haven't seen before
-          if !self.uniqueURLs[href]?
-            img = self.linkedImageTemplate(
-              url: href
-              image_url: href
-              title: "Linked by " + msg.nickname
-            )
-            $(".linklog .body", @$el).prepend img
-            self.uniqueURLs[href] = true
-          i++
-
-      # body = body.replace(REGEXES.urls.image, "").trim(); // remove the URLs
-
-      # put youtube linsk on the side:
-      youtubes = undefined
-      if youtubes = body.match(REGEXES.urls.youtube)
-        i = 0
-        l = youtubes.length
-
-        while i < l
-          vID = (REGEXES.urls.youtube.exec(youtubes[i]))[5]
-          src = undefined
-          img_src = undefined
-          yt = undefined
-          REGEXES.urls.youtube.exec "" # clear global state
-          src = @makeYoutubeURL(vID)
-          img_src = @makeYoutubeThumbnailURL(vID)
-          yt = self.youtubeTemplate(
-            vID: vID
-            img_src: img_src
-            src: src
-            originalSrc: youtubes[i]
-          )
-          if !self.uniqueURLs[src]?
-            $(".linklog .body", @$el).prepend yt
-            self.uniqueURLs[src] = true
-          i++
-
-      # put hyperlinks on the side:
-      links = undefined
-      if links = body.match(REGEXES.urls.all_others)
-        i = 0
-        l = links.length
-
-        while i < l
-          if !self.uniqueURLs[links[i]]?
-            $(".linklog .body", @$el).prepend "<a rel='noreferrer' href='" + links[i] + "' target='_blank'>" + links[i] + "</a>"
-            self.uniqueURLs[links[i]] = true
-          i++
-    # end media insertion
-
-    # sanitize the body:
-    if msg.get("trustworthiness") is "limited"
-      sanitizer = new HTMLSanitizer
-      body = sanitizer.sanitize(body, ["A", "I", "IMG","UL","LI"], ["href", "title", "class", "src", "target", "rel"])
-      nickname = sanitizer.sanitize(nickname, ["I"], ["class"])
-    else
-      body = _.escape(body)
-      nickname = _.escape(nickname)
-
-      # convert new lines to breaks:
-      if body.match(/\n/g)
-        lines = body.split(/\n/g)
-        body = ""
-        _.each lines, (line) ->
-          line = "<pre>" + line + "</pre>"
-          body += line
-
-
-      # format >>quotations:
-      body = body.replace(REGEXES.commands.reply, "<a rel=\"$2\" class=\"quotation\" href=\"#" + @room + "$2\">&gt;&gt;$2</a>")
-
-      # hyperify hyperlinks for the chatlog:
-      body = body.replace(REGEXES.urls.all_others, "<a rel=\"noreferrer\" target=\"_blank\" href=\"$1\">$1</a>")
-      body = body.replace(REGEXES.users.mentions, "<span class=\"mention\">$1</span>")
-
-      body = emojify.run(body)
-
-    if body.length # if there's anything left in the body,
-      chatMessageClasses = ""
-      nickClasses = ""
-      humanTime = undefined
-
-      if not opts.delayInsert
-        humanTime = moment(msg.get("timestamp")).fromNow()
-      else if (new Date()) - msg.get("timestamp") > 1000*60*60*2
-        humanTime = moment(msg.get("timestamp")).fromNow()
-      else
-        humanTime = @renderPreferredTimestamp(msg.get("timestamp"))
-
-      # special styling of chat
-      chatMessageClasses += "highlight "  if msg.get("directedAtMe")
-      nickClasses += "system "  if msg.get("type") is "SYSTEM"
-      chatMessageClasses += msg.get("class")  if msg.get("class")
-
-      # special styling of nickname depending on who you are:
-      # if it's me!
-      chatMessageClasses += " me "  if msg.get("you")
-      chat = self.chatMessageTemplate(
-        nickname: nickname
-        is_encrypted: !!msg.get("was_encrypted")
-        pgp_encrypted: msg.get("pgp_encrypted")
-        pgp_armored: msg.get("pgp_armored") || null
-        mID: msg.get("mID")
-        color: msg.get("color")
-        body: body
-        room: self.room
-        humanTime: humanTime
-        timestamp: msg.get("timestamp")
-        classes: chatMessageClasses
-        nickClasses: nickClasses
-        isPrivateMessage: (msg.get("type") and msg.get("type") is "private")
-        mine: ((if msg.get("you") then true else false))
-        identified: ((if msg.get("identified") then true else false))
-        fingerprint: msg.get("fingerprint")
-        pgp_verified: msg.get("pgp_verified")
-        trust_status: msg.get("trust_status")
-      )
-
-      unless opts.delayInsert
-        self.insertChatMessage
-          timestamp: msg.get("timestamp")
-          html: chat
-
-      chat
-
-  insertBatch: (htmls) ->
-    $(".messages", @$el).append htmls.join("")
-    $(".chatMessage", @$el).addClass "fromlog"
-
-  insertChatMessage: (opts) ->
-
-    # insert msg into the correct place in history
-    $chatMessage = $(opts.html)
     $chatlog = $(".messages", @$el)
-    if opts.timestamp
-      timestamps = _.map($(".messages .time", @$el), (ele) ->
-        $(ele).data "timestamp"
-      )
-      # assumed invariant: timestamps are in ascending order
-      cur = opts.timestamp
-      candidate = -1
-      $chatMessage.attr "rel", cur
+    for message in @messages.models
+      $chatlog.append message.view.$el
 
-      # find the earliest message we know of that's before the message we're about to render
-      i = timestamps.length - 1
+    null
 
-      while i >= 0
-        candidate = timestamps[i]
-        break  if cur > timestamps[i]
-        i--
-
-      # attempt to select this early message:
-      $target = $(".messages .chatMessage[rel='" + candidate + "']", @$el)
-      if $target.length # it was in the DOM, so we can insert the current message after it
-        if i is -1
-          $target.last().before $chatMessage # .last() just in case there can be more than one $target
-        else
-          $target.last().after $chatMessage # .last() just in case there can be more than one $target
-      else # it was the first message OR something went wrong
-        $chatlog.append $chatMessage
-    else # if there was no timestamp, assume it's a diagnostic message of some sort that should be displayed at the most recent spot in history
-      $chatlog.append $chatMessage
-    @scrollToLatest()  if OPTIONS["auto_scroll"]
-    @reTimeFormatNthLastMessage 2 # rewrite the timestamp on the message before the one we just inserted
+    @scrollToLatest() if OPTIONS["auto_scroll"]
 
   renderPreferredTimestamp: (timestamp) ->
     if OPTIONS["prefer_24hr_clock"] # TODO; abstract this check to be listening for an event
@@ -542,6 +234,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       $previousMessage.find(".time").text @renderPreferredTimestamp(prevTimestamp)
 
   clearChat: ->
+    @messages.reset()
     $chatlog = $(".messages", @$el)
     $chatlog.html ""
 
@@ -591,24 +284,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       $(".userlist .count .total .value", @$el).html total
     else
 
-
-  # there's always gonna be someone...
-  viewProfile: (ev) ->
-    uID = $(ev.target).parents(".user").attr("rel")
-    window.events.trigger "view_profile",
-      uID: uID
-      room: @room
-      clients: @knownUsers
-
-
-  editProfile: (ev) ->
-    uID = $(ev.target).parents(".user").attr("rel")
-    window.events.trigger "edit_profile",
-      uID: uID
-      room: @room
-      clients: @knownUsers
-
-
   setTopic: (newTopic) ->
     $(".channel-topic .value", @$el).html newTopic
 
@@ -639,11 +314,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       timestamp = parseInt($idle.attr("data-timestamp"), 10)
       $(ev.currentTarget).attr "title", "Idle since " + moment(timestamp).fromNow()
 
-  showSentAgo: (ev) ->
-    $time = $(".time", ev.currentTarget)
-    timestamp = parseInt($time.attr("data-timestamp"), 10)
-    $(ev.currentTarget).attr "title", "sent " + moment(timestamp).fromNow()
-
   showYoutubeVideo: (ev) ->
     $(ev.currentTarget).hide()
     $(ev.currentTarget).siblings(".video").show()
@@ -670,11 +340,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     else
       $("#panes > section").hide() # hide everything
       $(".tabButton[data-target='#chatting']").click() # make it as if chat were active for the very first time
-
-  toggleArmored: (ev) ->
-    $message = $(ev.currentTarget).parents(".chatMessage")
-    $(".pgp-armored-body", $message).toggle()
-    $(".body-content", $message).toggle()
 
   untrustFingerprint: (ev) ->
     fingerprint = $(ev.currentTarget).data("fingerprint")
