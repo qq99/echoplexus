@@ -182,12 +182,12 @@ describe 'ChatClient', ->
     describe '#clearCryptoKey', ->
       it 'clears the key from myself and the channel object', ->
 
-        @subject.me.cryptokey = "my secret"
-        @subject.channel.set("cryptokey", "my secret")
+        @subject.me.set "cryptokey", "my secret"
+        @subject.channel.set "cryptokey", "my secret"
 
         @subject.clearCryptoKey()
 
-        assert.equal undefined, @subject.me.cryptokey
+        assert.equal undefined, @subject.me.get("cryptokey")
         assert.equal undefined, @subject.channel.get("cryptokey")
 
       it 'destroys the key from localStorage', ->
