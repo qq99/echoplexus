@@ -57,14 +57,16 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         @autoloadMedia = true
       else
         @autoloadMedia = false
-    @timeFormatting = setInterval(->
-      self.reTimeFormatNthLastMessage 1, true
-    , 30 * 1000)
+
+    @messages = new ChatMessageCollection()
+    @timeFormatting = setInterval(=>
+      for model in @messages.models
+        model.trigger("change:timestamp", model, model.get("timestamp")) # fake out a timestamp change to get stickit to rerender
+    , 60*1000)
+
+
     @render()
     @attachEvents()
-
-
-
 
   render: ->
     linklogClasses = ""
@@ -197,8 +199,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     $targetChat.find(".body").html targetContent
 
   renderChatMessage: (msg, opts) ->
-    @messages = @messages || (new ChatMessageCollection())
-
     chatMessageView = new ChatMessageView
       model: msg
       me: @me
@@ -214,18 +214,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     null
 
     @scrollToLatest() if OPTIONS["auto_scroll"]
-
-  reTimeFormatNthLastMessage: (n, fromNow) ->
-    $chatMessages = $(".chatMessage", @$el)
-    nChats = $chatMessages.length
-    $previousMessage = $($chatMessages[nChats - n])
-    prevTimestamp = parseInt($previousMessage.find(".time").attr("data-timestamp"), 10)
-
-    # overwrite the old timestamp's humanValue
-    if fromNow
-      $previousMessage.find(".time").text moment(prevTimestamp).fromNow()
-    else
-      $previousMessage.find(".time").text @renderPreferredTimestamp(prevTimestamp)
 
   clearChat: ->
     @messages.reset()

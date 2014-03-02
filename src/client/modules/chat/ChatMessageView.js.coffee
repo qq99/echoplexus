@@ -128,10 +128,8 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       moment(timestamp).format "hh:mm:ss a"
 
   formatTimestamp: (time) ->
-    if (new Date()) - time > 1000*60*60*2
-      humanTime = moment(time).fromNow()
-    else
-      humanTime = @renderPreferredTimestamp(time)
+    # TODO: readd preferred time
+    humanTime = moment(time).fromNow()
 
   unlockKeypair: ->
     @me.pgp_settings.prompt()
