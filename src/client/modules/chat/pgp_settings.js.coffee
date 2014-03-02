@@ -104,12 +104,12 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
 
   prompt: (callback) ->
     if @get('cached_private')
-      callback(null)
+      callback?(null)
     else
       (new PGPPassphraseModal(
         pgp_settings: this
         on_unlock: ->
-          callback(null)
+          callback?(null)
       ))
 
   usablePublicKey: (armored_public_key) ->

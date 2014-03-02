@@ -45,6 +45,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
     "dblclick .chatMessage.me:not(.private)": "beginInlineEdit"
     "mouseover .chatMessage": "showSentAgo"
     "click .webshot-badge .badge-title": "toggleBadge"
+    "click .un-keyblock": "unlockKeypair"
 
   initialize: (opts) ->
     _.bindAll this
@@ -131,6 +132,9 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       humanTime = moment(time).fromNow()
     else
       humanTime = @renderPreferredTimestamp(time)
+
+  unlockKeypair: ->
+    @me.pgp_settings.prompt()
 
   render: ->
     msg = @model
