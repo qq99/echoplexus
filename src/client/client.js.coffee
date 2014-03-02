@@ -154,13 +154,17 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
   is: (otherModel) ->
     @attributes.id is otherModel.attributes.id
 
-  signMessage: (msg) ->
-    msg.body = @pgp_settings.sign(msg.body)
-    msg.pgp_signed = true
-    msg.pgp_encrypted = false
-    msg.fingerprint = @pgp_settings.get("fingerprint")
+  signMessage: (msg, callback) ->
+    @pgp_settings.prompt (err) =>
+      if !err
+        @pgp_settings.sign msg.body, (signed) =>
+          console.log 'signed'
+          msg.body = signed
+          msg.pgp_signed = true
+          msg.pgp_encrypted = false
+          msg.fingerprint = @pgp_settings.get("fingerprint")
 
-    return msg
+          callback(msg)
 
   getPGPPeers: ->
     peers = @get('peers')
@@ -183,16 +187,18 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     destination_peers = @getPGPPeers()
     my_fingerprint    = @pgp_settings.get("fingerprint")
 
-    for peer in destination_peers
-      encrypted_result = @pgp_settings.encryptAndSign peer.armored_public_key, msg.body
+    @pgp_settings.prompt (err) =>
+      if !err
+        for peer in destination_peers
+          @pgp_settings.encryptAndSign peer.armored_public_key, msg.body, (signed_encrypted) =>
 
-      @socket.emit "directed_message:#{room}",
-        body: encrypted_result
-        key: "fingerprint"
-        fingerprint: my_fingerprint
-        value: peer.fingerprint
-        pgp_encrypted: true
-        pgp_signed: true
+            @socket.emit "directed_message:#{room}",
+              body: signed_encrypted
+              key: "fingerprint"
+              fingerprint: my_fingerprint
+              value: peer.fingerprint
+              pgp_encrypted: true
+              pgp_signed: true
 
   sendEncryptedMessage: (msg) ->
     room              = @get('room')
@@ -263,6 +269,13 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         ack_requested: true
 
     # else we just do nothing.
+
+  sendMessage: (msg) ->
+    if @cryptokey
+      msg.encrypted = cryptoWrapper.encryptObject(msg.body, @cryptokey)
+      msg.body = "-"
+
+    @socket.emit "chat:#{@get('room')}", msg
 
   speak: (msg) ->
     self   = this
@@ -374,7 +387,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       sign    = @pgp_settings.get("sign?")
 
       if sign and !encrypt
-        msg = @signMessage(msg)
+        @signMessage(msg, @sendMessage)
+        return
       else if encrypt and !sign
         @sendEncryptedMessage(msg)
         return # directed message, so we don't emit to all
@@ -382,9 +396,4 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         @sendSignedEncryptedMessage(msg) # directed message, so we don't emit to all
         return
 
-
-      if @cryptokey
-        msg.encrypted = cryptoWrapper.encryptObject(msg.body, @cryptokey)
-        msg.body = "-"
-
-      socket.emit "chat:#{room}", msg
+      @sendMessage(msg)

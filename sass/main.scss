@@ -1219,6 +1219,20 @@ hr {
 		padding:0.25em 0.5em;
 	}
 
+	.body-text-area {
+		.un-keyblock {
+			display: none;
+		}
+		&.keyblocked {
+			.body-content {
+				display: none;
+			}
+			.un-keyblock {
+				display: block;
+			}
+		}
+	}
+
 	.body {
 		word-break:break-word;
 		word-wrap:break-word;

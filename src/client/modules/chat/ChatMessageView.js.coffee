@@ -13,6 +13,30 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
   youtubeTemplate: youtubeTemplate
   webshotBadgeTemplate: webshotBadgeTemplate
 
+  bindings:
+    ".body-content":
+      observe: "formatted_body"
+      updateMethod: 'html'
+    ".nickname":
+      observe: "nickname"
+      attributes: [{
+        name: 'title'
+        observe: 'nickname'
+      }]
+    ".time":
+      observe: "timestamp"
+      onGet: "formatTimestamp"
+    ".body-text-area":
+      attributes: [{
+        name: 'class'
+        observe: 'hidden_body'
+        onGet: (val) ->
+          if val
+            return 'body-text-area keyblocked'
+          else
+            return 'body-text-area'
+      }]
+
   events:
     "click .chatMessage-edit": "beginEdit"
     "click .btn.toggle-armored": "toggleArmored"
@@ -26,8 +50,10 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
     _.bindAll this
     _.extend this, opts
 
-    # @model.on "change:body", (ev) =>
-    #   @render()
+
+    @me.pgp_settings.on "change:cached_private", =>
+      @model.unwrap()
+
     @render()
 
   beginEdit: (ev) ->
@@ -94,190 +120,24 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
     # show hide page title/excerpt
     $(ev.currentTarget).parents(".webshot-badge").toggleClass "active"
 
-  unwrapSigned: (msg) ->
-    body = msg.get("body")
+  renderPreferredTimestamp: (timestamp) ->
+    if OPTIONS["prefer_24hr_clock"] # TODO; abstract this check to be listening for an event
+      moment(timestamp).format "H:mm:ss"
+    else
+      moment(timestamp).format "hh:mm:ss a"
 
-    try
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
-      message      = openpgp.cleartext.readArmored(body)
-      msg.set "body", message.text
-      key          = KEYSTORE.get(msg.get("fingerprint"))
-      if !key
-        msg.set "pgp_verified", "unknown_public_key"
-      dearmored    = openpgp.key.readArmored(key.armored_key)
-      verification = openpgp.verifyClearSignedMessage(dearmored.keys, message)
-
-      msg.set "body", verification.text
-
-      if verification.signatures?[0].valid
-        msg.set "pgp_verified", "signed"
-        msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
-      else
-        msg.set "pgp_verified", "signature_failure"
-    catch e
-      console.warn "Unable to verify PGP signed message: #{e}"
-
-    msg
-
-  unwrapSignedAndEncrypted: (msg) ->
-    body = msg.get("body")
-
-    try
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
-      message       = openpgp.message.readArmored(body)
-      key           = KEYSTORE.get(msg.get("fingerprint"))
-      if !key
-        msg.set "pgp_verified", "unknown_public_key"
-      dearmored_pub = openpgp.key.readArmored(key.armored_key)
-      priv          = @me.pgp_settings.usablePrivateKey()[0]
-      decrypted     = openpgp.decryptAndVerifyMessage(priv, dearmored_pub.keys, message)
-
-      msg.set "body", decrypted.text
-
-      if decrypted.signatures?[0].valid
-        msg.set "pgp_verified", "signed"
-        msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
-      else
-        msg.set "pgp_verified", "signature_failure"
-    catch e
-      console.warn "Unable to decrypt PGP signed message"
-
-    msg
-
-  unwrapEncrypted: (msg) ->
-    body = msg.get("body")
-
-    try
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
-      message       = openpgp.message.readArmored(body)
-      key           = KEYSTORE.get(msg.get("fingerprint"))
-      priv          = @me.pgp_settings.usablePrivateKey()[0]
-      decrypted     = openpgp.decryptMessage(priv, message)
-
-      msg.set "body", decrypted
-      msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
-    catch e
-      console.warn "Unable to decrypt PGP signed message"
-
-    msg.set "pgp_verified", "not_signed"
-
-    msg
+  formatTimestamp: (time) ->
+    if (new Date()) - time > 1000*60*60*2
+      humanTime = moment(time).fromNow()
+    else
+      humanTime = @renderPreferredTimestamp(time)
 
   render: ->
     msg = @model
-    nickname  = msg.get("nickname")
-    signed    = msg.get("pgp_signed")
-    encrypted = msg.get("pgp_encrypted")
-
-    if signed and !encrypted
-      msg = @unwrapSigned(msg)
-    else if !signed and encrypted
-      msg = @unwrapEncrypted(msg)
-    else if signed and encrypted
-      msg = @unwrapSignedAndEncrypted(msg)
-
-    body = msg.get("body")
-
-    opts = {}  if !opts
-    if @autoloadMedia and msg.get("class") isnt "identity" and msg.get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar
-      # put image links on the side:
-      images = undefined
-      if images = body.match(REGEXES.urls.image)
-        i = 0
-        l = images.length
-
-        while i < l
-          href = images[i]
-
-          # only do it if it's an image we haven't seen before
-          if !self.uniqueURLs[href]?
-            img = self.linkedImageTemplate(
-              url: href
-              image_url: href
-              title: "Linked by " + msg.nickname
-            )
-            $(".linklog .body", @$el).prepend img
-            self.uniqueURLs[href] = true
-          i++
-
-      # body = body.replace(REGEXES.urls.image, "").trim(); // remove the URLs
-
-      # put youtube linsk on the side:
-      youtubes = undefined
-      if youtubes = body.match(REGEXES.urls.youtube)
-        i = 0
-        l = youtubes.length
-
-        while i < l
-          vID = (REGEXES.urls.youtube.exec(youtubes[i]))[5]
-          src = undefined
-          img_src = undefined
-          yt = undefined
-          REGEXES.urls.youtube.exec "" # clear global state
-          src = @makeYoutubeURL(vID)
-          img_src = @makeYoutubeThumbnailURL(vID)
-          yt = self.youtubeTemplate(
-            vID: vID
-            img_src: img_src
-            src: src
-            originalSrc: youtubes[i]
-          )
-          if !self.uniqueURLs[src]?
-            $(".linklog .body", @$el).prepend yt
-            self.uniqueURLs[src] = true
-          i++
-
-      # put hyperlinks on the side:
-      links = undefined
-      if links = body.match(REGEXES.urls.all_others)
-        i = 0
-        l = links.length
-
-        while i < l
-          if !self.uniqueURLs[links[i]]?
-            $(".linklog .body", @$el).prepend "<a rel='noreferrer' href='" + links[i] + "' target='_blank'>" + links[i] + "</a>"
-            self.uniqueURLs[links[i]] = true
-          i++
-    # end media insertion
-
-    # sanitize the body:
-    if msg.get("trustworthiness") is "limited"
-      sanitizer = new HTMLSanitizer
-      body = sanitizer.sanitize(body, ["A", "I", "IMG","UL","LI"], ["href", "title", "class", "src", "target", "rel"])
-      nickname = sanitizer.sanitize(nickname, ["I"], ["class"])
-    else
-      body = _.escape(body)
-      nickname = _.escape(nickname)
-
-      # convert new lines to breaks:
-      if body.match(/\n/g)
-        lines = body.split(/\n/g)
-        body = ""
-        _.each lines, (line) ->
-          line = "<pre>" + line + "</pre>"
-          body += line
-
-
-      # format >>quotations:
-      body = body.replace(REGEXES.commands.reply, "<a rel=\"$2\" class=\"quotation\" href=\"#" + @room + "$2\">&gt;&gt;$2</a>")
-
-      # hyperify hyperlinks for the chatlog:
-      body = body.replace(REGEXES.urls.all_others, "<a rel=\"noreferrer\" target=\"_blank\" href=\"$1\">$1</a>")
-      body = body.replace(REGEXES.users.mentions, "<span class=\"mention\">$1</span>")
-
-      body = emojify.run(body)
-
-    if body.length # if there's anything left in the body,
+    body = msg.get('formatted_body')
+    if body?.length # if there's anything left in the body,
       chatMessageClasses = ""
       nickClasses = ""
-      humanTime = undefined
-
-      if not opts.delayInsert
-        humanTime = moment(msg.get("timestamp")).fromNow()
-      else if (new Date()) - msg.get("timestamp") > 1000*60*60*2
-        humanTime = moment(msg.get("timestamp")).fromNow()
-      else
-        humanTime = @renderPreferredTimestamp(msg.get("timestamp"))
 
       # special styling of chat
       chatMessageClasses += "highlight "  if msg.get("directedAtMe")
@@ -289,7 +149,6 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       # if it's me!
       chatMessageClasses += " me "  if msg.get("you")
       @$el.html(@chatMessageTemplate(
-        nickname: nickname
         is_encrypted: !!msg.get("was_encrypted")
         pgp_encrypted: msg.get("pgp_encrypted")
         pgp_armored: msg.get("pgp_armored") || null
@@ -297,7 +156,6 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
         color: msg.get("color")
         body: body
         room: msg.get("room")
-        humanTime: humanTime
         timestamp: msg.get("timestamp")
         classes: chatMessageClasses
         nickClasses: nickClasses
@@ -308,5 +166,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
         pgp_verified: msg.get("pgp_verified")
         trust_status: msg.get("trust_status")
       ))
+
+      @stickit(@model)
     else
       ""

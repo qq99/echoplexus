@@ -1,6 +1,6 @@
 <div class="chatMessage <%- classes %>" rel="<%- timestamp %>" data-sequence="<%- mID %>">
 	<a name="<%- room + mID %>"></a>
-	<div data-timestamp="<%- timestamp %>" class="time"><%- humanTime %></div>
+	<div data-timestamp="<%- timestamp %>" class="time"></div>
 	<div class="nick <%- nickClasses %>" style="color: <%- color %>">
 		<% if (is_encrypted) { %>
 		<span class="fa-stack" title="Shared secret encrypted">
@@ -38,8 +38,7 @@
 			<i class="sub-icon unknown fa fa-question fa-stack-1x"></i>
 		</span>
 		<% } %>
-		<span class="nickname" title="<%- nickname %>">
-			<%- nickname %>
+		<span class="nickname" title="">
 		</span>
 	</div>
 	<div class="message-options">
@@ -66,13 +65,15 @@
 			</span>
 		<% } %>
 
-		<% if (pgp_armored) { %>
-		<span class="pgp-armored-body">
-			<%= pgp_armored %>
-		</span>
-		<% } %>
-		<span class="body-content">
-			<%= body %>
-		</span>
+		<div class="body-text-area">
+			<% if (pgp_armored) { %>
+			<span class="pgp-armored-body">
+				<%= pgp_armored %>
+			</span>
+			<% } %>
+			<span class="body-content">
+			</span>
+			<span class="un-keyblock">Decrypt</span>
+		</div>
 	</div>
 </div>

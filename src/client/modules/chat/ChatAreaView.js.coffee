@@ -199,6 +199,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
   renderChatMessage: (msg, opts) ->
     @messages = @messages || (new ChatMessageCollection())
 
+    msg.me = @me
+    msg.unwrap()
     chatMessageView = new ChatMessageView
       model: msg
       me: @me
@@ -214,12 +216,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     null
 
     @scrollToLatest() if OPTIONS["auto_scroll"]
-
-  renderPreferredTimestamp: (timestamp) ->
-    if OPTIONS["prefer_24hr_clock"] # TODO; abstract this check to be listening for an event
-      moment(timestamp).format "H:mm:ss"
-    else
-      moment(timestamp).format "hh:mm:ss a"
 
   reTimeFormatNthLastMessage: (n, fromNow) ->
     $chatMessages = $(".chatMessage", @$el)
