@@ -1324,7 +1324,7 @@ hr {
 	}
 	.private-icon {
 		position:absolute;
-		left:7.7em;
+		left:$nick-width;
 	}
 
 	&.context, &.context-persistent {
