@@ -40,6 +40,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     "mouseover .user": "showIdleAgo"
     "click .quotation": "addQuotationHighlight"
     "click .youtube.imageThumbnail": "showYoutubeVideo"
+    "click .chatMessage-edit": "beginEdit"
 
   initialize: (options) ->
     self = this
@@ -340,3 +341,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     KEYSTORE.neutral(fingerprint)
     @renderUserlist()
     $(".pgp-verification-icon .fa-check", @$el).removeClass("untrusted trusted").addClass("unknown")
+
+  beginEdit: (ev) ->
+    if mID = $(ev.currentTarget).parents(".chatMessage").data("sequence")
+      window.events.trigger "beginEdit:" + @room,
+        mID: mID

@@ -38,7 +38,6 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       }]
 
   events:
-    "click .chatMessage-edit": "beginEdit"
     "click .btn.toggle-armored": "toggleArmored"
     "blur .body[contenteditable='true']": "stopInlineEdit"
     "keydown .body[contenteditable='true']": "onInlineEdit"
@@ -56,11 +55,6 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       @model.unwrap()
 
     @render()
-
-  beginEdit: (ev) ->
-    if mID = @model.get("mID")
-      window.events.trigger "beginEdit:" + @room,
-        mID: mID
 
   beginInlineEdit: (ev) ->
     $chatMessage = $(ev.target).parents(".chatMessage")

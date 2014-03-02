@@ -611,11 +611,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     window.events.on "beginEdit:#{@channelName}", (data) =>
       mID = data.mID
-      msg = @persistentLog.getMessage(mID) # get the raw message data from our log, if possible
-      unless msg # if we didn't have it in our log (e.g., recently cleared storage), then get it from the DOM
-        msgText = $(".chatMessage.mine[data-sequence='" + mID + "'] .body", @$el).text()
-      else
-        msgText = msg.body
+      msgText = $(".chatMessage.mine[data-sequence='" + mID + "'] .body", @$el).text()
 
       $(".chatinput textarea", @$el).val("/edit ##{mID} #{msg.body}").focus()
 
