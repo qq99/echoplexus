@@ -12,9 +12,11 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
     @decryptSharedSecret()
     @unwrap()
 
+    this.on "change:body", (data) =>
+      @format_body()
+
     @me.on "change:cryptokey", (data) =>
       @decryptSharedSecret()
-      @format_body()
 
     @format_body()
 
@@ -45,11 +47,14 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
   unwrapSigned: (msg) ->
     return if @unwrapped
     msg = this
+
     body = msg.get("body")
+    msg.set('armored', body) if !msg.get('armored')
+    armored = msg.get('armored')
 
     try
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
-      message      = openpgp.cleartext.readArmored(body)
+      msg.set "pgp_armored", _.escape(armored).replace(/\n/g, "<br>")
+      message      = openpgp.cleartext.readArmored(armored)
       msg.set "body", message.text
       key          = KEYSTORE.get(msg.get("fingerprint"))
       if !key
@@ -75,10 +80,12 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
     return if @unwrapped
     msg = this
     body = msg.get("body")
+    msg.set('armored', body) if !msg.get('armored')
+    armored = msg.get('armored')
 
     try
-      msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
-      message       = openpgp.message.readArmored(body)
+      msg.set "pgp_armored", _.escape(armored).replace(/\n/g, "<br>")
+      message       = openpgp.message.readArmored(armored)
       key           = KEYSTORE.get(msg.get("fingerprint"))
       if !key
         msg.set "pgp_verified", "unknown_public_key"
