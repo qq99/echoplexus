@@ -5,6 +5,11 @@ ClientsCollection = Client.ClientsCollection
 ChatClient        = require('../client/modules/chat/client.js.coffee').ChatClient
 Options           = require('../client/options.js.coffee').Options
 require("../client/events.js.coffee")()
+Keystore          = require("../client/keystore.js.coffee").Keystore
+
+window.KEYSTORE = new Keystore()
+
+openpgp.initWorker('js/openpgp.worker.js')
 
 window.SOCKET_HOST = window.location.origin
 

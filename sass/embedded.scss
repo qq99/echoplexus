@@ -28,6 +28,31 @@ a {
   color: $link;
 }
 
+.pgp-armored-body {
+  display: none;
+}
+.un-keyblock {
+  display: none;
+}
+.message-options {
+  display: none;
+}
+
+.unknown {
+  color: orange;
+}
+.trusted {
+  color: green;
+}
+.untrusted, .error, .errors {
+  color: red;
+}
+
+.sub-icon {
+  top: 3px;
+  left: 4px;
+}
+
 .pin-button, .supportbar, .not-encrypted, .channel-options, .growl {
   display: none;
 }
