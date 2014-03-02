@@ -156,3 +156,46 @@ describe 'ClientModel', ->
 
         assert @fakeSocket.emit.calledWith('help:/')
         assert @fakeSocket.emit.calledOnce
+
+    describe 'while using a shared secret', ->
+      describe 'with no PGP settings', ->
+        beforeEach ->
+          @subject.set 'cryptokey', 'some secret'
+          @subject.pgp_settings =
+            get: -> return false
+
+        it 'emits to everyone an encrypted body', ->
+          @subjectSays 'hello there'
+          assert @fakeSocket.emit.calledOnce
+          assert.equal "chat:/", @fakeSocket.emit.args[0][0]
+          assert.equal "-", @fakeSocket.emit.args[0][1].body
+          assert @fakeSocket.emit.args[0][1].encrypted.ct
+          assert @fakeSocket.emit.args[0][1].encrypted.iv
+          assert @fakeSocket.emit.args[0][1].encrypted.s
+
+        it 'sends a private directed_message', ->
+          fakePeer = new Backbone.Model
+            nick: 'Bob'
+            encrypted_nick:
+              ct: 'BobCiphernick'
+              iv: 'iv'
+              s: 's'
+
+          fakePeer.getNick = ->
+            return 'Bob'
+
+          @subject.set 'peers', new Backbone.Collection([fakePeer])
+          @subjectSays '/w @Bob hello there'
+          assert @fakeSocket.emit.calledOnce
+          assert.equal "directed_message:/", @fakeSocket.emit.args[0][0]
+          assert.equal "-", @fakeSocket.emit.args[0][1].body
+          assert.equal "private", @fakeSocket.emit.args[0][1].class
+          assert.equal "private", @fakeSocket.emit.args[0][1].type
+          assert.equal true, @fakeSocket.emit.args[0][1].ack_requested
+          assert @fakeSocket.emit.args[0][1].encrypted.ct
+          assert @fakeSocket.emit.args[0][1].encrypted.iv
+          assert @fakeSocket.emit.args[0][1].encrypted.s
+          # routes to the right guy?
+          assert.equal "ciphernick", @fakeSocket.emit.args[0][1].key
+          assert.equal 'BobCiphernick', @fakeSocket.emit.args[0][1].value[0]
+          assert.equal 1, @fakeSocket.emit.args[0][1].value.length
