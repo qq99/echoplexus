@@ -247,20 +247,22 @@ describe 'ClientModel', ->
     it 'emits to everyone with no encrypted body', ->
       @subjectSays "hi all"
       assert @fakeSocket.emit.calledOnce
-      assert.equal "chat:/", @fakeSocket.emit.args[0][0]
-      assert.equal "hi all", @fakeSocket.emit.args[0][1].body
-      assert !@fakeSocket.emit.args[0][1].encrypted
+      [event, msg] = @fakeSocket.emit.args[0]
+      assert.equal "chat:/", event
+      assert.equal "hi all", msg.body
+      assert !msg.encrypted
 
     it 'sends a private directed_message only to the users we want to chat with', ->
       @subject.set 'peers', new Backbone.Collection([@fakeBob, @fakeAlice])
       @subjectSays "/w @Alice hi all"
       assert @fakeSocket.emit.calledOnce
-      assert.equal "directed_message:/", @fakeSocket.emit.args[0][0]
-      assert.equal "@Alice hi all", @fakeSocket.emit.args[0][1].body
-      assert.equal "private", @fakeSocket.emit.args[0][1].class
-      assert.equal "private", @fakeSocket.emit.args[0][1].type
-      assert.equal true, @fakeSocket.emit.args[0][1].ack_requested
-      assert !@fakeSocket.emit.args[0][1].encrypted
+      [event, msg] = @fakeSocket.emit.args[0]
+      assert.equal "directed_message:/", event
+      assert.equal "@Alice hi all", msg.body
+      assert.equal "private", msg.class
+      assert.equal "private", msg.type
+      assert.equal true, msg.ack_requested
+      assert !msg.encrypted
       # routes to the right guy?
       assert.deepEqual {"nick": "Alice"}, @fakeSocket.emit.args[0][1].directed_to
 
@@ -274,25 +276,28 @@ describe 'ClientModel', ->
       it 'emits to everyone an encrypted body', ->
         @subjectSays 'hello there'
         assert @fakeSocket.emit.calledOnce
-        assert.equal "chat:/", @fakeSocket.emit.args[0][0]
-        assert.equal "-", @fakeSocket.emit.args[0][1].body
-        assert @fakeSocket.emit.args[0][1].encrypted.ct
-        assert @fakeSocket.emit.args[0][1].encrypted.iv
-        assert @fakeSocket.emit.args[0][1].encrypted.s
+        [event, msg] = @fakeSocket.emit.args[0]
+        assert.equal "chat:/", event
+        assert.equal "-", msg.body
+        assert msg.encrypted.ct
+        assert msg.encrypted.iv
+        assert msg.encrypted.s
 
       it 'sends a private directed_message only to the users we want to chat with', ->
         @subject.set 'peers', new Backbone.Collection([@fakeBob, @fakeAlice])
 
         @subjectSays '/w @Bob hello there'
         assert @fakeSocket.emit.calledOnce
-        assert.equal "directed_message:/", @fakeSocket.emit.args[0][0]
-        assert.equal "-", @fakeSocket.emit.args[0][1].body
-        assert.equal "private", @fakeSocket.emit.args[0][1].class
-        assert.equal "private", @fakeSocket.emit.args[0][1].type
-        assert.equal true, @fakeSocket.emit.args[0][1].ack_requested
-        assert @fakeSocket.emit.args[0][1].encrypted.ct
-        assert @fakeSocket.emit.args[0][1].encrypted.iv
-        assert @fakeSocket.emit.args[0][1].encrypted.s
+
+        [event, msg] = @fakeSocket.emit.args[0]
+        assert.equal "directed_message:/", event
+        assert.equal "-", msg.body
+        assert.equal "private", msg.class
+        assert.equal "private", msg.type
+        assert.equal true, msg.ack_requested
+        assert msg.encrypted.ct
+        assert msg.encrypted.iv
+        assert msg.encrypted.s
         # routes to the right guy?
         assert.deepEqual {"ciphernick": 'BobCiphernick'}, @fakeSocket.emit.args[0][1].directed_to
 
@@ -357,6 +362,8 @@ describe 'ClientModel', ->
         assert.equal "directed_message:/", eventname
         assert.equal false, msg.pgp_encrypted
         assert.equal true, msg.pgp_signed
+        assert.equal "private", msg.type
+        assert.equal "private", msg.class
         assert.deepEqual {"nick": "Alice"}, msg.directed_to
 
       it 'should sign the message and send a directed_message to all users that match the nickname when whispering', ->
@@ -374,6 +381,8 @@ describe 'ClientModel', ->
         assert.equal "directed_message:/", eventname
         assert.equal false, msg.pgp_encrypted
         assert.equal true, msg.pgp_signed
+        assert.equal "private", msg.type
+        assert.equal "private", msg.class
         assert.deepEqual {"nick": "Alice"}, msg.directed_to
 
     describe 'and encrypting only', ->
@@ -419,6 +428,8 @@ describe 'ClientModel', ->
         assert.equal "directed_message:/", eventname
         assert.equal true, msg.pgp_encrypted
         assert.equal false, msg.pgp_signed
+        assert.equal "private", msg.type
+        assert.equal "private", msg.class
         assert.deepEqual {"fingerprint": "A", "nick": "Alice"}, msg.directed_to
 
       it 'should encrypt and send the message to all users whos nicks match when whispering', ->
@@ -433,12 +444,16 @@ describe 'ClientModel', ->
         assert.equal "directed_message:/", eventname
         assert.equal true, msg.pgp_encrypted
         assert.equal false, msg.pgp_signed
+        assert.equal "private", msg.type
+        assert.equal "private", msg.class
         assert.deepEqual {"fingerprint": "A", "nick": "Alice"}, msg.directed_to
 
         [eventname, msg] = @fakeSocket.emit.args[1]
         assert.equal "directed_message:/", eventname
         assert.equal true, msg.pgp_encrypted
         assert.equal false, msg.pgp_signed
+        assert.equal "private", msg.type
+        assert.equal "private", msg.class
         assert.deepEqual {"fingerprint": "B", "nick": "Alice"}, msg.directed_to
 
     describe 'while signing & encrypting', ->
@@ -487,5 +502,7 @@ describe 'ClientModel', ->
         assert.equal "directed_message:/", eventname
         assert.equal true, msg.pgp_encrypted
         assert.equal true, msg.pgp_signed
+        assert.equal "private", msg.type
+        assert.equal "private", msg.class
         assert.notEqual "hello", msg.body
         assert.deepEqual {"fingerprint": "B", nick: 'Bob'}, msg.directed_to

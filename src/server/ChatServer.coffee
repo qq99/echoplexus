@@ -511,6 +511,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				if !fail
 					c.socketRef.emit("private_message:#{room}", data)
 
+			console.log "Ack? #{data.ack_requested}"
 			# sometimes we want a copy of the message we send out
 			if data.ack_requested
 				socket.in(room).emit("private_message:#{room}", _.extend(data, {

@@ -175,7 +175,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         destination_peers.push {
           armored_public_key: peer.get("armored_public_key")
           fingerprint: fingerprint
-          nick: peer.getNick(@me.get("cryptokey"))
+          nick: peer.getNick(@get("cryptokey"))
           ciphernick: peer.get("encrypted_nick")?["ct"]
         }
 
@@ -198,6 +198,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
             pgp_signed: true
 
           if targetNick = msg.targetNick
+            @setPrivate(message)
             if cryptokey = @get('cryptokey')
               # TODO
               throw "Not implemented yet"
@@ -226,6 +227,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         pgp_signed: false
 
       if targetNick = msg.targetNick
+        @setPrivate(message)
         if cryptokey = @get('cryptokey')
           message.body = @pgp_settings.encrypt peer.armored_public_key, msg.body
           message.encrypted = cryptoWrapper.encryptObject(message.body, cryptokey)
@@ -301,14 +303,14 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     if msg.targetNick
       targetNick = msg.targetNick
-      delete msg.targetNick
+      delete msg.targetNick # refactor so we don't need to delete this manually
       @setPrivate(msg)
       msg.directed_to = msg.directed_to || {}
 
       if cryptokey
         ciphernicks = @getCiphernicksMatching(targetNick)
         for ciphernick in ciphernicks
-          message = _.clone msg
+          message = _.clone msg # why is this necessary? a test failed without, fix it
           message.directed_to = _.clone msg.directed_to
           message.encrypted = _.clone msg.encrypted
 
