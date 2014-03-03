@@ -304,29 +304,29 @@ describe 'ClientModel', ->
           @subjectSays '/w @Bob hello there'
           assert @fakeSocket.emit.calledTwice
 
-          firstMessageArgs = @fakeSocket.emit.args[0]
-          assert.equal "directed_message:/", firstMessageArgs[0]
-          assert.equal "-", firstMessageArgs[1].body
-          assert.equal "private", firstMessageArgs[1].class
-          assert.equal "private", firstMessageArgs[1].type
-          assert.equal true, firstMessageArgs[1].ack_requested
-          assert firstMessageArgs[1].encrypted.ct
-          assert firstMessageArgs[1].encrypted.iv
-          assert firstMessageArgs[1].encrypted.s
+          [eventname, msg] = @fakeSocket.emit.args[0]
+          assert.equal "directed_message:/", eventname
+          assert.equal "-", msg.body
+          assert.equal "private", msg.class
+          assert.equal "private", msg.type
+          assert.equal true, msg.ack_requested
+          assert msg.encrypted.ct
+          assert msg.encrypted.iv
+          assert msg.encrypted.s
           # routes to the right guy?
-          assert.deepEqual {"ciphernick": 'BobCiphernick'}, firstMessageArgs[1].directed_to
+          assert.deepEqual {"ciphernick": 'BobCiphernick'}, msg.directed_to
 
-          secondMessageArgs = @fakeSocket.emit.args[1]
-          assert.equal "directed_message:/", secondMessageArgs[0]
-          assert.equal "-", secondMessageArgs[1].body
-          assert.equal "private", secondMessageArgs[1].class
-          assert.equal "private", secondMessageArgs[1].type
-          assert.equal true, secondMessageArgs[1].ack_requested
-          assert secondMessageArgs[1].encrypted.ct
-          assert secondMessageArgs[1].encrypted.iv
-          assert secondMessageArgs[1].encrypted.s
+          [eventname, msg] = @fakeSocket.emit.args[1]
+          assert.equal "directed_message:/", eventname
+          assert.equal "-", msg.body
+          assert.equal "private", msg.class
+          assert.equal "private", msg.type
+          assert.equal true, msg.ack_requested
+          assert msg.encrypted.ct
+          assert msg.encrypted.iv
+          assert msg.encrypted.s
           # routes to the right guy?
-          assert.deepEqual {"ciphernick": 'AliceCiphernick'}, secondMessageArgs[1].directed_to
+          assert.deepEqual {"ciphernick": 'AliceCiphernick'}, msg.directed_to
 
     describe 'while using a PGP key with no passphrase', ->
       describe 'and signing only', ->
@@ -350,19 +350,16 @@ describe 'ClientModel', ->
 
           @subjectSays "/w @Alice hello"
 
-          firstMessageArgs = @fakeSocket.emit.args[0]
-          eventname = firstMessageArgs[0]
-          msg = firstMessageArgs[1]
-
           assert signMessage.called, "signMessage never called!"
           assert @fakeSocket.emit.calledOnce
 
+          [eventname, msg] = @fakeSocket.emit.args[0]
           assert.equal "directed_message:/", eventname
           assert.equal false, msg.pgp_encrypted
           assert.equal true, msg.pgp_signed
           assert.deepEqual {"nick": "Alice"}, msg.directed_to
 
-        it 'should sign the message and send it a directed_message to all users that match the nickname when whispering', ->
+        it 'should sign the message and send a directed_message to all users that match the nickname when whispering', ->
           signMessage = spy(@subject, 'signMessage')
           @fakeBob.getNick = -> return "Alice"
 
@@ -370,14 +367,72 @@ describe 'ClientModel', ->
 
           @subjectSays "/w @Alice hello"
 
-          firstMessageArgs = @fakeSocket.emit.args[0]
-          eventname = firstMessageArgs[0]
-          msg = firstMessageArgs[1]
-
           assert signMessage.calledOnce, "signMessage never called!"
           assert @fakeSocket.emit.calledOnce
 
+          [eventname, msg] = @fakeSocket.emit.args[0]
           assert.equal "directed_message:/", eventname
           assert.equal false, msg.pgp_encrypted
           assert.equal true, msg.pgp_signed
           assert.deepEqual {"nick": "Alice"}, msg.directed_to
+
+      describe 'and encrypting only', ->
+        beforeEach ->
+          @subject.pgp_settings =
+            get: (key) ->
+              return true if key == "encrypt?"
+              return false
+            prompt: (cb) -> cb?()
+            encrypt: stub().returns "encrypted~~~message"
+
+        it 'should encrypt the message, sending it directed_to the fingerprints it trusted', ->
+          @subject.getPGPPeers = ->
+            return [{fingerprint: 'A'}, {fingerprint: 'B'}]
+
+          @subjectSays 'hello'
+
+          assert @fakeSocket.emit.calledTwice
+          assert @subject.pgp_settings.encrypt.calledTwice
+
+          [eventname, msg] = @fakeSocket.emit.args[0]
+          assert.equal "directed_message:/", eventname
+          assert.equal true, msg.pgp_encrypted
+          assert.equal false, msg.pgp_signed
+          assert.deepEqual {"fingerprint": "A"}, msg.directed_to
+
+          [eventname, msg] = @fakeSocket.emit.args[1]
+          assert.equal "directed_message:/", eventname
+          assert.equal true, msg.pgp_encrypted
+          assert.equal false, msg.pgp_signed
+          assert.deepEqual {"fingerprint": "B"}, msg.directed_to
+
+        it 'should encrypt and send the message only to the user nick that was specified when whispering', ->
+          @subject.getPGPPeers = ->
+            return [{fingerprint: 'A', nick: 'Alice'}, {fingerprint: 'B', nick: 'Bob'}]
+
+          @subjectSays '/w @Alice hello Alice'
+
+          assert @fakeSocket.emit.calledOnce, "Emitted too many messages!"
+          assert @subject.pgp_settings.encrypt.calledOnce, "Encrypted too many times; this could be slow"
+
+          [eventname, msg] = @fakeSocket.emit.args[0]
+          assert.equal "directed_message:/", eventname
+          assert.equal true, msg.pgp_encrypted
+          assert.equal false, msg.pgp_signed
+          assert.deepEqual {"fingerprint": "A", "nick": "Alice"}, msg.directed_to
+
+        it 'should encrypt and send the message to all users whos nicks match when whispering', ->
+          @subject.getPGPPeers = ->
+            return [{fingerprint: 'A', nick: 'Alice'}, {fingerprint: 'B', nick: 'Alice'}]
+
+          @subjectSays '/w @Alice hello Alice'
+
+          assert @fakeSocket.emit.calledTwice
+
+          [eventname, msg] = @fakeSocket.emit.args[0]
+          assert.equal "directed_message:/", eventname
+          assert.deepEqual {"fingerprint": "A", "nick": "Alice"}, msg.directed_to
+
+          [eventname, msg] = @fakeSocket.emit.args[1]
+          assert.equal "directed_message:/", eventname
+          assert.deepEqual {"fingerprint": "B", "nick": "Alice"}, msg.directed_to

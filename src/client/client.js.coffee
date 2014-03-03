@@ -175,6 +175,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         destination_peers.push {
           armored_public_key: peer.get("armored_public_key")
           fingerprint: fingerprint
+          nick: peer.getNick(@me.get("cryptokey"))
+          ciphernick: peer.get("encrypted_nick")?["ct"]
         }
 
     return destination_peers
@@ -208,15 +210,27 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     my_fingerprint    = @pgp_settings.get("fingerprint")
 
     for peer in destination_peers
-      encrypted_result = @pgp_settings.encrypt peer.armored_public_key, msg.body
 
-      @socket.emit "directed_message:#{room}",
-        body: encrypted_result
+      message =
         directed_to:
           "fingerprint": peer.fingerprint
         fingerprint: my_fingerprint
         pgp_encrypted: true
         pgp_signed: false
+
+      if targetNick = msg.targetNick
+        if cryptokey = @get('cryptokey')
+          message.body = @pgp_settings.encrypt peer.armored_public_key, msg.body
+          message.encrypted = cryptoWrapper.encryptObject(message.body, cryptokey)
+          message.body = "-"
+          # TODO: change directed_to
+        else if peer.nick == targetNick
+          message.body = @pgp_settings.encrypt peer.armored_public_key, msg.body
+          message.directed_to['nick'] = targetNick
+          @socket.emit "directed_message:#{room}", message
+      else
+        message.body = @pgp_settings.encrypt peer.armored_public_key, msg.body
+        @socket.emit "directed_message:#{room}", message
 
   sendPrivateMessage: (toUsername, body) ->
     room = @get('room')
