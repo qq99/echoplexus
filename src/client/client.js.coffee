@@ -189,20 +189,27 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     @pgp_settings.prompt (err) =>
       if !err
         for peer in destination_peers
-          @pgp_settings.encryptAndSign peer.armored_public_key, msg.body, (signed_encrypted) =>
-            data =
-              body: signed_encrypted
-              directed_to:
-                "fingerprint": peer.fingerprint
-              fingerprint: my_fingerprint
-              pgp_encrypted: true
-              pgp_signed: true
 
+          message =
+            directed_to:
+              "fingerprint": peer.fingerprint
+            fingerprint: my_fingerprint
+            pgp_encrypted: true
+            pgp_signed: true
+
+          if targetNick = msg.targetNick
             if cryptokey = @get('cryptokey')
-              data.encrypted = cryptoWrapper.encryptObject(data.body, cryptokey)
-              data.body = "-"
-            @socket.emit "directed_message:#{room}", data
-
+              # TODO
+              throw "Not implemented yet"
+            else if peer.nick == targetNick
+              message.directed_to['nick'] = targetNick
+              @pgp_settings.encryptAndSign peer.armored_public_key, msg.body, (signed_encrypted) =>
+                message.body = signed_encrypted
+                @socket.emit "directed_message:#{room}", message
+          else
+            @pgp_settings.encryptAndSign peer.armored_public_key, msg.body, (signed_encrypted) =>
+              message.body = signed_encrypted
+              @socket.emit "directed_message:#{room}", message
 
   sendEncryptedMessage: (msg) ->
     room              = @get('room')
