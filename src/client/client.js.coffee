@@ -124,7 +124,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       @set "idle", false
 
   getNick: (cryptoKey) ->
-    cryptoKey = cryptoKey || @get('cryptokey')
     nick = @get("nick")
     encrypted_nick = @get("encrypted_nick")
     if typeof encrypted_nick isnt "undefined"
@@ -163,7 +162,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
           msg.pgp_signed = true
           msg.pgp_encrypted = false
           msg.fingerprint = @pgp_settings.get("fingerprint")
-
           callback(msg)
 
   getPGPPeers: ->
@@ -175,7 +173,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
       if pubkey and fingerprint and KEYSTORE.is_trusted(fingerprint)
         destination_peers.push {
-          nick: peer.getNick()
           armored_public_key: peer.get("armored_public_key")
           fingerprint: fingerprint
         }
@@ -193,9 +190,9 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
           @pgp_settings.encryptAndSign peer.armored_public_key, msg.body, (signed_encrypted) =>
             data =
               body: signed_encrypted
-              key: "fingerprint"
+              directed_to:
+                "fingerprint": peer.fingerprint
               fingerprint: my_fingerprint
-              value: peer.fingerprint
               pgp_encrypted: true
               pgp_signed: true
 
@@ -215,9 +212,9 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
       @socket.emit "directed_message:#{room}",
         body: encrypted_result
-        key: "fingerprint"
+        directed_to:
+          "fingerprint": peer.fingerprint
         fingerprint: my_fingerprint
-        value: peer.fingerprint
         pgp_encrypted: true
         pgp_signed: false
 
@@ -226,8 +223,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     @socket.emit "directed_message:#{room}",
       body: body
-      key: "nick"
-      value: toUsername
+      directed_to:
+        "nick": toUsername
       type: "private"
       class: "private"
       ack_requested: true
@@ -244,44 +241,68 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     @socket.emit "chat:edit:#{room}", data
 
-  sendEncryptedPrivateMessage: (toUsername, body) ->
-    room  = @get('room')
+  getCiphernicksMatching: (toUsername) ->
     peers = @get('peers')
-    # decrypt the list of our peers (we don't have their unencrypted stored in plaintext anywhere)
-    peerNicks = _.map peers.models, (peer) =>
-      peer.getNick()
+    ciphernicks = []
 
-    ciphernicks = [] # we could potentially be targeting multiple people with the same nick in our whisper
+    for i in [0..peers.length - 1]
+      peer = peers.at(i)
+      nick = peer.getNick(@get('cryptokey'))
 
-    # check this decrypted list for the target nick
-    i = 0
-    while i < peerNicks.length
-      # if it matches, we'll keep track of their ciphernick to send to the server
-      ciphernicks.push peers.at(i).get("encrypted_nick")["ct"]  if peerNicks[i] is toUsername
-      i++
+      if ciphered = peer.get("encrypted_nick")
+        # if it matches, we'll keep track of their ciphernick to send to the server
+        ciphernicks.push ciphered["ct"] if nick is toUsername
 
-    # if anyone was actually a recipient, we'll encrypt the message and send it
-    if ciphernicks.length
-      cryptokey = @get('cryptokey')
-      encrypted = cryptoWrapper.encryptObject(body, cryptokey) # encrypt the body text
-      body = "-" # clean it immediately after encrypting it
-      @socket.emit "directed_message:#{room}",
-        encrypted: encrypted
-        key: "ciphernick"
-        value: ciphernicks
-        type: "private"
-        class: "private"
-        body: body
-        ack_requested: true
+    return ciphernicks
 
-    # else we just do nothing.
+  getTargetNick: (msg) ->
+    body = msg.body
+
+    if body.match(REGEXES.commands.private_message) # /tell [nick] [message]
+      body = body.replace(REGEXES.commands.private_message, "").trim()
+      msg.body = body
+
+      targetNick = body.split(" ") # take the first token to mean the
+
+      if targetNick.length # only do something if they've specified a target
+        targetNick = targetNick[0]
+        targetNick = targetNick.substring(1)  if targetNick.charAt(0) is "@" # remove the leading "@" symbol while we match against it; TODO: validate username characters not to include special symbols
+        return targetNick
+
+    return null
 
   sendMessage: (msg) ->
+    room = @get('room')
+
     if cryptokey = @get('cryptokey')
       msg.encrypted = cryptoWrapper.encryptObject(msg.body, cryptokey)
       msg.body = "-"
 
-    @socket.emit "chat:#{@get('room')}", msg
+    if msg.targetNick
+      targetNick = msg.targetNick
+      delete msg.targetNick
+      @setPrivate(msg)
+      msg.directed_to = msg.directed_to || {}
+
+      if cryptokey
+        ciphernicks = @getCiphernicksMatching(targetNick)
+        for ciphernick in ciphernicks
+          message = _.clone msg
+          message.directed_to = _.clone msg.directed_to
+          message.encrypted = _.clone msg.encrypted
+
+          message.directed_to["ciphernick"] = ciphernick
+          @socket.emit "directed_message:#{room}", message
+      else
+        msg.directed_to["nick"] = targetNick
+        @socket.emit "directed_message:#{room}", msg
+    else
+      @socket.emit "chat:#{room}", msg
+
+  setPrivate: (msg) ->
+    msg.type = "private"
+    msg.class = "private"
+    msg.ack_requested = true
 
   speak: (msg) ->
     self   = this
@@ -315,19 +336,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       else
         socket.emit "topic:#{room}",
           topic: body
-
-    else if body.match(REGEXES.commands.private_message) # /tell [nick] [message]
-      body = body.replace(REGEXES.commands.private_message, "").trim()
-      targetNick = body.split(" ") # take the first token to mean the
-      if targetNick.length # only do something if they've specified a target
-        targetNick = targetNick[0]
-        targetNick = targetNick.substring(1)  if targetNick.charAt(0) is "@" # remove the leading "@" symbol while we match against it; TODO: validate username characters not to include special symbols
-
-        if @get('cryptokey')
-          @sendEncryptedPrivateMessage(targetNick, body)
-        else
-          @sendPrivateMessage(targetNick, body)
-
     else if body.match(REGEXES.commands.pull_logs) # pull
       body = body.replace(REGEXES.commands.pull_logs, "").trim()
       if body is "ALL"
@@ -388,7 +396,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         socket.emit "add_github_webhook:#{room}",
           repoUrl: args
 
-    else unless body.match(REGEXES.commands.failed_command) # match all
+    else
+      msg.targetNick = @getTargetNick(msg)
       encrypt = @pgp_settings.get("encrypt?")
       sign    = @pgp_settings.get("sign?")
 

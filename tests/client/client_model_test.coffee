@@ -40,6 +40,70 @@ describe 'ClientModel', ->
     @fakeAlice.getNick = ->
       return 'Alice'
 
+    @fake_armord_private = "
+      -----BEGIN PGP PRIVATE KEY BLOCK-----
+      Version: OpenPGP.js v0.4.0
+      Comment: http://openpgpjs.org
+
+      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
+      YxtUzA==
+      =I7HN
+      -----END PGP PRIVATE KEY BLOCK-----
+    "
+    @fake_armored_public = "
+      -----BEGIN PGP PUBLIC KEY BLOCK-----
+      Version: OpenPGP.js v0.4.0
+      Comment: http://openpgpjs.org
+
+      xo0EUxO5WgEEANT7ESjhFHHGtnc01f705avi4YPl7E9kUZJCAxQUUlo+h2I4
+      59bg/WKzGCrmA01OlwbSF3wJFEPfVWrb/VLmKIoqAsQv3rykJhbpGe9ocEo0
+      uq89D2THbD2D68Xyre4P0KIXuqdn3+yFAb8ghPER6vy4yoPQv7WCeaoaPEl9
+      2HsdABEBAAHNIUFub255bW91cyA8QW5vbnltb3VzQGVjaG9wbGV4LnVzPsKf
+      BBABCAATBQJTE7lbCRBTzoJvoASYJQIbAwAAoDkEAK4oSw8c6AktVt4dJVXy
+      b1tgW0WZBv03wWVTVrrd+OvHl236zRmSg2iAZOalTfR66tKUxgGhFUAXGM/h
+      RJhMvXBxQ8yG8xIw+3nRJMNHKxMM9hzElCIfp96N1qGsRlCygE6xkHZYQf7g
+      ngVAVLzKRoiomPBz5IQg7utZgCA14lMdzo0EUxO5WwEEAIN86EU1l9umOD1F
+      UX/W3BU/sp5y9a7uGBkdDxiJQUgMt9t/PkcO3JtKYLH5E7SSWsnbDMq7cb7+
+      iQr5MIN2P5/Qmh5PmGajmfF6gaGrF/ctyCA9gA1Ugt4/VKq0XPP1PjuEPXl4
+      W7Rv4O8W2sOVzi90/Wdysvljs2jAY1VH3Rb/ABEBAAHCnwQYAQgAEwUCUxO5
+      XAkQU86Cb6AEmCUCGwwAAO4zA/9QjPgSfvGqcytaHlmL3nDLwU5VENK0xkpF
+      gzfmHMDDIKuGfQ2cSt+VTzX3f/x5ocilGfsvIiTXP3EOkBqldsxi0P5r/Com
+      /G9adpSH6pb3x+MJKzNLRbsenDwo+5GBO0ASWgygCXoEuA+3B4HH4RRaDgOq
+      nZDqizRPlkC/YxtUzA==
+      =Bszq
+      -----END PGP PUBLIC KEY BLOCK-----
+    "
+
 
   describe 'constructors', ->
     it 'should create a new Permissions model attribute on creation', ->
@@ -74,7 +138,12 @@ describe 'ClientModel', ->
   describe '#sendPrivateMessage', ->
     it 'should emit the correct event', ->
       @subject.sendPrivateMessage("Bob", "What's up?")
-      assert @fakeSocket.emit.calledWith('directed_message:/', {key: 'nick', type: 'private', class: 'private', ack_requested: true, value: 'Bob', body: "What's up?"})
+      assert @fakeSocket.emit.calledWith 'directed_message:/',
+        directed_to: {'nick': 'Bob'}
+        type: 'private'
+        class: 'private'
+        ack_requested: true
+        body: "What's up?"
 
   describe '#sendEdit', ->
     it 'should emit the correct event', ->
@@ -119,15 +188,6 @@ describe 'ClientModel', ->
       it 'fires a request', ->
         assert @fakeSocket.emit.calledWith('topic:/', {topic: 'test'})
         assert @fakeSocket.emit.calledOnce
-
-    describe '/tell', ->
-      it 'fires a request', ->
-        @subjectSays '/tell qq99 hey yo'
-        mock(@subject).expects('sendPrivateMessage').calledWith('qq99', 'hey yo')
-
-      it 'works when the recipient name is prefixed with @', ->
-        @subjectSays '/tell @qq99 hey yo'
-        mock(@subject).expects('sendPrivateMessage').calledWith('@qq99', 'hey yo')
 
     describe '/color', ->
       it 'fires a request', ->
@@ -192,12 +252,7 @@ describe 'ClientModel', ->
         assert !@fakeSocket.emit.args[0][1].encrypted
 
       it 'sends a private directed_message only to the users we want to chat with', ->
-        # the users are also in plaintext mode
-        @fakeAlice.unset('encrypted_nick')
-        @fakeBob.unset('encrypted_nick')
-
         @subject.set 'peers', new Backbone.Collection([@fakeBob, @fakeAlice])
-
         @subjectSays "/w @Alice hi all"
         assert @fakeSocket.emit.calledOnce
         assert.equal "directed_message:/", @fakeSocket.emit.args[0][0]
@@ -207,9 +262,7 @@ describe 'ClientModel', ->
         assert.equal true, @fakeSocket.emit.args[0][1].ack_requested
         assert !@fakeSocket.emit.args[0][1].encrypted
         # routes to the right guy?
-        assert.equal "nick", @fakeSocket.emit.args[0][1].key
-        assert.equal 'Alice', @fakeSocket.emit.args[0][1].value
-        assert.equal "string", typeof @fakeSocket.emit.args[0][1].value
+        assert.deepEqual {"nick": "Alice"}, @fakeSocket.emit.args[0][1].directed_to
 
     describe 'while using a shared secret', ->
       describe 'with no PGP settings', ->
@@ -241,9 +294,7 @@ describe 'ClientModel', ->
           assert @fakeSocket.emit.args[0][1].encrypted.iv
           assert @fakeSocket.emit.args[0][1].encrypted.s
           # routes to the right guy?
-          assert.equal "ciphernick", @fakeSocket.emit.args[0][1].key
-          assert.equal 'BobCiphernick', @fakeSocket.emit.args[0][1].value[0]
-          assert.equal 1, @fakeSocket.emit.args[0][1].value.length
+          assert.deepEqual {"ciphernick": 'BobCiphernick'}, @fakeSocket.emit.args[0][1].directed_to
 
         it 'sends a private message to all users that match the nick', ->
 
@@ -251,18 +302,82 @@ describe 'ClientModel', ->
 
           @subject.set 'peers', new Backbone.Collection([@fakeBob, @fakeAlice])
           @subjectSays '/w @Bob hello there'
-          assert @fakeSocket.emit.calledOnce
-          assert.equal "directed_message:/", @fakeSocket.emit.args[0][0]
-          assert.equal "-", @fakeSocket.emit.args[0][1].body
-          assert.equal "private", @fakeSocket.emit.args[0][1].class
-          assert.equal "private", @fakeSocket.emit.args[0][1].type
-          assert.equal true, @fakeSocket.emit.args[0][1].ack_requested
-          assert @fakeSocket.emit.args[0][1].encrypted.ct
-          assert @fakeSocket.emit.args[0][1].encrypted.iv
-          assert @fakeSocket.emit.args[0][1].encrypted.s
-          # routes to the right guy?
-          assert.equal "ciphernick", @fakeSocket.emit.args[0][1].key
-          assert.equal 'BobCiphernick', @fakeSocket.emit.args[0][1].value[0]
-          assert.equal 'AliceCiphernick', @fakeSocket.emit.args[0][1].value[1]
-          assert.equal 2, @fakeSocket.emit.args[0][1].value.length
+          assert @fakeSocket.emit.calledTwice
 
+          firstMessageArgs = @fakeSocket.emit.args[0]
+          assert.equal "directed_message:/", firstMessageArgs[0]
+          assert.equal "-", firstMessageArgs[1].body
+          assert.equal "private", firstMessageArgs[1].class
+          assert.equal "private", firstMessageArgs[1].type
+          assert.equal true, firstMessageArgs[1].ack_requested
+          assert firstMessageArgs[1].encrypted.ct
+          assert firstMessageArgs[1].encrypted.iv
+          assert firstMessageArgs[1].encrypted.s
+          # routes to the right guy?
+          assert.deepEqual {"ciphernick": 'BobCiphernick'}, firstMessageArgs[1].directed_to
+
+          secondMessageArgs = @fakeSocket.emit.args[1]
+          assert.equal "directed_message:/", secondMessageArgs[0]
+          assert.equal "-", secondMessageArgs[1].body
+          assert.equal "private", secondMessageArgs[1].class
+          assert.equal "private", secondMessageArgs[1].type
+          assert.equal true, secondMessageArgs[1].ack_requested
+          assert secondMessageArgs[1].encrypted.ct
+          assert secondMessageArgs[1].encrypted.iv
+          assert secondMessageArgs[1].encrypted.s
+          # routes to the right guy?
+          assert.deepEqual {"ciphernick": 'AliceCiphernick'}, secondMessageArgs[1].directed_to
+
+    describe 'while using a PGP key with no passphrase', ->
+      describe 'and signing only', ->
+        beforeEach ->
+          @subject.pgp_settings =
+            get: (key) ->
+              return true if key == "sign?"
+              return false
+            prompt: (cb) -> cb?()
+            sign: (message, cb) -> cb?("signed~~~message")
+
+        it 'should sign the message', ->
+          signMessage = stub(@subject, 'signMessage')
+          @subjectSays "hello"
+
+          assert signMessage.called
+
+        it 'should sign the message and send a directed_message when whispering', ->
+          signMessage = spy(@subject, 'signMessage')
+          @subject.set 'peers', new Backbone.Collection([@fakeBob, @fakeAlice])
+
+          @subjectSays "/w @Alice hello"
+
+          firstMessageArgs = @fakeSocket.emit.args[0]
+          eventname = firstMessageArgs[0]
+          msg = firstMessageArgs[1]
+
+          assert signMessage.called, "signMessage never called!"
+          assert @fakeSocket.emit.calledOnce
+
+          assert.equal "directed_message:/", eventname
+          assert.equal false, msg.pgp_encrypted
+          assert.equal true, msg.pgp_signed
+          assert.deepEqual {"nick": "Alice"}, msg.directed_to
+
+        it 'should sign the message and send it a directed_message to all users that match the nickname when whispering', ->
+          signMessage = spy(@subject, 'signMessage')
+          @fakeBob.getNick = -> return "Alice"
+
+          @subject.set 'peers', new Backbone.Collection([@fakeBob, @fakeAlice])
+
+          @subjectSays "/w @Alice hello"
+
+          firstMessageArgs = @fakeSocket.emit.args[0]
+          eventname = firstMessageArgs[0]
+          msg = firstMessageArgs[1]
+
+          assert signMessage.calledOnce, "signMessage never called!"
+          assert @fakeSocket.emit.calledOnce
+
+          assert.equal "directed_message:/", eventname
+          assert.equal false, msg.pgp_encrypted
+          assert.equal true, msg.pgp_signed
+          assert.deepEqual {"nick": "Alice"}, msg.directed_to

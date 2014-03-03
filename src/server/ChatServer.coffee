@@ -495,12 +495,20 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 			# O(n^2) in worst possible case
 			for c in channel.clients.models
-				compare_to = c.get(data.key) # the client value we're looking at
-				if data.value instanceof Array # can be a single message directed to a bunch of people
-					for item in data.value
-						if compare_to == item
-							c.socketRef.emit("private_message:#{room}", data)
-				else if compare_to == data.value # or a single message directed to a single person
+				for key, value of data.directed_to
+					fail = false
+					compare_to = c.get(key) # the client value we're looking at
+					console.log "Comparing #{compare_to} to #{value}"
+					if value instanceof Array # can be a single message directed to a bunch of people
+						for item in value
+							if compare_to != item
+								fail = true
+					else if compare_to != value # or a single message directed to a single person
+						fail = true
+
+				console.log "Fail = #{fail}"
+
+				if !fail
 					c.socketRef.emit("private_message:#{room}", data)
 
 			# sometimes we want a copy of the message we send out
