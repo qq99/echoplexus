@@ -87,14 +87,15 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
     if @state.get('autoloadMedia')
       $body = @$el.find(".body")
 
+      # O(n) in worst case, assuming document.contains is cheap
       for model in @media.models
-        if !document.contains(model.view.el)
-          if prev
+        if !document.contains(model.view.el) # if the view el is not already in the dom, then we'll add it
+          if prev # push it in the right spot relative to its neighbours
             if prev.get('timestamp') > model.get('timestamp')
               prev.view.$el.after(model.view.el)
             else
               prev.view.$el.before(model.view.el)
-          else
+          else # it's the first one we parse, simply push it in
             $body.append(model.view.el)
         prev = model
 

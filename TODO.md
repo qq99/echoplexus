@@ -5,7 +5,7 @@ For 0.2.4:
 - [ ] inline edit in various modes
 - [ ] regular edit in various modes, tests to prove it's not dropping previous privacy levels
 - [x] test whisper in various modes
-- [ ] abstract link log to its own module, make it a sorted Backbone.Collection like ChatMessages, supply it with a link stream from outside
+- [x] abstract link log to its own module, make it a sorted Backbone.Collection like ChatMessages, supply it with a link stream from outside
 - [ ] unlock keypair for X duration
-- [ ] fix encrypted topic (stickit it); encrypt it > turn off shared key > reload > turn on key > it doens't auto-decrypt
+- [x] fix encrypted topic (stickit it); encrypt it > turn off shared key > reload > turn on key > it doens't auto-decrypt
 - [ ] check styles in Firefox, fix styles in embedded

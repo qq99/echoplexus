@@ -174,10 +174,17 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
     $chatlog = $(".messages", @$el)
 
+    # O(n) in worst case, assuming document.contains is cheap
     for message in @messages.models
-      $chatlog.append message.view.$el
-
-    null
+      if !document.contains(message.view.el) # if the view el is not already in the dom, then we'll add it
+        if prev # push it in the right spot relative to its neighbours
+          if prev.get('timestamp') < message.get('timestamp')
+            prev.view.$el.after(message.view.el)
+          else
+            prev.view.$el.before(message.view.el)
+        else # it's the first one we parse, simply push it in
+          $chatlog.append(message.view.el)
+      prev = message
 
     @scrollToLatest() if OPTIONS["auto_scroll"]
 
