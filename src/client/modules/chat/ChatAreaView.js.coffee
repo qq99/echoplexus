@@ -175,32 +175,12 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     @messages.add(msg, {merge: true})
 
   renderWebshot: (msg) ->
-    $targetChat = @$el.find(".chatMessage[data-sequence='" + msg.from_mID + "']")
-    targetContent = $targetChat.find(".body-content").html().trim()
-    urlLocation = targetContent.indexOf(msg.original_url) # find position in text
-    badgeLocation = targetContent.indexOf(" ", urlLocation) # insert badge after that
-    badge = @webshotBadgeTemplate(msg)
-    if badgeLocation is -1
-      targetContent += badge
-    else
-      pre = targetContent.slice(0, badgeLocation)
-      post = targetContent.slice(badgeLocation)
-      targetContent = pre + badge + post
-    if @autoloadMedia
-
-      # insert image into media pane
-      img = @linkedImageTemplate(
-        url: msg.original_url
-        image_url: msg.webshot
-        title: msg.title
-      )
-      $(".linklog .body", @$el).prepend img
-
-    # modify content of user-sent chat message
-    $targetChat.find(".body").html targetContent
+    message = @messages.findWhere({mID: msg.from_mID})
+    message?.view.renderWebshot(msg)
 
   renderChatMessage: (msg, opts) ->
     chatMessageView = new ChatMessageView
+      room: @room
       model: msg
       me: @me
 

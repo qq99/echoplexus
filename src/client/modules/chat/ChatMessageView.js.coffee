@@ -43,8 +43,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
     "keydown .body[contenteditable='true']": "onInlineEdit"
     "dblclick .chatMessage.me:not(.private)": "beginInlineEdit"
     "mouseover .chatMessage": "showSentAgo"
-    "click .webshot-badge .badge-title": "toggleBadge"
-    "click .un-keyblock": "unlockKeypair"
+    "click .webshot-badge .toggle": "toggleBadge"
 
   initialize: (opts) ->
     _.bindAll this
@@ -125,9 +124,6 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
     # TODO: readd preferred time
     humanTime = moment(time).fromNow()
 
-  unlockKeypair: ->
-    @me.pgp_settings.prompt()
-
   render: ->
     msg = @model
     body = msg.get('formatted_body')
@@ -151,7 +147,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
         mID: msg.get("mID")
         color: msg.get("color")
         body: body
-        room: msg.get("room")
+        room: @room
         timestamp: msg.get("timestamp")
         classes: chatMessageClasses
         nickClasses: nickClasses
@@ -166,3 +162,27 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       @stickit(@model)
     else
       ""
+
+  renderWebshot: (msg) ->
+    targetContent = @$el.find(".body-content").html().trim()
+    urlLocation = targetContent.indexOf(msg.original_url) # find position in text
+    badgeLocation = targetContent.indexOf(" ", urlLocation) # insert badge after that
+    badge = @webshotBadgeTemplate(msg)
+    if badgeLocation is -1
+      targetContent += badge
+    else
+      pre = targetContent.slice(0, badgeLocation)
+      post = targetContent.slice(badgeLocation)
+      targetContent = pre + badge + post
+    if @autoloadMedia
+
+      # insert image into media pane
+      img = @linkedImageTemplate(
+        url: msg.original_url
+        image_url: msg.webshot
+        title: msg.title
+      )
+      $(".linklog .body", @$el).prepend img
+
+    # modify content of user-sent chat message
+    @$el.find(".body").html targetContent

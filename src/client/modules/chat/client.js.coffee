@@ -193,6 +193,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     "drop .drag-mask": "dropObject"
     "click .cancel-upload": "clearUploadStaging"
     "click .upload": "uploadFile"
+    "click .un-keyblock": "unlockKeypair"
 
   _scrollSyncLogs: (ev) ->
     # make a note of how tall in scrollable px the messages area used to be
@@ -758,3 +759,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @me.unset "encrypted_nick"
     @me.setNick "Anonymous", @channelName
 
+  unlockKeypair: ->
+    if @me.pgp_settings.enabled()
+      @me.pgp_settings.prompt()
+    else
+      @showPGPModal()

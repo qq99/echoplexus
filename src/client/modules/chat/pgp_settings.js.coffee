@@ -28,8 +28,7 @@ PGPPassphraseModal = class PGPPassphraseModal extends Backbone.View
     passphrase = $passphraseEl.val()
     $passphraseEl.val("")
 
-    console.log 'trying to unlock'
-    try
+    try # attempt to unlock key
       usablePrivateKey = @pgp_settings.decryptPrivateKey(passphrase)
       @on_unlock(usablePrivateKey)
       @destroy()
@@ -106,8 +105,11 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
       signed = openpgp.signClearMessage(usablePrivateKey, message)
       callback(signed)
 
+  enabled: ->
+    return !!@get('armored_keypair')
+
   prompt: (callback) ->
-    if @get('cached_private')
+    if @get('cached_private') # there's already a decrypted pkey for immediate use, do a no-op
       callback?(null)
     else
       (new PGPPassphraseModal(
