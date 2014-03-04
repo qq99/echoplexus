@@ -149,6 +149,31 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
     else if signed and encrypted
       @unwrapSignedAndEncrypted()
 
+  extract_links: ->
+    body = @get('body')
+
+    links = body.match(REGEXES.urls.all_others) || []
+
+    for url in links
+      window.events.trigger "linklog:#{@room}:link", {url: url}
+
+  extract_images: ->
+    body = @get('body')
+
+    images = body.match(REGEXES.urls.image) || []
+    for url in images
+      window.events.trigger "linklog:#{@room}:image",
+        url: url
+        image_url: url
+        title: "Linked by #{@get('nickname')}"
+
+  extract_youtubes: ->
+    body = @get('body')
+
+    youtubes = body.match(REGEXES.urls.youtube) || []
+    for url in youtubes
+      window.events.trigger "linklog:#{@room}:youtube", {url: url}
+
   format_body: ->
     msg = this
     nickname  = msg.get("nickname")
@@ -157,65 +182,37 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
     body = msg.get("body")
 
     opts = {}  if !opts
-    if @autoloadMedia and msg.get("class") isnt "identity" and msg.get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar
-      # put image links on the side:
-      images = undefined
-      if images = body.match(REGEXES.urls.image)
-        i = 0
-        l = images.length
 
-        while i < l
-          href = images[i]
-
-          # only do it if it's an image we haven't seen before
-          if !self.uniqueURLs[href]?
-            img = self.linkedImageTemplate(
-              url: href
-              image_url: href
-              title: "Linked by " + nickname
-            )
-            $(".linklog .body", @$el).prepend img
-            self.uniqueURLs[href] = true
-          i++
-
-      # body = body.replace(REGEXES.urls.image, "").trim(); // remove the URLs
+    if msg.get("class") isnt "identity" and msg.get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar
+      @extract_images()
+      @extract_youtubes()
+      @extract_links()
 
       # put youtube linsk on the side:
-      youtubes = undefined
-      if youtubes = body.match(REGEXES.urls.youtube)
-        i = 0
-        l = youtubes.length
+      # youtubes = undefined
+      # if youtubes = body.match(REGEXES.urls.youtube)
+      #   i = 0
+      #   l = youtubes.length
 
-        while i < l
-          vID = (REGEXES.urls.youtube.exec(youtubes[i]))[5]
-          src = undefined
-          img_src = undefined
-          yt = undefined
-          REGEXES.urls.youtube.exec "" # clear global state
-          src = @makeYoutubeURL(vID)
-          img_src = @makeYoutubeThumbnailURL(vID)
-          yt = self.youtubeTemplate(
-            vID: vID
-            img_src: img_src
-            src: src
-            originalSrc: youtubes[i]
-          )
-          if !self.uniqueURLs[src]?
-            $(".linklog .body", @$el).prepend yt
-            self.uniqueURLs[src] = true
-          i++
+      #   while i < l
+      #     vID = (REGEXES.urls.youtube.exec(youtubes[i]))[5]
+      #     src = undefined
+      #     img_src = undefined
+      #     yt = undefined
+      #     REGEXES.urls.youtube.exec "" # clear global state
+      #     src = @makeYoutubeURL(vID)
+      #     img_src = @makeYoutubeThumbnailURL(vID)
+      #     yt = self.youtubeTemplate(
+      #       vID: vID
+      #       img_src: img_src
+      #       src: src
+      #       originalSrc: youtubes[i]
+      #     )
+      #     if !self.uniqueURLs[src]?
+      #       $(".linklog .body", @$el).prepend yt
+      #       self.uniqueURLs[src] = true
+      #     i++
 
-      # put hyperlinks on the side:
-      links = undefined
-      if links = body.match(REGEXES.urls.all_others)
-        i = 0
-        l = links.length
-
-        while i < l
-          if !self.uniqueURLs[links[i]]?
-            $(".linklog .body", @$el).prepend "<a rel='noreferrer' href='" + links[i] + "' target='_blank'>" + links[i] + "</a>"
-            self.uniqueURLs[links[i]] = true
-          i++
     # end media insertion
 
     # sanitize the body:

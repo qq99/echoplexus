@@ -9,8 +9,6 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
   className: 'ChatMessageView'
 
   chatMessageTemplate: chatMessageTemplate
-  linkedImageTemplate: linkedImageTemplate
-  youtubeTemplate: youtubeTemplate
   webshotBadgeTemplate: webshotBadgeTemplate
 
   bindings:

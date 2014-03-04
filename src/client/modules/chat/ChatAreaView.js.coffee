@@ -6,17 +6,13 @@ HTMLSanitizer               = require("../../utility.js.coffee").HTMLSanitizer
 ChatMessageView             = require("./ChatMessageView.js.coffee").ChatMessageView
 cryptoWrapper               = new CryptoWrapper
 ChatMessage                 = require("./ChatMessageModel.js.coffee").ChatMessage
+MediaLog                    = require("./MediaLog.js.coffee").MediaLog
 
 ChatMessageCollection = class ChatMessageCollection extends Backbone.Collection
   comparator: 'timestamp'
   model: ChatMessage
 
 module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
-
-  makeYoutubeThumbnailURL: (vID) ->
-    window.location.protocol + "//img.youtube.com/vi/" + vID + "/0.jpg"
-  makeYoutubeURL: (vID) ->
-    window.location.protocol + "//youtube.com/v/" + vID
 
   className: "channel"
 
@@ -25,11 +21,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
   userTemplate: userListUserTemplate
 
   events:
-    "click .clearMediaLog": "clearMedia"
-    "click .disableMediaLog": "disallowMedia"
-    "click .maximizeMediaLog": "unminimizeMediaLog"
-    "click .media-opt-in .opt-in": "allowMedia"
-    "click .media-opt-in .opt-out": "disallowMedia"
     "click .toggle-support-bar": "toggleSupportBar"
     "click .pin-button": "pinChat"
     "click .pgp-fingerprint-icon.trusted": "untrustFingerprint"
@@ -39,25 +30,20 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     "mouseleave .quotation": "hideQuotationContext"
     "mouseover .user": "showIdleAgo"
     "click .quotation": "addQuotationHighlight"
-    "click .youtube.imageThumbnail": "showYoutubeVideo"
     "click .chatMessage-edit": "beginEdit"
 
   initialize: (options) ->
-    self = this
-    preferredAutoloadSetting = undefined
     _.bindAll this
+
+    throw "No room supplied for ChatAreaView" unless options.room
+
     @scrollToLatest = _.debounce(@_scrollToLatest, 200) # if we're pulling a batch, do the scroll just once
-    throw "No channel designated for the chat log"  unless options.room
+
     @room = options.room
     @me = options.me
-    @uniqueURLs = {}
-    @autoloadMedia = null # the safe default
-    preferredAutoloadSetting = window.localStorage.getItem("autoloadMedia:" + @room)
-    if preferredAutoloadSetting # if a saved setting exists
-      if preferredAutoloadSetting is "true"
-        @autoloadMedia = true
-      else
-        @autoloadMedia = false
+
+    @medialog = new MediaLog
+      room: @room
 
     @messages = new ChatMessageCollection()
     @timeFormatting = setInterval(=>
@@ -70,59 +56,50 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     @attachEvents()
 
   render: ->
-    linklogClasses = ""
-    userlistClasses = ""
-    optInClasses = ""
-    if @autoloadMedia is true
-      optInClasses = "hidden"
-    else if @autoloadMedia is false
-      linklogClasses = "minimized"
-      userlistClasses = "maximized"
-    else # user hasn't actually made a choice (null value)
-      linklogClasses = "not-initialized"
-
     @$el.html @template(
       roomName: @room
-      linklogClasses: linklogClasses
-      optInClasses: optInClasses
-      userlistClasses: userlistClasses
       pinned: window.chatIsPinned
     )
+
+    @$el.find(".supportbar").append(@medialog.$el)
+
+    @stickit @medialog.state,
+      ".linklog":
+        attributes: [{
+          name: 'class'
+          observe: 'autoloadMedia'
+          onGet: (val) ->
+            return 'linklog not-initialized' if val == 'unknown'
+            return 'linklog minimized' if !val
+            return 'linklog'
+        }]
+      ".userlist":
+        attributes: [{
+          name: 'class'
+          observe: 'autoloadMedia'
+          onGet: (val) ->
+            return 'userlist' if val == 'unknown'
+            return 'userlist maximized' if !val
+            return 'userlist'
+        }]
+      ".media-opt-in":
+        attributes: [{
+          name: 'class'
+          observe: 'autoloadMedia'
+          onGet: (val) ->
+            return 'media-opt-in' if val == 'unknown'
+            return 'media-opt-in hidden'
+        }]
 
     @stickit window.GlobalUIState,
       "i.pin":
         attributes: [{
           name: 'class'
           observe: 'chatIsPinned'
-          onGet: 'formatPinned'
+          onGet: (isPinned) ->
+            return 'fa fa-expand' if isPinned
+            return 'fa fa-compress'
         }]
-
-  formatPinned: (isPinned) ->
-    return 'fa fa-expand' if isPinned
-    return 'fa fa-compress'
-
-  unminimizeMediaLog: -> # nb: not the opposite of maximize
-    # resets the state to the null choice
-    # slide up the media tab (if it was hidden)
-    $(".linklog", @$el).removeClass("minimized").addClass "not-initialized"
-    $(".userlist", @$el).removeClass "maximized"
-    $(".media-opt-in", @$el).fadeIn()
-
-  disallowMedia: ->
-    @autoloadMedia = false
-    @clearMedia()
-    window.localStorage.setItem "autoloadMedia:" + @room, false
-
-    # slide down the media tab to make more room for the Users tab
-    $(".linklog", @$el).addClass("minimized").removeClass "not-initialized"
-    $(".userlist", @$el).addClass "maximized"
-
-  allowMedia: ->
-    $(".media-opt-in", @$el).fadeOut()
-    @autoloadMedia = true
-    window.localStorage.setItem "autoloadMedia:" + @room, true
-    $(".linklog", @$el).removeClass "not-initialized"
-
 
   attachEvents: ->
 
@@ -178,6 +155,13 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     message = @messages.findWhere({mID: msg.from_mID})
     message?.view.renderWebshot(msg)
 
+  createChatMessage: (msg) ->
+    message = new ChatMessage(msg, {
+      me: @me
+      parent: this
+      room: @room
+    })
+
   renderChatMessage: (msg, opts) ->
     chatMessageView = new ChatMessageView
       room: @room
@@ -186,9 +170,10 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
     msg.view = chatMessageView
 
-    @messages.add msg # proper sorting collection needed
+    @messages.add msg
 
     $chatlog = $(".messages", @$el)
+
     for message in @messages.models
       $chatlog.append message.view.$el
 
@@ -200,10 +185,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     @messages.reset()
     $chatlog = $(".messages", @$el)
     $chatlog.html ""
-
-  clearMedia: ->
-    $mediaPane = $(".linklog .body", @$el)
-    $mediaPane.html ""
 
   renderUserlist: (users) ->
     $userlist = $(".userlist .body", @$el)
@@ -276,10 +257,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     if $idle.length
       timestamp = parseInt($idle.attr("data-timestamp"), 10)
       $(ev.currentTarget).attr "title", "Idle since " + moment(timestamp).fromNow()
-
-  showYoutubeVideo: (ev) ->
-    $(ev.currentTarget).hide()
-    $(ev.currentTarget).siblings(".video").show()
 
   toggleSupportBar: (ev) ->
     $target = $(ev.currentTarget)

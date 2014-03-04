@@ -105,7 +105,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       entries = @persistentLog.all()
 
       for entry in entries
-        msg = new ChatMessage(entry, {me: @me})
+        msg = @chatLog.createChatMessage(entry)
         msg.set "from_log", true
         entry = @chatLog.renderChatMessage msg
 
@@ -121,31 +121,31 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         prevClient = new ClientModel(model.previousAttributes())
         prevName = prevClient.getNick()
         prevName += " is"
-      @chatLog.renderChatMessage new ChatMessage({
+      @chatLog.renderChatMessage @chatLog.createChatMessage({
         body: prevName + " now known as " + currentName
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "identity ack"
-      }, {me: @me})
+      })
 
     @channel.get("clients").on "add", (model) =>
-      @chatLog.renderChatMessage new ChatMessage({
+      @chatLog.renderChatMessage @chatLog.createChatMessage({
         body: model.getNick() + " has joined the room."
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "join"
-      }, {me: @me})
+      })
 
     @channel.get("clients").on "remove", (model) =>
-      @chatLog.renderChatMessage new ChatMessage({
+      @chatLog.renderChatMessage @chatLog.createChatMessage({
         body: model.getNick() + " has left the room."
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "part"
-      }, {me: @me})
+      })
 
     @channel.get("clients").on "add remove reset change", (model) =>
       clients = @channel.get("clients")
@@ -297,13 +297,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   bindReconnections: ->
     #Bind the disconnnections, send message on disconnect
     @socket.on "disconnect", =>
-      @chatLog.renderChatMessage new ChatMessage({
+      @chatLog.renderChatMessage @chatLog.createChatMessage({
         body: "Disconnected from the server"
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "client"
-      }, {me: @me})
+      })
 
       window.disconnected = true
       faviconizer.setDisconnected()
@@ -311,13 +311,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     #On reconnection attempts, print out the retries
     @socket.on "reconnecting", (nextRetry) =>
-      @chatLog.renderChatMessage new ChatMessage({
+      @chatLog.renderChatMessage @chatLog.createChatMessage({
         body: "Connection lost, retrying in " + nextRetry / 1000.0 + " seconds"
         type: "SYSTEM"
         timestamp: new Date().getTime()
         nickname: ""
         class: "client"
-      }, {me: @me})
+      })
 
     #On successful reconnection, render the chatmessage, and emit a subscribe event
     @socket.on "reconnect", =>
@@ -342,13 +342,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
 
   postSubscribe: (data) ->
-    @chatLog.renderChatMessage new ChatMessage({
+    @chatLog.renderChatMessage @chatLog.createChatMessage({
       body: "Connected. Now talking in channel " + @channelName
       type: "SYSTEM"
       timestamp: new Date().getTime()
       nickname: ""
       class: "client"
-    }, {me: @me})
+    })
 
     if pub = @pgp_settings.get("armored_keypair")?.public
       @socket.emit "set_public_key:#{@channelName}",
@@ -463,7 +463,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @socketEvents =
       chat: (msg) =>
         window.events.trigger "message", socket, @, msg
-        message = new ChatMessage(msg, {me: @me})
+        message = @chatLog.createChatMessage(msg)
 
         if fingerprint = message.get("fingerprint")
           KEYSTORE.markSeen(fingerprint, @me.getNick(), @channelName)
@@ -481,7 +481,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
           msg = JSON.parse(msg)
           if not @persistentLog.has(msg.mID)
             @persistentLog.add msg
-            @chatLog.renderChatMessage new ChatMessage(msg, {me: @me})
+            @chatLog.renderChatMessage @chatLog.createChatMessage(msg)
 
         if @previousScrollHeight # for syncing while scrolling
           chatlog = @chatLog.$el.find(".messages")[0]
@@ -510,7 +510,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         prevClient = @channel.get("clients").remove(id: alteredClient.id)
 
       private_message: (msg) =>
-        message = new ChatMessage(msg, {me: @me})
+        message = @chatLog.createChatMessage(msg)
         message = @checkToNotify(message)
 
         @persistentLog.add msg
@@ -523,7 +523,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @postSubscribe()
 
       "chat:edit": (msg) =>
-        message = new ChatMessage(msg, {me: @me})
+        message = @chatLog.createChatMessage(msg)
         message = @checkToNotify(message) # the edit might have been to add a "@nickname", so check again to notify
         @persistentLog.replaceMessage msg # replace the message with the edited version in local storage
         @chatLog.replaceChatMessage message # replace the message with the edited version in the chat log
@@ -580,11 +580,11 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         else
           nick = fromClient.getNick()
 
-        message = new ChatMessage({
+        message = @chatLog.createChatMessage({
           body: "#{nick} uploaded a file: #{msg.path}"
           timestamp: new Date().getTime()
           nickname: ""
-        }, {me: @me})
+        })
 
         @chatLog.renderChatMessage message
         @persistentLog.add msg.toJSON()
