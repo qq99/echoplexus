@@ -5,14 +5,7 @@ REGEXES                     = require("../../regex.js.coffee").REGEXES
 
 module.exports.MediaLog = class MediaLog extends Backbone.View
 
-  makeYoutubeThumbnailURL: (vID) ->
-    window.location.protocol + "//img.youtube.com/vi/" + vID + "/0.jpg"
-  makeYoutubeURL: (vID) ->
-    window.location.protocol + "//youtube.com/v/" + vID
-
   mediaLogTemplate: mediaLogTemplate
-  youtubeTemplate: youtubeTemplate
-  linkedImageTemplate: linkedImageTemplate
 
   className: 'linklog'
 
@@ -32,9 +25,15 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
     MediaItem = class MediaItem extends Backbone.Model
       idAttribute: 'url'
 
+      makeYoutubeThumbnailURL: (vID) ->
+        window.location.protocol + "//img.youtube.com/vi/" + vID + "/0.jpg"
+      makeYoutubeURL: (vID) ->
+        window.location.protocol + "//youtube.com/v/" + vID
+
       initialize: ->
         _.bindAll this
         @view = new Backbone.View
+        @sequence++ # when things are added at EXACTLY the same time, we'll add them in the order they are sent
         @render()
 
       render: ->
@@ -42,14 +41,20 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
         html = switch @get('type')
           when 'link'
             "<a rel='noreferrer' href='#{url}' target='_blank'>#{url}</a>"
-          else
-            console.log @toJSON()
+          when 'image'
             linkedImageTemplate(@toJSON())
+          when 'youtube'
+            vID = REGEXES.urls.youtube.exec(url)[5]
+            REGEXES.urls.youtube.exec "" # clear global state
+            youtubeTemplate(
+              vID: vID
+              img_src: @makeYoutubeThumbnailURL(vID)
+              src: @makeYoutubeURL(vID)
+              originalSrc: url
+            )
 
         @view.$el.html(html)
 
-
-    console.log window.localStorage.getItem("autoloadMedia:#{@room}"), @determineAutoloadStatus()
     @state = new Backbone.Model
       autoloadMedia: @determineAutoloadStatus()
 
@@ -81,8 +86,17 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
   renderMedia: ->
     if @state.get('autoloadMedia')
       $body = @$el.find(".body")
-      for model in @media.models.reverse()
-        $body.append model.view.$el
+
+      for model in @media.models
+        if !document.contains(model.view.el)
+          if prev
+            if prev.get('timestamp') > model.get('timestamp')
+              prev.view.$el.after(model.view.el)
+            else
+              prev.view.$el.before(model.view.el)
+          else
+            $body.append(model.view.el)
+        prev = model
 
   clearMediaContents: ->
     @$el.find(".body").html("")

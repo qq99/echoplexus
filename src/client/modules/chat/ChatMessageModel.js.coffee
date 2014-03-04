@@ -155,7 +155,7 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
     links = body.match(REGEXES.urls.all_others) || []
 
     for url in links
-      window.events.trigger "linklog:#{@room}:link", {url: url}
+      window.events.trigger "linklog:#{@room}:link", {url: url, timestamp: @get('timestamp')}
 
   extract_images: ->
     body = @get('body')
@@ -166,13 +166,14 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
         url: url
         image_url: url
         title: "Linked by #{@get('nickname')}"
+        timestamp: @get('timestamp')
 
   extract_youtubes: ->
     body = @get('body')
 
     youtubes = body.match(REGEXES.urls.youtube) || []
     for url in youtubes
-      window.events.trigger "linklog:#{@room}:youtube", {url: url}
+      window.events.trigger "linklog:#{@room}:youtube", {url: url, timestamp: @get('timestamp')}
 
   format_body: ->
     msg = this
@@ -183,37 +184,11 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
 
     opts = {}  if !opts
 
+    # only extract links from user-sent messages
     if msg.get("class") isnt "identity" and msg.get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar
       @extract_images()
       @extract_youtubes()
       @extract_links()
-
-      # put youtube linsk on the side:
-      # youtubes = undefined
-      # if youtubes = body.match(REGEXES.urls.youtube)
-      #   i = 0
-      #   l = youtubes.length
-
-      #   while i < l
-      #     vID = (REGEXES.urls.youtube.exec(youtubes[i]))[5]
-      #     src = undefined
-      #     img_src = undefined
-      #     yt = undefined
-      #     REGEXES.urls.youtube.exec "" # clear global state
-      #     src = @makeYoutubeURL(vID)
-      #     img_src = @makeYoutubeThumbnailURL(vID)
-      #     yt = self.youtubeTemplate(
-      #       vID: vID
-      #       img_src: img_src
-      #       src: src
-      #       originalSrc: youtubes[i]
-      #     )
-      #     if !self.uniqueURLs[src]?
-      #       $(".linklog .body", @$el).prepend yt
-      #       self.uniqueURLs[src] = true
-      #     i++
-
-    # end media insertion
 
     # sanitize the body:
     if msg.get("trustworthiness") is "limited"
