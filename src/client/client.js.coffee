@@ -153,7 +153,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
   is: (otherModel) ->
     @attributes.id is otherModel.attributes.id
 
-  signMessage: (msg, callback) ->
+  signMessage: (msg) ->
     @pgp_settings.prompt (err) =>
       if !err
         @pgp_settings.sign msg.body, (signed) =>
@@ -162,95 +162,66 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
           msg.pgp_signed = true
           msg.pgp_encrypted = false
           msg.fingerprint = @pgp_settings.get("fingerprint")
-          callback(msg)
+          @wrapMessage(msg)
 
-  getPGPPeers: ->
+  getPGPPeers: (targetNick) ->
     peers = @get('peers')
     destination_peers = []
     for peer in peers.models
       pubkey = peer.get("armored_public_key")
       fingerprint = peer.getPGPFingerprint()
+      peernick = peer.getNick(@get("cryptokey"))
 
-      if pubkey and fingerprint and KEYSTORE.is_trusted(fingerprint)
-        destination_peers.push {
-          armored_public_key: peer.get("armored_public_key")
-          fingerprint: fingerprint
-          nick: peer.getNick(@get("cryptokey"))
-          ciphernick: peer.get("encrypted_nick")?["ct"]
-        }
+      if (targetNick and targetNick == peernick) or (!targetNick)
+        if pubkey and fingerprint and KEYSTORE.is_trusted(fingerprint)
+          destination_peers.push {
+            armored_public_key: peer.get("armored_public_key")
+            fingerprint: fingerprint
+            nick: peer.getNick(@get("cryptokey"))
+            ciphernick: peer.get("encrypted_nick")?["ct"]
+          }
 
     return destination_peers
 
   sendSignedEncryptedMessage: (msg) ->
     room              = @get('room')
-    destination_peers = @getPGPPeers()
+    destination_peers = @getPGPPeers(msg.targetNick)
     my_fingerprint    = @pgp_settings.get("fingerprint")
 
     @pgp_settings.prompt (err) =>
       if !err
         for peer in destination_peers
 
-          message =
-            directed_to:
-              "fingerprint": peer.fingerprint
-            fingerprint: my_fingerprint
-            pgp_encrypted: true
-            pgp_signed: true
+          @pgp_settings.encryptAndSign peer.armored_public_key, msg.body, (signed_encrypted) =>
 
-          if targetNick = msg.targetNick
-            @setPrivate(message)
-            if cryptokey = @get('cryptokey')
-              # TODO
-              throw "Not implemented yet"
-            else if peer.nick == targetNick
-              message.directed_to['nick'] = targetNick
-              @pgp_settings.encryptAndSign peer.armored_public_key, msg.body, (signed_encrypted) =>
-                message.body = signed_encrypted
-                @socket.emit "directed_message:#{room}", message
-          else
-            @pgp_settings.encryptAndSign peer.armored_public_key, msg.body, (signed_encrypted) =>
-              message.body = signed_encrypted
-              @socket.emit "directed_message:#{room}", message
+            message =
+              body: signed_encrypted
+              directed_to:
+                "fingerprint": peer.fingerprint
+              fingerprint: my_fingerprint
+              pgp_encrypted: true
+              pgp_signed: true
+              targetNick: msg.targetNick
+
+            @wrapMessage(message)
 
   sendEncryptedMessage: (msg) ->
     room              = @get('room')
-    destination_peers = @getPGPPeers()
+    destination_peers = @getPGPPeers(msg.targetNick)
     my_fingerprint    = @pgp_settings.get("fingerprint")
 
     for peer in destination_peers
 
       message =
+        body: @pgp_settings.encrypt peer.armored_public_key, msg.body
         directed_to:
           "fingerprint": peer.fingerprint
         fingerprint: my_fingerprint
         pgp_encrypted: true
         pgp_signed: false
+        targetNick: msg.targetNick
 
-      if targetNick = msg.targetNick
-        @setPrivate(message)
-        if cryptokey = @get('cryptokey')
-          message.body = @pgp_settings.encrypt peer.armored_public_key, msg.body
-          message.encrypted = cryptoWrapper.encryptObject(message.body, cryptokey)
-          message.body = "-"
-          # TODO: change directed_to
-        else if peer.nick == targetNick
-          message.body = @pgp_settings.encrypt peer.armored_public_key, msg.body
-          message.directed_to['nick'] = targetNick
-          @socket.emit "directed_message:#{room}", message
-      else
-        message.body = @pgp_settings.encrypt peer.armored_public_key, msg.body
-        @socket.emit "directed_message:#{room}", message
-
-  sendPrivateMessage: (toUsername, body) ->
-    room = @get('room')
-
-    @socket.emit "directed_message:#{room}",
-      body: body
-      directed_to:
-        "nick": toUsername
-      type: "private"
-      class: "private"
-      ack_requested: true
+      @wrapMessage(message)
 
   sendEdit: (mID, newBody) ->
     room = @get('room')
@@ -294,32 +265,36 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     return null
 
-  sendMessage: (msg) ->
+  wrapMessage: (msg) ->
     room = @get('room')
 
     if cryptokey = @get('cryptokey')
       msg.encrypted = cryptoWrapper.encryptObject(msg.body, cryptokey)
       msg.body = "-"
 
-    if msg.targetNick
-      targetNick = msg.targetNick
-      delete msg.targetNick # refactor so we don't need to delete this manually
+    if targetNick = msg.targetNick
       @setPrivate(msg)
       msg.directed_to = msg.directed_to || {}
 
-      if cryptokey
+      # direct the message properly:
+      if msg.directed_to['fingerprint'] # we have enough info to direct it
+        @socket.emit "directed_message:#{room}", msg
+      else if cryptokey
         ciphernicks = @getCiphernicksMatching(targetNick)
         for ciphernick in ciphernicks
           message = _.clone msg # why is this necessary? a test failed without, fix it
           message.directed_to = _.clone msg.directed_to
           message.encrypted = _.clone msg.encrypted
+          delete message.targetNick # don't need this anymore
 
           message.directed_to["ciphernick"] = ciphernick
           @socket.emit "directed_message:#{room}", message
       else
         msg.directed_to["nick"] = targetNick
         @socket.emit "directed_message:#{room}", msg
-    else
+    else if msg.directed_to
+      @socket.emit "directed_message:#{room}", msg
+    else # there's no direction, broadcast it
       @socket.emit "chat:#{room}", msg
 
   setPrivate: (msg) ->
@@ -425,7 +400,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       sign    = @pgp_settings.get("sign?")
 
       if sign and !encrypt
-        @signMessage(msg, @sendMessage)
+        @signMessage(msg)
         return
       else if encrypt and !sign
         @sendEncryptedMessage(msg)
@@ -434,4 +409,4 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         @sendSignedEncryptedMessage(msg) # directed message, so we don't emit to all
         return
 
-      @sendMessage(msg)
+      @wrapMessage(msg)

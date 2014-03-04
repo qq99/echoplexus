@@ -135,16 +135,6 @@ describe 'ClientModel', ->
       @subject.authenticate_via_token('foobar')
       assert @fakeSocket.emit.calledWith('join_private:/', {token: 'foobar'})
 
-  describe '#sendPrivateMessage', ->
-    it 'should emit the correct event', ->
-      @subject.sendPrivateMessage("Bob", "What's up?")
-      assert @fakeSocket.emit.calledWith 'directed_message:/',
-        directed_to: {'nick': 'Bob'}
-        type: 'private'
-        class: 'private'
-        ack_requested: true
-        body: "What's up?"
-
   describe '#sendEdit', ->
     it 'should emit the correct event', ->
       @subject.sendEdit(10, "oops")
@@ -417,8 +407,8 @@ describe 'ClientModel', ->
 
           @subjectSays 'hello'
 
-          assert @fakeSocket.emit.calledTwice
-          assert @subject.pgp_settings.encrypt.calledTwice
+          assert @fakeSocket.emit.calledTwice, "emit was not called twice"
+          assert @subject.pgp_settings.encrypt.calledTwice, "encrypt was not called twice"
 
           [eventname, msg] = @fakeSocket.emit.args[0]
           assert.equal "directed_message:/", eventname
@@ -438,7 +428,9 @@ describe 'ClientModel', ->
 
         it 'should encrypt and send the message only to the user nick that was specified when whispering', ->
           @subject.getPGPPeers = ->
-            return [{fingerprint: 'A', nick: 'Alice'}, {fingerprint: 'B', nick: 'Bob'}]
+            return [{fingerprint: 'A', nick: 'Alice'}]
+          @subject.getCiphernicksMatching = ->
+            return ['AliceCiphernick']
 
           @subjectSays '/w @Alice hello Alice'
 
@@ -451,7 +443,7 @@ describe 'ClientModel', ->
           assert.equal false, msg.pgp_signed
           assert.equal "private", msg.type
           assert.equal "private", msg.class
-          assert.deepEqual {"fingerprint": "A", "nick": "Alice"}, msg.directed_to
+          assert.deepEqual {"fingerprint": "A"}, msg.directed_to
 
         it 'should encrypt and send the message to all users whos nicks match when whispering', ->
           @subject.getPGPPeers = ->
@@ -460,6 +452,7 @@ describe 'ClientModel', ->
           @subjectSays '/w @Alice hello Alice'
 
           assert @fakeSocket.emit.calledTwice
+          assert @subject.pgp_settings.encrypt.calledTwice
 
           [eventname, msg] = @fakeSocket.emit.args[0]
           assert.equal "directed_message:/", eventname
@@ -467,7 +460,7 @@ describe 'ClientModel', ->
           assert.equal false, msg.pgp_signed
           assert.equal "private", msg.type
           assert.equal "private", msg.class
-          assert.deepEqual {"fingerprint": "A", "nick": "Alice"}, msg.directed_to
+          assert.deepEqual {"fingerprint": "A"}, msg.directed_to
 
           [eventname, msg] = @fakeSocket.emit.args[1]
           assert.equal "directed_message:/", eventname
@@ -475,7 +468,7 @@ describe 'ClientModel', ->
           assert.equal false, msg.pgp_signed
           assert.equal "private", msg.type
           assert.equal "private", msg.class
-          assert.deepEqual {"fingerprint": "B", "nick": "Alice"}, msg.directed_to
+          assert.deepEqual {"fingerprint": "B"}, msg.directed_to
 
       describe 'while signing & encrypting', ->
         beforeEach ->
@@ -510,9 +503,9 @@ describe 'ClientModel', ->
           assert.notEqual "hello", msg.body
           assert.deepEqual {"fingerprint": "B"}, msg.directed_to
 
-        it 'should encrypt and sig the message, sending it directed_to only nicks that we specified while whispering', ->
+        it 'should encrypt and sign the message, sending it directed_to only nicks that we specified while whispering', ->
           @subject.getPGPPeers = ->
-            return [{fingerprint: 'A', nick: 'Alice'}, {fingerprint: 'B', nick: 'Bob'}]
+            return [{fingerprint: 'B', nick: 'Bob'}]
 
           @subjectSays '/w Bob hello'
 
@@ -526,9 +519,9 @@ describe 'ClientModel', ->
           assert.equal "private", msg.type
           assert.equal "private", msg.class
           assert.notEqual "hello", msg.body
-          assert.deepEqual {"fingerprint": "B", nick: 'Bob'}, msg.directed_to
+          assert.deepEqual {"fingerprint": "B"}, msg.directed_to
 
-        it 'should encrypt and sig the message, sending it directed_to all nicks that match what we specified while whispering', ->
+        it 'should encrypt and sign the message, sending it directed_to all nicks that match what we specified while whispering', ->
           @subject.getPGPPeers = ->
             return [{fingerprint: 'A', nick: 'Alice'}, {fingerprint: 'B', nick: 'Alice'}]
 
@@ -543,7 +536,7 @@ describe 'ClientModel', ->
           assert.equal "private", msg.type
           assert.equal "private", msg.class
           assert.notEqual "hello", msg.body
-          assert.deepEqual {"fingerprint": "A", nick: 'Alice'}, msg.directed_to
+          assert.deepEqual {"fingerprint": "A"}, msg.directed_to
 
           [eventname, msg] = @fakeSocket.emit.args[1]
           assert.equal "directed_message:/", eventname
@@ -552,7 +545,7 @@ describe 'ClientModel', ->
           assert.equal "private", msg.type
           assert.equal "private", msg.class
           assert.notEqual "hello", msg.body
-          assert.deepEqual {"fingerprint": "B", nick: 'Alice'}, msg.directed_to
+          assert.deepEqual {"fingerprint": "B"}, msg.directed_to
 
 
 
@@ -640,7 +633,7 @@ describe 'ClientModel', ->
 
       it 'should encrypt and send the message only to the user nick that was specified when whispering', ->
         @subject.getPGPPeers = ->
-          return [{fingerprint: 'A', nick: 'Alice'}, {fingerprint: 'B', nick: 'Bob'}]
+          return [{fingerprint: 'A', nick: 'Alice'}]
 
         @subjectSays '/w @Alice hello Alice'
 
@@ -653,7 +646,7 @@ describe 'ClientModel', ->
         assert.equal false, msg.pgp_signed
         assert.equal "private", msg.type
         assert.equal "private", msg.class
-        assert.deepEqual {"fingerprint": "A", "nick": "Alice"}, msg.directed_to
+        assert.deepEqual {"fingerprint": "A"}, msg.directed_to
 
       it 'should encrypt and send the message to all users whos nicks match when whispering', ->
         @subject.getPGPPeers = ->
@@ -669,7 +662,7 @@ describe 'ClientModel', ->
         assert.equal false, msg.pgp_signed
         assert.equal "private", msg.type
         assert.equal "private", msg.class
-        assert.deepEqual {"fingerprint": "A", "nick": "Alice"}, msg.directed_to
+        assert.deepEqual {"fingerprint": "A"}, msg.directed_to
 
         [eventname, msg] = @fakeSocket.emit.args[1]
         assert.equal "directed_message:/", eventname
@@ -677,7 +670,7 @@ describe 'ClientModel', ->
         assert.equal false, msg.pgp_signed
         assert.equal "private", msg.type
         assert.equal "private", msg.class
-        assert.deepEqual {"fingerprint": "B", "nick": "Alice"}, msg.directed_to
+        assert.deepEqual {"fingerprint": "B"}, msg.directed_to
 
     describe 'while signing & encrypting', ->
       beforeEach ->
@@ -712,14 +705,14 @@ describe 'ClientModel', ->
         assert.notEqual "hello", msg.body
         assert.deepEqual {"fingerprint": "B"}, msg.directed_to
 
-      it 'should encrypt and sig the message, sending it directed_to only nicks that we specified while whispering', ->
+      it 'should encrypt and sign the message, sending it directed_to only nicks that we specified while whispering', ->
         @subject.getPGPPeers = ->
-          return [{fingerprint: 'A', nick: 'Alice'}, {fingerprint: 'B', nick: 'Bob'}]
+          return [{fingerprint: 'B', nick: 'Bob'}]
+
 
         @subjectSays '/w Bob hello'
 
         assert @fakeSocket.emit.calledOnce
-        #assert @subject.pgp_settings.encrypt.calledTwice
 
         [eventname, msg] = @fakeSocket.emit.args[0]
         assert.equal "directed_message:/", eventname
@@ -728,9 +721,9 @@ describe 'ClientModel', ->
         assert.equal "private", msg.type
         assert.equal "private", msg.class
         assert.notEqual "hello", msg.body
-        assert.deepEqual {"fingerprint": "B", nick: 'Bob'}, msg.directed_to
+        assert.deepEqual {"fingerprint": "B"}, msg.directed_to
 
-      it 'should encrypt and sig the message, sending it directed_to all nicks that match what we specified while whispering', ->
+      it 'should encrypt and sign the message, sending it directed_to all nicks that match what we specified while whispering', ->
         @subject.getPGPPeers = ->
           return [{fingerprint: 'A', nick: 'Alice'}, {fingerprint: 'B', nick: 'Alice'}]
 
@@ -745,7 +738,7 @@ describe 'ClientModel', ->
         assert.equal "private", msg.type
         assert.equal "private", msg.class
         assert.notEqual "hello", msg.body
-        assert.deepEqual {"fingerprint": "A", nick: 'Alice'}, msg.directed_to
+        assert.deepEqual {"fingerprint": "A"}, msg.directed_to
 
         [eventname, msg] = @fakeSocket.emit.args[1]
         assert.equal "directed_message:/", eventname
@@ -754,4 +747,4 @@ describe 'ClientModel', ->
         assert.equal "private", msg.type
         assert.equal "private", msg.class
         assert.notEqual "hello", msg.body
-        assert.deepEqual {"fingerprint": "B", nick: 'Alice'}, msg.directed_to
+        assert.deepEqual {"fingerprint": "B"}, msg.directed_to
