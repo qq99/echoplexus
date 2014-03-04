@@ -16,7 +16,7 @@
     <div class="field">
       <select id="key-to-reuse">
         <% for (var key in my_keys) { %>
-        <option value="<%- key %>"><%- key %> (last used in <%- my_keys[key].last_used_in %> as <%- my_keys[key].last_used_by %>)</option>
+        <option value="<%- key %>"><%- key %> (last used <%- moment(my_keys[key].last_used_at).fromNow() %> in <%- my_keys[key].last_used_in %>  as <%- my_keys[key].last_used_by %>)</option>
         <% } %>
       </select>
     </div>
@@ -68,11 +68,14 @@
     <div class="field">
       <input id="pgp-sign-outgoing" type="checkbox" checked>
       <label for="pgp-sign-outgoing">Sign outgoing messages</label>
+      <p>If you sign your messages, the fingerprint of your public key will always be sent in plaintext even if using shared secret encryption.  You don't really need to worry about this.</p>
     </div>
     <div class="field">
       <input id="pgp-encrypt-outgoing" type="checkbox">
       <label for="pgp-encrypt-outgoing">Encrypt outgoing messages to trusted people</label>
-      <p>This option will make encrypt your chats by the public key of each recipient you trust that is currently active in the channel.</p>
+      <p>This option will encrypt your chat using the public key of each currently connected trusted recipient.</p>
+      <p>PGP encrypted messages are not persisted on the server.</p>
+      <p>To trust someone, simply click their key in the userlist and they will receive any future PGP encrypted messages from you.</p>
     </div>
     <div class="field">
       <button class="view-key-information">Keypair Information</button>

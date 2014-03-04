@@ -40,6 +40,7 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
         if body
           @set("body", body)
           @unset("encrypted")
+          @set("was_encrypted", true)
       catch e
         @set("body", @get("encrypted").ct)
 
