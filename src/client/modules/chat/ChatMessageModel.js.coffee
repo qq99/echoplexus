@@ -92,7 +92,7 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
         msg.set "pgp_verified", "unknown_public_key"
       dearmored_pub = openpgp.key.readArmored(key.armored_key)
 
-      @me.pgp_settings.usablePrivateKey '', (priv) ->
+      @me.pgp_settings.usablePrivateKey '', (priv) =>
         priv          = priv[0]
         decrypted     = openpgp.decryptAndVerifyMessage(priv, dearmored_pub.keys, message)
 
@@ -120,7 +120,7 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
       msg.set "pgp_armored", _.escape(body).replace(/\n/g, "<br>")
       message       = openpgp.message.readArmored(body)
       key           = KEYSTORE.get(msg.get("fingerprint"))
-      @me.pgp_settings.usablePrivateKey '', (priv) ->
+      @me.pgp_settings.usablePrivateKey '', (priv) =>
         priv = priv[0]
         decrypted = openpgp.decryptMessage(priv, message)
 

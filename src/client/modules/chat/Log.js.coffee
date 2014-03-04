@@ -32,6 +32,7 @@ module.exports.Log = class Log
     #   events.trigger "gotMissingIDs:#{@options.namespace}", @getMissingIDs(n)
 
   add: (obj) ->
+    throw "Wrong object type for persistent log" if obj.get
     return if !Storage?
     return if obj.hasOwnProperty("log") and obj.log == false # don't store things we're explicitly ordered not to
     return if !obj.timestamp? # don't store things without a timestamp
