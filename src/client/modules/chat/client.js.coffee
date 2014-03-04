@@ -704,7 +704,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   deleteLocalStorage: (ev) ->
     @persistentLog.destroy()
     @chatLog.clearChat() # visually reinforce to the user that it deleted them by clearing the chatlog
-    @chatLog.clearMedia() # "
+    @chatLog.medialog.clearMediaContents() # "
 
   logOut: (ev) ->
 

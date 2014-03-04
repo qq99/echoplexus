@@ -100,6 +100,7 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
         prev = model
 
   clearMediaContents: ->
+    @media.reset([])
     @$el.find(".body").html("")
 
   disallowMediaAutoload: ->
