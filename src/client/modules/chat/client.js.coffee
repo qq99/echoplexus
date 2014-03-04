@@ -471,7 +471,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
         body = message.get("body")
         @scrollback.replace body, "/edit ##{message.get("mID")} #{body}" if message.get("you")
-        @checkToNotify message
+        message = @checkToNotify message
         @persistentLog.add msg
         @chatLog.renderChatMessage message
 
@@ -510,8 +510,9 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
       private_message: (msg) =>
         message = new ChatMessage(msg, {me: @me})
-        msg = @checkToNotify(message)
-        @persistentLog.add message.toJSON()
+        message = @checkToNotify(message)
+
+        @persistentLog.add msg
         @chatLog.renderChatMessage message
 
       webshot: (msg) =>
@@ -522,8 +523,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
       "chat:edit": (msg) =>
         message = new ChatMessage(msg, {me: @me})
-        msg = @checkToNotify(message) # the edit might have been to add a "@nickname", so check again to notify
-        @persistentLog.replaceMessage message.toJSON() # replace the message with the edited version in local storage
+        message = @checkToNotify(message) # the edit might have been to add a "@nickname", so check again to notify
+        @persistentLog.replaceMessage msg # replace the message with the edited version in local storage
         @chatLog.replaceChatMessage message # replace the message with the edited version in the chat log
 
       "client:id": (msg) =>
@@ -578,13 +579,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         else
           nick = fromClient.getNick()
 
-        msg = new ChatMessage({
+        message = new ChatMessage({
           body: "#{nick} uploaded a file: #{msg.path}"
           timestamp: new Date().getTime()
           nickname: ""
         }, {me: @me})
 
-        @chatLog.renderChatMessage msg
+        @chatLog.renderChatMessage message
         @persistentLog.add msg.toJSON()
 
     _.each @socketEvents, (value, key) =>
