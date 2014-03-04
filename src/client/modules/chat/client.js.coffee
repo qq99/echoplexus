@@ -413,6 +413,23 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     @autoAuth()
 
+  decryptTopic: ->
+    # attempt to parse the msg.body as a JSON object
+    try # if it succeeds, it was an encrypted object
+      encrypted_topic = JSON.parse(@raw_topic.body)
+      if cryptokey = @me.get('cryptokey')
+        try
+          topic = cryptoWrapper.decryptObject(encrypted_topic, cryptokey)
+        catch e
+          topic = encrypted_topic.ct
+      else
+        topic = encrypted_topic.ct
+    catch e
+      topic = @raw_topic.body
+      # topic was not encrypted
+
+    @chatLog.setTopic topic
+
   checkToNotify: (msg) ->
 
     # scan through the message and determine if we need to notify somebody that was mentioned:
@@ -553,20 +570,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       topic: (msg) =>
         return if msg.body is null
 
-        # attempt to parse the msg.body as a JSON object
-        try # if it succeeds, it was an encrypted object
-          encrypted_topic = JSON.parse(msg.body)
-          if cryptokey = @me.get('cryptokey')
-            try
-              topic = cryptoWrapper.decryptObject(encrypted_topic, cryptokey)
-            catch e
-              topic = encrypted_topic.ct
-          else
-            topic = encrypted_topic.ct
-        catch e
-          topic = msg.body
-
-        @chatLog.setTopic topic
+        @raw_topic = msg
+        @decryptTopic()
 
       antiforgery_token: (msg) =>
         @me.antiforgery_token = msg.antiforgery_token if msg.antiforgery_token
@@ -737,6 +742,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       if data.key isnt ""
         @channel.set("cryptokey", data.key)
         @me.set("cryptokey", data.key)
+        @decryptTopic()
         window.localStorage.setItem "chat:cryptokey:#{@channelName}", data.key
 
       @rerenderInputBox()
