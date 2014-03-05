@@ -27,6 +27,34 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 	name: "ChatServer"
 	namespace: "/chat"
 
+	editMessage: (namespace, socket, channel, client, data) ->
+		if config.chat?.edit?
+			return if not config.chat.edit.enabled
+			return if not config.chat.edit.allow_unidentified && not client.get("fingerprint")
+
+		room = channel.get("name")
+		mID = parseInt(data.mID, 10)
+		editResultCallback = (err, msg) =>
+			if err
+				socket.in(room).emit("chat:#{room}", @serverSentMessage({
+					body: err.message
+				}, room))
+				return
+			else
+				socket.in(room).broadcast.emit("chat:edit:#{room}", msg)
+				socket.in(room).emit("chat:edit:#{room}", _.extend(msg, {
+					you: true
+				}))
+
+		if _.indexOf(client.mIDs, mID) != -1
+			@updatePersistedMessage(room, mID, data, editResultCallback)
+		else # attempt to use the client's identity token, if it exists & if it matches the one stored with the chatlog object
+			redisC.hget "chatlog:identity_tokens:#{room}", mID, (err, reply) ->
+				throw err if err
+
+				if client.identity_token == reply
+					@updatePersistedMessage(room, mID, data, editResultCallback)
+
 	updatePersistedMessage: (room, mID, newMessage, callback) ->
 		mID = parseInt(mID, 10)
 		newBody = newMessage.body
@@ -431,34 +459,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				else
 					@broadcast(socket, channel, "Chatlogs for #{room} have been erased.")
 
-		"chat:edit": (namespace, socket, channel, client, data) ->
-			if config.chat?.edit?
-				return if not config.chat.edit.enabled
-				return if not config.chat.edit.allow_unidentified && not client.get("fingerprint")
-
-			room = channel.get("name")
-			mID = parseInt(data.mID, 10)
-			editResultCallback = (err, msg) =>
-				if err
-					socket.in(room).emit("chat:#{room}", @serverSentMessage({
-						body: err.message
-					}, room))
-					return
-				else
-					socket.in(room).broadcast.emit("chat:edit:#{room}", msg)
-					socket.in(room).emit("chat:edit:#{room}", _.extend(msg, {
-						you: true
-					}))
-
-			if _.indexOf(client.mIDs, mID) != -1
-				@updatePersistedMessage(room, mID, data, editResultCallback)
-			else # attempt to use the client's identity token, if it exists & if it matches the one stored with the chatlog object
-				redisC.hget "chatlog:identity_tokens:#{room}", mID, (err, reply) ->
-					throw err if err
-
-					if client.identity_token == reply
-						@updatePersistedMessage(room, mID, data, editResultCallback)
-
 		"chat:history_request": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 			jsonArray = []
@@ -553,6 +553,10 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 			if config.chat?.rate_limiting?.enabled
 				return if client.tokenBucket.rateLimit() # spam limiting
+
+			if data.type == "edit"
+				@editMessage(namespace, socket, channel, client, data)
+				return
 
 			if data.body
 				data.color = client.get("color").toRGB()

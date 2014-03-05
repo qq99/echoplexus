@@ -109,11 +109,14 @@ describe 'ChatClient', ->
         window.events.on.callCount = 0
         @subject.attachEvents()
 
+        calledEvents = window.events.on.args.map (el) ->
+          el[0]
+
         _.each namespacedEvents, (eventName) =>
-          assert window.events.on.calledWith("#{eventName}:/foo")
+          assert calledEvents.indexOf("#{eventName}:/foo") != -1, "Did not listen for namespaced event #{eventName}:/foo"
 
         _.each nonNamespacedEvents, (eventName) =>
-          assert window.events.on.calledWith("#{eventName}")
+          assert calledEvents.indexOf("#{eventName}") != -1, "Did not listen for non-namespaced event #{eventName}"
 
         assert.equal namespacedEvents.concat(nonNamespacedEvents).length, window.events.on.callCount
 
@@ -172,12 +175,11 @@ describe 'ChatClient', ->
 
       it 'tells the chat area to clear itself', ->
         @subject.chatLog.clearChat = stub()
-        @subject.chatLog.clearMedia = stub()
-
+        @subject.chatLog.medialog.clearMediaContents = stub()
         @subject.deleteLocalStorage()
 
         assert @subject.chatLog.clearChat.called
-        assert @subject.chatLog.clearMedia.called
+        assert @subject.chatLog.medialog.clearMediaContents.called
 
     describe '#clearCryptoKey', ->
       it 'clears the key from myself and the channel object', ->

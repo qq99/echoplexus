@@ -135,11 +135,6 @@ describe 'ClientModel', ->
       @subject.authenticate_via_token('foobar')
       assert @fakeSocket.emit.calledWith('join_private:/', {token: 'foobar'})
 
-  describe '#sendEdit', ->
-    it 'should emit the correct event', ->
-      @subject.sendEdit(10, "oops")
-      assert @fakeSocket.emit.calledWith("chat:edit:/", {mID: 10, body: "oops"})
-
   describe "#speak special commands", ->
     describe '/nick', ->
       beforeEach ->
@@ -183,12 +178,6 @@ describe 'ClientModel', ->
       it 'fires a request', ->
         @subjectSays '/color #fff'
         assert @fakeSocket.emit.calledWith('user:set_color:/', {userColorString: '#fff'})
-        assert @fakeSocket.emit.calledOnce
-
-    describe '/edit', ->
-      it 'fires a request', ->
-        @subjectSays '/edit #555 my new text'
-        assert @fakeSocket.emit.calledWith('chat:edit:/', {mID: "555", body: 'my new text'})
         assert @fakeSocket.emit.calledOnce
 
     describe '/chown', ->
@@ -242,6 +231,16 @@ describe 'ClientModel', ->
       assert.equal "hi all", msg.body
       assert !msg.encrypted
 
+    it 'emits the proper message while editing', ->
+      @subjectSays '/edit #33 foobar'
+      assert @fakeSocket.emit.calledOnce
+      [event, msg] = @fakeSocket.emit.args[0]
+      assert.equal "chat:/", event
+      assert.equal "foobar", msg.body
+      assert.equal 33, msg.mID
+      assert "edit", msg.type
+      assert !msg.encrypted
+
     it 'sends a private directed_message only to the users we want to chat with', ->
       @subject.set 'peers', new Backbone.Collection([@fakeBob, @fakeAlice])
       @subjectSays "/w @Alice hi all"
@@ -271,6 +270,18 @@ describe 'ClientModel', ->
         [event, msg] = @fakeSocket.emit.args[0]
         assert.equal "chat:/", event
         assert.equal "-", msg.body
+        assert msg.encrypted.ct
+        assert msg.encrypted.iv
+        assert msg.encrypted.s
+
+      it 'emits the proper message while editing', ->
+        @subjectSays '/edit #33 foobar'
+        assert @fakeSocket.emit.calledOnce
+        [event, msg] = @fakeSocket.emit.args[0]
+        assert.equal "chat:/", event
+        assert.equal "-", msg.body
+        assert "edit", msg.type
+        assert 33, msg.mID
         assert msg.encrypted.ct
         assert msg.encrypted.iv
         assert msg.encrypted.s
@@ -340,6 +351,21 @@ describe 'ClientModel', ->
           @subjectSays "hello"
 
           assert signMessage.called
+
+        it 'should sign the message, then emit the proper message while editing', ->
+          signMessage = spy(@subject, 'signMessage')
+          @subjectSays '/edit #33 foobar'
+          assert @fakeSocket.emit.calledOnce
+          assert signMessage.called
+
+          [event, msg] = @fakeSocket.emit.args[0]
+          assert.equal "chat:/", event
+          assert.equal "-", msg.body
+          assert "edit", msg.type
+          assert 33, msg.mID
+          assert msg.encrypted
+          assert.equal false, msg.pgp_encrypted
+          assert.equal true, msg.pgp_signed
 
         it 'should sign the message and send a directed_message when whispering', ->
           signMessage = spy(@subject, 'signMessage')

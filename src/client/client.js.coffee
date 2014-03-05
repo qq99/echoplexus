@@ -223,18 +223,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
       @wrapMessage(message)
 
-  sendEdit: (mID, newBody) ->
-    room = @get('room')
-    data =
-      body: newBody
-      mID: mID
-
-    if cryptokey = @get('cryptokey')
-      data.encrypted = cryptoWrapper.encryptObject(newBody, cryptokey)
-      data.body = "-"
-
-    @socket.emit "chat:edit:#{room}", data
-
   getCiphernicksMatching: (toUsername) ->
     peers = @get('peers')
     ciphernicks = []
@@ -302,6 +290,23 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     msg.class = "private"
     msg.ack_requested = true
 
+  enunciate: (msg) ->
+    msg.targetNick = @getTargetNick(msg)
+    encrypt = @pgp_settings.get("encrypt?")
+    sign    = @pgp_settings.get("sign?")
+
+    if sign and !encrypt
+      @signMessage(msg)
+      return
+    else if encrypt and !sign
+      @sendEncryptedMessage(msg)
+      return # directed message, so we don't emit to all
+    else if sign and encrypt
+      @sendSignedEncryptedMessage(msg) # directed message, so we don't emit to all
+      return
+
+    @wrapMessage(msg)
+
   speak: (msg) ->
     self   = this
     socket = @socket
@@ -358,7 +363,10 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       mID = matches[2]
       body = body.replace(REGEXES.commands.edit, "").trim()
 
-      @sendEdit(mID, body)
+      msg.mID = mID
+      msg.body = body
+      msg.type = "edit"
+      @enunciate(msg)
     else if body.match(REGEXES.commands.leave) # leaving
       window.events.trigger "leave:#{room}"
     else if body.match(REGEXES.commands.chown) # become owner
@@ -395,18 +403,4 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
           repoUrl: args
 
     else
-      msg.targetNick = @getTargetNick(msg)
-      encrypt = @pgp_settings.get("encrypt?")
-      sign    = @pgp_settings.get("sign?")
-
-      if sign and !encrypt
-        @signMessage(msg)
-        return
-      else if encrypt and !sign
-        @sendEncryptedMessage(msg)
-        return # directed message, so we don't emit to all
-      else if sign and encrypt
-        @sendSignedEncryptedMessage(msg) # directed message, so we don't emit to all
-        return
-
-      @wrapMessage(msg)
+      @enunciate(msg)
