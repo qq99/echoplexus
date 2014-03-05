@@ -1,5 +1,6 @@
 CryptoWrapper               = require("../../CryptoWrapper.coffee").CryptoWrapper
 cryptoWrapper               = new CryptoWrapper
+HTMLSanitizer               = require("../../utility.js.coffee").HTMLSanitizer
 REGEXES                     = require("../../regex.js.coffee").REGEXES
 
 module.exports.ChatMessage = class ChatMessage extends Backbone.Model
