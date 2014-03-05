@@ -1,1 +1,1 @@
-module.exports.CLIENT_VERSION = '0.2.3r3';
+module.exports.CLIENT_VERSION = '0.2.4';
