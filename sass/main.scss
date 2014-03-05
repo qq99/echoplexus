@@ -1171,6 +1171,12 @@ hr {
 	outline: 0;
 }
 
+.pgp-keypair-information {
+	textarea {
+		font-size: 0.9em;
+	}
+}
+
 .chatMessage {
 	@include transition(all 0.25s ease-in-out);
 	height:auto;
