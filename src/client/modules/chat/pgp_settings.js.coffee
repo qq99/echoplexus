@@ -86,7 +86,9 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
       if decrypted
         console.log 'decrypted'
         @set 'cached_private', dearmored_privs.keys
+        @set 'key_error', false
       else
+        @set 'key_error', true
         throw "Unable to decrypt private key"
     #else
       #console.log 'using cached priv'
@@ -108,15 +110,24 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
   enabled: ->
     return !!@get('armored_keypair')
 
+  requestPassphrase: ->
+    (new PGPPassphraseModal(
+      pgp_settings: this
+      on_unlock: ->
+        callback?(null)
+    ))
+
   prompt: (callback) ->
     if @get('cached_private') # there's already a decrypted pkey for immediate use, do a no-op
       callback?(null)
-    else
-      (new PGPPassphraseModal(
-        pgp_settings: this
-        on_unlock: ->
-          callback?(null)
-      ))
+    else if !@get('key_error') # we haven't had an error decrypting key yet, so try to use the blank passphrase
+      try # see if '' unlocks it
+        @usablePrivateKey '', ->
+          callback?(null) # if it unlocked it, we'll call the callback with success
+      catch # else, we'll display the modal to get them to unlock their key
+        @requestPassphrase()
+    else # there was a key error, so make them unlock
+      @requestPassphrase()
 
   usablePublicKey: (armored_public_key) ->
     dearmored_pubs = openpgp.key.readArmored(armored_public_key)
