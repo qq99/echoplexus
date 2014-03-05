@@ -132,6 +132,9 @@ textarea {
   }
 }
 
+.body-content {
+  word-wrap: break-word;
+}
 body.highlight_mine {
   .chatMessage.me {
     background: #dedede;
