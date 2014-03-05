@@ -212,7 +212,7 @@ redisC.select redis_db, (err, reply) ->
           msg = @serverSentMessage({
             body: data
           }, room)
-          msg.nickname = "<i class='fa fa-github-alt'></i>"
+          msg.nickname = "GitHub"
           msg.trustworthiness = "limited"
 
           @storePersistent msg, room, =>

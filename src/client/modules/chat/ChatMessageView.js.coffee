@@ -20,6 +20,16 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       attributes: [{
         name: 'title'
         observe: 'nickname'
+      }, {
+        name: 'style'
+        observe: 'nickname'
+        onGet: (val) -> 'display: none;' if val == 'GitHub'
+      }]
+    ".github-nickname":
+      attributes: [{
+        name: 'style'
+        observe: 'nickname'
+        onGet: (val) -> 'display: block;' if val == 'GitHub'
       }]
     ".time":
       observe: "timestamp"
