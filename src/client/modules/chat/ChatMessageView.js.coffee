@@ -17,7 +17,6 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       updateMethod: 'html'
     ".nickname":
       observe: "nickname"
-      updateMethod: 'html'
       attributes: [{
         name: 'title'
         observe: 'nickname'
