@@ -100,15 +100,15 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
     $error_area = $(".errors", @$el)
     $error_area.children().remove()
 
-    priv = openpgp.key.readArmored(priv)
-    if priv.err.length
+    priv_unarmored = openpgp.key.readArmored(priv)
+    if priv_unarmored.err?.length
       $error_area.append("<p>Invalid armored private key</p>")
 
-    pub = openpgp.key.readArmored(pub)
-    if pub.err.length
+    pub_unarmored = openpgp.key.readArmored(pub)
+    if pub_unarmored.err?.length
       $error_area.append("<p>Invalid armored public key</p>")
 
-    if !priv.err.length and !pub.err.length
+    if !priv_unarmored.err and !pub_unarmored.err
       @pgp_settings.set
         'armored_keypair': {
           private: priv
