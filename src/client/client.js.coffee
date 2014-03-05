@@ -297,15 +297,12 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     if sign and !encrypt
       @signMessage(msg)
-      return
     else if encrypt and !sign
       @sendEncryptedMessage(msg)
-      return # directed message, so we don't emit to all
     else if sign and encrypt
-      @sendSignedEncryptedMessage(msg) # directed message, so we don't emit to all
-      return
-
-    @wrapMessage(msg)
+      @sendSignedEncryptedMessage(msg)
+    else
+      @wrapMessage(msg)
 
   speak: (msg) ->
     self   = this
