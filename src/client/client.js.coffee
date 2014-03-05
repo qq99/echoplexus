@@ -157,7 +157,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     @pgp_settings.prompt (err) =>
       if !err
         @pgp_settings.sign msg.body, (signed) =>
-          console.log 'signed'
           msg.body = signed
           msg.pgp_signed = true
           msg.pgp_encrypted = false

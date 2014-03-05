@@ -68,6 +68,8 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
     @set 'armored_keypair', null
     @set 'sign?', null
     @set 'encrypt?', null
+    @set 'key_error', false
+    delete @prev
 
   destroy: ->
     @clear()
@@ -124,7 +126,7 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
       try # see if '' unlocks it
         @usablePrivateKey '', ->
           callback?(null) # if it unlocked it, we'll call the callback with success
-      catch # else, we'll display the modal to get them to unlock their key
+      catch e # else, we'll display the modal to get them to unlock their key
         @requestPassphrase()
     else # there was a key error, so make them unlock
       @requestPassphrase()
@@ -141,6 +143,3 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
       pub = @usablePublicKey(pubkey)
       signed_encrypted = openpgp.signAndEncryptMessage(pub, usablePrivateKey[0], message)
       callback(signed_encrypted)
-
-  trust: (key) ->
-    # mark a key as trusted
