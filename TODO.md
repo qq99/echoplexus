@@ -2,8 +2,8 @@ For 0.2.4:
 - [ ] proper display of acknowledgements if requested, not just the server piping back what you sent
 - [ ] locally render a chat message instead of relying on server to pipe it back to us to give the illusion of speed
 - [x] properly route chat messages from start to finish, wrapping where applicable, sending PM where applicable
-- [ ] inline edit in various modes
-- [ ] regular edit in various modes, tests to prove it's not dropping previous privacy levels
+- [x] inline edit in various modes
+- [x] regular edit in various modes, tests to prove it's not dropping previous privacy levels
 - [x] test whisper in various modes
 - [x] abstract link log to its own module, make it a sorted Backbone.Collection like ChatMessages, supply it with a link stream from outside
 - [ ] unlock keypair for X duration

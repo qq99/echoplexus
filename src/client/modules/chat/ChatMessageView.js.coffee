@@ -37,8 +37,8 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
 
   events:
     "click .btn.toggle-armored": "toggleArmored"
-    "blur .body[contenteditable='true']": "stopInlineEdit"
-    "keydown .body[contenteditable='true']": "onInlineEdit"
+    "blur .body-content[contenteditable='true']": "stopInlineEdit"
+    "keydown .body-content[contenteditable='true']": "onInlineEdit"
     "dblclick .chatMessage.me:not(.private)": "beginInlineEdit"
     "mouseover .chatMessage": "showSentAgo"
     "click .webshot-badge .toggle": "toggleBadge"
@@ -54,35 +54,26 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
     @render()
 
   beginInlineEdit: (ev) ->
-    $chatMessage = $(ev.target).parents(".chatMessage")
-    oldText = undefined
-    $chatMessage.find(".webshot-badge").remove()
-    oldText = $chatMessage.find(".body").text().trim()
+    @$el.find(".webshot-badge").remove()
+    oldText = @$el.find(".body-content").text().trim()
 
     # store the old text with the node
-    $chatMessage.data "oldText", oldText
+    @oldText = oldText
 
     # make the entry editable
-    $chatMessage.find(".body").attr("contenteditable", "true").focus()
+    @$el.find(".body-content").attr("contenteditable", "true").focus()
 
   onInlineEdit: (ev) ->
-    return  if ev.ctrlKey or ev.shiftKey # we don't fire any events when these keys are pressed
+    return if ev.ctrlKey or ev.shiftKey # we don't fire any events when these keys are pressed
+    return if !(mID = @model.get("mID"))
     $this = $(ev.target)
-    $chatMessage = $this.parents(".chatMessage")
-    oldText = $chatMessage.data("oldText")
-    mID = @model.get("mID")
-
-    return if !mID
 
     switch ev.keyCode
-
-      # enter:
-      when 13
+      when 13 # enter key
         ev.preventDefault()
         userInput = $this.text().trim()
-        if userInput isnt oldText
-          console.log "edit:commit:" + @room
-          window.events.trigger "edit:commit:" + @room,
+        if userInput isnt @oldText
+          window.events.trigger "edit:commit:#{@room}",
             mID: mID
             newText: userInput
 
@@ -90,8 +81,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
         else
           @stopInlineEdit ev
 
-      # escape
-      when 27
+      when 27 # escape key
         @stopInlineEdit ev
 
   stopInlineEdit: (ev) ->

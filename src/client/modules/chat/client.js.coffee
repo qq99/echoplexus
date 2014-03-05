@@ -485,10 +485,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         if fingerprint = message.get("fingerprint")
           KEYSTORE.markSeen(fingerprint, @me.getNick(), @channelName)
 
-        # update our scrollback buffer so that we can quickly edit the message by pressing up/down
-        # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
         body = message.get("body")
-        @scrollback.replace body, "/edit ##{message.get("mID")} #{body}" if message.get("you")
+        @scrollback.replace body, "/edit ##{message.get("mID")} #{body}" if message.get("you") # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
         message = @checkToNotify message
         @persistentLog.add msg
         @chatLog.renderChatMessage message
@@ -618,13 +616,16 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     window.events.on "beginEdit:#{@channelName}", (data) =>
       mID = data.mID
-      msgText = $(".chatMessage.mine[data-sequence='" + mID + "'] .body", @$el).text()
+      msgText = $(".chatMessage[data-sequence='" + mID + "'] .body-content", @$el).text()
 
-      $(".chatinput textarea", @$el).val("/edit ##{mID} #{msg.body}").focus()
+      $(".chatinput textarea", @$el).val("/edit ##{mID} #{msgText}").focus()
 
     # finalize the edit
     window.events.on "edit:commit:#{@channelName}", (data) =>
-      @me.sendEdit data.mID, data.newText
+      @me.enunciate
+        mID: data.mID
+        body: data.newText
+        type: 'edit'
 
     # let the chat server know our call status so we can advertise that to other users
     window.events.on "in_call:#{@channelName}", (data) =>
