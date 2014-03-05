@@ -171,6 +171,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
   showChannel: (channelName) ->
     channel = @channels[channelName]
+    return if !channel
     if channel.isPrivate && !channel.authenticated
       showPrivateOverlay()
     else
