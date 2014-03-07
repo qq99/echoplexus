@@ -176,8 +176,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @scrollSyncLogs = _.throttle(@_scrollSyncLogs, 500) # so we don't sync too quickly
     $(".messages", @$el).on "mousewheel DOMMouseScroll", @scrollSyncLogs
 
-    $(window).on "resize", @chatLog.scrollToLatest
-
   events:
     "click button.syncLogs": "activelySyncLogs"
     "click button.deleteLocalStorage": "deleteLocalStorage"
@@ -334,12 +332,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
 
   kill: ->
-    $(window).off "resize", @chatLog.scrollToLatest
-    window.events.off "channelPassword:#{@channelName}"
+    @detachEvents()
     @socket.emit "unsubscribe:" + @channelName
     _.each @socketEvents, (method, key) =>
       @socket.removeAllListeners "#{key}:#{@channelName}"
-
 
   postSubscribe: (data) ->
     @chatLog.renderChatMessage @chatLog.createChatMessage({
@@ -596,43 +592,56 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       # listen to a subset of event
       socket.on "#{key}:#{@channelName}", value
 
+  detachEvents: ->
+    window.events.off null, null, this
+    $(window).off "resize", @chatLog.scrollToLatest
 
   attachEvents: ->
-    window.events.on "private:#{@channelName}", @channelIsPrivate
 
-    window.events.on "chat:broadcast", (data) =>
+    $(window).on "resize", @chatLog.scrollToLatest
+
+    window.events.on "private:#{@channelName}", @channelIsPrivate, this
+
+    window.events.on "chat:broadcast", (data) ->
       @me.speak
         body: data.body
+    , this
 
-    window.events.on "channelPassword:#{@channelName}", (data) =>
+    window.events.on "channelPassword:#{@channelName}", (data) ->
       @authenticate(password: data.password)
+    , this
 
-    window.events.on "unidle", =>
+    window.events.on "unidle", ->
       if @$el.is(":visible") and @me?
         @me.active @channelName, @socket
 
         clearTimeout @idleTimer
         @startIdleTimer()
+    , this
 
-    window.events.on "beginEdit:#{@channelName}", (data) =>
+    window.events.on "beginEdit:#{@channelName}", (data) ->
       mID = data.mID
       msgText = $(".chatMessage[data-sequence='" + mID + "'] .body-content", @$el).text()
 
       $(".chatinput textarea", @$el).val("/edit ##{mID} #{msgText}").focus()
+    , this
 
     # finalize the edit
-    window.events.on "edit:commit:#{@channelName}", (data) =>
+    window.events.on "edit:commit:#{@channelName}", (data) ->
       @me.enunciate
         mID: data.mID
         body: data.newText
         type: 'edit'
+    , this
 
     # let the chat server know our call status so we can advertise that to other users
-    window.events.on "in_call:#{@channelName}", (data) =>
+    window.events.on "in_call:#{@channelName}", (data) ->
       @socket.emit "in_call:#{@channelName}"
+    , this
 
-    window.events.on "left_call:#{@channelName}", (data) =>
+    window.events.on "left_call:#{@channelName}", (data) ->
       @socket.emit "left_call:#{@channelName}"
+    , this
 
 
   handleChatInputKeydown: (ev) ->

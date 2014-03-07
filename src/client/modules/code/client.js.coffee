@@ -76,6 +76,7 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
     @syncedHtml.trigger "show"
 
   kill: ->
+    window.events.off null, null, this
     @syncedJs and @syncedJs.kill()
     @syncedHtml and @syncedHtml.kill()
 
@@ -87,8 +88,9 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
     @listenTo @syncedJs, "eval", @livereload
     @listenTo @syncedHtml, "eval", @livereload
 
-    window.events.on "sectionActive:" + @module.section, =>
+    window.events.on "sectionActive:" + @module.section, ->
       @refresh()
+    , this
 
     $(window).on "message", (e) =>
       try

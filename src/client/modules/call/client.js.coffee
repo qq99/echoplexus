@@ -42,7 +42,7 @@ module.exports.CallClient = class CallClient extends Backbone.View
 
       @socket.emit "subscribe", room: @channelName
 
-      window.events.on "sectionActive:calling", @subdivideVideos
+      window.events.on "sectionActive:calling", @subdivideVideos, this
       @onResize = _.debounce(@subdivideVideos, 250)
       $(window).on "resize", @onResize
 
@@ -178,6 +178,7 @@ module.exports.CallClient = class CallClient extends Backbone.View
     @rtc.disconnect()
 
   kill: ->
+    window.events.off null, null, this
     @disconnect()
     _.each @socketEvents, (method, key) =>
       @socket.removeAllListeners "#{key}:#{@channelName}"
