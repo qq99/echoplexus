@@ -9,7 +9,11 @@ ChatMessage                 = require("./ChatMessageModel.js.coffee").ChatMessag
 MediaLog                    = require("./MediaLog.js.coffee").MediaLog
 
 ChatMessageCollection = class ChatMessageCollection extends Backbone.Collection
-  comparator: 'timestamp'
+  comparator: (a, b) ->
+    if a.get('timestamp') > b.get('timestamp')
+      -1
+    else
+      1
   model: ChatMessage
 
 module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
@@ -175,7 +179,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     $chatlog = $(".messages", @$el)
 
     # O(n) in worst case, assuming document.contains is cheap
-    for message in @messages.models.reverse()
+    for message in @messages.models
       if !message.view.inDOM # if the view el is not already in the dom, then we'll add it
         if prev # push it in the right spot relative to its neighbours
           if prev.get('timestamp') > message.get('timestamp')
