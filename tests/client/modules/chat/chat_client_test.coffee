@@ -1,5 +1,7 @@
 ChatClient        = require('../../../../src/client/modules/chat/client.js.coffee').ChatClient
 Client            = require('../../../../src/client/client.js.coffee')
+CryptoWrapper     = require("../../../../src/client/CryptoWrapper.coffee").CryptoWrapper
+cryptoWrapper     = new CryptoWrapper
 ColorModel        = Client.ColorModel
 ClientModel       = Client.ClientModel
 ClientsCollection = Client.ClientsCollection
@@ -127,6 +129,11 @@ describe 'ChatClient', ->
         @subject.kill()
         assert @subject.detachEvents.called
 
+      it 'detaches all listeners on the socket', ->
+        @subject.kill()
+        _.each @subject.socketEvents, (method, key) =>
+          assert @fakeSocket.removeAllListeners.calledWith("#{key}:/foo")
+
     describe '#detachEvents', ->
       it 'removes all events bound on the eventbus', ->
         @subject.detachEvents()
@@ -176,6 +183,52 @@ describe 'ChatClient', ->
       it 'leaves the channel', ->
         @subject.logOut()
         assert window.events.trigger.calledWith("leaveChannel", "/foo")
+
+    describe 'decryptTopic', ->
+      it 'decrypts the topic when I supply it with a valid encrypted topic', ->
+        encryptedTopic = cryptoWrapper.encryptObject("hey dudes", "foo")
+        @subject.me.set 'cryptokey', "foo"
+        spy(@subject.chatLog, 'setTopic')
+
+        @subject.raw_topic =
+          body: JSON.stringify(encryptedTopic)
+
+        @subject.decryptTopic()
+
+        assert @subject.chatLog.setTopic.calledWith("hey dudes")
+
+      it 'sets the topic to the ciphertext when I do not have a cryptokey', ->
+        encryptedTopic = cryptoWrapper.encryptObject("hey dudes", "foo")
+        spy(@subject.chatLog, 'setTopic')
+
+        @subject.raw_topic =
+          body: JSON.stringify(encryptedTopic)
+
+        @subject.decryptTopic()
+
+        assert !@subject.chatLog.setTopic.calledWith("hey dudes")
+        assert @subject.chatLog.setTopic.args[0].length
+
+      it 'sets the topic to plaintext when the topic is plaintext and I have a cryptokey', ->
+        @subject.me.set 'cryptokey', "foo"
+        spy(@subject.chatLog, 'setTopic')
+
+        @subject.raw_topic =
+          body: 'hi there'
+
+        @subject.decryptTopic()
+
+        assert.equal "hi there", @subject.chatLog.setTopic.args[0]
+
+      it 'sets the topic to plaintext when the topic is plaintext and I have no cryptokey', ->
+        spy(@subject.chatLog, 'setTopic')
+
+        @subject.raw_topic =
+          body: 'hi there'
+
+        @subject.decryptTopic()
+
+        assert.equal "hi there", @subject.chatLog.setTopic.args[0]
 
     describe '#deleteLocalStorage', ->
       it 'tells the persistent log to destroy itself', ->
