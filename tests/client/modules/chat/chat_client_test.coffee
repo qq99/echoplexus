@@ -13,6 +13,7 @@ describe 'ChatClient', ->
     window.events =
       trigger: stub()
       on: stub()
+      off: stub()
 
     @fakeSocket =
       emit: stub()
@@ -119,6 +120,17 @@ describe 'ChatClient', ->
           assert calledEvents.indexOf("#{eventName}") != -1, "Did not listen for non-namespaced event #{eventName}"
 
         assert.equal namespacedEvents.concat(nonNamespacedEvents).length, window.events.on.callCount
+
+    describe '#kill', ->
+      it 'calls detachEvents', ->
+        spy(@subject, 'detachEvents')
+        @subject.kill()
+        assert @subject.detachEvents.called
+
+    describe '#detachEvents', ->
+      it 'removes all events bound on the eventbus', ->
+        @subject.detachEvents()
+        assert window.events.off.calledWith(null, null, @subject)
 
     describe '#activelySyncLogs', ->
 

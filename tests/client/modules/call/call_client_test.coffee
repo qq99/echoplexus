@@ -6,10 +6,12 @@ describe 'CallClient', ->
     window.events =
       trigger: stub()
       on: stub()
+      off: stub()
 
     @fakeSocket =
       emit: stub()
       on: stub()
+      off: stub()
       removeAllListeners: stub()
     window.io =
       connect: stub().returns(@fakeSocket)
@@ -98,6 +100,10 @@ describe 'CallClient', ->
       @subject.kill()
 
       assert @subject.disconnect.called
+
+    it 'removes all events bound on the eventbus', ->
+      @subject.kill()
+      assert window.events.off.calledWith(null, null, @subject)
 
     it 'removes all bound events on the socket', ->
       @subject.kill()

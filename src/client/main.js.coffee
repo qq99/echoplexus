@@ -6,7 +6,6 @@ Options           = require("./options.js.coffee").Options
 utility           = require("./utility.js.coffee")
 Keystore          = require("./keystore.js.coffee").Keystore
 require("./events.js.coffee")()
-  # require "./modules/user_info/UserData.js.coffee"
 
 openpgp.initWorker('js/openpgp.worker.js')
 
@@ -26,9 +25,6 @@ window.hidePrivateOverlay = ->
 
 window.GlobalUIState = new Backbone.Model
   chatIsPinned: false
-
-DEBUG = true  if typeof DEBUG is "undefined"
-
 
 faviconizer = new Faviconizer()
 notifications = new Notifications()
