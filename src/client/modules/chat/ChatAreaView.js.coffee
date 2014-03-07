@@ -107,11 +107,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
   attachEvents: ->
 
-    # show "Sent ___ ago" when hovering all chat messages:
-    @$el.on "mouseenter", ".chatMessage", (ev) ->
-      $(this).attr "title", "sent " + moment($(".time", this).data("timestamp")).fromNow()
-
-
     # media item events:
     # remove it from view on close button
     @$el.on "click", ".close", (ev) ->

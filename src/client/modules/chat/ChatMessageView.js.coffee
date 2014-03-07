@@ -50,7 +50,6 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
     "blur .body-content[contenteditable='true']": "stopInlineEdit"
     "keydown .body-content[contenteditable='true']": "onInlineEdit"
     "dblclick .chatMessage.me:not(.private)": "beginInlineEdit"
-    "mouseover .chatMessage": "showSentAgo"
     "click .webshot-badge .toggle": "toggleBadge"
 
   initialize: (opts) ->
@@ -96,11 +95,6 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
 
   stopInlineEdit: (ev) ->
     $(ev.target).removeAttr("contenteditable").blur()
-
-  showSentAgo: (ev) ->
-    $time = $(".time", ev.currentTarget)
-    timestamp = parseInt($time.attr("data-timestamp"), 10)
-    $(ev.currentTarget).attr "title", "sent " + moment(timestamp).fromNow()
 
   toggleArmored: (ev) ->
     $message = $(ev.currentTarget).parents(".chatMessage")
