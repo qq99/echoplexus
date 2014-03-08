@@ -84,7 +84,7 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
     @$el.html @mediaLogTemplate()
 
   renderMedia: ->
-    if @state.get('autoloadMedia')
+    if @state.get('autoloadMedia') == true
       $body = @$el.find(".body")
 
       # O(n) in worst case, assuming document.contains is cheap
