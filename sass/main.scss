@@ -1123,11 +1123,6 @@ header {
 	}
 }
 
-.github-nickname {
-  display: none;
-  font-size: 1.2em;
-}
-
 .imageThumbnail {
 	width:100%;
 	max-width:100%;
@@ -1305,6 +1300,10 @@ hr {
 		}
 		> span {
 			display: inline-block;
+		}
+		> .github-nickname {
+			display: none;
+			font-size: 1.2em;
 		}
 	}
 
