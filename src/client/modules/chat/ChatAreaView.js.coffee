@@ -147,8 +147,12 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     else # iframed
       $(".messages")[0].scrollTop = latestMessage.offsetTop if typeof latestMessage isnt "undefined"
 
-  replaceChatMessage: (msg) ->
-    @messages.add(msg, {merge: true})
+  replaceChatMessage: (msg, is_echo) ->
+    if is_echo
+      toReplace = @messages.findWhere({echo_id: msg.get("echo_id")}).set('sending', false).clear({silent: true}).set(msg.attributes)
+      console.log toReplace
+    else
+      @messages.add(msg, {merge: true})
 
   renderWebshot: (msg) ->
     message = @messages.findWhere({mID: msg.from_mID})

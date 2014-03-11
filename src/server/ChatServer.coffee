@@ -544,7 +544,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 			@publishUserList(channel)
 
-		"chat": (namespace, socket, channel, client, data) ->
+		"chat": (namespace, socket, channel, client, data, ack) ->
 			room = channel.get("name")
 
 			if !channel.hasPermission(client, "canSpeak")
@@ -564,12 +564,21 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				data.encrypted_nick = client.get("encrypted_nick")
 				data.timestamp = Number(new Date())
 
+				# don't need to persist the ack_id
+				echo_id = data.echo_id
+				delete data.echo_id
+
 				# store in redis
 				@storePersistent data, room, (err, msg) =>
 					mID = msg.mID
 
 					socket.in(room).broadcast.emit "chat:#{room}", msg
-					socket.in(room).emit "chat:#{room}", _.extend msg, you: true
+					setTimeout ->
+						ack?(_.extend(msg, {
+							echo_id: echo_id
+						}))
+					, 8000
+					# socket.in(room).emit "chat:#{room}", _.extend msg, you: true
 
 					body = msg.body
 					try # not to use the entire armored PGP when we're scanning body for webshot-able URLs

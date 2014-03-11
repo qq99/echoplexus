@@ -1301,6 +1301,15 @@ hr {
 		> span {
 			display: inline-block;
 		}
+		.transmitting {
+			width: 10px;
+			height: 10px;
+			margin-right: 8px;
+			display: none;
+		}
+		.transmitting.active {
+			display: inline-block;
+		}
 		> .github-nickname {
 			display: none;
 			font-size: 1.2em;

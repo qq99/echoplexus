@@ -602,6 +602,17 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     window.events.on "private:#{@channelName}", @channelIsPrivate, this
 
+    window.events.on "local_render:#{@channelName}", (data) =>
+      @chatLog.renderChatMessage @chatLog.createChatMessage(data)
+
+    window.events.on "echo_received:#{@channelName}", (msg) =>
+      message = @chatLog.createChatMessage(msg)
+
+      body = message.get("body")
+      @scrollback.replace body, "/edit ##{message.get("mID")} #{body}" # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
+      @persistentLog.add msg
+      @chatLog.replaceChatMessage message, true
+
     window.events.on "chat:broadcast", (data) ->
       @me.speak
         body: data.body

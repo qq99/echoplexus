@@ -20,7 +20,10 @@ module.exports = (grunt) ->
         src: "app/index.html"
 
       sass:
-        src: "sass/**.scss"
+        src: [
+          "sass/**.scss"
+          "sass/ui/**.scss"
+        ]
 
       js:
         vendor: [

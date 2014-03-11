@@ -282,7 +282,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     else if msg.directed_to
       @socket.emit "directed_message:#{room}", msg
     else # there's no direction, broadcast it
-      @socket.emit "chat:#{room}", msg
+      @socket.emit "chat:#{room}", msg, (echo) ->
+        window.events.trigger "echo_received:#{room}", echo
 
   setPrivate: (msg) ->
     msg.type = "private"
@@ -293,6 +294,17 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     msg.targetNick = @getTargetNick(msg)
     encrypt = @pgp_settings.get("encrypt?")
     sign    = @pgp_settings.get("sign?")
+    room    = @get('room')
+
+    msg.echo_id = parseInt(Math.random() * 100000, 10)
+
+    window.events.trigger "local_render:#{room}", _.extend({}, msg, {
+      timestamp: new Date(),
+      color: @get("color").toRGB(),
+      you: true,
+      sending: true,
+      nickname: @getNick()
+    })
 
     if sign and !encrypt
       @signMessage(msg)

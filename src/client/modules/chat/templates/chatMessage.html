@@ -2,6 +2,9 @@
 	<a name="<%- room + mID %>"></a>
 	<div data-timestamp="<%- timestamp %>" class="time"></div>
 	<div class="nick <%- nickClasses %>" style="color: <%- color %>">
+		<div class="transmitting">
+			<span class="csspinner double-up"></span>
+		</div>
 		<% if (is_encrypted) { %>
 		<span class="fa-stack" title="Shared secret encrypted">
 			<i class="fa fa-key fa-stack-1x encrypted"></i>

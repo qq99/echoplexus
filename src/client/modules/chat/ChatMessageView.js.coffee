@@ -44,6 +44,16 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
           else
             return 'body-text-area'
       }]
+    ".transmitting":
+      attributes: [{
+        name: 'class'
+        observe: 'sending'
+        onGet: (val) ->
+          if val
+            return 'transmitting active'
+          else
+            return 'transmitting'
+      }]
 
   events:
     "click .btn.toggle-armored": "toggleArmored"
@@ -130,10 +140,11 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       chatMessageClasses += msg.get("class")  if msg.get("class")
 
       # special styling of nickname depending on who you are:
-      # if it's me!
       chatMessageClasses += " me "  if msg.get("you")
+
       @$el.html(@chatMessageTemplate(
         is_encrypted: !!msg.get("was_encrypted")
+        is_sending: !!msg.get("sending")
         pgp_encrypted: msg.get("pgp_encrypted")
         pgp_armored: msg.get("pgp_armored") || null
         mID: msg.get("mID")
