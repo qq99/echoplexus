@@ -573,12 +573,9 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					mID = msg.mID
 
 					socket.in(room).broadcast.emit "chat:#{room}", msg
-					setTimeout ->
-						ack?(_.extend(msg, {
-							echo_id: echo_id
-						}))
-					, 8000
-					# socket.in(room).emit "chat:#{room}", _.extend msg, you: true
+					ack?(_.extend(msg, {
+						echo_id: echo_id
+					}))
 
 					body = msg.body
 					try # not to use the entire armored PGP when we're scanning body for webshot-able URLs

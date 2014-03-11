@@ -610,6 +610,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
       body = message.get("body")
       @scrollback.replace body, "/edit ##{message.get("mID")} #{body}" # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
+
+      delete msg.echo_id # don't need to hold onto this
       @persistentLog.add msg
       @chatLog.replaceChatMessage message, true
 
