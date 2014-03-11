@@ -167,6 +167,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     peers = @get('peers')
     destination_peers = []
     for peer in peers.models
+      console.log peer.is(this)
+      continue if peer.is(this) # don't send to self
       pubkey = peer.get("armored_public_key")
       fingerprint = peer.getPGPFingerprint()
       peernick = peer.getNick(@get("cryptokey"))
@@ -211,16 +213,17 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     for peer in destination_peers
 
-      message =
-        body: @pgp_settings.encrypt peer.armored_public_key, msg.body
-        directed_to:
-          "fingerprint": peer.fingerprint
-        fingerprint: my_fingerprint
-        pgp_encrypted: true
-        pgp_signed: false
-        targetNick: msg.targetNick
+      @pgp_settings.encrypt peer.armored_public_key, msg.body, (err, encrypted_body) =>
+        message =
+          body: encrypted_body
+          directed_to:
+            "fingerprint": peer.fingerprint
+          fingerprint: my_fingerprint
+          pgp_encrypted: true
+          pgp_signed: false
+          targetNick: msg.targetNick
 
-      @wrapMessage(message)
+        @wrapMessage(message)
 
   getCiphernicksMatching: (toUsername) ->
     peers = @get('peers')

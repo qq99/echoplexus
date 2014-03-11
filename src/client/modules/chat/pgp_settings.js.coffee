@@ -107,7 +107,10 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
   sign: (message, callback) ->
     @usablePrivateKey '', (usablePrivateKey) ->
       openpgp.signClearMessage usablePrivateKey, message, (err, signed) ->
-        callback(signed)
+        if err
+          console.warn err
+        else
+          callback(signed)
 
   enabled: ->
     return !!@get('armored_keypair')
@@ -135,11 +138,18 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
     dearmored_pubs = openpgp.key.readArmored(armored_public_key)
     dearmored_pubs.keys
 
-  encrypt: (pubkey, message) ->
-    openpgp.encryptMessage(@usablePublicKey(pubkey), message)
+  encrypt: (pubkey, message, callback) ->
+    openpgp.encryptMessage @usablePublicKey(pubkey), message, (err, encrypted) ->
+      if err
+        console.warn err
+      else
+        callback(encrypted)
 
   encryptAndSign: (pubkey, message, callback) ->
     @usablePrivateKey '', (usablePrivateKey) =>
       pub = @usablePublicKey(pubkey)
-      signed_encrypted = openpgp.signAndEncryptMessage(pub, usablePrivateKey[0], message)
-      callback(signed_encrypted)
+      openpgp.signAndEncryptMessage pub, usablePrivateKey[0], message, (err, signed_encrypted) ->
+        if err
+          console.warn err
+        else
+          callback(signed_encrypted)
