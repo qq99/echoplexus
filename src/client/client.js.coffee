@@ -265,7 +265,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
       # direct the message properly:
       if msg.directed_to['fingerprint'] # we have enough info to direct it
-        @socket.emit "directed_message:#{room}", msg
+        @socket.emit "directed_message:#{room}", msg, @receivedEcho
       else if cryptokey
         ciphernicks = @getCiphernicksMatching(targetNick)
         for ciphernick in ciphernicks
@@ -275,20 +275,22 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
           delete message.targetNick # don't need this anymore
 
           message.directed_to["ciphernick"] = ciphernick
-          @socket.emit "directed_message:#{room}", message
+          @socket.emit "directed_message:#{room}", message, @receivedEcho
       else
         msg.directed_to["nick"] = targetNick
-        @socket.emit "directed_message:#{room}", msg
+        @socket.emit "directed_message:#{room}", msg, @receivedEcho
     else if msg.directed_to
-      @socket.emit "directed_message:#{room}", msg
+      @socket.emit "directed_message:#{room}", msg, @receivedEcho
     else # there's no direction, broadcast it
-      @socket.emit "chat:#{room}", msg, (echo) ->
-        window.events.trigger "echo_received:#{room}", echo
+      @socket.emit "chat:#{room}", msg, @receivedEcho
+
+  receivedEcho: (echo) ->
+    room = @get('room')
+    window.events.trigger "echo_received:#{room}", echo
 
   setPrivate: (msg) ->
     msg.type = "private"
     msg.class = "private"
-    msg.ack_requested = true
 
   enunciate: (msg) ->
     msg.targetNick = @getTargetNick(msg)

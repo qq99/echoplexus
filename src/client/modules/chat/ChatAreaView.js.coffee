@@ -149,8 +149,14 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
   replaceChatMessage: (msg, is_echo) ->
     if is_echo
-      toReplace = @messages.findWhere({echo_id: msg.get("echo_id")}).set('sending', false).clear({silent: true}).set(msg.attributes)
-      console.log toReplace
+      # toReplace = @messages.findWhere({echo_id: msg.get("echo_id")}).set('sending', false).clear({silent: true}).set(msg.attributes)
+
+      toReplace = @messages.findWhere({echo_id: msg.get("echo_id")})
+      @messages.remove(toReplace)
+      toReplace.view.$el.remove()
+
+      @renderChatMessage(msg)
+
     else
       @messages.add(msg, {merge: true})
 

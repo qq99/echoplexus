@@ -485,13 +485,16 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				idle: false
 				idleSince: null
 
-		"directed_message": (namespace, socket, channel, client, data) ->
+		"directed_message": (namespace, socket, channel, client, data, ack) ->
 			room = channel.get("name")
 
 			data.color          = client.get("color").toRGB()
 			data.nickname       = client.get("nick")
 			data.encrypted_nick = client.get("encrypted_nick")
 			data.timestamp      = Number(new Date())
+
+			echo_id             = data.echo_id
+			delete data.echo_id
 
 			# O(n^2) in worst possible case
 			for c in channel.clients.models
@@ -511,12 +514,11 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				if !fail
 					c.socketRef.emit("private_message:#{room}", data)
 
-			console.log "Ack? #{data.ack_requested}"
-			# sometimes we want a copy of the message we send out
-			if data.ack_requested
-				socket.in(room).emit("private_message:#{room}", _.extend(data, {
-					you: true
+			setTimeout ->
+				ack?(_.extend(data, {
+					echo_id: echo_id
 				}))
+			, 3000
 
 		"user:set_color": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
