@@ -125,7 +125,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
 
       # special styling of chat
       chatMessageClasses += "highlight "  if msg.get("directedAtMe")
-      chatMessageClasses += "fromlog" if msg.get("from_log")
+      chatMessageClasses += "fromlog " if msg.get("from_log")
       nickClasses += "system "  if msg.get("type") is "SYSTEM"
       chatMessageClasses += msg.get("class")  if msg.get("class")
 
