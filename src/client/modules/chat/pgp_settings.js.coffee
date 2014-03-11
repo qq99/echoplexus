@@ -106,8 +106,8 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
 
   sign: (message, callback) ->
     @usablePrivateKey '', (usablePrivateKey) ->
-      signed = openpgp.signClearMessage(usablePrivateKey, message)
-      callback(signed)
+      openpgp.signClearMessage usablePrivateKey, message, (err, signed) ->
+        callback(signed)
 
   enabled: ->
     return !!@get('armored_keypair')
