@@ -17,7 +17,7 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
     "click .youtube.imageThumbnail": "showYoutubeVideo"
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     _.extend this, opts
 
     throw "No room supplied for MediaLog" unless opts.room
@@ -31,7 +31,7 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
         window.location.protocol + "//youtube.com/v/" + vID
 
       initialize: ->
-        _.bindAll this
+        _.bindAll.apply(_, [this].concat(_.functions(this)))
         @view = new Backbone.View
         @sequence++ # when things are added at EXACTLY the same time, we'll add them in the order they are sent
         @render()

@@ -18,4 +18,4 @@ module.exports.PermissionModel = class PermissionModel extends Backbone.Model
 
   canBestow: null # eventually a map of bestowable permissions
   initialize: (modelAttributes, options) ->
-    _.bindAll this
+

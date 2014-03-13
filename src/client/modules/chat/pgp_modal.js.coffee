@@ -31,7 +31,7 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
     "click .stop-using": "clear"
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     _.extend this, opts
 
     my_keys = {}

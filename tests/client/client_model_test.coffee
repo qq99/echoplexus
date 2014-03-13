@@ -250,7 +250,6 @@ describe 'ClientModel', ->
       assert.equal "@Alice hi all", msg.body
       assert.equal "private", msg.class
       assert.equal "private", msg.type
-      assert.equal true, msg.ack_requested
       assert !msg.encrypted
       # routes to the right guy?
       assert.deepEqual {"nick": "Alice"}, @fakeSocket.emit.args[0][1].directed_to
@@ -297,7 +296,6 @@ describe 'ClientModel', ->
         assert.equal "-", msg.body
         assert.equal "private", msg.class
         assert.equal "private", msg.type
-        assert.equal true, msg.ack_requested
         assert msg.encrypted.ct
         assert msg.encrypted.iv
         assert msg.encrypted.s
@@ -317,7 +315,6 @@ describe 'ClientModel', ->
         assert.equal "-", msg.body
         assert.equal "private", msg.class
         assert.equal "private", msg.type
-        assert.equal true, msg.ack_requested
         assert msg.encrypted.ct
         assert msg.encrypted.iv
         assert msg.encrypted.s
@@ -329,7 +326,6 @@ describe 'ClientModel', ->
         assert.equal "-", msg.body
         assert.equal "private", msg.class
         assert.equal "private", msg.type
-        assert.equal true, msg.ack_requested
         assert msg.encrypted.ct
         assert msg.encrypted.iv
         assert msg.encrypted.s
@@ -344,7 +340,7 @@ describe 'ClientModel', ->
               return true if key == "sign?"
               return false
             prompt: (cb) -> cb?()
-            sign: (message, cb) -> cb?("signed~~~message")
+            sign: stub().callsArgWith 1, null, "signed~~~message"
 
         it 'should sign the message', ->
           signMessage = stub(@subject, 'signMessage')
@@ -425,7 +421,7 @@ describe 'ClientModel', ->
               return true if key == "encrypt?"
               return false
             prompt: (cb) -> cb?()
-            encrypt: stub().returns "encrypted~~~message"
+            encrypt: stub().callsArgWith 2, null, "encrypted~~~message"
 
         it 'should encrypt the message, sending it directed_to the fingerprints we trust', ->
           @subject.getPGPPeers = ->
@@ -504,7 +500,7 @@ describe 'ClientModel', ->
               return true if key == "sign?"
               return false
             prompt: (cb) -> cb?()
-            encryptAndSign: (peer_armored_public_key, msg_body, cb) -> cb?('signed~~~encrypted')
+            encryptAndSign: stub().callsArgWith 2, null, 'signed~~~encrypted'
 
         it 'should encrypt and sign the message, sending it directed_to the fingerprints we trust', ->
           @subject.getPGPPeers = ->
@@ -583,7 +579,7 @@ describe 'ClientModel', ->
             return true if key == "sign?"
             return false
           prompt: (cb) -> cb?()
-          sign: (message, cb) -> cb?("signed~~~message")
+          sign: stub().callsArgWith 1, null, "signed~~~message"
 
       it 'should sign the message', ->
         signMessage = stub(@subject, 'signMessage')
@@ -634,7 +630,7 @@ describe 'ClientModel', ->
             return true if key == "encrypt?"
             return false
           prompt: (cb) -> cb?()
-          encrypt: stub().returns "encrypted~~~message"
+          encrypt: stub().callsArgWith 2, null, "encrypted~~~message"
 
       it 'should encrypt the message, sending it directed_to the fingerprints we trust', ->
         @subject.getPGPPeers = ->
@@ -706,7 +702,7 @@ describe 'ClientModel', ->
             return true if key == "sign?"
             return false
           prompt: (cb) -> cb?()
-          encryptAndSign: (peer_armored_public_key, msg_body, cb) -> cb?('signed~~~encrypted')
+          encryptAndSign: stub().callsArgWith 2, null, 'signed~~~encrypted'
 
       it 'should encrypt and sign the message, sending it directed_to the fingerprints we trust', ->
         @subject.getPGPPeers = ->

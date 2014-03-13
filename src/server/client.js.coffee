@@ -29,7 +29,7 @@ module.exports.TokenBucket = class TokenBucket
 module.exports.ServerClient = class ServerClient extends Client
 
   initialize: ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     @on "change:identified", (data) =>
       @loadMetadata()
       @setIdentityToken (err) =>

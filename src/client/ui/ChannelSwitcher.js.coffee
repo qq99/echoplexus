@@ -22,7 +22,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
   modules: [ChatClient, CodeClient, DrawingClient, CallClient, InfoClient]
 
   initialize: ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
 
     @sortedChannelNames = []
     @channels           = {}

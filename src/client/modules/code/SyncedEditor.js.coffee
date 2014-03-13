@@ -8,7 +8,7 @@ module.exports.SyncedEditor = class SyncedEditor extends Backbone.View
   class: "syncedEditor"
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     throw "There was no editor supplied to SyncedEditor"  unless opts.hasOwnProperty("editor")
     throw "There was no room supplied to SyncedEditor"  unless opts.hasOwnProperty("room")
     @editor = opts.editor

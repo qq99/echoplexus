@@ -2,7 +2,7 @@ module.exports.TouchGestures = class TouchGestures extends Backbone.Model
 
   initialize: ->
     console.log 'initializing touch gestures'
-    _.bindAll(this);
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     @set 'switcherInactive', false
     @windowEl = $(window)[0]
     @$switcher = $("header")

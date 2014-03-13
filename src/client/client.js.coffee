@@ -79,7 +79,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     json
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
+
     if opts and opts.color
       @set "color", new exports.ColorModel(opts.color)
     else
@@ -203,6 +204,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
               pgp_encrypted: true
               pgp_signed: true
               targetNick: msg.targetNick
+              echo_id: msg.echo_id
 
             @wrapMessage(message)
 
@@ -222,6 +224,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
           pgp_encrypted: true
           pgp_signed: false
           targetNick: msg.targetNick
+          echo_id: msg.echo_id
 
         @wrapMessage(message)
 
@@ -285,11 +288,15 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     else if msg.directed_to
       @socket.emit "directed_message:#{room}", msg, @receivedEcho
     else # there's no direction, broadcast it
-      @socket.emit "chat:#{room}", msg, @receivedEcho
+      @socket.emit "chat:#{room}", msg, @receivedEchoOverwrite
+
+  receivedEchoOverwrite: (echo) ->
+    room = @get('room')
+    window.events.trigger "echo_received:#{room}", echo, true
 
   receivedEcho: (echo) ->
     room = @get('room')
-    window.events.trigger "echo_received:#{room}", echo
+    window.events.trigger "echo_received:#{room}", echo, false
 
   setPrivate: (msg) ->
     msg.type = "private"
@@ -301,7 +308,10 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     sign    = @pgp_settings.get("sign?")
     room    = @get('room')
 
-    msg.echo_id = parseInt(Math.random() * 100000, 10)
+    msg.echo_id       = parseInt(Math.random() * 100000, 10)
+    msg.pgp_signed    = sign
+    msg.pgp_encrypted = encrypt
+    msg.was_encrypted = encrypt
 
     window.events.trigger "local_render:#{room}", _.extend({}, msg, {
       timestamp: new Date(),

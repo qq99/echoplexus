@@ -30,7 +30,7 @@ module.exports.CryptoModal = class CryptoModal extends Backbone.View
     "click .cancel": "remove"
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     _.extend this, opts
     @$el.html @template(opts)
     $("body").append @$el
@@ -62,7 +62,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   fileUploadTemplate: fileUploadTemplate
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     @hidden = true
     @config = opts.config
     @module = opts.module
@@ -603,17 +603,21 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     window.events.on "private:#{@channelName}", @channelIsPrivate, this
 
     window.events.on "local_render:#{@channelName}", (data) =>
-      @chatLog.renderChatMessage @chatLog.createChatMessage(data)
+      message = @chatLog.createChatMessage(data, {unwrapped: true})
+      @chatLog.renderChatMessage message
 
-    window.events.on "echo_received:#{@channelName}", (msg) =>
-      message = @chatLog.createChatMessage(msg)
+    window.events.on "echo_received:#{@channelName}", (msg, overwrite) =>
+      if overwrite
+        message = @chatLog.createChatMessage(msg)
 
-      body = message.get("body")
-      @scrollback.replace body, "/edit ##{message.get("mID")} #{body}" # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
+        body = message.get("body")
+        @scrollback.replace body, "/edit ##{message.get("mID")} #{body}" # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
 
-      delete msg.echo_id # don't need to hold onto this
-      @persistentLog.add msg
-      @chatLog.replaceChatMessage message, true
+        delete msg.echo_id # don't need to hold onto this
+        @persistentLog.add msg
+        @chatLog.replaceChatMessage message, true
+      else
+        @chatLog.markReceipt msg.echo_id
 
     window.events.on "chat:broadcast", (data) ->
       @me.speak

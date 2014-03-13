@@ -7,7 +7,7 @@ module.exports.MewlNotification = class MewlNotification extends Backbone.View
   className: "growl"
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
 
     # defaults
     @position = "bottom right"

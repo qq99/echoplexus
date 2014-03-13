@@ -5,7 +5,7 @@ Mewl                    = require("../../ui/Mewl.js.coffee").MewlNotification
 module.exports.InfoClient = class InfoClient extends Backbone.View
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
 
     @config = opts.config
     @module = opts.module

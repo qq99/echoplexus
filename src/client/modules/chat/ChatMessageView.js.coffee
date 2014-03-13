@@ -63,7 +63,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
     "click .webshot-badge .toggle": "toggleBadge"
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     _.extend this, opts
 
 

@@ -10,7 +10,7 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
   template: drawingTemplate
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
 
     #The current canvas style
     @style =

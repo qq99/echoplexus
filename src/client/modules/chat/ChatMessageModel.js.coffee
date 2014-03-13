@@ -7,7 +7,7 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
   idAttribute: 'mID'
 
   initialize: (model, opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     _.extend this, opts
 
     @decryptSharedSecret()

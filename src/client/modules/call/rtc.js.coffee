@@ -146,7 +146,7 @@ module.exports.RTC = class RTC extends Backbone.Model
 
   initialize: (opts) ->
     self = this
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     _.extend this, opts
     @peerConnections = {}
     @localStreams = []

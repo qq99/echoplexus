@@ -102,7 +102,9 @@ describe 'ChatClient', ->
           'beginEdit',
           'edit:commit',
           'in_call',
-          'left_call'
+          'left_call',
+          'echo_received',
+          'local_render'
         ]
         nonNamespacedEvents = [
           'unidle',

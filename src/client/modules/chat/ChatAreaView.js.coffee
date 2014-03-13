@@ -37,7 +37,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     "click .chatMessage-edit": "beginEdit"
 
   initialize: (options) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
 
     throw "No room supplied for ChatAreaView" unless options.room
 
@@ -149,8 +149,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
   replaceChatMessage: (msg, is_echo) ->
     if is_echo
-      # toReplace = @messages.findWhere({echo_id: msg.get("echo_id")}).set('sending', false).clear({silent: true}).set(msg.attributes)
-
       toReplace = @messages.findWhere({echo_id: msg.get("echo_id")})
       @messages.remove(toReplace)
       toReplace.view.$el.remove()
@@ -160,16 +158,19 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     else
       @messages.add(msg, {merge: true})
 
+  markReceipt: (echo_id) ->
+    @messages.findWhere({echo_id: echo_id}).set("sending", false)
+
   renderWebshot: (msg) ->
     message = @messages.findWhere({mID: msg.from_mID})
     message?.view.renderWebshot(msg)
 
-  createChatMessage: (msg) ->
-    message = new ChatMessage(msg, {
+  createChatMessage: (msg, opts = {}) ->
+    message = new ChatMessage(msg, _.extend({
       me: @me
       parent: this
       room: @room
-    })
+    }, opts))
 
   renderChatMessage: (msg, opts) ->
     chatMessageView = new ChatMessageView

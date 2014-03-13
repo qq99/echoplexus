@@ -9,7 +9,7 @@ PGPPassphraseModal = class PGPPassphraseModal extends Backbone.View
     "click .close-button": "destroy"
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     _.extend this, opts
 
     @$el.html @template()
@@ -40,7 +40,7 @@ PGPPassphraseModal = class PGPPassphraseModal extends Backbone.View
 module.exports.PGPSettings = class PGPSettings extends Backbone.Model
   initialize: (opts) ->
     # requires channelName
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     _.extend this, opts
 
     this.on "change:armored_keypair", (model, armored_keypair) ->

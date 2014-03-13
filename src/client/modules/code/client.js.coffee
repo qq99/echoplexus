@@ -8,7 +8,7 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
   htmlEditorTemplate: jsCodeReplTemplate
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     @channel = opts.channel
     @channelName = opts.room
     @config = opts.config

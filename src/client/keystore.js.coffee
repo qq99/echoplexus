@@ -9,7 +9,7 @@ module.exports.Keystore = class Keystore
   #   - last_used_in (channel)
 
   constructor: (opts) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     @keystore = localStorage.getObj("keystore") || {}
 
   add: (fingerprint, armored_key, armored_private_key, nick, channel) ->

@@ -23,7 +23,7 @@ module.exports.ServerChannelModel = class ServerChannelModel extends ChannelMode
     hasOwner: null # no one can become an owner until the status of this is resolved
 
   initialize: ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     @clients = new Clients()
     @replay = []
     @call = {}
@@ -303,7 +303,7 @@ module.exports.ServerChannelModel = class ServerChannelModel extends ChannelMode
 
 module.exports.ChannelsCollection = class ChannelsCollection extends Backbone.Collection
   initialize: (instances, options) ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     _.extend this, options
 
     # since we're also the authentication provider, we must

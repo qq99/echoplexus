@@ -3,7 +3,7 @@ PermissionModel   = require("../client/PermissionModel.coffee").PermissionModel
 
 module.exports.ClientPermissionModel = class ClientPermissionModel extends PermissionModel
   initialize: ->
-    _.bindAll this
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
     super
 
   upgradeToOperator: ->

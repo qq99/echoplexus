@@ -492,7 +492,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			data.nickname       = client.get("nick")
 			data.encrypted_nick = client.get("encrypted_nick")
 			data.timestamp      = Number(new Date())
-
 			echo_id             = data.echo_id
 			delete data.echo_id
 
@@ -514,11 +513,9 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				if !fail
 					c.socketRef.emit("private_message:#{room}", data)
 
-			setTimeout ->
-				ack?(_.extend(data, {
-					echo_id: echo_id
-				}))
-			, 3000
+			ack?(_.extend(data, {
+				echo_id: echo_id
+			}))
 
 		"user:set_color": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")

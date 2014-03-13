@@ -17,7 +17,8 @@ module.exports.CallClient = class CallClient extends Backbone.View
     "click .mute-video": "toggleMuteVideo"
 
   initialize: (opts) ->
-    _.bindAll this
+    _.bindAll this, "toggleMuteAudio", "toggleMuteVideo", "showError", "joinCall", "gotUserMedia", "leaveCall",
+    "showCallInProgress", "showNoCallInProgress", "listen", "disconnect", "kill", "render", "getNumPerRow", "subdivideVideos"
     @channel = opts.channel
     @channelName = opts.room
     @config = opts.config
