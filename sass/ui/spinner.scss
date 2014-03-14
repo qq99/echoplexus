@@ -20,6 +20,9 @@ $base-color: #555;
 /* BASE */
 .csspinner {
   position: relative;
+  width: 0;
+  height: 0;
+  display: block;
 }
 .csspinner:before {
   content: "";

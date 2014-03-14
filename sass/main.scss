@@ -1306,6 +1306,7 @@ hr {
 			height: 10px;
 			margin-right: 8px;
 			display: none;
+			position: relative;
 			&.active {
 				display: inline-block;
 			}

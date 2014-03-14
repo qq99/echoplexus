@@ -127,8 +127,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
   getNick: (cryptoKey) ->
     nick = @get("nick")
     encrypted_nick = @get("encrypted_nick")
-    if typeof encrypted_nick isnt "undefined"
-      if (typeof cryptoKey isnt "undefined") and (cryptoKey isnt "")
+    if encrypted_nick
+      if cryptoKey
         nick = cryptoWrapper.decryptObject(encrypted_nick, cryptoKey)
       else
         nick = encrypted_nick.ct
@@ -139,6 +139,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
   setNick: (nick, room, ack) ->
     $.cookie "nickname:#{room}", nick, window.COOKIE_OPTIONS
+    @set 'plaintext_nick', nick
     if cryptokey = @get('cryptokey')
       @set "encrypted_nick", cryptoWrapper.encryptObject(nick, cryptokey),
         silent: true
@@ -168,7 +169,6 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     peers = @get('peers')
     destination_peers = []
     for peer in peers.models
-      console.log peer.is(this)
       continue if peer.is(this) # don't send to self
       pubkey = peer.get("armored_public_key")
       fingerprint = peer.getPGPFingerprint()
@@ -320,7 +320,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       color: @get("color").toRGB(),
       you: true,
       sending: true,
-      nickname: @getNick(),
+      nickname: @get('plaintext_nick'),
       store_local_render: !!msg.targetNick || encrypt
       pgp_verified: local_pgp_verified
       fingerprint: @pgp_settings.get("fingerprint")

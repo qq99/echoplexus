@@ -45,8 +45,6 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
       catch e
         @set("body", @get("encrypted").ct)
 
-    #console.log body, nickname
-
   unwrapSigned: (msg) ->
     return if @get('unwrapped')
     msg = this
@@ -69,7 +67,6 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
 
       if verification.signatures?[0].valid
         msg.set "pgp_verified", "signed"
-        msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
       else
         msg.set "pgp_verified", "signature_failure"
 
@@ -103,7 +100,6 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
 
         if decrypted.signatures?[0].valid
           msg.set "pgp_verified", "signed"
-          msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
           @set 'unwrapped', true
         else
           msg.set "pgp_verified", "signature_failure"
@@ -128,7 +124,6 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
 
         msg.set "body", decrypted
         msg.set "hidden_body", false
-        msg.set "trust_status", KEYSTORE.trust_status(msg.get("fingerprint"))
         @set 'unwrapped', true
     catch e
       msg.set "hidden_body", true
@@ -149,6 +144,9 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
       @unwrapEncrypted()
     else if signed and encrypted
       @unwrapSignedAndEncrypted()
+
+    if signed || encrypted
+      @set "trust_status", KEYSTORE.trust_status(@get("fingerprint"))
 
   extract_links: ->
     body = @get('body')
