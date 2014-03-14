@@ -500,7 +500,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				for key, value of data.directed_to
 					fail = false
 					compare_to = c.get(key) # the client value we're looking at
-					console.log "Comparing #{compare_to} to #{value}"
+					#console.log "Comparing #{compare_to} to #{value}"
 					if value instanceof Array # can be a single message directed to a bunch of people
 						for item in value
 							if compare_to != item
@@ -508,7 +508,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					else if compare_to != value # or a single message directed to a single person
 						fail = true
 
-				console.log "Fail = #{fail}"
+				#console.log "Fail = #{fail}"
 
 				if !fail
 					c.socketRef.emit("private_message:#{room}", data)
