@@ -308,17 +308,17 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     sign    = @pgp_settings.get("sign?")
     room    = @get('room')
 
-    msg.echo_id       = parseInt(Math.random() * 100000, 10)
-    msg.pgp_signed    = sign
-    msg.pgp_encrypted = encrypt
-    msg.was_encrypted = encrypt
+    msg.echo_id            = parseInt(Math.random() * 100000, 10)
+    msg.pgp_signed         = sign
+    msg.pgp_encrypted      = encrypt
 
     window.events.trigger "local_render:#{room}", _.extend({}, msg, {
-      timestamp: new Date(),
+      timestamp: Number(new Date()),
       color: @get("color").toRGB(),
       you: true,
       sending: true,
-      nickname: @getNick()
+      nickname: @getNick(),
+      store_local_render: !!msg.targetNick || encrypt
     })
 
     if sign and !encrypt

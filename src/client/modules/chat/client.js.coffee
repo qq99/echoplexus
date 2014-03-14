@@ -603,8 +603,11 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     window.events.on "private:#{@channelName}", @channelIsPrivate, this
 
     window.events.on "local_render:#{@channelName}", (data) =>
-      message = @chatLog.createChatMessage(data, {unwrapped: true})
+      _.extend data, {unwrapped: true}
+      message = @chatLog.createChatMessage data
       @chatLog.renderChatMessage message
+      if (data.store_local_render) # we might store some of these pre-renders locally, when we only get receipts
+        @persistentLog.add _.extend(data, {sending: false})
 
     window.events.on "echo_received:#{@channelName}", (msg, overwrite) =>
       if overwrite

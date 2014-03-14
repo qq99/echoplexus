@@ -166,11 +166,11 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     message?.view.renderWebshot(msg)
 
   createChatMessage: (msg, opts = {}) ->
-    message = new ChatMessage(msg, _.extend({
+    message = new ChatMessage(msg, {
       me: @me
       parent: this
       room: @room
-    }, opts))
+    })
 
   renderChatMessage: (msg, opts) ->
     chatMessageView = new ChatMessageView
