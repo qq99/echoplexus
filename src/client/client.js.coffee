@@ -304,16 +304,17 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
   enunciate: (msg) ->
     msg.targetNick = @getTargetNick(msg)
-    encrypt = @pgp_settings.get("encrypt?")
-    sign    = @pgp_settings.get("sign?")
-    room    = @get('room')
+    encrypt        = @pgp_settings.get("encrypt?")
+    sign           = @pgp_settings.get("sign?")
+    room           = @get('room')
+    using_pgp      = @pgp_settings.get("armored_public_key")
 
     msg.echo_id            = parseInt(Math.random() * 100000, 10)
     msg.pgp_signed         = sign
     msg.pgp_encrypted      = encrypt
 
-    local_pgp_verified = "signed" if sign
-    local_pgp_verified = "not_signed" if !sign
+    local_pgp_verified = "signed" if sign and using_pgp
+    local_pgp_verified = "not_signed" if !sign and using_pgp
 
     window.events.trigger "local_render:#{room}", _.extend({}, msg, {
       timestamp: Number(new Date()),
