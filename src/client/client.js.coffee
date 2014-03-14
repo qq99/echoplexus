@@ -215,7 +215,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     for peer in destination_peers
 
-      @pgp_settings.encrypt peer.armored_public_key, msg.body, (err, encrypted_body) =>
+      @pgp_settings.encrypt peer.armored_public_key, msg.body, (encrypted_body) =>
         message =
           body: encrypted_body
           directed_to:
@@ -312,6 +312,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
     msg.pgp_signed         = sign
     msg.pgp_encrypted      = encrypt
 
+    local_pgp_verified = "signed" if sign
+    local_pgp_verified = "not_signed" if !sign
     window.events.trigger "local_render:#{room}", _.extend({}, msg, {
       timestamp: Number(new Date()),
       color: @get("color").toRGB(),
@@ -319,7 +321,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       sending: true,
       nickname: @getNick(),
       store_local_render: !!msg.targetNick || encrypt
-      pgp_verified: "signed" if sign
+      pgp_verified: local_pgp_verified
       fingerprint: @pgp_settings.get("fingerprint")
     })
 
