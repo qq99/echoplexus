@@ -319,6 +319,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       sending: true,
       nickname: @getNick(),
       store_local_render: !!msg.targetNick || encrypt
+      pgp_verified: "signed" if sign
+      fingerprint: @pgp_settings.get("fingerprint")
     })
 
     if sign and !encrypt
