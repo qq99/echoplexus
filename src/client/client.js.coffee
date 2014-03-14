@@ -314,6 +314,7 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
 
     local_pgp_verified = "signed" if sign
     local_pgp_verified = "not_signed" if !sign
+
     window.events.trigger "local_render:#{room}", _.extend({}, msg, {
       timestamp: Number(new Date()),
       color: @get("color").toRGB(),
@@ -323,6 +324,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       store_local_render: !!msg.targetNick || encrypt
       pgp_verified: local_pgp_verified
       fingerprint: @pgp_settings.get("fingerprint")
+      type: "private" if !!msg.targetNick
+      class: "private" if !!msg.targetNick
     })
 
     if sign and !encrypt
