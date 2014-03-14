@@ -45,9 +45,9 @@ If you have bower installed globally, you can run:
 
     $ bower install
 
-Otherwise, please run
+Otherwise, you should install it:
 
-    $ npm run-script bower
+    $ npm install -g bower
 
 ### Redis
 
