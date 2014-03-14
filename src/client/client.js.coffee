@@ -432,5 +432,5 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         socket.emit "add_github_webhook:#{room}",
           repoUrl: args
 
-    else
+    else if body.match(REGEXES.commands.private_message) or !body.match(REGEXES.commands.failed_command)
       @enunciate(msg)
