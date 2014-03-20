@@ -124,7 +124,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
 
   formatTimestamp: (time) ->
     # TODO: readd preferred time
-    humanTime = moment(time).fromNow()
+    humanTime = moment(time).max().fromNow()
 
   render: ->
     msg = @model
