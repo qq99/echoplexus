@@ -1,5 +1,8 @@
 pgpModalTemplate        = require("./templates/pgpModalTemplate.html")
 
+class PreviouslyUsedKey extends Backbone.Model
+
+
 module.exports.PGPModal = class PGPModal extends Backbone.View
   className: "backdrop"
   template: pgpModalTemplate
@@ -17,6 +20,17 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
         return value?.public
     ".pgp-user-id": "user_id"
     ".pgp-fingerprint": "fingerprint"
+    ".reusing-keys-section":
+      observe: "my_keys"
+      visible: -> @my_keys.length > 0
+    "#key-to-reuse": {
+      observe: "my_keys"
+      selectOptions: {
+        collection: -> @my_keys
+        labelPath: "label"
+        valuePath: "fingerprint"
+      }
+    }
 
   events:
     "click button.generate-keypair": -> @changeSection("generate-keypair")
@@ -34,16 +48,9 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
     _.bindAll.apply(_, [this].concat(_.functions(this)))
     _.extend this, opts
 
-    my_keys = {}
-    for key, val of KEYSTORE.list()
-      if val.armored_private_key
-        my_keys[key] = val
+    @getMyKeys()
 
-    @$el.html @template(_.extend(opts, {
-      my_keys: my_keys
-    }))
-
-
+    @$el.html @template()
 
     if @pgp_settings.get("armored_keypair")
       @changeSection 'pgp-options'
@@ -51,6 +58,18 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
     this.stickit(@pgp_settings)
 
     $("body").append @$el
+
+  getMyKeys: ->
+    @my_keys = []
+    @pgp_settings.set("my_keys", [])
+    for key, val of KEYSTORE.list()
+      if val.armored_private_key
+        @my_keys.push {
+          label: "#{key} (used " + moment(val.last_used_at).fromNow() + " in #{val.last_used_in} as #{val.last_used_by})"
+          fingerprint: key
+        }
+
+    @pgp_settings.set("my_keys", @my_keys)
 
   clear: ->
     @pgp_settings.clear()
@@ -66,6 +85,7 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
 
   destroyKeypair: ->
     @pgp_settings.destroy()
+    @getMyKeys() # update list of previously used keys
     @changeSection("intro")
 
   generateKeypair: ->

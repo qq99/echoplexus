@@ -1,6 +1,6 @@
 For 0.2.4:
-- [ ] proper display of acknowledgements if requested, not just the server piping back what you sent
-- [ ] locally render a chat message instead of relying on server to pipe it back to us to give the illusion of speed
+- [x] proper display of acknowledgements if requested, not just the server piping back what you sent
+- [x] locally render a chat message instead of relying on server to pipe it back to us to give the illusion of speed
 - [x] properly route chat messages from start to finish, wrapping where applicable, sending PM where applicable
 - [x] inline edit in various modes
 - [x] regular edit in various modes, tests to prove it's not dropping previous privacy levels
