@@ -163,6 +163,9 @@ module.exports = (grunt) ->
       production:
         command: 'supervisor --poll-interval 60000 -w . src/server/main.coffee'
         stdout: true
+      dependencies:
+        command: 'npm install; bower install;'
+        stdout: true
 
     uglify:
       options:
@@ -192,5 +195,5 @@ module.exports = (grunt) ->
 
   # creating workflows
   grunt.registerTask "default", ["sass:dist", "cssmin", "browserify", "concat_sourcemap", "copy", "watch"]
-  grunt.registerTask "build", ["clean", "sass:dist", "cssmin", "browserify", "concat_sourcemap", "uglify", "copy"]
+  grunt.registerTask "build", ["clean", "exec:dependencies", "sass:dist", "cssmin", "browserify", "concat_sourcemap", "uglify", "copy"]
   # grunt.registerTask "prodsim", ["build", "server", "open", "watch"]
