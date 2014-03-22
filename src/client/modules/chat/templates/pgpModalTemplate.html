@@ -43,18 +43,17 @@
     <div class="field">
       <label for="pgp-name">Name:</label>
       <label for="pgp-name" class="description">optional</label>
-      <input id="pgp-name" type="text">
+      <input id="pgp-name" type="text" placeholder="Optional human name">
     </div>
     <div class="field">
       <label for="pgp-email">Email:</label>
       <label for="pgp-email" class="description">optional</label>
-      <input id="pgp-email" type="text">
+      <input id="pgp-email" type="text" placeholder="Optional human email">
     </div>
     <div class="field">
       <label for="pgp-passphrase-challenge">Passphrase:</label>
       <label for="pgp-passphrase-challenge" class="description">optional for short-lived ephemeral identities</label>
-      <input id="pgp-passphrase-challenge" type="password">
-      <p>This will require your passphrase to sign, encrypt, and decrypt messages (once per session).</p>
+      <input id="pgp-passphrase-challenge" type="password" placeholder="Optional passphrase required to unlock your keypair">
     </div>
     <div class="field">
       <p>Name and email fields are always publicly visible!  They can strengthen your identity, but weaken your anonymity.</p>
