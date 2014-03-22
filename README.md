@@ -1,4 +1,4 @@
-[echoplexus](https://echoplex.us) (v0.2.3)
+[echoplexus](https://echoplex.us) (v0.2.4)
 ==================
 
 [![Stories in Ready](https://badge.waffle.io/qq99/echoplexus.png)](http://waffle.io/qq99/echoplexus)
@@ -15,17 +15,7 @@ Join the developer chat @ [chat.echoplex.us/echodev](https://chat.echoplex.us/ec
 In a nutshell
 -------------
 
-Echoplexus is an anonymous, web-based, IRC-like chatting platform that makes its best effort to respect your privacy.  It allows you to create public or private channels.  You can secure a pseudonym for linkable anonymity (think: `/msg nickserv register ____`.  You can code and draw together in real time.  **As of v0.2.0, you can make Peer2Peer video and voice calls with the people in your channel.**
-
-Future Goals
-------------
-
-- Peer2Peer file transfer via WebRTC
-- Peer2Peer chat, boostrapped by Echoplexus (to facilitate off-the-record communication)
-- End2End encryption
-- Increased selection of languages for the real-time collaborative REPL
-
-Be sure to check out the planned [enhancements](https://github.com/qq99/echoplexus/issues?labels=enhancement&milestone=&page=1&state=open "Planned Enhancements")
+Echoplexus is an anonymous, web-based, IRC-like chatting platform that makes its best effort to respect your privacy.  It allows you to create public or private channels.  You can secure a pseudonym for linkable anonymity, and [secure it with PGP](https://blog.echoplex.us/2014/03/05/echoplexus-and-pgp/).  You can code and draw together in real time.  You can make Peer2Peer video and voice calls with the people in your channel.
 
 What is it?
 -----------
@@ -64,8 +54,6 @@ Currently Supported Commands:
 - `/topic [topic string]`: Set the topic of conversation for the channel (the message that sits visible at all times at the top)
 - `/broadcast [a chat message]`: Send the message to every channels that you're connected to.  Alias: `/bc`
 - `/nick [your_nickname]`: Changes your name from Anonymous; this preference is stored in a cookie on a per channel basis
-- `/register [some_password]`: Facilitates linkable anonymity; people talking to you yesterday can rest assured you're the same person today (and not an impersonator trying to steal your nickname) by registering and identifying.
-- `/identify [your_password]`: Assume command of your nickname, and get a green lock icon beside it (signifying to others that you are identified).
 - `/private [channel_password]`: Makes a channel private.  Only those with the password may enter it.
 - `/public`: Make the private channel a public channel.
 - `/whisper [nickname]`: Send a private message that is visible to anybody with the nickname you've supplied.  Aliases: `/w`, `/tell`, `/t`, `/pm`.  *Pro-tip:* Press "ctrl+r" to quick-reply to the last person who has whispered you.
@@ -125,24 +113,34 @@ Security
 
 *echoplexus is not completely secure, but it's getting there.*  You should rest assured that this project will take security very seriously.
 
-### Registration / Identification / Private Channels
+### Private Channels and Channel Ownership
 
-Your registration, identification, and private channel passwords are first salted with 256 random bytes from node's `crypto.randomBytes`.  Then, they are run through 4096 iterations of `crypto.pbkdf2` with a key length of 256 bytes before the is stored in Redis.  In your deployment, these measures can be considered meaningless if you do not use HTTPS.
+You can make a channel private to only those who know a shared password via the `/private` command.  To do that, you must become the channel owner with the `/chown` command.
+
+Your private channel and channel owner passwords are first salted with 256 random bytes from node's `crypto.randomBytes`.  Then, they are run through 4096 iterations of `crypto.pbkdf2` with a key length of 256 bytes before the is stored in Redis.  In your deployment, these measures can be considered meaningless if you do not use HTTPS.
 
 ### Encryption
 
-You'll notice the `Not Encrypted` button on the chat input area when you first join a channel.  When you click this button, you'll have the option of providing a shared secret (*you should negotiate this through a secure side channel, not on echoplexus*).  Once supplied, the button will change to `Encrypted`.  Encryption is performed with the `Crypto-JS` library (256-bit AES).
+You'll notice the orange key button on the chat input area when you first join a channel.  When you click this button, you'll have the option of providing a shared secret (*you should negotiate this through a secure side channel, not on echoplexus*).  Once supplied, the button will change to `Encrypted`.  Encryption is performed with the `Crypto-JS` library (256-bit AES).
 
-Things that are currently encrypted:
-  - Nickname
-  - Chat messages
-  - Private messages
+Furthermore, [you can use PGP signatures and/or PGP encryption](https://blog.echoplex.us/2014/03/05/echoplexus-and-pgp/).  You can layer your PGP encrypted messages with shared secret encryption.
 
-Everything else is transmitted in plaintext at the moment.
+Things that are not encrypted:
+  - Draw (infeasible, stream of data, low impact)
+  - Code (infeasible, stream of data, higher impact)
+  - Call (secure transmission is baked into WebRTC)
 
-Specific things that will not work as a result:
+Specific things that will not while encrypted:
   - Permissions set on a specific user (since the server doesn't know their nickname)
   - PhantomJS webshot previews (since the server can't read the body text to screenshot the URL)
-  - Identity (since the server doesn't know your nickname)
+  - Any other commands that rely on server knowing the body contents of a message
 
-With encryption, not even the 
+Future Goals
+------------
+
+- Distributed network of many echoplexus servers
+- Peer2Peer file transfer via WebRTC
+- Peer2Peer chat, boostrapped by Echoplexus (to facilitate off-the-record communication)
+- Increased selection of languages for the real-time collaborative REPL
+
+Be sure to check out the planned [enhancements](https://github.com/qq99/echoplexus/issues?labels=enhancement&milestone=&page=1&state=open "Planned Enhancements")
