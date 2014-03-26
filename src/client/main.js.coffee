@@ -26,8 +26,8 @@ window.hidePrivateOverlay = ->
 window.GlobalUIState = new Backbone.Model
   chatIsPinned: false
 
-faviconizer = new Faviconizer()
-notifications = new Notifications()
+window.faviconizer = new Faviconizer()
+window.notifications = new Notifications()
 
 # Set cookie options
 # 14 seems like a good time to keep the cookie around
