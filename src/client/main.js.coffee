@@ -81,7 +81,6 @@ $(document).ready ->
       $(this).remove()
 
   tooltipTemplate = $("#tooltip").html()
-  window.notifications = new Notifications()
   $(window).on("blur", ->
     $("body").addClass "blurred"
   ).on "focus mouseenter", ->
@@ -119,7 +118,6 @@ $(document).ready ->
   globalOptions = new Options()
   channelSwitcher = new ChannelSwitcher()
   $("header").append channelSwitcher.$el
-  notifications.enable()
   $("span.options").on "click", (ev) ->
     $(this).siblings("div.options").toggle()
 

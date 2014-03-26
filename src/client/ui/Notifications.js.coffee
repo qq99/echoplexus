@@ -2,12 +2,10 @@
 module.exports.Notifications = class Notifications
 
     _permission = "default"
-    enabled = false
     _growl = null
-    _notificationProvider = null
 
     defaults:
-      title: "Echoplexus"
+      title: "echoplexus"
       dir: "auto"
       icon: window.location.origin + "/echoplexus-logo.png"
       iconUrl: window.location.origin + "/echoplexus-logo.png"
@@ -21,14 +19,8 @@ module.exports.Notifications = class Notifications
       onclick: ->
 
     constructor: ->
-      if window.webkitNotifications
-        _notificationProvider = window.webkitNotifications
-        hasPermission = _notificationProvider.checkPermission()
-        if hasPermission is 0
-          _permission = "granted"
-        else
-          _permission = "denied"
-      else _permission = window.Notification.permission  if window.Notification.permission  if window.Notification
+      _permission = window.Notification?.permission
+
       if window.ua?.node_webkit?
         _permission = "granted"
         _growl = window.requireNode("growl")
@@ -44,35 +36,34 @@ module.exports.Notifications = class Notifications
     #			TTL: (milliseconds) amount of time to keep it alive
     #		}
     #
-    notify: (userOptions) ->
-      return  unless enabled
-      if not document.hasFocus() and _permission is "granted" and window.OPTIONS["show_OS_notifications"]
-        title = undefined
-        opts = _.clone(@defaults)
-        _.extend opts, userOptions
-        title = opts.title
-        delete opts.title
+    notify: (userOptions, focusOverride = false) ->
+      if !focusOverride
+        if document.hasFocus()
+          console.log "Document is focused, so notifications are suppressed"
+          return
+      if !OPTIONS["show_OS_notifications"]
+        console.log "Suppressing client notification due to client preference"
+        return
+      if _permission != "granted"
+        console.log "Unable to display notification: user has not granted permission to do so"
+        return
 
-        if window.ua.node_webkit # Application
-          if process.platform is "linux"
-            _growl opts.body,
-              image: process.cwd() + "/echoplexus-logo.png"
+      opts = _.clone(@defaults)
+      _.extend opts, userOptions
+      title = opts.title || ""
+      delete opts.title
 
-        else if window.webkitNotifications # shim for old webkit
-          notification = _notificationProvider.createNotification(opts.iconUrl, title, opts.body)
-          # params: (icon [url], notification title, notification body)
-          notification.show()
-          setTimeout (->
-            notification.cancel()
-          ), opts.TTL
-        else if window.Notification # Standards
-          notification = new Notification(title, opts)
-          setTimeout (->
-            notification.cancel()
-          ), opts.TTL
-        else if navigator.mozNotification
-          notification = navigator.mozNotification.createNotification(title, opts.body, opts.iconUrl)
-          notification.show()
+      if window.ua.node_webkit # Application
+        if process.platform is "linux"
+          _growl opts.body,
+            image: process.cwd() + "/echoplexus-logo.png"
+      else if window.Notification # Standards
+        notification = new Notification(title, opts)
+        setTimeout (->
+          notification.close()
+        ), opts.TTL
+      # else # screw the other webkitNotifications mozNotifications and others
+
     #
     #		(Boolean) Are OS notification permissions granted?
     #
@@ -84,14 +75,8 @@ module.exports.Notifications = class Notifications
     #
     requestNotificationPermission: ->
       if _permission is "default" # only request it if we don't have it
-        if window.webkitNotifications
-          window.webkitNotifications.requestPermission()
-        else if window.Notification
+        if window.Notification
           window.Notification.requestPermission (perm) ->
             _permission = perm
-
-
-    enable: ->
-      enabled = true
 
     request: @requestNotificationPermission
