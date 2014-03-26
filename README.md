@@ -20,7 +20,7 @@ Echoplexus is an anonymous, web-based, IRC-like chatting platform that makes its
 What is it?
 -----------
 
-echoplexus was designed to be a modular.  It started from a simple chatting base application and has really grown to encompass many different things.
+echoplexus was designed to be modular.  It started from a simple chatting base application and has really grown to encompass many different things.
 
 Currently, echoplexus is composed of 4 modules: Chat, Code, Draw, and Call.  Conceivably, you could run any combination (or just 1) of these modules, depending on your needs.
 

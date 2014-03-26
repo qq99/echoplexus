@@ -48,6 +48,8 @@ module.exports.Notifications = class Notifications
         console.log "Unable to display notification: user has not granted permission to do so"
         return
 
+      console.log 'Attempting to notify'
+
       opts = _.clone(@defaults)
       _.extend opts, userOptions
       title = opts.title || ""
