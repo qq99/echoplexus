@@ -1,6 +1,7 @@
 node_modules
 public/images
 .sass-cache
+*.apk
 public/css
 config.js
 app.min.js

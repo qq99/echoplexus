@@ -166,6 +166,10 @@ module.exports = (grunt) ->
       dependencies:
         command: 'npm install; bower install;'
         stdout: true
+      download_apk:
+        command: 'wget https://controller.apk.firefox.com/application.apk?manifestUrl=https%3A%2F%2Fchat.echoplex.us%2Fmanifest.webapp -O echoplexus.apk'
+      zipalign:
+        command: 'zipalign -f 4 echoplexus.apk echoplexus.zipaligned.apk; zipalign -c -v 4 echoplexus.zipaligned.apk'
 
     uglify:
       options:
@@ -196,4 +200,5 @@ module.exports = (grunt) ->
   # creating workflows
   grunt.registerTask "default", ["sass:dist", "cssmin", "browserify", "concat_sourcemap", "copy", "watch"]
   grunt.registerTask "build", ["clean", "exec:dependencies", "sass:dist", "cssmin", "browserify", "concat_sourcemap", "uglify", "copy"]
+  grunt.registerTask "apk", ["exec:download_apk", "exec:zipalign"]
   # grunt.registerTask "prodsim", ["build", "server", "open", "watch"]
