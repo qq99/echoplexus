@@ -5,6 +5,7 @@ TouchGestures     = require("./ui/TouchGestures.js.coffee").TouchGestures
 Options           = require("./options.js.coffee").Options
 utility           = require("./utility.js.coffee")
 Keystore          = require("./keystore.js.coffee").Keystore
+require("./visibility.js.coffee")
 require("./events.js.coffee")()
 
 openpgp.initWorker('js/openpgp.worker.js')

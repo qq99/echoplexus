@@ -38,7 +38,7 @@ module.exports.Notifications = class Notifications
     #
     notify: (userOptions, focusOverride = false) ->
       if !focusOverride
-        if document.hasFocus()
+        if window.visibility_status == "visible"
           console.log "Document is focused, so notifications are suppressed"
           return
       if !OPTIONS["show_OS_notifications"]
