@@ -4,11 +4,12 @@
 [![Stories in Ready](https://badge.waffle.io/qq99/echoplexus.png)](http://waffle.io/qq99/echoplexus)
 [![Build Status](https://img.shields.io/travis/qq99/echoplexus.svg)](https://travis-ci.org/qq99/echoplexus)
 
-Dive in! [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us")
+Join the web chat @ [chat.echoplex.us](https://chat.echoplex.us "https://chat.echoplex.us").
+Install the [Firefox Open Web App](https://marketplace.firefox.com/app/echoplexus) - [(What's a Firefox Open Web App?)](https://blog.echoplex.us/2014/01/25/firefox-applications-are-easy/)
 
 [Parlez-vous français? Continuez ici](https://github.com/tetalab/echoplexus/)
 
-Join the developer chat @ [chat.echoplex.us/echodev](https://chat.echoplex.us/echodev "Echoplexus Developer Chat")
+Developer chat @ [chat.echoplex.us/echodev](https://chat.echoplex.us/echodev "Echoplexus Developer Chat")
 
 [What's new?](https://github.com/qq99/echoplexus/blob/master/CHANGELOG.md "Echoplexus Changelog")
 
