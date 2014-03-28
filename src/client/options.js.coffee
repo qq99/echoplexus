@@ -1,24 +1,25 @@
+# consider these persistent options
+# we use a cookie for these since they're small and more compatible
 module.exports.Options = class Options
 
   defaults:
-    show_mewl: true
-    suppress_join: true
-    highlight_mine: true
-    prefer_24hr_clock: true
-    suppress_client: true
-    show_OS_notifications: true
-    suppress_identity_acknowledgements: true
-    join_default_channel: true
-    auto_scroll: true
+    show_mewl                          : true
+    suppress_join                      : true
+    highlight_mine                     : true
+    prefer_24hr_clock                  : true
+    suppress_client                    : true
+    show_OS_notifications              : true
+    suppress_identity_acknowledgements : true
+    join_default_channel               : true
+    auto_scroll                        : true
+    play_notification_sounds           : false
 
-  # consider these persistent options
-  # we use a cookie for these since they're small and more compatible
   updateOption: (value, option) ->
     $option = $("#" + option)
 
-    #Check if the options are in the cookie, if so update the value
-    valueFromCookie = $.cookie(option)
-    value = JSON.parse(valueFromCookie) if (valueFromCookie isnt null) and (typeof valueFromCookie isnt "undefined")
+    valueFromCookie = $.cookie(option) # check if the options are in the cookie, if so update the value
+    value = JSON.parse(valueFromCookie) if valueFromCookie
+
     window.OPTIONS[option] = value
     if value
       $("body").addClass option

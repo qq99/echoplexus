@@ -50,6 +50,9 @@ module.exports.Notifications = class Notifications
 
       console.log 'Attempting to notify'
 
+      if OPTIONS["play_notification_sounds"]
+        document.getElementById("notification-sound").play()
+
       opts = _.clone(@defaults)
       _.extend opts, userOptions
       title = opts.title || ""

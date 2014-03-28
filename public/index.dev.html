@@ -85,6 +85,10 @@
 							<input id="join_default_channel" type="checkbox" />
 							<label for="join_default_channel">Join channel "/" on start</label>
 						</div>
+						<div class="option">
+							<input id="play_notification_sounds" type="checkbox" />
+							<label for="play_notification_sounds">Play a sound when receiving a notification</label>
+						</div>
 					</div>
 				</section>
 			</section>
@@ -117,5 +121,6 @@
 	<script src="/js/app.min.js"></script>
 	<!-- endbuild -->
 	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+	<audio id="notification-sound" src="/beep-xylo.mp3" preload='auto'></audio>
 </body>
 </html>
