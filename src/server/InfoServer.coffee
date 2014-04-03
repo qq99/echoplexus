@@ -1,10 +1,11 @@
-versions       = require('./version.coffee')
-_              = require('underscore')
-AbstractServer = require('./AbstractServer.coffee').AbstractServer
-Client         = require('../client/client.js').ClientModel
-Clients        = require('../client/client.js').ClientsCollection
-config         = require('./config.coffee').Configuration
-DEBUG          = config.DEBUG
+ApplicationError = require("./Error.js.coffee")
+versions         = require('./version.coffee')
+_                = require('underscore')
+AbstractServer   = require('./AbstractServer.coffee').AbstractServer
+Client           = require('../client/client.js').ClientModel
+Clients          = require('../client/client.js').ClientsCollection
+config           = require('./config.coffee').Configuration
+DEBUG            = config.DEBUG
 
 # this server is meant to expose all manners of metadata about the host
 # that is operating echoplexus

@@ -1,8 +1,9 @@
-config          = require('./config.coffee').Configuration
-AbstractServer  = require('./AbstractServer.coffee').AbstractServer
-Client          = require('../client/client.js.coffee').ClientModel
-Clients         = require('../client/client.js.coffee').ClientsCollection
-DEBUG           = config.DEBUG
+config           = require('./config.coffee').Configuration
+ApplicationError = require("./Error.js.coffee")
+AbstractServer   = require('./AbstractServer.coffee').AbstractServer
+Client           = require('../client/client.js.coffee').ClientModel
+Clients          = require('../client/client.js.coffee').ClientsCollection
+DEBUG            = config.DEBUG
 
 
 module.exports.CodeCache = class CodeCache

@@ -199,16 +199,16 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 		@publishUserList(channel)
 
-  subscribeError: (err, socket, channel, client, data) ->
-    room = channel.get("name")
+	subscribeError: (err, socket, channel, client, data) ->
+		room = channel.get("name")
 
-    if err and not err instanceof ApplicationError.AuthenticationError
-      socket.in(room).emit("chat:#{room}", @serverSentMessage({
-        body: err.message
-      }, room))
+		if err and not err instanceof ApplicationError.AuthenticationError
+			socket.in(room).emit("chat:#{room}", @serverSentMessage({
+				body: err.message
+			}, room))
 
-      console.log("ChatServer: ", err)
-    return
+			console.log("ChatServer: ", err)
+		return
 
 	storePersistent: (msg, room, callback) ->
 

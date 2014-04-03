@@ -1,9 +1,10 @@
-_ 							= require('underscore')
-AbstractServer 	= require('./AbstractServer.coffee').AbstractServer
-Client 					= require('../client/client.js').ClientModel
-Clients 				= require('../client/client.js').ClientsCollection
-config 					= require('./config.coffee').Configuration
-DEBUG 					= config.DEBUG
+_                = require('underscore')
+ApplicationError = require("./Error.js.coffee")
+AbstractServer   = require('./AbstractServer.coffee').AbstractServer
+Client           = require('../client/client.js').ClientModel
+Clients          = require('../client/client.js').ClientsCollection
+config           = require('./config.coffee').Configuration
+DEBUG            = config.DEBUG
 
 module.exports.DrawServer = class DrawingServer extends AbstractServer
 
@@ -11,7 +12,8 @@ module.exports.DrawServer = class DrawingServer extends AbstractServer
 	namespace: "/draw"
 
 	subscribeError: (err, socket, channel, client) ->
-		null
+    if err and err instanceof ApplicationError.AuthenticationError
+      console.log("DrawServer: ", err)
 	subscribeSuccess: (effectiveRoom, socket, channel, client) ->
 		room = channel.get("name")
 

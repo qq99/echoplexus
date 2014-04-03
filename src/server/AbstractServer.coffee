@@ -1,3 +1,4 @@
+ApplicationError = require("./Error.js.coffee")
 _         = require("underscore")
 config    = require("./config.coffee").Configuration
 Clients   = require("../client/client.js.coffee").ClientsCollection
@@ -81,7 +82,7 @@ module.exports.AbstractServer = class AbstractServer
           server.initializeClientEvents effectiveRoom, socket, channel, client
 
           # let any implementing servers handle errors the way they like
-          @subscribeError err, socket, channel, client, data  if err
+          server.subscribeError err, socket, channel, client, data  if err
 
 
         # every server shall support a disconnect handler
