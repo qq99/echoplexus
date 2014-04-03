@@ -127,7 +127,7 @@ module.exports.CallClient = class CallClient extends Backbone.View
 
     # on peer joining the call:
     @rtc.on "added_remote_stream", (data) =>
-      client = @channel.clients.findWhere(id: data.socketID)
+      client = @channel.get("clients").findWhere(id: data.socketID)
       clientNick = client.getNick() # TODO: handle encrypted version
 
       console.log "ADDING REMOTE STREAM...", @channel, data.stream, data.socketID
@@ -230,7 +230,7 @@ module.exports.CallClient = class CallClient extends Backbone.View
 
   createVideoElement: (clientID) ->
 
-    client = @channel.clients.findWhere(id: clientID)
+    client = @channel.get("clients").findWhere(id: clientID)
 
     if client
       clientNick = client.getNick() # TODO: handle encrypted version

@@ -23,7 +23,7 @@ describe 'CallClient', ->
       config:
         host: 'localhost'
       room: '/'
-      channel:
+      channel: new Backbone.Model
         clients: new Backbone.Collection
         isPrivate: false
 
@@ -242,7 +242,7 @@ describe 'CallClient', ->
       channel = Backbone.Collection.extend
         model: ClientModel
 
-      @subject.channel.clients = new channel([@bob, @alice])
+      @subject.channel.set("clients", new channel([@bob, @alice]))
 
     it 'creates the right element for the right user', ->
       @subject.createVideoElement(1)
@@ -265,7 +265,7 @@ describe 'CallClient', ->
       channel = Backbone.Collection.extend
         model: ClientModel
 
-      @subject.channel.clients = new channel([@bob, @alice])
+      @subject.channel.set("clients", new channel([@bob, @alice]))
       @subject.createVideoElement(1)
       @subject.createVideoElement(2)
 
