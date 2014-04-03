@@ -124,8 +124,50 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			body: message
 		}, room))
 
-	subscribeSuccess: (socket, client, channel) ->
+	initializeChannel: (room, socket, channel) ->
+		# only bind these once *ever*
+		channel.clients.on "change", (changed) =>
+			@clientChanged(socket, channel, changed)
+
+		channel.clients.on "remove", (removed) =>
+			@clientRemoved(socket, channel, removed)
+
+		channel.initialized = true
+
+		EventBus.on "github:postreceive:#{room}", (data) =>
+			msg = @serverSentMessage({
+				body: data
+			}, room)
+			msg.nickname = "GitHub"
+			msg.trustworthiness = "limited"
+
+			@storePersistent msg, room, =>
+				sio.of(@namespace).in(room).emit("chat:#{room}", msg)
+
+		# listen for file upload events
+		EventBus.on "file_uploaded:#{room}", (data) =>
+			# check to see that the uploader someone actually in the channel
+			fromClient = channel.clients.findWhere({id: data.from_user})
+
+			if fromClient?
+				uploadedFile = @serverSentMessage({
+					body: fromClient.get("nick") + " just uploaded: " + data.path
+				}, room)
+
+				@storePersistent uploadedFile, room, (err, msg) =>
+					if err
+						console.log("Error persisting a file upload notification to redis", err.message, msg)
+
+					sio.of(@namespace).in(room).emit("chat:#{room}", msg)
+
+	subscribeSuccess: (effectiveRoom, socket, channel, client, data) ->
 		room = channel.get("name")
+
+		# channel.initialized is inelegant (since it clearly has been)
+		# and other modules might use it.
+		# hotfix for now, real fix later
+		@initializeChannel(room, socket, channel) if !channel.initialized
+
 
 		# add to server's list of authenticated clients
 		# channel.clients.add(client)
@@ -156,6 +198,17 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		})
 
 		@publishUserList(channel)
+
+  subscribeError: (err, socket, channel, client, data) ->
+    room = channel.get("name")
+
+    if err and not err instanceof ApplicationError.AuthenticationError
+      socket.in(room).emit("chat:#{room}", @serverSentMessage({
+        body: err.message
+      }, room))
+
+      console.log("ChatServer: ", err)
+    return
 
 	storePersistent: (msg, room, callback) ->
 

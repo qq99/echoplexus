@@ -180,102 +180,17 @@ Channels = new ChannelStructures.ChannelsCollection
 
 redisC.select redis_db, (err, reply) ->
   chatServer = new ChatServer sio, Channels, ChannelModel # start up the chat server
-  chatServer.start
-    error: (err, socket, channel, client, data) ->
-      room = channel.get("name")
-
-      if err and not err instanceof ApplicationError.AuthenticationError
-        socket.in(room).emit("chat:#{room}", @serverSentMessage({
-          body: err.message
-        }, room))
-
-        console.log("ChatServer: ", err)
-      return
-    success: (effectiveRoom, socket, channel, client,data) ->
-      room = channel.get("name")
-      @subscribeSuccess(socket, client, channel)
-
-      # channel.initialized is inelegant (since it clearly has been)
-      # and other modules might use it.
-      # hotfix for now, real fix later
-      if !channel.initialized
-        # only bind these once *ever*
-        channel.clients.on "change", (changed) =>
-          @clientChanged(socket, channel, changed)
-
-        channel.clients.on "remove", (removed) =>
-          @clientRemoved(socket, channel, removed)
-
-        channel.initialized = true
-
-        EventBus.on "github:postreceive:#{room}", (data) =>
-          msg = @serverSentMessage({
-            body: data
-          }, room)
-          msg.nickname = "GitHub"
-          msg.trustworthiness = "limited"
-
-          @storePersistent msg, room, =>
-            sio.of(@namespace).in(room).emit("chat:#{room}", msg)
-
-        # listen for file upload events
-        EventBus.on "file_uploaded:#{room}", (data) =>
-          # check to see that the uploader someone actually in the channel
-          fromClient = channel.clients.findWhere({id: data.from_user})
-
-          if fromClient?
-            uploadedFile = @serverSentMessage({
-              body: fromClient.get("nick") + " just uploaded: " + data.path
-            }, room)
-
-            @storePersistent uploadedFile, room, (err, msg) =>
-              if err
-                console.log("Error persisting a file upload notification to redis", err.message, msg)
-
-              sio.of(@namespace).in(room).emit("chat:#{room}", msg)
+  chatServer.start()
 
   codeServer = new CodeServer sio, Channels, ChannelModel
-  codeServer.start
-    error: (err, socket, channel, client) ->
-      if err and not err instanceof ApplicationError.AuthenticationError
-        console.log("CodeServer: ", err)
-    success: (effectiveRoom, socket, channel, client) ->
-      cc = @spawnCodeCache(effectiveRoom)
-      socket.in(effectiveRoom).emit("code:authoritative_push:#{effectiveRoom}", cc.syncToClient());
+  codeServer.start()
 
   drawServer = new DrawServer sio, Channels, ChannelModel
-  drawServer.start
-    error: (err, socket, channel, client) ->
-      if err and not err instanceof ApplicationError.AuthenticationError
-        return
-    success: (effectiveRoom, socket, channel, client) ->
-      room = channel.get("name")
-
-      # play back what has happened
-      socket.emit("draw:replay:#{room}", channel.replay)
+  drawServer.start()
 
   callServer = new CallServer sio, Channels, ChannelModel
-  callServer.start
-    error: (err, socket, channel, client) ->
-      if err and not err instanceof ApplicationError.AuthenticationError
-          console.log("CallServer: ", err)
-
-    success: (effectiveRoom, socket, channel, client) ->
-        room = channel.get('name')
-        socket.emit "status:#{room}", active: !_.isEmpty(channel.call)
+  callServer.start()
 
   infoServer = new InfoServer sio, Channels, ChannelModel
-  infoServer.start
-    error: (err, socket, channel, client) ->
-      room = channel.get("name")
-
-      if err and err instanceof ApplicationError.AuthenticationError
-        console.log("InfoServer: ", err)
-        socket.in(room).emit("private:#{room}")
-      else
-        socket.in(room).emit("chat:#{room}", @serverSentMessage({
-          body: err.message
-        }, room))
-
-    success: (effectiveRoom, socket, channel, client) ->
+  infoServer.start()
 

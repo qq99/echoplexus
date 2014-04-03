@@ -10,6 +10,14 @@ module.exports.DrawServer = class DrawingServer extends AbstractServer
 	name: "DrawServer"
 	namespace: "/draw"
 
+	subscribeError: (err, socket, channel, client) ->
+		null
+	subscribeSuccess: (effectiveRoom, socket, channel, client) ->
+		room = channel.get("name")
+
+		# play back what has happened
+		socket.emit("draw:replay:#{room}", channel.replay)
+
 	events:
 		"draw:line": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")

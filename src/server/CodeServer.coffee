@@ -42,6 +42,13 @@ module.exports.CodeServer = class CodeServer extends AbstractServer
     @codeCaches = {}
     super
 
+  subscribeError: (err, socket, channel, client) ->
+    if err and not err instanceof ApplicationError.AuthenticationError
+      console.log("CodeServer: ", err)
+  subscribeSuccess: (effectiveRoom, socket, channel, client) ->
+    cc = @spawnCodeCache(effectiveRoom)
+    socket.in(effectiveRoom).emit("code:authoritative_push:#{effectiveRoom}", cc.syncToClient());
+
   events:
     "code:cursorActivity": (namespace, socket, channel, client, data) ->
       socket.in(namespace).broadcast.emit "code:cursorActivity:#{namespace}",

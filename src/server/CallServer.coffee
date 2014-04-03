@@ -10,6 +10,14 @@ module.exports.CallServer = class CallServer extends AbstractServer
     name: "CallServer"
     namespace: "/call"
 
+    subscribeError: (err, socket, channel, client) ->
+        if err and not err instanceof ApplicationError.AuthenticationError
+            console.log("CallServer: ", err)
+
+    subscribeSuccess: (effectiveRoom, socket, channel, client) ->
+        room = channel.get('name')
+        socket.emit "status:#{room}", active: !_.isEmpty(channel.call)
+
     events:
         "join": (namespace, socket, channel, client, data, ack) ->
             DEBUG && console.log 'client expressed interest in joining the call'

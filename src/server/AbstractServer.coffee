@@ -70,7 +70,7 @@ module.exports.AbstractServer = class AbstractServer
           DEBUG and console.log("authenticated", server.name, client.cid, socket.id, result.attributes.authenticated)
           if result.attributes.authenticated
             socket.join effectiveRoom
-            callback.success.call this, effectiveRoom, socket, channel, client, data
+            @subscribeSuccess effectiveRoom, socket, channel, client, data
             subscribeAck cid: client.cid  if subscribeAck isnt null and typeof (subscribeAck) isnt "undefined"
           else
             socket.leave effectiveRoom
@@ -81,7 +81,7 @@ module.exports.AbstractServer = class AbstractServer
           server.initializeClientEvents effectiveRoom, socket, channel, client
 
           # let any implementing servers handle errors the way they like
-          callback.error.call this, err, socket, channel, client, data  if err
+          @subscribeError err, socket, channel, client, data  if err
 
 
         # every server shall support a disconnect handler

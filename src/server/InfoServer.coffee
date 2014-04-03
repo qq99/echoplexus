@@ -14,6 +14,19 @@ module.exports.InfoServer = class InfoServer extends AbstractServer
   name: "InfoServer"
   namespace: "/info"
 
+  subscribeSuccess: (effectiveRoom, socket, channel, client) ->
+
+  subscribeError: (err, socket, channel, client) ->
+    room = channel.get("name")
+
+    if err and err instanceof ApplicationError.AuthenticationError
+      console.log("InfoServer: ", err)
+      socket.in(room).emit("private:#{room}")
+    else
+      socket.in(room).emit("chat:#{room}", @serverSentMessage({
+        body: err.message
+      }, room))
+
   events:
     "info:latest_supported_client_version": (namespace, socket, channel, client, data) ->
       room = channel.get("name")
