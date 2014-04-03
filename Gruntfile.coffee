@@ -49,7 +49,7 @@ module.exports = (grunt) ->
         ]
 
         app:
-          main: "src/client/main.js.coffee"
+          main: "src/client/bootstrap.desktop.js.coffee"
           compiled: "<%= public_dir %>js/app.min.js"
 
         embedded:

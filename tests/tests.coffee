@@ -1,3 +1,9 @@
+if Storage # extend the local storage protoype if it exists
+  Storage::setObj = (key, obj) ->
+    localStorage.setItem key, JSON.stringify(obj)
+  Storage::getObj = (key) ->
+    JSON.parse localStorage.getItem(key)
+
 require('./client/client_model_test.coffee')
 require('./client/color_model_test.coffee')
 require('./client/htmlsanitizer_test.coffee')

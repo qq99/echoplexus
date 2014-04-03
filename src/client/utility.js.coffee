@@ -3,19 +3,6 @@
 #    useful extensions to global objects, if they must be made, should be made here
 #
 
-# attempt to determine their browsing environment
-ua = window.ua =
-  firefox: !!navigator.mozConnection
-  chrome: !!window.chrome
-
-# clean up this global stuff!
-if Storage
-  # extend the local storage protoype if it exists
-  Storage::setObj = (key, obj) ->
-    localStorage.setItem key, JSON.stringify(obj)
-  Storage::getObj = (key) ->
-    JSON.parse localStorage.getItem(key)
-
 module.exports.isMobile = ->
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent)
 
