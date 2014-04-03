@@ -8,7 +8,7 @@ Keystore          = require("./keystore.js.coffee").Keystore
 require("./visibility.js.coffee")
 require("./events.js.coffee")()
 
-openpgp.initWorker('js/openpgp.worker.js')
+openpgp.initWorker('js/openpgp.worker.min.js')
 
 # will be removed
 window.codingModeActive = -> # sloppy, forgive me

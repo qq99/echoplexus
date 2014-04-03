@@ -149,7 +149,7 @@ module.exports = (grunt) ->
       openpgp:
         files:
           "<%= public_dir %>js/openpgp.min.js": "lib/openpgpjs/openpgp.min.js"
-          "<%= public_dir %>js/openpgp.worker.js": "lib/openpgpjs/openpgp.worker.js"
+          "<%= public_dir %>js/openpgp.worker.min.js": "lib/openpgpjs/openpgp.worker.js"
 
     server:
       base: "#{process.env.SERVER_BASE || 'generated'}"
