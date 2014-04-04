@@ -52,6 +52,10 @@ module.exports = (grunt) ->
           main: "src/client/bootstrap.desktop.js.coffee"
           compiled: "<%= public_dir %>js/app.min.js"
 
+        mobile:
+          main: "src/mobile/bootstrap.mobile.js.coffee"
+          compiled: "<%= public_dir %>js/mobile.min.js"
+
         embedded:
           main: "src/embedded-client/main.js.coffee"
           compiled: "<%= public_dir %>js/embedded.app.min.js"
@@ -90,6 +94,13 @@ module.exports = (grunt) ->
           debug: true
           transform: ["coffeeify", "node-underscorify"]
 
+      mobile:
+        files:
+          "<%= files.js.mobile.compiled %>" : "<%= files.js.mobile.main %>"
+        options:
+          debug: true
+          transform: ["coffeeify", "node-underscorify"]
+
     concat_sourcemap:
       options:
         sourcesContent: true
@@ -111,7 +122,7 @@ module.exports = (grunt) ->
 
       coffee:
         files: ["src/client/**/*.coffee", "src/client/**/*.html", "src/embedded-client/**/*.coffee", "src/embedded-client/**/*.html"]
-        tasks: ["browserify:app", "browserify:embedded", "concat_sourcemap"]
+        tasks: ["browserify:app", "browserify:embedded", "browserify:mobile", "concat_sourcemap"]
 
       sass:
         files: ["<%= files.sass.src %>"]
