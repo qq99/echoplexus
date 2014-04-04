@@ -3,6 +3,7 @@ public/images
 .sass-cache
 *.apk
 public/css
+public/fonts
 config.js
 app.min.js
 vendor.min.js

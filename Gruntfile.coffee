@@ -157,6 +157,13 @@ module.exports = (grunt) ->
           flatten: true
           dest: "public/images/emoji"
         ]
+      fontawesome:
+        files: [
+          expand: true
+          src: "vendor/fontawesome/fonts/**"
+          flatten: true
+          dest: "public/fonts"
+        ]
       openpgp:
         files:
           "<%= public_dir %>js/openpgp.min.js": "lib/openpgpjs/openpgp.min.js"
