@@ -186,11 +186,23 @@ module.exports = (grunt) ->
       options:
         banner: "<%= banner %>"
 
-      dist:
-        sourceMapIn: "<%= public_dir %>js/app.min.js.map"
-        sourceMap:   "<%= public_dir %>js/app.min.js.map"
+      desktop:
+        sourceMapIn: "<%= files.js.app.compiled %>.map"
+        sourceMap:   "<%= files.js.app.compiled %>.map"
         src: "<%= files.js.app.compiled %>" # input from the concat_sourcemap process
-        dest: "<%= public_dir %>js/app.min.js"
+        dest: "<%= files.js.app.compiled %>"
+
+      mobile:
+        sourceMapIn: "<%= files.js.mobile.compiled %>.map"
+        sourceMap: "<%= files.js.mobile.compiled %>.map"
+        src: "<%= files.js.mobile.compiled %>"
+        dest: "<%= files.js.mobile.compiled %>"
+
+      embedded:
+        sourceMapIn: "<%= files.js.embedded.compiled %>.map"
+        sourceMap: "<%= files.js.embedded.compiled %>.map"
+        src: "<%= files.js.embedded.compiled %>"
+        dest: "<%= files.js.embedded.compiled %>"
 
       vendor:
         sourceMapIn: "<%= public_dir %>js/vendor.min.js.map"

@@ -1,4 +1,3 @@
-Backbone = require('backbone')
 GLOBAL_EVENTBUS = undefined
 
 module.exports.EventBus = ->

@@ -18,6 +18,8 @@
     "vendor/sinon/lib/sinon/stub.js",
     "vendor/chai/chai.js",
     "tests/setup.js",
+    "vendor/backbone/backbone.js",
+    "vendor/underscore/underscore.js",
     "browserified.js"
   ]
 }

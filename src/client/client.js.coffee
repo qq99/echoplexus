@@ -1,5 +1,3 @@
-_               = require("underscore") if !_
-Backbone        = require("backbone") if !Backbone
 PermissionModel = require("./PermissionModel.coffee").PermissionModel
 REGEXES         = require("./regex.js.coffee").REGEXES
 CryptoWrapper   = require("./CryptoWrapper.coffee").CryptoWrapper
