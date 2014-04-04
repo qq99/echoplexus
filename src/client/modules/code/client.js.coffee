@@ -7,6 +7,10 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
   className: "codeClient"
   htmlEditorTemplate: jsCodeReplTemplate
 
+  events:
+    "click .evaluate": "_repl"
+    "click .refresh": "refreshIframe"
+
   initialize: (opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))
     @channel = opts.channel
@@ -31,8 +35,17 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
     @on "show", @show
     @on "hide", @hide
 
-    #Is the REPL loaded?
-    @isIframeAvailable = true
+    @isIframeAvailable = false
+
+    window.events.on "sectionActive:#{@module.section}", =>
+      return if !@$el.is(":visible")
+      if !@editorsInitialized
+        @refreshIframe()
+        @initializeEditors()
+        @editorsInitialized = true
+
+      @syncedJs.trigger "show"
+      @syncedHtml.trigger "show"
 
     #Wether to evaluate immediately on REPL load
     @runNext = false
@@ -69,11 +82,9 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
 
   show: ->
     @$el.show()
-    unless @editorsInitialized
-      @editorsInitialized = true # lock it so it can only happen once in the lifetime
-      @initializeEditors()
-    @syncedJs.trigger "show"
-    @syncedHtml.trigger "show"
+    if @editorsInitialized
+      @syncedJs.trigger "show"
+      @syncedHtml.trigger "show"
 
   kill: ->
     window.events.off null, null, this
@@ -88,10 +99,6 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
     @listenTo @syncedJs, "eval", @livereload
     @listenTo @syncedHtml, "eval", @livereload
 
-    window.events.on "sectionActive:" + @module.section, ->
-      @refresh()
-    , this
-
     $(window).on "message", (e) =>
       try
         data = JSON.parse(decodeURI(e.originalEvent.data))
@@ -99,24 +106,15 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
       catch ex
         @updateREPLText ex.toString()
 
-    @$el.on "click", ".evaluate", (ev) =>
-      ev.preventDefault()
-      ev.stopPropagation()
-      @_repl() # doesn't need to be the debounced version since the user is triggering it purposefully
-
-    @$el.on "click", ".refresh", (ev) =>
-      ev.preventDefault()
-      ev.stopPropagation()
-      @refreshIframe()
-
   refresh: ->
     _.each @editors, (editor) ->
       editor.refresh()
 
   refreshIframe: ->
+    console.log "Reloading iframe for clean slate!"
     iframe = $("iframe.jsIframe", @$el)[0]
-    iframe.src = iframe.src
-    @isIframeAvailable = false
+    iframe.src = "/codeframe.html"
+    @isIframeAvailable = true
 
   updateREPLText: (result) ->
     if _.isObject(result)
@@ -142,7 +140,7 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
     )), "*"
 
   _repl: ->
-    if not @isIframeAvailable
+    if !@isIframeAvailable
       @refreshIframe()
 
     code = _.object(_.map(@editors, (editor, key) ->
