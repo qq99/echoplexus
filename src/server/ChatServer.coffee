@@ -142,7 +142,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			msg.trustworthiness = "limited"
 
 			@storePersistent msg, room, =>
-				sio.of(@namespace).in(room).emit("chat:#{room}", msg)
+				@sio.of(@namespace).in(room).emit("chat:#{room}", msg)
 
 		# listen for file upload events
 		EventBus.on "file_uploaded:#{room}", (data) =>
@@ -158,7 +158,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					if err
 						console.log("Error persisting a file upload notification to redis", err.message, msg)
 
-					sio.of(@namespace).in(room).emit("chat:#{room}", msg)
+					@sio.of(@namespace).in(room).emit("chat:#{room}", msg)
 
 	subscribeSuccess: (effectiveRoom, socket, channel, client, data) ->
 		room = channel.get("name")

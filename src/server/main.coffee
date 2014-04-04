@@ -133,6 +133,7 @@ app.post "/*", authMW, bodyParser, (req, res, next) ->
   # rename it with a uuid + the user's filename
   fs.rename uploadPath, finalPath, (error) ->
     if error
+      console.log error
       res.send error: "Ah crap! Something bad happened"
       return
     res.send path: serverPath
