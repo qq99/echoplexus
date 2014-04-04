@@ -410,6 +410,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @autoAuth()
 
   decryptTopic: ->
+    return if !@raw_topic # if it has never been set
+
     # attempt to parse the msg.body as a JSON object
     try # if it succeeds, it was an encrypted object
       encrypted_topic = JSON.parse(@raw_topic.body)
