@@ -17,7 +17,8 @@
     "backbone": "~1.1.2",
     "hammerjs": "~1.0.6",
     "backbone.stickit": "~0.7.0",
-    "emojify.js": "https://github.com/qq99/emojify.js.git"
+    "emojify.js": "https://github.com/qq99/emojify.js.git",
+    "fontawesome": "~4.0.3"
   },
   "devDependencies": {
     "sinon": "~1.7.3",

@@ -1,7 +1,6 @@
 require("./bootstrap.core.js.coffee").core()
 ChannelSwitcher   = require("./ui/ChannelSwitcher.js.coffee").ChannelSwitcher
 utility           = require("./utility.js.coffee")
-TouchGestures     = require("./ui/TouchGestures.js.coffee").TouchGestures
 
 $(document).ready ->
 
@@ -160,7 +159,3 @@ $(document).ready ->
   # fire an event that signals we're no longer idle
   $(window).on "keydown mousemove", ->
     window.events.trigger "unidle"
-
-  # TODO further split this into a bootstrap.mobile.js.coffee:
-  if utility.isMobile()
-    Gestures = new TouchGestures

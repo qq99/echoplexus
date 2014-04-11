@@ -1,7 +1,7 @@
 {
     "version" : "0.0.1",
     "name" : "echoplexus",
-    "launch_path" : "/",
+    "launch_path" : "/mobile.html",
 
     "installs_allowed_from" : ["*"],
 

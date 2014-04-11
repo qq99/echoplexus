@@ -1,10 +1,12 @@
 require("coffee-script")
+
+global._         = require("underscore")
+global.Backbone  = require("backbone")
+
 config           = require("./config.coffee").Configuration # deploy specific configuration
 redis_db         = config.redis?.select || 15
 redisC           = require("./RedisClient.coffee").RedisClient(config.redis?.port, config.redis?.host, redis_db)
 express          = require("express")
-_                = require("underscore")
-Backbone         = require("backbone")
 crypto           = require("crypto")
 fs               = require("fs")
 ApplicationError = require("./Error.js.coffee")

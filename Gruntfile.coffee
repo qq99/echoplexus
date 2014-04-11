@@ -52,6 +52,10 @@ module.exports = (grunt) ->
           main: "src/client/bootstrap.desktop.js.coffee"
           compiled: "<%= public_dir %>js/app.min.js"
 
+        mobile:
+          main: "src/mobile/bootstrap.mobile.js.coffee"
+          compiled: "<%= public_dir %>js/mobile.min.js"
+
         embedded:
           main: "src/embedded-client/main.js.coffee"
           compiled: "<%= public_dir %>js/embedded.app.min.js"
@@ -90,6 +94,13 @@ module.exports = (grunt) ->
           debug: true
           transform: ["coffeeify", "node-underscorify"]
 
+      mobile:
+        files:
+          "<%= files.js.mobile.compiled %>" : "<%= files.js.mobile.main %>"
+        options:
+          debug: true
+          transform: ["coffeeify", "node-underscorify"]
+
     concat_sourcemap:
       options:
         sourcesContent: true
@@ -111,7 +122,7 @@ module.exports = (grunt) ->
 
       coffee:
         files: ["src/client/**/*.coffee", "src/client/**/*.html", "src/embedded-client/**/*.coffee", "src/embedded-client/**/*.html"]
-        tasks: ["browserify:app", "browserify:embedded", "concat_sourcemap"]
+        tasks: ["browserify:app", "browserify:embedded", "browserify:mobile", "concat_sourcemap"]
 
       sass:
         files: ["<%= files.sass.src %>"]
@@ -146,6 +157,13 @@ module.exports = (grunt) ->
           flatten: true
           dest: "public/images/emoji"
         ]
+      fontawesome:
+        files: [
+          expand: true
+          src: "vendor/fontawesome/fonts/**"
+          flatten: true
+          dest: "public/fonts"
+        ]
       openpgp:
         files:
           "<%= public_dir %>js/openpgp.min.js": "lib/openpgpjs/openpgp.min.js"
@@ -175,11 +193,23 @@ module.exports = (grunt) ->
       options:
         banner: "<%= banner %>"
 
-      dist:
-        sourceMapIn: "<%= public_dir %>js/app.min.js.map"
-        sourceMap:   "<%= public_dir %>js/app.min.js.map"
+      desktop:
+        sourceMapIn: "<%= files.js.app.compiled %>.map"
+        sourceMap:   "<%= files.js.app.compiled %>.map"
         src: "<%= files.js.app.compiled %>" # input from the concat_sourcemap process
-        dest: "<%= public_dir %>js/app.min.js"
+        dest: "<%= files.js.app.compiled %>"
+
+      mobile:
+        sourceMapIn: "<%= files.js.mobile.compiled %>.map"
+        sourceMap: "<%= files.js.mobile.compiled %>.map"
+        src: "<%= files.js.mobile.compiled %>"
+        dest: "<%= files.js.mobile.compiled %>"
+
+      embedded:
+        sourceMapIn: "<%= files.js.embedded.compiled %>.map"
+        sourceMap: "<%= files.js.embedded.compiled %>.map"
+        src: "<%= files.js.embedded.compiled %>"
+        dest: "<%= files.js.embedded.compiled %>"
 
       vendor:
         sourceMapIn: "<%= public_dir %>js/vendor.min.js.map"

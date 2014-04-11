@@ -1,6 +1,3 @@
-Backbone  = require('backbone') if !Backbone
-_         = require('underscore') if !_
-
 module.exports.PermissionModel = class PermissionModel extends Backbone.Model
 
   defaults:
