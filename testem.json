@@ -2,7 +2,7 @@
   "framework": "jasmine",
   "before_tests": "browserify tests/tests.coffee -o browserified.js -t coffeeify -t node-underscorify",
   "src_files": [
-    "vendor/js/vendor.min.js",
+    "public/js/vendor.min.js",
     "src/**/*.coffee",
     "tests/**/*.coffee",
     "tests/**/*.js"
@@ -18,8 +18,6 @@
     "vendor/sinon/lib/sinon/stub.js",
     "vendor/chai/chai.js",
     "tests/setup.js",
-    "vendor/backbone/backbone.js",
-    "vendor/underscore/underscore.js",
     "browserified.js"
   ]
 }
