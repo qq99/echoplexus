@@ -161,4 +161,4 @@ $(document).ready ->
   $(window).on "keydown mousemove", ->
     window.events.trigger "unidle"
 
-  Gestures = new TouchGestures
+  Gestures = new TouchGestures if utility.isMobile()

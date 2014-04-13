@@ -196,7 +196,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
     # allow the user to know that his channel can be joined via URL slug by updating the URL
     # replaceState rather than pushing to keep Back/Forward intact && because we have no other option to perform here atm
-    unless window.ua.node_webkit or MODE == "mobile"
+    unless window.ua.node_webkit
       history.replaceState null, "", channelName  if history.replaceState
 
     # keep track of which one we were viewing:
