@@ -1,7 +1,7 @@
-<p>
-	Upload <span class="fileName"><%- fileName %></span>?
-</p>
-<% if (img) { %>
-<img src="<%- img %>">
-<% } %>
-<p><%- fileSize %></p>
+<div class="file-upload">
+  <span class="file-name"><%- fileName %></span>
+  <span class="file-size"><%- fileSize %></span>
+  <% if (img) { %>
+  <img src="<%- img %>">
+  <% } %>
+</div>
