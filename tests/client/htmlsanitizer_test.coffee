@@ -40,3 +40,8 @@ describe 'HTMLSanitizer', ->
     @subject.sanitize(html, ["IMG"], ["src"])
 
     assert !window.alert.called
+
+  it 'does not even allow malicious attributes with javascript: to be rendered', ->
+    html = "<img src=\"foo\" onclick=\"javascript:alert('pwned');\">"
+
+    assert.equal '<img src=\"foo\">', @subject.sanitize(html, ["IMG"], ["src", "onclick"])

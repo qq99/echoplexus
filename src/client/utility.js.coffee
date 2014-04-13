@@ -25,7 +25,7 @@ module.exports.HTMLSanitizer = class HTMLSanitizer
         # now remove all the troublesome attributes
         attrs = tag.attributes
         for attribute in tag.attributes
-          if attribute? and ALLOWED_ATTRIBUTES.indexOf(attribute.name) == -1
+          if ALLOWED_ATTRIBUTES.indexOf(attribute.name) == -1 or attribute.value.match(/javascript:/gi)
             delete tag.attributes.removeNamedItem(attribute.name)
 
         null
