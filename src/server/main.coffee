@@ -38,26 +38,19 @@ console.log "Root:            #{ROOT_FOLDER}"
 console.log "Public:          #{PUBLIC_FOLDER}"
 console.log "Sandboxed:       #{SANDBOXED_FOLDER}"
 
-
-# if we're using node's ssl, we must supply it the certs and create the server as https
-# proxying via nginx allows us to use a simple http server (and connections will be upgraded)
-
-# Custom objects:
-# shared with the client:
 urlRoot = ->
   if config.host.USE_PORT_IN_URL
     config.host.SCHEME + "://" + config.host.FQDN + ":" + config.host.PORT + "/"
   else
     config.host.SCHEME + "://" + config.host.FQDN + "/"
 
-# Web server init:
-
 # MW: MiddleWare
 authMW = (req, res, next) ->
   # xferc means 'transfer config'
-  if not xferc or not xferc.enabled
+  if !xferc?.enabled
     res.send 500, "Not enabled."
     return
+
   EventBus.trigger "has_permission",
     permission: req.get("Using-Permission")
     channel: req.get("Channel")
@@ -69,6 +62,8 @@ authMW = (req, res, next) ->
       return
     next()
 
+# if we're using node's ssl, we must supply it the certs and create the server as https
+# proxying via nginx allows us to use a simple http server (and connections will be upgraded)
 if config.ssl.USE_NODE_SSL
   protocol = require("https")
   privateKey = fs.readFileSync(config.ssl.PRIVATE_KEY).toString()
@@ -81,8 +76,8 @@ if config.ssl.USE_NODE_SSL
 else
   protocol = require("http")
   server = protocol.createServer(app)
+
 index = "public/index.dev.html"
-#index = "public/index.build.html"  if fs.existsSync(PUBLIC_FOLDER + "/index.build.html")
 console.log "Using index: " + index
 Client = require("../client/client.js").ClientModel
 Clients = require("../client/client.js").ClientsCollection
