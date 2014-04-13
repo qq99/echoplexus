@@ -224,6 +224,10 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			# alter the message object itself
 			msg.mID = mID
 
+			if config.chat?.log == false
+				callback null, msg
+				return
+
 			# store the message
 			redisC.hset "chatlog:#{room}", mID, JSON.stringify(msg), (err, reply) ->
 				callback err  if err

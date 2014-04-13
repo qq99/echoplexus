@@ -20,6 +20,8 @@ exports.Configuration =
     SERVER_NICK: "Server"
 
   chat:
+    log: true # keeps a log server-side for participants who may have been offline
+
     webshot_previews: # requires phantomjs to be installed
       enabled: true # http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
       PHANTOMJS_PATH: "/opt/bin/phantomjs"
