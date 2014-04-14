@@ -29,7 +29,7 @@ module.exports.TouchGestures = class TouchGestures extends Backbone.Model
         @closeSwitcher(ev, true)
         @previousChannel(ev, false)
 
-    $(".channelSwitcher").on "click", ".channels .channelBtn", =>
+    $(".channel-switcher").on "click", ".channels .channelBtn", =>
       if !@get("switcherInactive")
         @$switcher.addClass("inactive")
         @set "switcherInactive", true

@@ -15,7 +15,7 @@ utility                   = require("../utility.js.coffee")
 
 module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
-  className: "channelSwitcher"
+  el: ".channel-switcher"
   template: channelSelectorTemplate
 
   loader: (new Loader()).modules

@@ -64,7 +64,7 @@ $(document).ready ->
 
 
   channelSwitcher = new ChannelSwitcher()
-  $("header").append channelSwitcher.$el
+  # $(".channel-switcher-container").append channelSwitcher.$el
   $("span.options").on "click", (ev) ->
     $(this).siblings("div.options").toggle()
 

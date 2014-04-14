@@ -1,0 +1,15 @@
+#module-buttons {
+  .button {
+    width: 100%;
+    height: 100%;
+    font-size: 1.2em;
+  }
+}
+
+nav.functionality {
+  @include unselectable;
+  @include panel;
+  width: $sidenav-width;
+  background: #999;
+  z-index: 120;
+}

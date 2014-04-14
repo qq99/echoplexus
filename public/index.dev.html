@@ -8,27 +8,18 @@
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
 </head>
 <body>
-	<nav class="header">
-
-	</nav>
 	<nav class="functionality">
-		<div id="buttons">
+		<div id="module-buttons">
 
 		</div>
-		<div class="options-list">
-			<div class="header">
-				<div class="button-obscura">
-					<h1 class="button global-options tabButton" data-target="#global-options">
-						<i class="icon fa fa-cogs"></i>
-						<span class="button-description long">Global Options</span>
-					</h1>
-				</div>
-			</div>
+		<div class="channel-switcher">
+
 		</div>
+		<button class="button global-options tabButton" data-target="#global-options">
+			<i class="icon fa fa-cogs"></i>
+			<span class="button-description long">Global Options</span>
+		</button>
 	</nav>
-	<header>
-
-	</header>
 	<section id="main">
 		<div id="main-ui">
 			<div id="info-overlay">
@@ -103,12 +94,10 @@
 			</div>
 		</div>
 		<script type="text/template" id="buttonTemplate">
-			<div class="button-obscura">
-				<h1 class="button tabButton<%= active ? ' active' : '' %>" data-target="#<%= section%>">
-					<i class="fa <%=icon%>"></i>
-					<span class="button-description"><%= title %></span>
-				</h1>
-			</div>
+			<button class="button tabButton<%= active ? ' active' : '' %>" data-target="#<%= section%>">
+				<i class="fa <%=icon%>"></i>
+				<span class="button-description"><%= title %></span>
+			</button>
 		</script>
 		<script type="text/template" id="sectionTemplate">
 			<section id="<%= section %>"></section>
