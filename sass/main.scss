@@ -19,7 +19,7 @@ $my-stream-height     : 103px;
 $room-specific-height : 80px;
 
 $nick-width           : 10em;
-$sidenav-width        : 10em;
+$sidenav-width        : 12em;
 
 @mixin unselectable {
 	-webkit-user-select: none;
@@ -36,14 +36,17 @@ $sidenav-width        : 10em;
 
 .flex-buttons {
 	display: flex;
-	.button {
+	.button, button {
 		flex: 1 100%;
+		text-align: center;
 	}
 }
 
 button {
 	border: none;
 	outline: none;
+	margin: 0;
+	padding: 0;
 }
 
 .button {
@@ -56,10 +59,6 @@ button {
 
 .emoji {
 	width: 20px;
-}
-
-span.channelName {
-	color:green;
 }
 
 @mixin panel {
@@ -292,91 +291,7 @@ nav.header {
 header {
 	@include unselectable;
 	@include panel;
-	height:30px;
 	z-index:100;
-	padding:0 0 0 30px;
-
-	button {
-		font-size:0.8em;
-	}
-
-	.channel-selector {
-		@include clearfix;
-
-		> div {
-			display:block;
-			float:left;
-		}
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		padding:0 0 0.1em 1em;
-
-		.channels, .join-channel {
-			height:100%;
-		}
-
-		.channelBtn {
-			@include clearfix;
-			height:100%;
-			text-transform:none;
-			font-style:italic;
-			margin-right:0.75em;
-			padding:0;
-			display:block;
-			float:left;
-			.channelName {
-				height:100%;
-				padding:0.25em 1em;
-			}
-			.channelName, .close {
-				float:left;
-				display: block;
-				height:100%;
-				vertical-align: middle;
-				font-family: sans-serif;
-			}
-			.close {
-				@include transition(all 0.25s ease-in-out);
-				text-align: center;
-				width:2em;
-				font-size:1.3em;
-				font-style:normal;
-				background: $darkgrey;
-				vertical-align: middle;
-				color:#333;
-				border:1px solid transparent;
-				border-left:1px solid #222;
-				&:hover {
-					color:#aaa;
-					background:rgba(255,255,255,0.15);
-				}
-			}
-
-			&.activity {
-				@include animation(activity2 2s infinite);
-			}
-			&.active {
-				color:greenyellow;
-			}
-		}
-		.join-channel {
-			margin-left:1em;
-			.channelName {
-				color:#aaa;
-				font-style: normal;
-			}
-		}
-		input {
-			margin-left:0.25em;
-			display:none;
-			padding:0.25em 1em;
-			font-size:1em;
-			width:15em;
-			min-width:15em;
-			border: 1px solid transparent;
-		}
-	}
 }
 
 .header {
@@ -540,15 +455,11 @@ header {
 }
 .button-group {
 	height:100%;
-	div, button {
+	button {
 		height:100%;
+		padding: 0 1em;
 		float:left;
-	}
-	div, button {
-		border-right:0px;
-		&:hover {
-			border-right:0px;
-		}
+		margin-right: 2px;
 	}
 	button, button:hover {
 		outline:none !important;

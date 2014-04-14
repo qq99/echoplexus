@@ -1,20 +1,12 @@
 <div class="channel-selector">
 	<div class="channels">
 	<% _.each(channels, function (name) { %>
-		<button data-channel='<%- name %>' class='channelBtn closable'>
-			<span class="channelName">
+		<button data-channel='<%- name %>' class='j-channel-btn button closable'>
+			<span class="channel-name">
 				<%- name %>
 			</span>
 			<i class="close button fa fa-times"></i>
 		</button>
 	<% }); %>
-	</div>
-	<div class="join-channel">
-		<button class="channelBtn join">
-			<div class="channelName">
-				+ join channel
-			</div>
-		</button>
-		<input class="channelName" placeholder="Type your channel name" />
 	</div>
 </div>
