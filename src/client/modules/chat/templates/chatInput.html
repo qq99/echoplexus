@@ -1,23 +1,23 @@
 <section class="chatinput">
 	<div class="channel-options">
 		<div class="button-group">
-			<button class="fancy syncLogs">Pull Chatlogs</button>
-			<button class="fancy pgp-settings">PGP</button>
-			<button class="fancy clearChatlog">Clear</button>
-			<button class="fancy deleteLocalStorage">Delete Cache</button>
-			<button class="fancy deleteLocalStorageAndQuit">Nuke</button>
+			<button class="syncLogs button">Pull Chatlogs</button>
+			<button class="pgp-settings button">PGP</button>
+			<button class="clearChatlog button">Clear</button>
+			<button class="deleteLocalStorage button">Delete Cache</button>
+			<button class="deleteLocalStorageAndQuit button">Nuke</button>
+			<% if (encrypted) { %>
+				<button class="encrypted button" title="Encrypted">
+					<i class="fa fa-key"></i>
+				</button>
+			<% } else { %>
+				<button class="not-encrypted button" title="Not Encrypted">
+					<i class="fa fa-key"></i>
+				</button>
+			<% } %>
 		</div>
 	</div>
 	<div class="chat-input-control">
 		<textarea placeholder="Say something..."></textarea>
-		<% if (encrypted) { %>
-			<button class="encrypted" title="Encrypted">
-				<i class="fa fa-key"></i>
-			</button>
-		<% } else { %>
-			<button class="not-encrypted" title="Not Encrypted">
-				<i class="fa fa-key"></i>
-			</button>
-		<% } %>
 	</div>
 </section>
