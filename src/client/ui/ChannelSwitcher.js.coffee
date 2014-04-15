@@ -68,9 +68,9 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
         password: data.password
 
     # show an input after clicking "+ Join Channel"
-    @$el.on "click", ".join", =>
+    $(document).on "click", ".j-channel-btn.join", =>
       if true
-        channelName = prompt("Which channel?")
+        channelName = prompt("Join which channel?")
         @joinAndShowChannel channelName
       else
         @$el.find("input.channel-name").toggle()

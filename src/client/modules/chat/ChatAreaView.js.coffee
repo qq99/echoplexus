@@ -247,7 +247,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     else
 
   setTopic: (newTopic) ->
-    $(".channel-topic .value", @$el).html newTopic
+    $(".channel-topic .value", @$el).text newTopic
+    $(".j-channel-btn[data-channel='#{@room}'] .topic").text newTopic
 
   showQuotationContext: (ev) ->
     $this = $(ev.currentTarget)

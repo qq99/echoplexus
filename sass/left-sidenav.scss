@@ -8,12 +8,12 @@ $nav-primary: #2A2C2B;
     height: 2em;
     font-size: 1.2em;
   }
-  .button.active {
-    color: #0084FF;
-  }
   .button-description {
     display: none;
   }
+}
+.tabButton.active {
+  color: #0084FF;
 }
 
 .functionality {
