@@ -67,7 +67,7 @@ $nav-primary: #2A2C2B;
     display: block;
   }
   .topic {
-    height: 1.5em;
+    max-height: 1.5em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -80,7 +80,7 @@ $nav-primary: #2A2C2B;
       display: block;
     }
     .topic {
-      height: auto;
+      max-height: 100%;
       white-space: normal;
       color: lighten($nav-primary, 30%);
     }
