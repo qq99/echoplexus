@@ -378,10 +378,6 @@ header {
   }
 }
 
-.channel-topic {
-	font-family:$pretty-font-family;
-}
-
 #chatting {
 	position: absolute;
 	height:100%;
@@ -473,11 +469,6 @@ header {
 
 .channel-options {
 	height:2em;
-}
-.channel-topic {
-	height:100%;
-	overflow-y:scroll;
-	overflow-x:hidden;
 }
 .room-specific {
 	height: 10%;

@@ -46,6 +46,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     @room = options.room
     @me = options.me
 
+    @channelBtnScope = ".j-channel-btn[data-channel='#{@room}']"
+
     @medialog = new MediaLog
       room: @room
 
@@ -248,7 +250,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
   setTopic: (newTopic) ->
     $(".channel-topic .value", @$el).text newTopic
-    $(".j-channel-btn[data-channel='#{@room}'] .topic").text newTopic
+    $("#{@channelBtnScope} .topic").text newTopic
 
   showQuotationContext: (ev) ->
     $this = $(ev.currentTarget)

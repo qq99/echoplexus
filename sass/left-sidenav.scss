@@ -58,6 +58,33 @@ $nav-primary: #2A2C2B;
   button.active {
     background: lighten($nav-primary, 5%);
   }
+  .channel-button-body {
+    width: 100%;
+  }
+  .topic, .users {
+    font-size: 0.85em;
+    width: 100%;
+    display: block;
+  }
+  .topic {
+    height: 1.5em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .users {
+    display: none;
+  }
+  button.active {
+    .users {
+      display: block;
+    }
+    .topic {
+      height: auto;
+      white-space: normal;
+      color: lighten($nav-primary, 30%);
+    }
+  }
 }
 
 .channels button {
