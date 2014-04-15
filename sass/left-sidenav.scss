@@ -1,6 +1,8 @@
-$nav-primary: #E4EFF1;
+$nav-primary: #2A2C2B;
 
 #module-buttons {
+  background: darken($nav-primary, 20%);
+  padding: 0.25em 0;
   .button {
     text-align: center;
     height: 2em;
@@ -23,36 +25,43 @@ $nav-primary: #E4EFF1;
   button {
     background: transparent;
     text-align: left;
+    color: lighten($nav-primary, 25%);
   }
 }
 
 .channel-switcher {
   button {
-    position: relative;
     width: 100%;
     font-size: 1em;
-    padding: 0.25em 1em;
+    padding: 0.5em 0.75em 0.5em 2em;
+    .channel-button-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
     .channel-name, i {
       display: block;
-      color: darken($nav-primary, 50%);
+      color: lighten($nav-primary, 50%);
     }
     .close {
       position: absolute;
       top: 0;
       right: 0;
       width: 1.2em;
-      line-height: 1.75em;
+      line-height: 1.3em;
       height: 100%;
       text-align: center;
+      color: lighten($nav-primary, 15%);
+      text-shadow: 1px 1px 0px darken($nav-primary, 10%);
     }
   }
   button.active {
-    background: darken($nav-primary, 10%);
+    background: lighten($nav-primary, 5%);
   }
 }
 
 .channels button {
-  border-bottom: 1px solid #efefef;
+  border-bottom: 1px solid lighten($nav-primary, 5%);
 }
 
 .join-channel button {
@@ -68,7 +77,7 @@ $nav-primary: #E4EFF1;
   position: absolute;
   bottom: 0;
   width: 100%;
-  padding: 0.25em 0;
+  padding: 0.5em 0;
 
   button {
     font-size: 1.5em;
