@@ -67,20 +67,25 @@ $nav-primary: #2A2C2B;
     display: block;
   }
   .topic {
-    max-height: 1.5em;
+    height: 1.5em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .users {
-    display: none;
+    color: #686868;
+    margin-top: 0.5em;
+    i {
+      color: inherit;
+      display: inline-block;
+    }
+    .active {
+      color: #277527;
+    }
   }
   button.active {
-    .users {
-      display: block;
-    }
     .topic {
-      max-height: 100%;
+      height: auto;
       white-space: normal;
       color: lighten($nav-primary, 30%);
     }

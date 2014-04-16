@@ -177,7 +177,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     $(".messages", @$el).on "mousewheel DOMMouseScroll", @scrollSyncLogs
 
   events:
-    "click button.syncLogs": "activelySyncLogs"
     "click button.deleteLocalStorage": "deleteLocalStorage"
     "click button.deleteLocalStorageAndQuit": "logOut"
     "click button.clearChatlog": "clearChatlog"

@@ -244,8 +244,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         userHTML += userItem
 
       $userlist.append userHTML
-      $(".userlist .count .active .value", @$el).html nActive
-      $(".userlist .count .total .value", @$el).html total
+      $("#{@channelBtnScope} .j-usersummary .total").text total
+      $("#{@channelBtnScope} .j-usersummary .active").text nActive
     else
 
   setTopic: (newTopic) ->
