@@ -23,6 +23,9 @@ module.exports.core = ->
   require("./visibility.js.coffee")
   require("./events.js.coffee")()
 
+  VisibilityManager.onChange (visibility) ->
+    window.visibility_status = visibility # duplicate the visibility status as a property we can look up at any time
+
   # these should really be refactored:
   window.codingModeActive = ->
     $("#coding").is ":visible"

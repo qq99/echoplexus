@@ -27,15 +27,16 @@ $(document).ready ->
       $(this).remove()
 
   tooltipTemplate = $("#tooltip").html()
-  $(window).on("blur", ->
-    $("body").addClass "blurred"
-  ).on "focus mouseenter", ->
-    $("body").removeClass "blurred"
-    document.title = "echoplexus"
-    faviconizer.setConnected()  if typeof window.disconnected is "undefined" or not window.disconnected
-    if ua.node_webkit
-      win = gui.Window.get()
-      win.requestAttention false
+
+  VisibilityManager.onChange (visibility) ->
+    if visibility == "visible"
+      document.title = "echoplexus"
+      faviconizer.setConnected()  if typeof window.disconnected is "undefined" or not window.disconnected
+      if ua.node_webkit
+        win = gui.Window.get()
+        win.requestAttention false
+
+      window.events.trigger "unidle" # fire an event that signals we're no longer idle
 
   setTimeout (->
     # reconnect the socket manually using the navigator's onLine property
@@ -155,10 +156,5 @@ $(document).ready ->
       if ua.node_webkit
         win = gui.Window.get()
         win.requestAttention true
-
-
-  # fire an event that signals we're no longer idle
-  $(window).on "keydown mousemove", ->
-    window.events.trigger "unidle"
 
   Gestures = new TouchGestures if utility.isMobile()
