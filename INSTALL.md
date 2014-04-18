@@ -48,6 +48,10 @@ If you have bower installed globally, you can run:
 Otherwise, you should install it:
 
     $ npm install -g bower
+    
+### Ruby
+
+Any version will do.  `gem install sass`
 
 ### Redis
 
