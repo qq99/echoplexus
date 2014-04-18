@@ -481,7 +481,8 @@ header {
 		overflow:hidden;
 	}
 	textarea {
-		background: #efefef;
+		background: $white;
+		box-shadow: inset 1px 1px 2px #999;
 		overflow:hidden;
 		padding:0.75em 1em;
 		font-size:1em;
