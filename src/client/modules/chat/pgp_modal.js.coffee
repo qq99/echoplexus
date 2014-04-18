@@ -64,8 +64,9 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
     @pgp_settings.set("my_keys", [])
     for key, val of KEYSTORE.list()
       if val.armored_private_key
+        abbreviated = key.slice(0,4) + "..." + key.slice(-4)
         @my_keys.push {
-          label: "#{key} (used " + moment(val.last_used_at).fromNow() + " in #{val.last_used_in} as #{val.last_used_by})"
+          label: "#{abbreviated} (" + moment(val.last_used_at).fromNow() + ")"#+ " in #{val.last_used_in} as #{val.last_used_by})"
           fingerprint: key
         }
 

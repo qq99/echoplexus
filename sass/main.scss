@@ -14,8 +14,10 @@
 }
 
 // color              :
+$white                : #fefefe;
 $darkgrey             : #111;
 $active-color         : rgba(71,178,250,0.7);
+$error                : #C32D2D;
 // fonts              :
 $pretty-font-family   : 'Open Sans', 'Noto Sans', 'Ubuntu', sans-serif;
 $monospace            : 'Droid Sans Mono', monospace;
@@ -56,6 +58,44 @@ button {
 	margin: 0;
 	padding: 0;
 }
+
+.action-btn {
+	padding: 0.25em 0.75em;	
+	background-repeat: repeat-x;
+	border-width: 1px 1px 2px 1px;
+	border-color: #bbb;
+	border-style: solid solid outset solid;
+	border-radius: 3px;
+	border-bottom-width: 2px;
+	border-image-outset: 0;
+	border-image-repeat: stretch;
+	border-image-slice: 100%;
+	border-image-source: none;
+	border-image-width: 1;
+	border-top-width: 1px;
+	box-sizing: border-box;
+	cursor: pointer;
+	display: inline-block;
+	font-family: FeuraSansWeb, 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+	font-weight: normal;
+	letter-spacing: normal;
+	text-align: center;
+	color: inherit;
+}
+
+.action-btn-primary {
+	background-color: rgb(23, 147, 229);
+	background-image: linear-gradient(rgb(76, 177, 255), rgb(23, 147, 229));
+	border-color: rgb(23, 147, 229);
+	color: $white;
+}
+.action-btn-delete {
+	background-color: $error;
+	border-color: $error;
+	background-image: linear-gradient(lighten($error, 15%), $error);
+	color: $white;
+}
+
 
 .button {
 	cursor: pointer;
@@ -509,6 +549,7 @@ header {
 .messages-pane {
 	@include panel;
 	padding-bottom: $chatinput-height;
+	background: #dfebdf;
 }
 
 .close-button {
@@ -539,17 +580,13 @@ hr {
 	outline: 0;
 }
 
-.modal {
-	textarea {
-		font-size: 0.9em;
-	}
-}
 
 .chatMessage {
 	@include transition(all 0.25s ease-in-out);
-	height:auto;
-	position:relative;
-	margin: 0;
+	background: $white;
+	margin: 0.5em 0;
+	height: auto;
+	position: relative;
 
 	.pgp-armored-body {
 		display: none;
@@ -739,120 +776,6 @@ hr {
 }
 .operator {
 	color:red;
-}
-
-.backdrop {
-	@include panel;
-	z-index:1000;
-	background:rgba(0,0,0,0.75);
-}
-.modal {
-	font-family:$pretty-font-family;
-	position:relative;
-	width:32em;
-	background:#1d1f1f;
-	box-shadow:inset -2px -2px 0px -1px rgba(155,225,255,0.1);
-	padding:2em;
-	height:32em;
-	overflow:hidden;
-	z-index:2;
-
-	.modal-title {
-		position: absolute;
-		top: 0;
-		left: 0;
-		margin-top: 0;
-		font-style: normal;
-		width: 100%;
-		background: #333;
-		padding-left: inherit;
-		line-height: 1.3em;
-	}
-
-	.close-button {
-		@include unselectable;
-		position: absolute;
-		top: 0;
-		right: 0;
-		z-index: 2;
-		background: #333;
-	}
-
-	&.centered {
-		top:50%;
-		margin:auto;
-		margin-top:-15em;
-	}
-
-	> .field {
-		position:relative;
-		z-index:2;
-	}
-
-	.field {
-		label {
-			display:inline-block;
-			width:auto;
-			margin-bottom: 0.5em
-		}
-		label.description {
-			font-size:0.9em;
-			float:right;
-			color: #777;
-		}
-		input {
-
-		}
-		textarea {
-			width: 100%;
-			height: 6em;
-			display: block;
-			resize: none;
-		}
-	}
-
-	.user-emblem {
-		@include unselectable();
-		@include panel;
-		z-index:1;
-		font-size: 300px;
-		color: #1a1a1a;
-		text-align: center;
-	}
-
-	section {
-		display: none;
-		&.active {
-			display: block;
-		}
-	}
-	.field {
-		margin:1em 0 ;
-	}
-	input[type='text'], input[type='password'] {
-		min-height:2em;
-		height:2em;
-		width:100%;
-		padding:0.25em 1em;
-	}
-	button {
-		text-transform: none;
-	}
-}
-
-.crypto-key-popup {
-	z-index:2;
-	.anti-surveillance {
-		@include unselectable();
-		float:left;
-		margin:0 0.25em 0 0;
-		font-size: 6em;
-		color: #1a1a1a;
-		text-align: center;
-		.fa-eye-slash {
-			color:yellow;
-		}
-	}
 }
 
 .progress-bar {

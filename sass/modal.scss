@@ -1,0 +1,120 @@
+.backdrop {
+	@include panel;
+	z-index: 1000;
+	background: rgba(0,0,0,0.75);
+	display: flex;
+  align-items: center;
+}
+
+.modal {
+	font-family: sans-serif;
+	position:relative;
+	width: 32em;
+	background: $white;
+	color: inherit;
+	box-shadow:inset -2px -2px 0px -1px rgba(155,225,255,0.1);
+	padding:2em;
+	overflow:hidden;
+	z-index:2;
+
+	h1, h2 {
+		font-family: inherit;
+		margin-top: 0;
+	}
+
+	textarea {
+		font-size: 0.9em;
+	}
+
+	.modal-title {
+		position: absolute;
+		top: 0;
+		left: 0;
+		margin-top: 0;
+		font-style: normal;
+		width: 100%;
+		background: #333;
+		padding-left: inherit;
+		line-height: 1.3em;
+	}
+
+	.close-button {
+		@include unselectable;
+		position: absolute;
+		top: 0;
+		right: 0;
+		z-index: 2;
+		background: inherit;
+	}
+
+	&.centered {
+		top:50%;
+		margin:auto;
+		margin-top:-15em;
+	}
+
+	> .field {
+		position:relative;
+		z-index:2;
+	}
+
+	.field {
+		label {
+			display:inline-block;
+			width:auto;
+			margin-bottom: 0.5em
+		}
+		label.description {
+			font-size:0.9em;
+			float:right;
+			color: #777;
+		}
+		textarea {
+			width: 100%;
+			height: 6em;
+			display: block;
+			resize: none;
+		}
+	}
+
+	.user-emblem {
+		@include unselectable();
+		@include panel;
+		z-index:1;
+		font-size: 300px;
+		color: #1a1a1a;
+		text-align: center;
+	}
+
+	section {
+		display: none;
+		&.active {
+			display: block;
+		}
+	}
+	.field {
+		margin:1em 0 ;
+	}
+	input[type='text'], input[type='password'] {
+		width: 100%;
+		padding: 0.5em;
+	}
+	button {
+		text-transform: none;
+	}
+}
+
+.crypto-key-popup {
+	z-index: 2;
+	.anti-surveillance {
+		@include unselectable();
+		float:left;
+		margin:0 0.25em 0.25em 0;
+		font-size: 6em;
+		color: #1a1a1a;
+		text-align: center;
+		.fa-eye-slash {
+			color: #F00;
+		}
+	}
+}

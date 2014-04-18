@@ -2,15 +2,15 @@
   <div class="close close-button">
     <i class="fa fa-times"></i>
   </div>
-  <h1 class="modal-title">PGP</h1>
   <!-- intro -->
   <section class="intro active">
+    <h1>Pretty Good Privacy &ndash; PGP</h1>
     <p>To better secure your identity, you can choose to use a PGP key to sign and/or encrypt your messages.  This can eliminate the need to share a secret to exchange messages securely, which is prone to user error and forgetfulness.</p>
     <p>After selecting a keypair, you can choose to sign all outgoing messages.  Any message you send while signed <a href="https://blog.echoplex.us/2014/03/05/echoplexus-and-pgp/" target="_blank">can be verified by others as having been sent by you</a>.</p>
     <p>If you're chatting with other people who have also supplied PGP keys, you can also more strongly encrypt your communications.</p>
     <div class="field">
-      <button class="generate-keypair">Generate a keypair</button>
-      <button class="use-own">Use a keypair I supply</button>
+      <button class="generate-keypair action-btn action-btn-primary">Generate a keypair</button>
+      <button class="use-own action-btn">Use a keypair I supply</button>
     </div>
     <div class="reusing-keys-section">
       <hr>
@@ -21,12 +21,13 @@
         </select>
       </div>
       <div class="field">
-        <button class="re-use">Re-use this key</button>
+        <button class="re-use action-btn action-btn-primary">Re-use this key</button>
       </div>
     </div>
   </section>
   <!-- generate -->
   <section class="generate-keypair">
+    <h1>Generate a keypair</h1>
     <div class="field">
       <label for="pgp-key-type">Key Type:</label>
       <span>RSA</span>
@@ -57,16 +58,17 @@
     </div>
     <div class="field">
       <p>Name and email fields are always publicly visible!  They can strengthen your identity, but weaken your anonymity.</p>
-      <button class="finalize-generate-keypair">Generate</button>
+      <button class="finalize-generate-keypair action-btn action-btn-primary">Generate</button>
     </div>
   </section>
   <!-- generating -->
   <section class="pgp-generating">
-    <p>Generating!</p>
+    <h1>Generating keypair</h1>
     <p>Your browser may lock up temporarily!  Please wait, as this may take a while.</p>
   </section>
   <!-- options -->
   <section class="pgp-options">
+    <h1>PGP Options</h1>
     <div class="field">
       <input id="pgp-sign-outgoing" type="checkbox" checked>
       <label for="pgp-sign-outgoing">Sign outgoing messages</label>
@@ -80,12 +82,13 @@
       <p>To trust someone, simply click their key in the userlist and they will receive any future PGP encrypted messages from you.</p>
     </div>
     <div class="field">
-      <button class="view-key-information">Keypair Information</button>
-      <button class="stop-using">Stop using PGP</button>
+      <button class="view-key-information action-btn">Keypair Information</button>
+      <button class="stop-using action-btn">Stop using PGP</button>
     </div>
   </section>
   <!-- keypair info -->
   <section class="pgp-keypair-information">
+    <h1>Keypair Summary</h1>
     <div class="field">
       <label>User ID:</label>
       <span class="pgp-user-id"></span>
@@ -104,12 +107,16 @@
     </div>
     <p>Do not lose your armored keys!  Copy them and save them somewhere safe.</p>
     <div class="field">
-      <button class="view-pgp-options">PGP Options</button>
-      <button class="destroy-keypair">Destroy Keypair</button>
+      <button class="view-pgp-options action-btn">PGP Options</button>
+      <button class="destroy-keypair action-btn action-btn-delete">
+        <i class="fa fa-trash-o"></i>
+        Destroy Keypair
+      </button>
     </div>
   </section>
   <!-- user supplied keypair -->
   <section class="pgp-user-supplied">
+    <h1>Supply your own keypair</h1>
     <p class="death-warning">If you choose to supply your own key, be sure that it's one you are comfortable with losing.</p>
     <div class="field">
       <label for="pgp-user-supplied-armored-private">Armored Private Key</label>
@@ -120,7 +127,7 @@
       <textarea id="pgp-user-supplied-armored-public" placeholder="-----BEGIN PGP PUBLIC KEY BLOCK----- ..."></textarea>
     </div>
     <div class="field">
-      <button class="use-key">Use these keys</button>
+      <button class="use-key action-btn">Use these keys</button>
     </div>
     <div class="errors">
 
