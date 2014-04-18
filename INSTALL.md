@@ -90,10 +90,10 @@ If you want to host behind nginx, you will have to get a build with WebSockets e
 
 ###Web Server Proxying:
 
-You have at least too options in exposing your deployment.  We recommend:
+You have at least two options in exposing your deployment.  We recommend:
 
 1. Pro: Proxy echoplexus behind nginx v1.3.13 or later (requires WebSocket
-   support). We've attached a [sample configuration](https://github.com/qq99/echoplexus/blob/0.2.3/src/server/samples/echoplexus.site "Sample Echoplexus nginx configuration). You may also use HAProxy.
+   support). We've attached a [sample configuration](https://github.com/qq99/echoplexus/blob/0.2.3/src/server/samples/echoplexus.site "Sample Echoplexus nginx configuration"). You may also use HAProxy.
 2. Git'r done: Update iptables to redirect port 80 or 443 to the port of your
    choice. *Remember to save and test your rules!*
 
