@@ -3,7 +3,7 @@ $nav-secondary: #2A2C2B;
 .supportbar {
   z-index: 300;
   background: $nav-secondary;
-  color: lighten($nav-primary, 25%);
+  color: lighten($nav-primary, 30%);
   height:100%;
   width: 0;
   &.expanded {
@@ -75,7 +75,7 @@ $nav-secondary: #2A2C2B;
   }
 
   &.maximized {
-    height: 90%;
+    height: 100%;
     margin-bottom: -30px;
   }
 }

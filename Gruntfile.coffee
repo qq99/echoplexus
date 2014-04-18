@@ -176,7 +176,7 @@ module.exports = (grunt) ->
 
     exec:
       server:
-        command: 'supervisor -n error -w . src/server/main.coffee'
+        command: 'supervisor -n error -w src/server src/server/main.coffee'
         stdout: true
       production:
         command: 'supervisor --poll-interval 60000 -w . src/server/main.coffee'

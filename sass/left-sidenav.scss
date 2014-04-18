@@ -6,7 +6,7 @@ $nav-primary: #2A2C2B;
   .button {
     text-align: center;
     height: 2em;
-    font-size: 1.2em;
+    font-size: 1.3em;
   }
   .button-description {
     display: none;
@@ -29,11 +29,17 @@ $nav-primary: #2A2C2B;
   }
 }
 
+.channel-button {
+  box-sizing: content-box; // Firefox has a bug when there's white-space: nowrap inside of a fucking border-box!
+  .channel-button-content {
+    padding: 0.5em 2em;
+  }
+}
+
 .channel-switcher {
   button {
     width: 100%;
-    font-size: 1em;
-    padding: 0.5em 0.75em 0.5em 2em;
+    font-size: 1.3em;
     .channel-button-content {
       position: relative;
       width: 100%;
@@ -62,12 +68,13 @@ $nav-primary: #2A2C2B;
     width: 100%;
   }
   .topic, .users {
-    font-size: 0.85em;
+    font-size: 0.9em;
     width: 100%;
     display: block;
   }
   .topic {
-    height: 1.5em;
+    font-size:0.8em;
+    max-height: 1.5em; // don't use height, because it looks weird when there is no topic
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -85,7 +92,7 @@ $nav-primary: #2A2C2B;
   }
   button.active {
     .topic {
-      height: auto;
+      max-height: 100%;
       white-space: normal;
       color: lighten($nav-primary, 30%);
     }

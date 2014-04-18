@@ -2,16 +2,17 @@
 	<div class="channel-options">
 		<div class="button-group">
 			<button class="pgp-settings button">PGP</button>
-			<button class="clearChatlog button">Clear</button>
-			<button class="deleteLocalStorage button">Delete Cache</button>
+			<button class="deleteLocalStorage button">
+				<i class="fa fa-trash-o"></i>
+			</button>
 			<button class="deleteLocalStorageAndQuit button">Nuke</button>
 			<% if (encrypted) { %>
 				<button class="encrypted button" title="Encrypted">
-					<i class="fa fa-key"></i>
+					<i class="fa fa-lock"></i>
 				</button>
 			<% } else { %>
-				<button class="not-encrypted button" title="Not Encrypted">
-					<i class="fa fa-key"></i>
+				<button class="shared-secret not-encrypted button" title="Not Encrypted">
+					<i class="fa fa-unlock-alt"></i>
 				</button>
 			<% } %>
 		</div>

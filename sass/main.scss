@@ -92,12 +92,12 @@ pre {
 	padding:0px;
 }
 textarea {
-	font-family:$monospace;
+	display: $pretty-font-family;
 }
 html, body {
 	background: #fefefe;
 	color:#111;
-	font-family:$monospace;
+	font-family:$pretty-font-family;
 	height:100%;
 	width:100%;
 	margin:0;
@@ -221,7 +221,7 @@ div > h1:first-child, div > h2:first-child, div > h3:first-child {
 	position:absolute;
 	height:100%;
 	width:100%;
-	font-size:1.4em;
+	font-size:1.6em;
 }
 
 .warn {
@@ -1032,4 +1032,12 @@ hr {
 
 .growl {
 	display: none;
+}
+
+.beginning-of-time {
+	margin-bottom: 1em;
+	padding: 1em;
+	text-align: center;
+	font-family: $pretty-font-family;
+	border-radius: 20px;
 }

@@ -179,7 +179,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   events:
     "click button.deleteLocalStorage": "deleteLocalStorage"
     "click button.deleteLocalStorageAndQuit": "logOut"
-    "click button.clearChatlog": "clearChatlog"
     "click .reply-button": "reply"
     "keydown .chatinput textarea": "handleChatInputKeydown"
     "click button.not-encrypted": "showCryptoModal"
@@ -753,9 +752,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       body: "All local data erased."
       lifespan: 7000
     )
-
-  clearChatlog: ->
-    @chatLog.clearChat()
 
   startIdleTimer: ->
     @idleTimer = setTimeout(=>
