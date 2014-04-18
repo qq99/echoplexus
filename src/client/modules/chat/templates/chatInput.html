@@ -1,18 +1,18 @@
 <section class="chatinput">
 	<div class="channel-options">
 		<div class="button-group">
-			<button class="pgp-settings button">PGP</button>
+			<button class="pgp-settings button action-btn action-btn-primary attached-to-top">PGP</button>
 			<!-- <button class="deleteLocalStorageAndQuit button">Nuke</button> -->
 			<% if (encrypted) { %>
-				<button class="encrypted button" title="Encrypted">
+				<button class="encrypted button action-btn action-btn-success attached-to-top" title="Encrypted">
 					<i class="fa fa-lock"></i>
 				</button>
 			<% } else { %>
-				<button class="shared-secret not-encrypted button" title="Not Encrypted">
+				<button class="shared-secret not-encrypted button action-btn attached-to-top" title="Not Encrypted">
 					<i class="fa fa-unlock-alt"></i>
 				</button>
 			<% } %>
-			<button class="deleteLocalStorage button">
+			<button class="deleteLocalStorage button action-btn action-btn-delete attached-to-top">
 				<i class="fa fa-trash-o"></i>
 			</button>
 		</div>

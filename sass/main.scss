@@ -18,6 +18,7 @@ $white                : #fefefe;
 $darkgrey             : #111;
 $active-color         : rgba(71,178,250,0.7);
 $error                : #C32D2D;
+$success              : rgb(67, 100, 0);
 // fonts              :
 $pretty-font-family   : 'Open Sans', 'Noto Sans', 'Ubuntu', sans-serif;
 $monospace            : 'Droid Sans Mono', monospace;
@@ -81,6 +82,11 @@ button {
 	letter-spacing: normal;
 	text-align: center;
 	color: inherit;
+	&.attached-to-top {
+		border-bottom: 0;
+		border-bottom-right-radius: 0;
+		border-bottom-left-radius: 0;
+	}
 }
 
 .action-btn-primary {
@@ -93,6 +99,12 @@ button {
 	background-color: $error;
 	border-color: $error;
 	background-image: linear-gradient(lighten($error, 15%), $error);
+	color: $white;
+}
+.action-btn-success {
+	background-color: $success;
+	border-color: $success;
+	background-image: linear-gradient(lighten($success, 15%), $success);
 	color: $white;
 }
 
@@ -452,11 +464,6 @@ header {
 	}
 }
 
-.button.encrypted {
-	background:rgb(67, 100, 0);
-	color: white;
-}
-
 .chatinput {
 	width:100%;
 	padding:1em 1em 0 1em;
@@ -500,11 +507,7 @@ header {
 		height:100%;
 		padding: 0 1em;
 		float:left;
-		margin-right: 2px;
-	}
-	button, button:hover {
-		outline:none !important;
-		border-bottom:none;
+		margin-right: 5px;
 	}
 }
 
@@ -584,6 +587,7 @@ hr {
 .chatMessage {
 	@include transition(all 0.25s ease-in-out);
 	background: $white;
+	box-shadow: inset 1px 1px 0px darken($white, 15%);
 	margin: 0.5em 0;
 	height: auto;
 	position: relative;
