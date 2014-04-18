@@ -2,10 +2,7 @@
 	<div class="channel-options">
 		<div class="button-group">
 			<button class="pgp-settings button">PGP</button>
-			<button class="deleteLocalStorage button">
-				<i class="fa fa-trash-o"></i>
-			</button>
-			<button class="deleteLocalStorageAndQuit button">Nuke</button>
+			<!-- <button class="deleteLocalStorageAndQuit button">Nuke</button> -->
 			<% if (encrypted) { %>
 				<button class="encrypted button" title="Encrypted">
 					<i class="fa fa-lock"></i>
@@ -15,6 +12,9 @@
 					<i class="fa fa-unlock-alt"></i>
 				</button>
 			<% } %>
+			<button class="deleteLocalStorage button">
+				<i class="fa fa-trash-o"></i>
+			</button>
 		</div>
 	</div>
 	<div class="chat-input-control">
