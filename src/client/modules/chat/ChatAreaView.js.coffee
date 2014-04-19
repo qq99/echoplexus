@@ -43,10 +43,9 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
     @scrollToLatest = _.debounce(@_scrollToLatest, 200) # if we're pulling a batch, do the scroll just once
 
+    @button = options.button
     @room = options.room
     @me = options.me
-
-    @channelBtnScope = ".j-channel-btn[data-channel='#{@room}']"
 
     @medialog = new MediaLog
       room: @room
@@ -244,13 +243,14 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         userHTML += userItem
 
       $userlist.append userHTML
-      $("#{@channelBtnScope} .j-usersummary .total").text total
-      $("#{@channelBtnScope} .j-usersummary .active").text nActive
+      @button.data.set
+        activeUsers: nActive
+        totalUsers: total
     else
 
   setTopic: (newTopic) ->
     $(".channel-topic .value", @$el).text newTopic
-    $("#{@channelBtnScope} .topic").text newTopic
+    @button.data.set("topic", newTopic)
 
   showQuotationContext: (ev) ->
     $this = $(ev.currentTarget)

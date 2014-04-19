@@ -84,6 +84,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       pgp_settings: @pgp_settings
 
     @chatLog = new ChatAreaView
+      button: @channel.get("button")
       room: @channelName
       persistentLog: @persistentLog
       me: @me
