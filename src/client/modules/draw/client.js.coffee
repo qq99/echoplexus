@@ -36,6 +36,8 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
     @on "show", =>
       @$el.show()
 
+    window.events.on "sectionActive:#{@module.section}", @resizeCanvas
+
     @on "hide", =>
       @$el.hide()
 
@@ -189,8 +191,6 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
         #Add the coordinate to the path
         path.push msg.coord
 
-        console.log @
-
         #Draw the line
         @drawLine ctx, path
 
@@ -249,6 +249,15 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
     @$el.html @template()
     @$el.attr "data-channel", @channelName
 
+  resizeCanvas: ->  
+    area = @$el.find(".canvas-area")
+    w = @$el.width()
+    h = @$el.height()
+
+    oldData = @ctx.getImageData(0, 0, @ctx.canvas.clientWidth, @ctx.canvas.clientHeight)
+    $("canvas", @$el).attr("width", w)
+    $("canvas", @$el).attr("width", w)
+    @ctx.putImageData(oldData, 0, 0)
 
   #Catmull-Rom spline
   catmull: (path, ctx, tens) ->
