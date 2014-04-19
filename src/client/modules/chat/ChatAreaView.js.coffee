@@ -114,25 +114,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       $button = $(this)
       $button.closest(".media-item").remove()
 
-
-    # minimize/maximize the media item
-    @$el.on "click", ".hide, .show", (ev) ->
-      $button = $(this)
-      $button.toggleClass("hide").toggleClass "show"
-
-      # change the icon
-      $button.find("i").toggleClass("fa-minus-square-o").toggleClass "fa-plus-square-o"
-
-      # toggle the displayed view (.min|.max)
-      $button.closest(".media-item").toggleClass "minimized"
-
-      # update the text
-      if $button.hasClass("hide")
-        $button.find(".explanatory-text").text "Hide"
-      else
-        $button.find(".explanatory-text").text "Show"
-
-
   _scrollToLatest: (ev) -> #Get the last message and scroll that into view
     now = Number(new Date())
 

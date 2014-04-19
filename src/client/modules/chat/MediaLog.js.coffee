@@ -14,7 +14,7 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
     "click .disableMediaLog, .opt-out": "disallowMediaAutoload"
     "click .maximizeMediaLog": "nullMediaAutoload"
     "click .media-opt-in .opt-in": "allowMediaAutoload"
-    "click .youtube.imageThumbnail": "showYoutubeVideo"
+    "click .youtubeEmbed .play-icon": "showYoutubeVideo"
 
   initialize: (opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))
@@ -119,5 +119,8 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
     window.localStorage.setItem "autoloadMedia:#{@room}", true
 
   showYoutubeVideo: (ev) ->
-    $(ev.currentTarget).hide()
-    $(ev.currentTarget).siblings(".video").show()
+    container = $(ev.currentTarget).closest(".media-item")
+    $(ev.currentTarget).remove()
+    container.find(".imageThumbnail").hide()
+    container.find(".video").show()
+    container.find(".media-buttons").addClass("collapsed")

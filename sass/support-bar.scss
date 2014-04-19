@@ -187,6 +187,7 @@ $nav-secondary: #2A2C2B;
   text-align: center;
   font-size: 2.2em;
   min-height: 3em;
+  z-index: 20;
   a {
     @include transition(all 0.25s ease-in-out);
     flex: 1 100%;
@@ -214,35 +215,26 @@ $nav-secondary: #2A2C2B;
   .icon-remove {
     font-size:1.3em;
   }
+  &.collapsed {
+    height: 25px;
+    position: relative;
+    display: flex;
+    font-size: 1em;
+    .play-icon {
+      font-size: 1em;
+    }
+  }
+  .play-icon:hover {
+    color: #b31217;
+  }
 }
 
 .youtubeEmbed {
-  cursor: pointer;
-  .imageThumbnail {
-    @include transition(all 0.5s ease-in-out);
-    opacity:0.55;
-  }
-  .play-icon {
-    @include transition(all 0.5s ease-in-out);
-    color: white;
-    display: block;
-    width: 100%;
-    position: absolute;
-    font-size: 5em;
-    margin-top: 70px;
-    text-align: center;
-  }
-  &:hover {
-    .imageThumbnail {
-      opacity:1;
-    }
-    .play-icon {
-      color: #c22;
-      opacity: 0;
-    }
-  }
   .video {
     display:none;
+  }
+  .play-icon {
+    font-size: 2em;
   }
 }
 
