@@ -1,0 +1,17 @@
+// echoplexus overrides to default spectrum stylesheet
+.sp-palette .sp-thumb-el:hover, .sp-palette .sp-thumb-el.sp-thumb-active {
+	border-color: darken($teagreen, 50%);
+}
+.sp-replacer {
+	border: 0;
+	background: transparent;
+}
+.sp-input-container {
+	margin-bottom: 0;
+}
+.sp-container {
+	border-color: #999;
+}
+.sp-container input {
+	border: 1px solid #999;
+}
