@@ -42,6 +42,7 @@ module.exports = (grunt) ->
           "vendor/codemirror/mode/htmlembedded/htmlembedded.js"
           "vendor/hammerjs/hammer.js"
           "vendor/emojify.js/emojify.js"
+          "vendor/spectrum/spectrum.js"
           "lib/CryptoJS-3.1.2/components/core.js"
           "lib/CryptoJS-3.1.2/components/enc-base64.js"
           "lib/CryptoJS-3.1.2/components/enc-utf16.js"

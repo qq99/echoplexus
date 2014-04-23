@@ -33,6 +33,16 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
     @render()
     @attachEvents()
 
+    $(".colorpicker", @$el).spectrum
+      color: @style.strokeStyle
+      showAlpha: true
+      clickoutFiresChange: true
+      showInput: true
+      showInitial: true
+      showButtons: false
+      change: (color) =>
+        @style.strokeStyle = color.toRgbString()
+
     @on "show", =>
       @$el.show()
 
@@ -115,16 +125,6 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
       @changeTool "PEN"
 
     @$el.on "click", ".tool.info", ->
-      $(this).find(".tool-options").toggleClass "active"
-
-    @$el.on "click", ".tool.color", ->
-      options = $(this).find(".tool-options-contents")
-      swatch = $("<div class=\"swatch\"></div>")
-      options.html ""
-      _(30).times ->
-        randomColor = (new ColorModel()).toRGB()
-        swatch.clone().css("background", randomColor).data("color", randomColor).appendTo options
-
       $(this).find(".tool-options").toggleClass "active"
 
     key "]", =>
