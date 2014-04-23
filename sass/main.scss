@@ -31,6 +31,7 @@ $supportbar-width     : 300px;
 $chatinput-height     : 6em;
 $my-stream-height     : 103px;
 $room-specific-height : 80px;
+$repl-options-height  : 4em;
 
 $nick-width           : 10em;
 $sidenav-width        : 18em;
@@ -72,7 +73,7 @@ button {
 	border-color: #bbb;
 	border-style: solid solid outset solid;
 	border-radius: 3px;
-	border-bottom-width: 2px;
+	border-bottom-width: 1px;
 	border-image-outset: 0;
 	border-image-repeat: stretch;
 	border-image-slice: 100%;
@@ -92,6 +93,15 @@ button {
 		border-bottom-right-radius: 0;
 		border-bottom-left-radius: 0;
 	}
+	&:active {
+		border-bottom-width: 1px;
+		box-shadow: inset 0px 1px 0px #555;
+	}
+}
+
+code {
+	background: #eee;
+	padding: 0.1em;
 }
 
 .action-btn-primary {

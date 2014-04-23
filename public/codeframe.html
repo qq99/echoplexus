@@ -56,6 +56,18 @@
 	</script>
 </head>
 <body>
-
+	<div class="protips">
+		<strong>Protips:</strong>
+		<ul>
+			<li>All code is executed in a sandboxed iframe.  That said, it's wise not to run sketchy code.</li>
+			<li>Certain annoying functions like <code>alert()</code> have been aliased away to increase the effort required to annoy someone</li>
+			<li>Use LiveReload to evaluate while you type.  This could be a security risk or denial of service (<code>while (true){}</code>) if you don't trust your chat particpants.</li>
+			<li>
+				If you want to see the result of an expression, the last line of your code should <code>return</code> it! (e.g., <code>return 5*5;</code>)
+			</li>
+			<li><code>console.log(...)</code> will not work here :(  Use <code>return</code></li>
+			<li>jQuery, Backbone, underscore are available</li>
+		</ul>
+	</div>
 </body>
 </html>
