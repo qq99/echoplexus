@@ -21,6 +21,7 @@ $nav-primary: #2A2C2B;
   @include panel;
   width: $sidenav-width;
   background: $nav-primary;
+  box-shadow: 1px 0px 1px #333;
   z-index: 120;
   button {
     background: transparent;

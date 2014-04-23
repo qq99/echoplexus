@@ -5,6 +5,7 @@ $call-button-height     : 5em;
 $call-button-width      : 6em;
 
 .callClient {
+	background: $teagreen;
 	height:100%;
 	width:100%;
 	font-family:$pretty-font-family;
@@ -17,14 +18,11 @@ $call-button-width      : 6em;
 	}
 	.icon-phone {
 		&.active {
-			color:$active-color;
+			color: $active-color;
 		}
 		&.inactive {
-			color:$inactive-color;
+			color: $inactive-color;
 		}
-	}
-	.error {
-		color:rgb(157, 38, 29);
 	}
 }
 
@@ -65,9 +63,6 @@ $call-button-width      : 6em;
 			margin:0 auto 2em auto;
 			&:hover {
 				background:rgba(0,0,0,0.3);
-				.icon {
-					color: greenyellow;
-				}
 			}
 		}
 	}

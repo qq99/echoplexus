@@ -8,61 +8,59 @@
   box-shadow:1px 1px 1px rgba(0,0,0,0.75);
 }
 
-.pencil-button {
-  color:gold;
-}
-.eraser-button {
-  color:pink;
-}
-.tint-button {
-  color:red;
-}
-
 .drawingClient {
   @include unselectable;
   display:none;
   width:100%;
   height:100%;
   font-family: $pretty-font-family;
+
+  .tool {
+    position: relative;
+    padding: 0.75em;
+    cursor: pointer;
+
+    &:hover {
+      background: $softpink;
+    }
+    &.tool-highlight {
+      background: lighten($teagreen, 20%);
+    }
+
+    .tool-options {
+      position:absolute;
+      left:0;
+      top:0;
+      padding-left:25px;
+      &.active {
+        .tool-options-contents {
+          width:900px;
+          height:auto;
+          opacity:1;
+        }
+      }
+    }
+    .tool-options-contents {
+      padding:5px;
+      @include transition(all 0.25s ease-in-out);
+      text-align: left;
+      background:rgba(0,0,0,0.55);
+      width:0px;
+      height:0px;
+      opacity:0;
+      overflow:hidden;
+    }
+  }
+
   .tools {
     position:absolute;
     height:100%;
-    width:25px;
-    background:rgba(0,0,0,0.25);
+    background: $teagreen;
+    box-shadow: 1px 0px 3px #999;
+    padding: 1em 0;
     z-index:10;
     font-size:20px;
     text-align: center;
-    .tool {
-      margin-bottom:0.5em;
-      &:hover, &.tool-highlight {
-        background:rgba(255,255,255,0.3);
-      }
-
-      position: relative;
-      .tool-options {
-        position:absolute;
-        left:0;
-        top:0;
-        padding-left:25px;
-        &.active {
-          .tool-options-contents {
-            width:900px;
-            height:auto;
-            opacity:1;
-          }
-        }
-      }
-      .tool-options-contents {
-        padding:5px;
-        @include transition(all 0.25s ease-in-out);
-        text-align: left;
-        background:rgba(0,0,0,0.55);
-        width:0px;
-        height:0px;
-        opacity:0;
-        overflow:hidden;
-      }
-    }
     .explanation {
       font-size:0.7em;
     }

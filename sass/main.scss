@@ -19,6 +19,8 @@ $darkgrey             : #111;
 $active-color         : rgba(71,178,250,0.7);
 $error                : #C32D2D;
 $success              : rgb(67, 100, 0);
+$teagreen             : #dfebdf;
+$softpink             : rgb(255, 228, 239);
 // fonts              :
 $pretty-font-family   : 'Open Sans', 'Noto Sans', 'Ubuntu', sans-serif;
 $monospace            : 'Droid Sans Mono', monospace;
@@ -52,6 +54,8 @@ $sidenav-width        : 18em;
 		text-align: center;
 	}
 }
+
+.error { color: $error; }
 
 button {
 	border: none;
@@ -553,7 +557,7 @@ header {
 .messages-pane {
 	@include panel;
 	padding-bottom: $chatinput-height;
-	background: #dfebdf;
+	background: $teagreen;
 }
 
 .close-button {
