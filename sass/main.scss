@@ -166,6 +166,9 @@ html, body {
 }
 h1 {
 	font-size:1.7em;
+	&.huge {
+		font-size: 4em;
+	}
 }
 h2 {
 	font-size:1em;

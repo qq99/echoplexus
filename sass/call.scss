@@ -40,12 +40,10 @@ $call-button-width      : 6em;
 		cursor:hand;
 		display:block;
 		font-size:6em;
-		text-shadow:1px 1px 5px rgba(0,0,0,0.75);
+		text-shadow:-2px -2px 0px lighten($teagreen, 10%);
 	}
 	p {
 		font-size:1em;
-		color:#999;
-		text-shadow:1px 1px 0px rgba(0,0,0,0.5);
 	}
 
 	.join-call-buttons {
@@ -56,13 +54,12 @@ $call-button-width      : 6em;
 			float:left;
 			@include unselectable();
 			@include transition(all 0.5s ease-in-out);
-			cursor:pointer;
-			padding:4em;
-			border-radius:1em;
-			width:$join-call-button-width;
-			margin:0 auto 2em auto;
+			padding: 4em;
+			border-radius: 5px;
+			width: $join-call-button-width;
+			margin: 0 auto 2em auto;
 			&:hover {
-				background:rgba(0,0,0,0.3);
+				background: rgba(255, 255, 255, 0.4);
 			}
 		}
 	}
