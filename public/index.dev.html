@@ -46,47 +46,55 @@
 			<section id="panes">
 				<section id="global-options">
 					<h1>Global Options</h1>
-					<div class="options">
-						<div class="option">
-							<input id="suppress_join" type="checkbox" />
-							<label for="suppress_join">Hide Join/Part Messages</label>
-						</div>
-						<div class="option">
-							<input id="highlight_mine" type="checkbox" />
-							<label for="highlight_mine">Highlight messages sent by me</label>
-						</div>
-						<div class="option">
-							<input type="checkbox" id="suppress_client">
-							<label for="suppress_client">Hide Client Messages</label>
-						</div>
-						<div class="option">
-							<input type="checkbox" id="suppress_identity_acknowledgements">
-							<label for="suppress_identity_acknowledgements">Hide Identity Acknowledgement Messages</label>
-						</div>
-						<div class="option">
+					<div class="option">
+						<label for="suppress_join">
+							<input id="suppress_join" type="checkbox">
+							Hide Join/Part Messages
+						</label>
+					</div>
+					<div class="option">
+						<label for="highlight_mine">
+							<input id="highlight_mine" type="checkbox">
+							Highlight messages sent by me
+						</label>
+					</div>
+					<div class="option">
+						<label for="auto_scroll">
 							<input type="checkbox" id="auto_scroll">
-							<label for="auto_scroll">Auto Scroll to New Messages</label>
-						</div>
-						<div class="option">
-							<input id="show_OS_notifications" type="checkbox" />
-							<label for="show_OS_notifications">Show OS Notifications</label>
-						</div>
-						<div class="option">
-							<input id="show_mewl" type="checkbox" />
-							<label for="show_mewl">Show Mewl Notifications</label>
-						</div>
-						<div class="option">
+							Auto-scroll to new messages
+						</label>
+					</div>
+
+					<div class="option">
+						<label for="prefer_24hr_clock">
 							<input id="prefer_24hr_clock" type="checkbox" />
-							<label for="prefer_24hr_clock">24 Hour Clock</label>
-						</div>
-						<div class="option">
+							24 Hour Clock
+						</label>
+					</div>
+					<div class="option">
+						<label for="join_default_channel">
 							<input id="join_default_channel" type="checkbox" />
-							<label for="join_default_channel">Join channel "/" on start</label>
-						</div>
-						<div class="option">
+							Join channel "/" on start
+						</label>
+					</div>
+					<h2>Notifications</h2>
+					<div class="option">
+						<label for="show_OS_notifications">
+							<input id="show_OS_notifications" type="checkbox" />
+							Desktop Notifications
+						</label>
+					</div>
+					<div class="option">
+						<label for="show_mewl">
+							<input id="show_mewl" type="checkbox" />
+							In-app Notifications
+						</label>
+					</div>
+					<div class="option">
+						<label for="play_notification_sounds">
 							<input id="play_notification_sounds" type="checkbox" />
-							<label for="play_notification_sounds">Play a sound when receiving a notification</label>
-						</div>
+							Play a sound when receiving a notification
+						</label>
 					</div>
 				</section>
 			</section>

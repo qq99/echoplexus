@@ -6,13 +6,12 @@ module.exports.Options = class Options
     show_mewl                          : true
     suppress_join                      : true
     highlight_mine                     : true
-    prefer_24hr_clock                  : true
-    suppress_client                    : true
+    prefer_24hr_clock                  : false
     show_OS_notifications              : true
     suppress_identity_acknowledgements : true
     join_default_channel               : true
     auto_scroll                        : true
-    play_notification_sounds           : false
+    play_notification_sounds           : true
 
   updateOption: (value, option) ->
     $option = $("#" + option)
