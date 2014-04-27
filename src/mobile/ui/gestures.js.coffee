@@ -5,7 +5,7 @@ module.exports.TouchGestures = class TouchGestures extends Backbone.Model
     _.bindAll.apply(_, [this].concat(_.functions(this)))
     @set 'switcherInactive', false
     @windowEl = $(window)[0]
-    @$switcher = $("header")
+    @$switcher = $("nav.functionality")
     @switcherEl = @$switcher[0]
     @attachEvents()
     @gestureTolerance = 100 # ms
@@ -14,55 +14,20 @@ module.exports.TouchGestures = class TouchGestures extends Backbone.Model
 
     Hammer(@windowEl).on "dragright", (ev) =>
       @dragrightStart = new Date() if !@dragrightStart
-      if ev.gesture.center.pageX > 50
-        @openSwitcher(ev, false)
-        @nextChannel(ev, true)
-      else
+      if ev.gesture.center.pageX > 100
         @openSwitcher(ev, true)
-        @nextChannel(ev, false)
 
     Hammer(@windowEl).on "dragleft", (ev) =>
       @dragleftStart = new Date() if !@dragleftStart
-      if @get("switcherInactive")
-        @previousChannel(ev, true)
-      else
+      if !@get("switcherInactive")
         @closeSwitcher(ev, true)
-        @previousChannel(ev, false)
 
-    $(".channel-switcher").on "click", ".channels .j-channel-btn", =>
+    $("#channel-switcher").on "click", ".channel-switcher-contents button", =>
       if !@get("switcherInactive")
         @$switcher.addClass("inactive")
         @set "switcherInactive", true
 
     Hammer(@windowEl).on "release", @fingerUp
-
-  previousChannel: (ev, acquireLock) ->
-    return if @touchesFrozen
-    return if !@get('switcherInactive')
-    @gestureLock = "previousChannel" if !@gestureLock and acquireLock
-    return if @gestureLock != "previousChannel"
-
-    now = new Date()
-    if now - @dragleftStart > @gestureTolerance
-      @touchesFrozen = true
-      window.events.trigger 'previousChannel'
-
-    ev.gesture.preventDefault()
-    ev.preventDefault()
-
-  nextChannel: (ev, acquireLock) ->
-    return if @touchesFrozen
-    return if !@get('switcherInactive')
-    @gestureLock = "nextChannel" if !@gestureLock and acquireLock
-    return if @gestureLock != "nextChannel"
-
-    now = new Date()
-    if now - @dragrightStart > @gestureTolerance
-      @touchesFrozen = true
-      window.events.trigger 'nextChannel'
-
-    ev.gesture.preventDefault()
-    ev.preventDefault()
 
   openSwitcher: (ev, acquireLock) ->
     return if !@get('switcherInactive')

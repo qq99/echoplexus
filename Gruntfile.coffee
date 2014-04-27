@@ -122,7 +122,7 @@ module.exports = (grunt) ->
         tasks: ["concat_sourcemap"]
 
       coffee:
-        files: ["src/client/**/*.coffee", "src/client/**/*.html", "src/embedded-client/**/*.coffee", "src/embedded-client/**/*.html"]
+        files: ["src/mobile/**/*.coffee", "src/client/**/*.coffee", "src/client/**/*.html", "src/embedded-client/**/*.coffee", "src/embedded-client/**/*.html"]
         tasks: ["browserify:app", "browserify:embedded", "browserify:mobile", "concat_sourcemap"]
 
       sass:

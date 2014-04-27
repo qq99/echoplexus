@@ -5,17 +5,20 @@
   .chatarea {
     padding-right: 0px;
   }
+  .pin-button {
+    display: none;
+  }
 
-  header {
-    padding: 0;
+  #module-buttons {
+    display: none;
+  }
+  #channel-switcher {
+    padding-top: 0;
   }
 
   #main {
     padding-left: 0;
     padding-top: 0;
-  }
-  nav.functionality {
-    display: none;
   }
   #chatting {
     .messages-pane {
@@ -48,7 +51,8 @@
     }
   }
 
-  header {
+  nav.functionality {
+    width: 100%;
     left: 0%;
     @include transition(all 0.5s ease-in-out);
     &.inactive {

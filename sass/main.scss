@@ -721,19 +721,24 @@ hr {
 		&.me {
 			color:yellow;
 		}
+		.decorators {
+			@include unselectable;
+		}
+		.nick-decorator {
+			margin-right: -5px;
+		}
+		.decorators .nick-decorator:last-child {
+			margin-right: 0;
+		}
 		.nickname {
 			display:inline;
-			margin-left:0.5em;
 			height: 1.4em;
 		}
 		.fa-stack {
 			@include unselectable;
-			top: -0.35em;
+			width: 1.5em;
 			height: 1.4em;
-			width:0.5em;
-		}
-		> span {
-			display: inline-block;
+			line-height: 1.5em;
 		}
 		.transmitting {
 			width: 10px;

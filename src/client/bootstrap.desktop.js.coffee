@@ -157,4 +157,4 @@ $(document).ready ->
         win = gui.Window.get()
         win.requestAttention true
 
-  Gestures = new TouchGestures if utility.isMobile()
+  Gestures = new TouchGestures# if utility.isMobile()
