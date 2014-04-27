@@ -43,6 +43,7 @@ module.exports.PGPModal = class PGPModal extends Backbone.View
     "click .use-key": "userSupplied"
     "click .re-use": "reuseOther"
     "click .stop-using": "clear"
+    "click .j-cancel": -> @changeSection("intro")
 
   initialize: (opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))

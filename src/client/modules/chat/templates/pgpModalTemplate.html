@@ -59,11 +59,13 @@
     <div class="field">
       <p>Name and email fields are always publicly visible!  They can strengthen your identity, but weaken your anonymity.</p>
       <button class="finalize-generate-keypair action-btn action-btn-primary">Generate</button>
+      <button class="j-cancel action-btn">Nevermind</button>
     </div>
   </section>
   <!-- generating -->
   <section class="pgp-generating">
     <h1>Generating keypair</h1>
+    <span class="csspinner block center double-up"></span>
     <p>Your browser may lock up temporarily!  Please wait, as this may take a while.</p>
   </section>
   <!-- options -->
@@ -127,7 +129,8 @@
       <textarea id="pgp-user-supplied-armored-public" placeholder="-----BEGIN PGP PUBLIC KEY BLOCK----- ..."></textarea>
     </div>
     <div class="field">
-      <button class="use-key action-btn">Use these keys</button>
+      <button class="use-key action-btn action-btn-primary">Use these keys</button>
+      <button class="j-cancel action-btn">Nevermind</button>
     </div>
     <div class="errors">
 

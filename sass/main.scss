@@ -280,7 +280,6 @@ div > h1:first-child, div > h2:first-child, div > h3:first-child {
 		top: -14em;
 		.icon {
 			font-size:30em;
-			color:#444;
 		}
 	}
 }
@@ -358,10 +357,11 @@ nav.header {
 
 #global-options {
 	display:none;
+	background: $teagreen;
 	width:100%;
 	height:100%;
-	font-family:$pretty-font-family;
-	padding:1em;
+	font-family: $pretty-font-family;
+	padding: 2em;
 	h1 {
 		margin-top:0;
 	}
@@ -410,6 +410,7 @@ header {
 	display: none;
 }
 #main-ui, #panes, #info-overlay {
+	background: $teagreen;
 	position:relative;
 	width:100%;
 	height:100%;

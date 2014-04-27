@@ -16,11 +16,10 @@
   font-family: $pretty-font-family;
 
   .tool {
+    display: block;
     position: relative;
-    padding: 0.5em 0.25em;
+    padding: 0.5em;
     margin-bottom: 0.5em;
-    cursor: pointer;
-    border-radius: 3px;
     box-shadow: 1px 1px 0px #aaa;
     background: lighten($teagreen, 5%);
 
