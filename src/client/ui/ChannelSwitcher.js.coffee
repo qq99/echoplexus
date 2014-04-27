@@ -47,7 +47,7 @@ module.exports.ChannelButton = class ChannelButton extends Backbone.View
     @$el.html(buttonTemplate())
 
     @stickit @data,
-      "j-channel-btn":
+      ".j-channel-btn":
         attributes: [{
           name: 'data-channel'
           observe: 'channelName'
@@ -239,7 +239,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     fromChannel = data.channelName
 
     # if we hear that there's activity from a channel, but we're not looking at it, add a style to the button to notify the user:
-    $(".channels .j-channel-btn[data-channel='" + fromChannel + "']").addClass "activity"  if fromChannel isnt @activeChannel
+    $("[data-channel='" + fromChannel + "']", @$el).addClass "activity"  if fromChannel isnt @activeChannel
 
   joinChannel: (channelName) ->
     if !@channels[channelName]?

@@ -57,9 +57,22 @@ $module-button-height: 3.5em;
 }
 
 .channel-button {
+  position: relative;
   box-sizing: content-box; // Firefox has a bug when there's white-space: nowrap inside of a fucking border-box!
   .channel-button-content {
     padding: 0.5em 2em;
+  }
+  .activity-indicator {
+    display: none;
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: green;
+  }
+  &.activity .activity-indicator {
+    display: block;
   }
 }
 

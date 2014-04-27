@@ -198,21 +198,6 @@ div > h1:first-child, div > h2:first-child, div > h3:first-child {
 	margin-top:0px;
 }
 
-@include keyframes(activity) {
-  100% {
-    background:transparent;
-  }
-
-  50% {
-    background:rgba(40,40,111,0.9);
-    box-shadow:inset 0px 0px 7px rgba(255,255,255,0.05);
-  }
-
-  0% {
-  	background:transparent;
-  }
-}
-
 @include keyframes(activity2) {
   100% {
     background:transparent;
