@@ -383,7 +383,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       hidePrivateOverlay()
 
     $.when(acked).fail (err) =>
-      if !@hidden
+      if !@hidden and err
         showPrivateOverlay()
         growl = new Mewl(
           title: @channelName + ": Error"
