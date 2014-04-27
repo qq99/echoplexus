@@ -1,11 +1,15 @@
 $nav-primary: #2A2C2B;
+$module-button-height: 3.5em;
 
 #module-buttons {
-  background: darken($nav-primary, 20%);
-  padding: 0.25em 0;
+  z-index: 2;
+  @include panel;
+  top: 0;
+  left: 0;
+  background: darken($nav-primary, 10%);
+  height: $module-button-height;
   .button {
     text-align: center;
-    height: 2em;
     font-size: 1.3em;
   }
   .button-description {
@@ -14,6 +18,28 @@ $nav-primary: #2A2C2B;
 }
 .tabButton.active {
   color: #0084FF;
+}
+
+#channel-switcher {
+  @include panel;
+  z-index: 1;
+  padding-top: $module-button-height;
+  padding-bottom: $module-button-height;
+}
+
+#global-options-buttons {
+  z-index: 2;
+  height: $module-button-height;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+
+  button {
+    font-size: 1.5em;
+  }
+  .button-description {
+    display: none;
+  }
 }
 
 .functionality {
@@ -37,7 +63,11 @@ $nav-primary: #2A2C2B;
   }
 }
 
-.channel-switcher {
+.channel-switcher-contents {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
   button {
     width: 100%;
     font-size: 1.3em;
@@ -74,7 +104,7 @@ $nav-primary: #2A2C2B;
     display: block;
   }
   .topic {
-    font-size:0.8em;
+    font-size:0.7em;
     max-height: 1.5em; // don't use height, because it looks weird when there is no topic
     overflow: hidden;
     text-overflow: ellipsis;
@@ -111,19 +141,4 @@ $nav-primary: #2A2C2B;
 }
 .join-channel input {
   display: none; // toggles on and off, initial is off
-}
-
-.functionality .options {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  padding: 0.5em 0;
-
-  button {
-    font-size: 1.5em;
-  }
-
-  .button-description {
-    display: none;
-  }
 }

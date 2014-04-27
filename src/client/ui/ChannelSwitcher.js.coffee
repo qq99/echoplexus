@@ -59,7 +59,7 @@ module.exports.ChannelButton = class ChannelButton extends Backbone.View
 
 module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
-  el: ".channel-switcher"
+  el: ".channel-switcher-contents"
 
   loader: (new Loader()).modules
   modules: [ChatClient, CodeClient, DrawingClient, CallClient, InfoClient]
