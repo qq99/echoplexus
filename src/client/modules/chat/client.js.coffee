@@ -360,11 +360,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   autoNick: ->
     acked = $.Deferred()
-    storedNick = $.cookie("nickname:" + @channelName)
-    if storedNick
-      @me.setNick storedNick, @channelName, acked
-    else
-      acked.reject()
+    storedNick = $.cookie("nickname:" + @channelName) || "Anonymous"
+    @me.setNick storedNick, @channelName, acked
     acked.promise()
 
   authenticate: (data) ->

@@ -309,7 +309,7 @@ nav.header {
 }
 
 .webshot-badge {
-	display:inline;
+	display:inline-block;
 	margin:0 0.5em;
 	font-family:$pretty-font-family;
 	.information {
@@ -321,7 +321,7 @@ nav.header {
 		padding:0.3em 1em;
 	}
 	.badge-title {
-		display:inline;
+		display:inline-block;
 		cursor:pointer;
 	}
 	&.active {
