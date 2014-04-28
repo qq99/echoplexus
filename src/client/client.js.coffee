@@ -327,6 +327,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       class: "private" if !!msg.targetNick
     })
 
+    window.events.trigger "unidle"
+
     if sign and !encrypt
       @signMessage(msg)
     else if encrypt and !sign
