@@ -236,7 +236,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
   showQuotationContext: (ev) ->
     $this = $(ev.currentTarget)
     quoting = $this.attr("rel")
-    $quoted = $(".chatMessage[data-sequence='" + quoting + "']")
+    $quoted = $(".chatMessage[data-sequence='" + quoting + "']", @$el)
     excerpt = $quoted.find(".nick").text().trim() + ": " + $quoted.find(".body-content").text().trim()
     $this.attr "title", excerpt
     $quoted.addClass "context"
@@ -244,12 +244,12 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
   hideQuotationContext: (ev) ->
     $this = $(ev.currentTarget)
     quoting = $this.attr("rel")
-    $quoted = $(".chatMessage[data-sequence='" + quoting + "']")
+    $quoted = $(".chatMessage[data-sequence='" + quoting + "']", @$el)
     $quoted.removeClass "context"
 
   addQuotationHighlight: (ev) ->
     quoting = $(ev.target).attr("rel")
-    $quoted = $(".chatMessage[data-sequence='" + quoting + "']")
+    $quoted = $(".chatMessage[data-sequence='" + quoting + "']", @$el)
     $(".chatMessage", @$el).removeClass "context-persistent"
     $quoted.addClass "context-persistent"
 
