@@ -734,7 +734,9 @@ hr {
 		}
 		> .github-nickname {
 			display: none;
-			font-size: 1.2em;
+			font-size: 3em;
+			color: $teagreen;
+			text-shadow: 1px 1px 0px #aaa;
 		}
 	}
 
