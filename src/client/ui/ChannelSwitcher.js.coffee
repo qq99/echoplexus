@@ -235,6 +235,8 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     # keep track of which one we were viewing:
     window.localStorage.setObj "activeChannel", channelName
 
+    window.events.trigger "unidle"
+
   channelActivity: (data) ->
     fromChannel = data.channelName
 
