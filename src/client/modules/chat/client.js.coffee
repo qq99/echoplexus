@@ -28,6 +28,7 @@ module.exports.CryptoModal = class CryptoModal extends Backbone.View
     "keydown input.crypto-key": "checkToSetKey"
     "click .set-encryption-key": "setCryptoKey"
     "click .cancel": "remove"
+    "click .close-button": "remove"
 
   initialize: (opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))

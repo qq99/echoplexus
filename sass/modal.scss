@@ -3,7 +3,7 @@
 	z-index: 1000;
 	background: rgba(0,0,0,0.75);
 	display: flex;
-  align-items: center;
+	align-items: center;
 }
 
 .modal {
@@ -26,18 +26,6 @@
 		font-size: 0.9em;
 	}
 
-	.modal-title {
-		position: absolute;
-		top: 0;
-		left: 0;
-		margin-top: 0;
-		font-style: normal;
-		width: 100%;
-		background: #333;
-		padding-left: inherit;
-		line-height: 1.3em;
-	}
-
 	.close-button {
 		@include unselectable;
 		position: absolute;
@@ -48,9 +36,7 @@
 	}
 
 	&.centered {
-		top:50%;
 		margin:auto;
-		margin-top:-15em;
 	}
 
 	> .field {
