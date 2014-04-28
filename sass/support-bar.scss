@@ -232,6 +232,17 @@ $nav-secondary: #2A2C2B;
 .youtubeEmbed {
   .video {
     display:none;
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    padding-top: 25px;
+    height: 0;
+    object, iframe, embed {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
   }
   .play-icon {
     font-size: 2em;
