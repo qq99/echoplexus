@@ -237,8 +237,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     $this = $(ev.currentTarget)
     quoting = $this.attr("rel")
     $quoted = $(".chatMessage[data-sequence='" + quoting + "']")
-    excerpt = undefined
-    excerpt = $quoted.find(".nick").text().trim() + ": " + $quoted.find(".body").text().trim()
+    excerpt = $quoted.find(".nick").text().trim() + ": " + $quoted.find(".body-content").text().trim()
     $this.attr "title", excerpt
     $quoted.addClass "context"
 
