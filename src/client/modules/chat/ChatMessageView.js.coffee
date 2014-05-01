@@ -179,7 +179,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       targetContent = pre + badge + post
     
     # insert image into media pane
-    window.events.trigger "linklog:#{@room}:image",
+    window.events.trigger "linklog:#{@room}:webshot", 
       url: msg.original_url
       image_url: msg.webshot
       timestamp: Number(new Date())

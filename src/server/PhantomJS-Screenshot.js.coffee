@@ -39,14 +39,16 @@ try
 
         # extract some data from the page:
         data = page.evaluate(->
-          firstParagraph = document.getElementsByTagName("p")
-          if firstParagraph and firstParagraph.length
-            firstParagraph = firstParagraph[0].textContent
-            excerpt: document.getElementsByTagName("p")[0].textContent
-          else
-            excerpt: ""
+          meta = document.querySelector("meta[name='description']")?.getAttribute("content") || null
+          firstParagraph = document.querySelector("p")?.textContent || null
+
+          pageExcerpt = meta || firstParagraph || ""
+
+          return {
+            excerpt: pageExcerpt
+          }
         )
-        if typeof data.excerpt isnt "undefined"
+        if data.excerpt
           data.excerpt = data.excerpt.trim().replace(/\n/g, "")
           data.excerpt = data.excerpt.substring(0, 1024) + "..."  if data.excerpt.length > 1024
           extracted_information.excerpt = data.excerpt

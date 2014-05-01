@@ -112,7 +112,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     # remove it from view on close button
     @$el.on "click", ".close", (ev) ->
       $button = $(this)
-      $button.closest(".media-item").remove()
+      $button.closest(".media-item-container").remove()
 
   _scrollToLatest: (ev) -> #Get the last message and scroll that into view
     now = Number(new Date())

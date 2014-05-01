@@ -1,6 +1,7 @@
 mediaLogTemplate            = require("./templates/mediaLog.html")
 linkedImageTemplate         = require("./templates/linkedImage.html")
 youtubeTemplate             = require("./templates/youtube.html")
+webshotTemplate             = require("./templates/webshotMediaItem.html")
 REGEXES                     = require("../../regex.js.coffee").REGEXES
 
 module.exports.MediaLog = class MediaLog extends Backbone.View
@@ -23,7 +24,6 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
     throw "No room supplied for MediaLog" unless opts.room
 
     MediaItem = class MediaItem extends Backbone.Model
-      # idAttribute: 'url' # guarantees uniqueness, potentially not desirable, conflicts with webshot URL
 
       makeYoutubeThumbnailURL: (vID) ->
         window.location.protocol + "//img.youtube.com/vi/" + vID + "/0.jpg"
@@ -32,7 +32,10 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
 
       initialize: ->
         _.bindAll.apply(_, [this].concat(_.functions(this)))
+
+        @set('id', @get('url') + @get('type')) # enforce uniquness by type
         @view = new Backbone.View
+          className: 'media-item-container'
         @sequence++ # when things are added at EXACTLY the same time, we'll add them in the order they are sent
         @render()
 
@@ -43,6 +46,8 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
             "<a rel='noreferrer' href='#{url}' target='_blank'>#{url}</a>"
           when 'image'
             linkedImageTemplate(@toJSON())
+          when 'webshot'
+            webshotTemplate(@toJSON())
           when 'youtube'
             vID = REGEXES.urls.youtube.exec(url)[5]
             REGEXES.urls.youtube.exec "" # clear global state
@@ -65,7 +70,7 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
     @media = new MediaCollection()
     @media.on 'add change reset', @renderMedia
 
-    _.each ['link', 'youtube', 'image'], (variant) =>
+    _.each ['link', 'youtube', 'image', 'webshot'], (variant) =>
       window.events.on "linklog:#{@room}:#{variant}", (opts) =>
         @media.add new MediaItem(_.extend(opts, {type: variant}))
 

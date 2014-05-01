@@ -86,9 +86,6 @@ $nav-secondary: #2A2C2B;
   z-index:4;
   position:relative;
   overflow-y:auto;
-  .body > div {
-    margin-bottom:0.75em;
-  }
   .media-scroll {
     position: absolute;
     width:100%;
@@ -141,12 +138,23 @@ $nav-secondary: #2A2C2B;
 
 }
 
+.media-item-container {
+  margin-bottom: 0.5em;
+  .excerpt {
+    font-size: 0.9em;
+    padding: 0.5em 1em;
+    background: $teagreen;
+    color: lighten($nav-primary, 15%);
+  }
+}
 
 .media-item {
   width:100%;
   max-width:100%;
-  margin-bottom:1em;
   position: relative;
+  img {
+    display: block;
+  }
   a {
     color: inherit;
   }
@@ -254,7 +262,6 @@ $nav-secondary: #2A2C2B;
 .imageThumbnail {
   width:100%;
   max-width:100%;
-  margin-bottom:1em;
   position:relative;
 
   .icon-youtube-play {
