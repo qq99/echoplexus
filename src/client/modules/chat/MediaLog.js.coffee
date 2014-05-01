@@ -23,7 +23,7 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
     throw "No room supplied for MediaLog" unless opts.room
 
     MediaItem = class MediaItem extends Backbone.Model
-      idAttribute: 'url'
+      # idAttribute: 'url' # guarantees uniqueness, potentially not desirable, conflicts with webshot URL
 
       makeYoutubeThumbnailURL: (vID) ->
         window.location.protocol + "//img.youtube.com/vi/" + vID + "/0.jpg"
@@ -65,12 +65,9 @@ module.exports.MediaLog = class MediaLog extends Backbone.View
     @media = new MediaCollection()
     @media.on 'add change reset', @renderMedia
 
-    window.events.on "linklog:#{@room}:link", (opts) =>
-      @media.add new MediaItem(_.extend(opts, {type: 'link'}))
-    window.events.on "linklog:#{@room}:youtube", (opts) =>
-      @media.add new MediaItem(_.extend(opts, {type: 'youtube'}))
-    window.events.on "linklog:#{@room}:image", (opts) =>
-      @media.add new MediaItem(_.extend(opts, {type: 'image'}))
+    _.each ['link', 'youtube', 'image'], (variant) =>
+      window.events.on "linklog:#{@room}:#{variant}", (opts) =>
+        @media.add new MediaItem(_.extend(opts, {type: variant}))
 
     @render()
 

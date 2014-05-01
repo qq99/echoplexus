@@ -86,6 +86,9 @@ $nav-secondary: #2A2C2B;
   z-index:4;
   position:relative;
   overflow-y:auto;
+  .body > div {
+    margin-bottom:0.75em;
+  }
   .media-scroll {
     position: absolute;
     width:100%;
@@ -108,7 +111,6 @@ $nav-secondary: #2A2C2B;
   a {
     color: inherit;
     display:block;
-    margin-bottom:1em;
   }
   .options {
     position:absolute;

@@ -177,15 +177,14 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       pre = targetContent.slice(0, badgeLocation)
       post = targetContent.slice(badgeLocation)
       targetContent = pre + badge + post
-    if @autoloadMedia
-
-      # insert image into media pane
-      img = @linkedImageTemplate(
-        url: msg.original_url
-        image_url: msg.webshot
-        title: msg.title
-      )
-      $(".linklog .body", @$el).prepend img
+    
+    # insert image into media pane
+    window.events.trigger "linklog:#{@room}:image",
+      url: msg.original_url
+      image_url: msg.webshot
+      timestamp: Number(new Date())
+      title: msg.title
+      excerpt: msg.excerpt
 
     # modify content of user-sent chat message
     @$el.find(".body").html targetContent
