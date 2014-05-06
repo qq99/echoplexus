@@ -51,6 +51,12 @@ $sidenav-width        : 18em;
 	user-select: none;
 }
 
+@mixin hide-text {
+  font: 0/0 serif;
+  text-shadow: none;
+  color: transparent;
+}
+
 // hopefully phased out soon:
 #ghetto_templates {
 	display:none;
@@ -74,7 +80,7 @@ button {
 }
 
 .action-btn {
-	padding: 0.25em 0.75em;	
+	padding: 0.25em 0.75em;
 	background-repeat: repeat-x;
 	border-width: 1px 1px 2px 1px;
 	border-color: #bbb;

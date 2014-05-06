@@ -1,7 +1,7 @@
 require("./bootstrap.core.js.coffee").core()
 ChannelSwitcher   = require("./ui/ChannelSwitcher.js.coffee").ChannelSwitcher
 utility           = require("./utility.js.coffee")
-TouchGestures   = require("../mobile/ui/gestures.js.coffee").TouchGestures
+TouchGestures     = require("../mobile/ui/gestures.js.coffee").TouchGestures
 
 $(document).ready ->
 
