@@ -1,8 +1,10 @@
-<div class="notif notif-white">
+<div class="notif <%= classes %>">
   <!-- <div class="icon"></div> -->
   <h3 class="notif-title"><%- title %></h3>
   <p><%- body %></p>
+  <% if (closable) { %>
   <div class="action-btn action-btn-delete j-close">
     <i class="fa fa-times"></i>
   </div>
+  <% } %>
 </div>

@@ -39,16 +39,6 @@ $mewl-padding: 0.5em;
   border-radius:10px;
   padding: 3px;
 
-  .title {
-    font-weight: bold;
-  }
-  .body {
-    font-weight: normal;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow:hidden;
-  }
-
   // positioning:
   &.top {
     top:1em;
@@ -82,8 +72,7 @@ $mewl-padding: 0.5em;
   width: 288px;
   padding: 0.5em 1em;
   color: rgba(#ccc, .9);
-  text-shadow: 0 -1px black;
-  background: rgba(#111, .48);
+  text-shadow: 1px 1px rgba(black, 0.3);
   border: 1px solid;
   border-color: rgba(#111, .6) rgba(#111, .7) rgba(#111, .9);
   border-radius: 5px;

@@ -9,29 +9,38 @@ module.exports.MewlNotification = class MewlNotification extends Backbone.View
   events:
     "click .j-close": "hide"
 
-  initialize: (opts = {}) ->
+  initialize: (opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))
 
     # defaults
+    @closable = true
+    @classes = "notif-white"
     @position = "bottom right"
     @padding = 10
     @lifespan = opts.lifespan || 3000
 
-    # override defaults
-    _.extend this, opts
-    @$el.html @template(
-      title: opts.title
-      body: opts.body
-    )
+    @set(opts)
     @$el.addClass @position
     @place().show()
+
+  render: ->
+    @$el.html @template(
+      classes: @classes
+      title: @title
+      body: @body
+      closable: @closable
+    )
+
+  set: (opts) ->
+    _.extend this, opts
+    @render()
 
   show: ->
     self = this
     $("body").append @$el
     _.defer => @$el.addClass "shown"
 
-    setTimeout @hide, @lifespan
+    setTimeout @hide, @lifespan if @lifespan != Infinity
 
     return @ # for chaining
 

@@ -292,31 +292,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @$el.hide()
     @hidden = true
 
-  bindReconnections: ->
-    #Bind the disconnnections, send message on disconnect
-    @socket.on "disconnect", =>
-      @chatLog.renderChatMessage @chatLog.createChatMessage({
-        body: "Disconnected from the server"
-        type: "SYSTEM"
-        timestamp: new Date().getTime()
-        nickname: ""
-        class: "client"
-      })
-
-      window.disconnected = true
-      faviconizer.setDisconnected()
-
-
-    #On reconnection attempts, print out the retries
-    @socket.on "reconnecting", (nextRetry) =>
-      @chatLog.renderChatMessage @chatLog.createChatMessage({
-        body: "Connection lost, retrying in " + nextRetry / 1000.0 + " seconds"
-        type: "SYSTEM"
-        timestamp: new Date().getTime()
-        nickname: ""
-        class: "client"
-      })
-
+  bindReconnections: ->   
     #On successful reconnection, render the chatmessage, and emit a subscribe event
     @socket.on "reconnect", =>
 
@@ -329,8 +305,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @me.inactive "", @channelName, @socket  if @me.get("idle")
         @postSubscribe()
 
-
-
   kill: ->
     @detachEvents()
     @socket.emit "unsubscribe:" + @channelName
@@ -338,14 +312,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       @socket.removeAllListeners "#{key}:#{@channelName}"
 
   postSubscribe: (data) ->
-    @chatLog.renderChatMessage @chatLog.createChatMessage({
-      body: "Connected. Now talking in channel " + @channelName
-      type: "SYSTEM"
-      timestamp: new Date().getTime()
-      nickname: ""
-      class: "client"
-    })
-
     if pub = @pgp_settings.get("armored_keypair")?.public
       @socket.emit "set_public_key:#{@channelName}",
         armored_public_key: pub

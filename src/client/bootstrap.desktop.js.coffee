@@ -2,6 +2,8 @@ require("./bootstrap.core.js.coffee").core()
 ChannelSwitcher   = require("./ui/ChannelSwitcher.js.coffee").ChannelSwitcher
 utility           = require("./utility.js.coffee")
 TouchGestures     = require("../mobile/ui/gestures.js.coffee").TouchGestures
+Mewl              = require("./ui/Mewl.js.coffee").MewlNotification
+
 
 $(document).ready ->
 
@@ -56,11 +58,39 @@ $(document).ready ->
     console.log "navigator has no internet connectivity"
     faviconizer.setDisconnected()
 
-  io.connect window.location.origin,
+  appSocket = io.connect window.location.origin,
     "connect timeout": 1000
     reconnect: true
     "reconnection delay": 2000
     "max reconnection attempts": 1000
+
+  appSocket.on 'disconnect', ->
+    window.connectionGrowl = new Mewl(
+      title: "Lost Connection"
+      body: "Disconnected from the server"
+      classes: "action-btn-delete"
+      lifespan: Infinity
+      closable: false
+    )
+    window.disconnected = true
+    faviconizer.setDisconnected()
+
+  appSocket.on 'reconnecting', (nextRetry) ->
+    window.connectionGrowl.set
+      body: "Reconnecting in " + nextRetry / 1000.0 + " seconds"
+
+  appSocket.on 'reconnect', ->
+    window.connectionGrowl.set
+      classes: "action-btn-primary"
+      title: "Connection Restored"
+      body: "We now return you to your regular service"
+
+    window.disconnected = false
+    faviconizer.setDisconnected()
+
+    setTimeout ->
+      window.connectionGrowl.hide()
+    , 5000
 
 
   channelSwitcher = new ChannelSwitcher()
