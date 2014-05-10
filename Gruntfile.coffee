@@ -183,7 +183,7 @@ module.exports = (grunt) ->
         command: 'supervisor --poll-interval 60000 -w . src/server/main.coffee'
         stdout: true
       dependencies:
-        command: 'npm install; bower install;'
+        command: 'npm install; bower install --allow-root;'
         stdout: true
       download_apk:
         command: 'wget https://controller.apk.firefox.com/application.apk?manifestUrl=https%3A%2F%2Fchat.echoplex.us%2Fmanifest.webapp -O echoplexus.apk'
