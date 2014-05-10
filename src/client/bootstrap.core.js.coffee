@@ -23,6 +23,7 @@ module.exports.core = ->
   require("./visibility.js.coffee")
   require("./events.js.coffee")()
 
+  window.visibility_status = "visible"
   VisibilityManager.onChange (visibility) ->
     window.visibility_status = visibility # duplicate the visibility status as a property we can look up at any time
 

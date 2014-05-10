@@ -30,15 +30,19 @@ $(document).ready ->
 
   tooltipTemplate = $("#tooltip").html()
 
-  VisibilityManager.onChange (visibility) ->
-    if visibility == "visible"
+  notIdle = -> 
+    console.log window.visibility_status
+    if window.visibility_status == "visible"
       document.title = "echoplexus"
-      faviconizer.setConnected()  if typeof window.disconnected is "undefined" or not window.disconnected
+      faviconizer.setConnected() if typeof window.disconnected is "undefined" or not window.disconnected
       if ua.node_webkit
         win = gui.Window.get()
         win.requestAttention false
 
       window.events.trigger "unidle" # fire an event that signals we're no longer idle
+
+  VisibilityManager.onChange notIdle
+  $(document).on "click keyup", notIdle
 
   setTimeout (->
     # reconnect the socket manually using the navigator's onLine property
