@@ -1,3 +1,5 @@
+$private              : rgba(0,30,0,0.17);
+
 body {
   &.suppress_identity_acknowledgements {
     .chatMessage.identity.ack {
