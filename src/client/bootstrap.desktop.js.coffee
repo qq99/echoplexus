@@ -180,7 +180,7 @@ $(document).ready ->
 
   window.events.on "chat:activity", (data) ->
     $(".button[data-target='#chatting']").addClass "activity"  unless chatModeActive()
-    unless document.hasFocus()
+    if window.visibility_status != "visible"
       faviconizer.setActivity()
       document.title = "!echoplexus"
       if ua.node_webkit
