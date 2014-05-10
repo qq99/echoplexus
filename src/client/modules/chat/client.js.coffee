@@ -593,6 +593,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     window.events.on "echo_received:#{@channelName}", (msg, overwrite) =>
       if overwrite
         message = @chatLog.createChatMessage(msg)
+        message.set("you", true)
 
         body = message.get("body")
         @scrollback.replace body, "/edit ##{message.get("mID")} #{body}" # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"

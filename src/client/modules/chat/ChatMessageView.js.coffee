@@ -76,7 +76,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
     @$el.find(".webshot-badge").remove()
     oldText = @$el.find(".body-content").text().trim()
 
-    # store the old text with the node
+    # keep track of the old text in case they cancel
     @oldText = oldText
 
     # make the entry editable
@@ -104,7 +104,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
         @stopInlineEdit ev
 
   stopInlineEdit: (ev) ->
-    $(ev.target).removeAttr("contenteditable").blur()
+    $(ev.target).removeAttr("contenteditable").blur().text(@oldText)
 
   toggleArmored: (ev) ->
     $message = $(ev.currentTarget).parents(".chatMessage")

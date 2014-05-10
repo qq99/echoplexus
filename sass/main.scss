@@ -29,6 +29,7 @@ $success              : rgb(67, 100, 0);
 $teagreen             : #dfebdf;
 $softpink             : rgb(255, 228, 239);
 $softblue             : rgb(200, 229, 255);
+$private              : rgba(0,30,0,0.17);
 // fonts              :
 $pretty-font-family   : 'Open Sans', 'Noto Sans', 'Ubuntu', sans-serif;
 $monospace            : 'Droid Sans Mono', monospace;
@@ -618,10 +619,6 @@ hr {
 		float:left;
 		margin-right:10px;
 	}
-	&:nth-child(2n) {
-		background:#2f2f2f;
-		background:rgba(100,100,127,0.1);
-	}
 	&.highlight {
 		background:#555;
 		background:rgba(109,116,255,0.15);
@@ -633,10 +630,7 @@ hr {
 		background: #fafafa;
 	}
 	&.private.me, &.private {
-		background:rgba(0,0,30,0.5);
-		.private-icon {
-			color:#00ffbb;
-		}
+		background: $private;
 	}
 	& > div {
 		vertical-align: top;
@@ -767,8 +761,10 @@ hr {
 		}
 	}
 	.private-icon {
-		position:absolute;
-		left:$nick-width;
+		position: absolute;
+		left: $nick-width;
+		color: $teagreen;
+		text-shadow: -1px -1px 0px #666;
 	}
 
 	&.context, &.context-persistent {
