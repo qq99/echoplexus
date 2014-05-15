@@ -68,32 +68,44 @@ $(document).ready ->
     "reconnection delay": 2000
     "max reconnection attempts": 1000
 
+  createConnectionGrowl = (options) ->
+    clearTimeout window.hideConnectionGrowl
+    if window.connectionGrowl
+      window.connectionGrowl.set options
+    else
+      window.connectionGrowl = new Mewl(options)
+
+    return
+
   appSocket.on 'disconnect', ->
-    window.connectionGrowl = new Mewl(
+    createConnectionGrowl
       title: "Lost Connection"
       body: "Disconnected from the server"
       classes: "action-btn-delete"
       lifespan: Infinity
       closable: false
-    )
+
     window.disconnected = true
     faviconizer.setDisconnected()
 
   appSocket.on 'reconnecting', (nextRetry) ->
-    window.connectionGrowl.set
+    createConnectionGrowl
+      title: "Lost Connection"
       body: "Reconnecting in " + nextRetry / 1000.0 + " seconds"
+      classes: "action-btn-delete"
 
   appSocket.on 'reconnect', ->
-    window.connectionGrowl.set
-      classes: "action-btn-primary"
+    createConnectionGrowl
       title: "Connection Restored"
       body: "We now return you to your regular service"
+      classes: "action-btn-primary"
 
     window.disconnected = false
-    faviconizer.setDisconnected()
+    faviconizer.setConnected()
 
-    setTimeout ->
+    window.hideConnectionGrowl = setTimeout ->
       window.connectionGrowl.hide()
+      delete window.connectionGrowl
     , 5000
 
 
