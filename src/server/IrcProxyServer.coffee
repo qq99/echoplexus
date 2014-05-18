@@ -78,7 +78,7 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       socket.ircClient.say room, data.body
       ack?(_.extend(data, {
         timestamp: Number(new Date())
-      })
+      }))
 
     "unsubscribe": (namespace, socket, channel, client) ->
       console.log 'User left channel'
