@@ -20,6 +20,7 @@ CodeServer       = require("./CodeServer.coffee").CodeServer
 DrawServer       = require("./DrawServer.coffee").DrawServer
 CallServer       = require("./CallServer.coffee").CallServer
 InfoServer       = require("./InfoServer.coffee").InfoServer
+IrcProxyServer   = require("./IrcProxyServer.coffee").IrcProxyServer
 # UserServer     = require("./UserServer.coffee").UserServer
 EventBus         = require("./EventBus.coffee").EventBus()
 app              = express()
@@ -192,3 +193,5 @@ redisC.select redis_db, (err, reply) ->
   infoServer = new InfoServer sio, Channels, ChannelModel
   infoServer.start()
 
+  ircProxyServer = new IrcProxyServer sio, Channels, ChannelModel
+  ircProxyServer.start()

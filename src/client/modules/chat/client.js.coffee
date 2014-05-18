@@ -67,9 +67,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @hidden = true
     @config = opts.config
     @module = opts.module
-    @socket = io.connect(@config.host + "/chat")
+    @socket = io.connect(@config.host + "/irc")
     @channel = opts.channel
     @channelName = opts.room
+    console.log 'listening on channel name', @channelName
     @channel.get("clients").model = ClientModel
     @autocomplete = new Autocomplete()
     @scrollback = new Scrollback()
