@@ -67,7 +67,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @hidden = true
     @config = opts.config
     @module = opts.module
-    @socket = io.connect(@config.host + "/irc")
+
+    console.log opts
+    if opts.extra.irc
+      console.log 'trying with ', opts.extra.irc
+      @socket = io.connect(@config.host + "/irc")
+    else
+      @socket = io.connect(@config.host + "/chat")
     @channel = opts.channel
     @channelName = opts.room
     console.log 'listening on channel name', @channelName
@@ -83,6 +89,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       socket: @socket
       room: opts.room
       peers: @channel.get("clients")
+      irc: opts.extra.irc
       pgp_settings: @pgp_settings
 
     @chatLog = new ChatAreaView
@@ -101,7 +108,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @bindReconnections() # Sets up the client for Disconnect messages and Reconnect messages
 
     # initialize the channel
-    @socket.emit "subscribe", room: @channelName, @postSubscribe
+    if opts.extra.irc
+      @socket.emit "subscribe", 
+        room: @channelName
+        irc_options: opts.extra.irc
+      , @postSubscribe
+    else
+      @socket.emit "subscribe", room: @channelName, @postSubscribe
 
     # if there's something in the persistent chatlog, render it:
     unless @persistentLog.empty()
@@ -440,7 +453,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   listen: ->
     socket = @socket
     @socketEvents =
-      chat: (msg) =>
+      "chat": (msg) =>
         window.events.trigger "message", socket, @, msg
         message = @chatLog.createChatMessage(msg)
 
@@ -676,6 +689,14 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         if userInput.match(REGEXES.commands.join) # /join [channel_name]
           channelName = userInput.replace(REGEXES.commands.join, "").trim()
           window.events.trigger "joinChannel", channelName
+        else if userInput.match(REGEXES.commands.irc) 
+          channelName = userInput.replace(REGEXES.commands.irc, "").trim()
+          [server, room] = channelName.split("#")
+          room = "##{room}"
+          window.events.trigger "joinChannel", channelName,
+            irc:
+              server: server
+              room: room
         else
           @me.speak
             body: userInput

@@ -17,21 +17,37 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
   namespace: "/irc"
 
   subscribeSuccess: (effectiveRoom, socket, channel, client, data) ->
-    client = new irc.Client 'chat.freenode.net', 'qq99',
-        channels: ['#foo']
-        debug: true
+    return if !data.irc_options
+    console.log data
+    client.room = data.irc_options.room
+    client.server = data.irc_options.server
+    return if !client.room or !client.server
+
+    client = new irc.Client client.server, 'echoplexion',
+      channels: [client.room]
+      userName: 'echoplexus using nodebot'
+      realName: 'echoplexus IRC proxy'
+      debug: true
+
+    socket.ircClient = client # associate this client instance with this socket
+    socket.ircRoom = client.room
 
     client.addListener 'error', (message) ->
         console.log('error: ', message)
+
+    client.addListener 'names', (channel, nicks) ->
+      console.log channel, nicks
 
     client.addListener 'pm', (from, message) ->
         console.log(from + ' => ME: ' + message)
 
     client.addListener 'message', (from, to, message) ->
       console.log(from, to, message)
-      socket.emit "chat:/chat.freenode.net#foo",
+      console.log 'emitting to', "chat:#{effectiveRoom}"
+      socket.emit "chat:#{effectiveRoom}",
         body: message
         nickname: from
+        timestamp: Number(new Date())
 
     client.addListener 'pm', (nick, message) ->
         console.log('Got private message from %s: %s', nick, message)
@@ -58,4 +74,13 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
 
   events:
     "chat": (namespace, socket, channel, client, data, ack) ->
-      console.log data
+      room = "#" + channel.get("name").split("#").pop()
+      socket.ircClient.say room, data.body
+      ack?(_.extend(data, {
+        timestamp: Number(new Date())
+      })
+
+    "unsubscribe": (namespace, socket, channel, client) ->
+      console.log 'User left channel'
+      socket.ircClient.disconnect("Bye!")
+      channel.clients.remove(client)

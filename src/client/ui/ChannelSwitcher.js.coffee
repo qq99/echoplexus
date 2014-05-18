@@ -104,8 +104,8 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     window.events.on "showChannel", (channel) =>
       @showChannel channel
 
-    window.events.on "joinChannel", (channel) =>
-      @joinAndShowChannel channel
+    window.events.on "joinChannel", (channel, opts) =>
+      @joinAndShowChannel channel, opts
 
     window.events.on "leaveChannel", (channel) =>
       if channel
@@ -243,7 +243,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     # if we hear that there's activity from a channel, but we're not looking at it, add a style to the button to notify the user:
     $("[data-channel='" + fromChannel + "']", @$el).addClass "activity"  if fromChannel isnt @activeChannel
 
-  joinChannel: (channelName) ->
+  joinChannel: (channelName, options = {}) ->
     if !@channels[channelName]?
       cryptokey = window.localStorage.getItem("chat:cryptokey:#{channelName}")
       cryptokey = undefined if cryptokey == ''
@@ -271,7 +271,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
             room: channelName
             config:
               host: window.SOCKET_HOST
-
+            extra: options
             module: @loader[idx]
           )
           config: @loader[idx]
@@ -317,10 +317,10 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
 
 
-  joinAndShowChannel: (channelName) ->
+  joinAndShowChannel: (channelName, opts) ->
     return  if typeof channelName is "undefined" or channelName is null # prevent null channel names
     # keep channel names consistent with URL slug
     channelName = "/" + channelName  if channelName.charAt(0) isnt "/"
-    @joinChannel channelName
-    @showChannel channelName
+    @joinChannel channelName, opts
+    @showChannel channelName, opts
 
