@@ -5,11 +5,33 @@
 	-webkit-box-sizing:border-box;
 }
 
+// TODO proper webfont
+@font-face {
+  font-family: 'Unica One';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Unica One'), local('UnicaOne-Regular'), url(https://themes.googleusercontent.com/static/fonts/unicaone/v2/z3VYemEbD7zsQFQLG6g3SrO3LdcAZYWl9Si6vvxL-qU.woff) format('woff');
+}
+
+// @font-face {
+//   font-family: 'Roboto';
+//   font-style: normal;
+//   font-weight: 400;
+//   src: local('Roboto Regular'), local('Roboto-Regular'), url(http://themes.googleusercontent.com/static/fonts/roboto/v11/2UX7WLTfW3W8TclTUvlFyQ.woff) format('woff');
+// }
+
 // color              :
+$white                : #fefefe;
 $darkgrey             : #111;
 $active-color         : rgba(71,178,250,0.7);
+$error                : #C32D2D;
+$success              : rgb(67, 100, 0);
+$teagreen             : #dfebdf;
+$softpink             : rgb(255, 228, 239);
+$softblue             : rgb(200, 229, 255);
+$private              : rgba(0,30,0,0.17);
 // fonts              :
-$pretty-font-family   : 'Open Sans', 'Noto Sans', sans-serif;
+$pretty-font-family   : 'Open Sans', 'Noto Sans', 'Ubuntu', sans-serif;
 $monospace            : 'Droid Sans Mono', monospace;
 // ui dimensions      :
 $timestamp-width      : 12em;
@@ -17,16 +39,23 @@ $supportbar-width     : 300px;
 $chatinput-height     : 6em;
 $my-stream-height     : 103px;
 $room-specific-height : 80px;
+$repl-options-height  : 4em;
 
 $nick-width           : 10em;
+$sidenav-width        : 18em;
 
-::-webkit-scrollbar {
-	width:10px;
+@mixin unselectable {
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-o-user-select: none;
+	user-select: none;
 }
-::-webkit-scrollbar-thumb {
-	background:rgba(0,0,0,0.3);
-	box-shadow:inset 2px 2px 10px -1px rgba(0,0,0,0.95);
-	border-radius:5px;
+
+@mixin hide-text {
+  font: 0/0 serif;
+  text-shadow: none;
+  color: transparent;
 }
 
 // hopefully phased out soon:
@@ -36,12 +65,82 @@ $nick-width           : 10em;
 
 .flex-buttons {
 	display: flex;
-	.button {
+	.button, button {
 		flex: 1 100%;
+		text-align: center;
 	}
 }
+
+.error { color: $error; }
+
+button {
+	border: none;
+	outline: none;
+	margin: 0;
+	padding: 0;
+}
+
+.action-btn {
+	padding: 0.25em 0.75em;
+	background-repeat: repeat-x;
+	border-width: 1px 1px 2px 1px;
+	border-color: #bbb;
+	border-style: solid solid outset solid;
+	border-radius: 3px;
+	border-bottom-width: 1px;
+	border-image-outset: 0;
+	border-image-repeat: stretch;
+	border-image-slice: 100%;
+	border-image-source: none;
+	border-image-width: 1;
+	border-top-width: 1px;
+	box-sizing: border-box;
+	cursor: pointer;
+	display: inline-block;
+	font-family: FeuraSansWeb, 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+	font-weight: normal;
+	letter-spacing: normal;
+	text-align: center;
+	color: inherit;
+	&.attached-to-top {
+		border-bottom: 0;
+		border-bottom-right-radius: 0;
+		border-bottom-left-radius: 0;
+	}
+	&:active {
+		border-bottom-width: 1px;
+		box-shadow: inset 0px 1px 0px #555;
+	}
+}
+
+code {
+	background: #eee;
+	padding: 0.1em;
+}
+
+.action-btn-primary {
+	background-color: rgb(23, 147, 229);
+	background-image: linear-gradient(rgb(76, 177, 255), rgb(23, 147, 229));
+	border-color: rgb(23, 147, 229);
+	color: $white;
+}
+.action-btn-delete {
+	background-color: $error;
+	border-color: $error;
+	background-image: linear-gradient(lighten($error, 15%), $error);
+	color: $white;
+}
+.action-btn-success {
+	background-color: $success;
+	border-color: $success;
+	background-image: linear-gradient(lighten($success, 15%), $success);
+	color: $white;
+}
+
+
 .button {
 	cursor: pointer;
+	@include unselectable;
 }
 .death-warning {
 	color:red;
@@ -49,10 +148,6 @@ $nick-width           : 10em;
 
 .emoji {
 	width: 20px;
-}
-
-span.channelName {
-	color:green;
 }
 
 @mixin panel {
@@ -72,102 +167,42 @@ span.channelName {
     	clear: both;
 	}
 }
-@mixin unselectable {
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-o-user-select: none;
-	user-select: none;
-}
-@mixin cool-button {
-	resize: none;
-	background:rgba(0,0,0,0.5);
-	outline:none;
-	width:100%;
-	height:100%;
-	max-width:100%;
-	max-height:100%;
-	min-width:100%;
-	min-height:100%;
-	padding:0.25em 2em;
-	border-radius:10em;
-	border:none;
-	box-shadow:inset 2px 2px 1px rgba(0,0,0,0.55),inset -2px -2px 1px -1px rgba(0,0,0,0.3);
-	position:relative;
-	@include transition(background 0.25s ease-out, color 0.75s ease-out);
-	&:focus {
-		background:rgba(0,0,0,0.30);
-		color:#efefef;
-	}
-	&::-webkit-input-placeholder { color:silver; }
-	&::-moz-placeholder { color:silver; } /* firefox 19+ */
-	&:-ms-input-placeholder { color:silver; } /* ie */
-	&:-moz-placeholder { color:silver; }
-}
+
 pre {
 	margin:0px;
 	padding:0px;
 }
 textarea {
-	font-family:$monospace;
+	display: $pretty-font-family;
 }
 html, body {
-	text-shadow:1px 1px 1px #151515;
-	background: {
-		color: #151a1f;
-		image: url(../noisy_net.png);
-		repeat: repeat;
-	}
-	color:#dfdfdf;
-	font-family:$monospace;
+	background: #fefefe;
+	color:#111;
+	font-family:$pretty-font-family;
 	height:100%;
 	width:100%;
 	margin:0;
 	padding:0;
 	text-rendering:optimize-legibility;
 	position:relative;
-	font-size:13px;
+	font-size:14px;
 	overflow:hidden;
 }
 h1 {
-	font-size:1.7em;
+	font-size:1.8em;
+	&.huge {
+		font-size: 4em;
+	}
 }
 h2 {
-	font-size:1em;
+	font-size:1.25em;
 }
 h1, h2 {
-	color:#999;
-	font-family: $pretty-font-family;
-	font-weight:normal;
-	font-style:italic;
-	border-bottom: 1px solid #444;
+	font-family: 'Unica One', $pretty-font-family;
+	font-weight: normal;
 }
 div > h1:first-child, div > h2:first-child, div > h3:first-child {
 	margin-top:0px;
-}
-a {
-	color:white;
-	&:hover {
-		color:white;
-	}
-	&:visited {
-		color:#999;
-	}
-}
-
-@include keyframes(activity) {
-  100% {
-    background:transparent;
-  }
-
-  50% {
-    background:rgba(40,40,111,0.9);
-    box-shadow:inset 0px 0px 7px rgba(255,255,255,0.05);
-  }
-
-  0% {
-  	background:transparent;
-  }
 }
 
 @include keyframes(activity2) {
@@ -237,54 +272,24 @@ a {
 		top: -14em;
 		.icon {
 			font-size:30em;
-			color:#444;
-			text-shadow: -1px -1px 0px #555;
 		}
 	}
 }
 
 #main {
 	@include panel;
-	padding-left:30px;
+	padding-left:$sidenav-width;
 	max-height:100%;
 	max-width:100%;
-	padding-top:40px;
 	box-sizing:border-box;
 	overflow:hidden;
-}
-
-@mixin fancyButton {
-	@include transition(all 0.25s ease-in-out);
-	cursor:pointer;
-	border:0;
-	margin:0;
-	padding:0.25em 0.75em;
-	background: $darkgrey;
-	color:#777;
-	border:1px solid #333;
-	position:relative;
-	font-size:1em;
-	&:hover {
-		background:#111911;
-		color:greenyellow;
-		border:1px solid #444;
-	}
-	&.active, &:active {
-		background:#222;
-		color:#AAA;
-		border:1px solid #444;
-	}
-}
-
-button.fancy {
-	@include fancyButton;
 }
 
 .header h2 {
 	position:absolute;
 	height:100%;
 	width:100%;
-	font-size:1.4em;
+	font-size:1.6em;
 }
 
 .warn {
@@ -299,119 +304,11 @@ nav.header {
 	display:none; // temp
 }
 
-#buttons {
-	height: 100%;
-}
-
-nav.functionality {
-	@include unselectable;
-	@include panel;
-	width: 30px;
-	background: $darkgrey;
-	z-index: 120;
-	// padding-top:30px;
-	h1 {
-		@include transition(all 0.25s ease-in-out);
-		font-size:1.3em;
-		vertical-align: top;
-		margin:0px;
-		padding:0px;
-		display:inline-block;
-		border-bottom:0px;
-		color:#bbb;
-	}
-	.button-obscura {
-		@include transition(all 0.1s ease-in-out);
-		height:30px;
-		width:30px;
-		overflow: hidden;
-		box-shadow:0px;
-		&:hover h1.button {
-			color: rgba(71,178,250,0.7);
-		}
-	}
-	h1.button {
-		height: 100%;
-		width: 200px;
-		cursor:pointer;
-		@include transition(all 0.25s ease-in-out);
-		padding:0;
-		margin:0;
-		border-top:1px solid transparent;
-		border-bottom:1px solid transparent;
-		.button-description {
-			display: inline-block;
-			vertical-align: top;
-			height:100%;
-
-			@include transition(all 0.25s ease-in-out);
-			display:inline-block;
-			overflow:hidden;
-			margin-left:0;
-		}
-		i {
-			@include transition(all 0.25s ease-in-out);
-			display:inline-block;
-			vertical-align: top;
-			height:100%;
-			line-height:1em;
-			margin:0.35em 1em 0.35em 0.35em;
-		}
-		span {
-			padding:0 0.5em;
-			line-height: 1.5em;
-		}
-		&:hover {
-
-		}
-		&.active {
-			i {
-				color:greenyellow;
-			}
-		}
-
-		&.activity {
-			@include animation(activity 2.5s infinite);
-			i {
-				@include animation(wiggle 5s infinite);
-			}
-		}
-		&:hover {
-			color:#efefef;
-			text-shadow:2px 2px 2px #252525;
-			@include animation-name(none);
-		}
-	}
-	h1.active {
-		color:#efefef;
-		background:#333;
-		text-shadow:2px 2px 1px black;
-		box-shadow:inset 0px 0px 5px -3px rgba(0,0,0,0.9),inset 0px -1px 10px rgba(0,0,0,0.3);
-	}
-	.options-list {
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		.options {
-			display:none;
-			position:absolute;
-			top:30px;
-			right:0;
-			width:300px;
-			background:rgba(0,0,0,0.85);
-			padding:1em;
-			.option {
-				display:inline-block;
-				margin:0.25em 0;
-			}
-		}
-	}
-}
 .pull-right {
 	float: right;
 }
 .pull-left {
-	float:left;
+	float: left;
 }
 .clearfix {
 	float: none;
@@ -419,7 +316,7 @@ nav.functionality {
 }
 
 .webshot-badge {
-	display:inline;
+	display:inline-block;
 	margin:0 0.5em;
 	font-family:$pretty-font-family;
 	.information {
@@ -431,40 +328,28 @@ nav.functionality {
 		padding:0.3em 1em;
 	}
 	.badge-title {
-		display:inline;
+		display:inline-block;
 		cursor:pointer;
-		background:green;
-		color:white;
-		border-radius:5px;
-		box-shadow:inset 1px 1px 0px rgba(255,255,255,0.25), 2px 2px 0px rgba(0, 0, 0, 0.6);
 	}
 	&.active {
 		.information {
 			display:inline;
 		}
-		.badge-title {
-			border-top-right-radius:0;
-			border-bottom-right-radius:0;
-			box-shadow:inset -1px -1px 1px rgba(0,0,0,0.75), inset 1px 1px 1px rgba(0,0,0,0.75);
-		}
 	}
 }
-[class^="icon-"]:before, [class*=" icon-"]:before {
-	cursor:pointer !important;
-}
-.channelSwitcher {
-	width:100%;
-	height:30px;
-	position:relative;
-}
+
 #global-options {
 	display:none;
+	background: $teagreen;
 	width:100%;
 	height:100%;
-	font-family:$pretty-font-family;
-	padding:1em;
+	font-family: $pretty-font-family;
+	padding: 2em;
 	h1 {
 		margin-top:0;
+	}
+	h1, h2 {
+		font-family: $pretty-font-family;
 	}
 	.option {
 		margin:1em;
@@ -474,93 +359,7 @@ nav.functionality {
 header {
 	@include unselectable;
 	@include panel;
-	height:30px;
 	z-index:100;
-	padding:0 0 0 30px;
-
-	button {
-		font-size:0.8em;
-	}
-
-	.channel-selector {
-		@include clearfix;
-
-		> div {
-			display:block;
-			float:left;
-		}
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		padding:0 0 0.1em 1em;
-
-		.channels, .join-channel {
-			height:100%;
-		}
-
-		.channelBtn {
-			@include fancyButton;
-			@include clearfix;
-			height:100%;
-			text-transform:none;
-			font-style:italic;
-			margin-right:0.75em;
-			padding:0;
-			display:block;
-			float:left;
-			.channelName {
-				height:100%;
-				padding:0.25em 1em;
-			}
-			.channelName, .close {
-				float:left;
-				display: block;
-				height:100%;
-				vertical-align: middle;
-				font-family: sans-serif;
-			}
-			.close {
-				@include transition(all 0.25s ease-in-out);
-				text-align: center;
-				width:2em;
-				font-size:1.3em;
-				font-style:normal;
-				background: $darkgrey;
-				vertical-align: middle;
-				color:#333;
-				border:1px solid transparent;
-				border-left:1px solid #222;
-				&:hover {
-					color:#aaa;
-					background:rgba(255,255,255,0.15);
-				}
-			}
-
-			&.activity {
-				@include animation(activity2 2s infinite);
-			}
-			&.active {
-				color:greenyellow;
-			}
-		}
-		.join-channel {
-			margin-left:1em;
-			.channelName {
-				color:#aaa;
-				font-style: normal;
-			}
-		}
-		input {
-			margin-left:0.25em;
-			display:none;
-			@include cool-button;
-			padding:0.25em 1em;
-			font-size:1em;
-			width:15em;
-			min-width:15em;
-			border: 1px solid transparent;
-		}
-	}
 }
 
 .header {
@@ -594,6 +393,7 @@ header {
 	display: none;
 }
 #main-ui, #panes, #info-overlay {
+	background: $teagreen;
 	position:relative;
 	width:100%;
 	height:100%;
@@ -647,10 +447,6 @@ header {
   }
 }
 
-.channel-topic {
-	font-family:$pretty-font-family;
-}
-
 #chatting {
 	position: absolute;
 	height:100%;
@@ -671,6 +467,8 @@ header {
 	font-size:1.5em;
 	right:0.5em;
 	top:0;
+	text-shadow: 1px 1px 0px #777, -1px -1px 0px #333;
+	color: #111;
 }
 
 .chatChannel {
@@ -688,8 +486,6 @@ header {
 	left:0;
 	height:$chatinput-height;
 
-	$chat-input-roundness:8em;
-	$crypto-button-width:5em;
 	.chat-input-control {
 		@include transition(background 0.25s ease-out, color 0.75s ease-out);
 		position:relative;
@@ -697,35 +493,10 @@ header {
 		height:3em;
 		box-shadow:inset 2px 2px 1px rgba(0,0,0,0.55),inset -2px -2px 1px -1px rgba(0,0,0,0.3);
 		overflow:hidden;
-		button {
-			@include transition(all 0.25s ease-in-out);
-			cursor:pointer;
-			text-transform: uppercase;
-			color:white;
-			text-shadow:1px 1px 4px rgba(0,0,0,0.9);
-			border:none;
-			outline:none;
-			background:#8f6a03;
-			width:$crypto-button-width;
-			position:absolute;
-			top:0;
-			right:0;
-			height:100%;
-			&.encrypted {
-				background:rgb(67, 100, 0);
-			}
-			i {
-				font-size:2em;
-			}
-		}
 	}
 	textarea {
-		@include transition(background 0.25s ease-out, color 0.75s ease-out);
-		&:focus {
-			color:#efefef;
-			background:#222;
-		}
-		background:$darkgrey;
+		background: $white;
+		box-shadow: inset 1px 1px 2px #999;
 		overflow:hidden;
 		padding:0.75em 1em;
 		font-size:1em;
@@ -733,16 +504,11 @@ header {
 		position:absolute;
 		top:0;
 		left:0;
-		padding-right:$crypto-button-width;
 		outline:none;
 		border:none;
 		resize: none;
 		width:100%;
 		height:100%;
-		&::-webkit-input-placeholder { color:silver; }
-		&::-moz-placeholder { color:silver; } /* firefox 19+ */
-		&:-ms-input-placeholder { color:silver; } /* ie */
-		&:-moz-placeholder { color:silver; }
 	}
 }
 
@@ -752,22 +518,11 @@ header {
 }
 .button-group {
 	height:100%;
-	div, button {
+	button {
 		height:100%;
+		padding: 0 1em;
 		float:left;
-	}
-	div, button {
-		border-right:0px;
-		&:hover {
-			border-right:0px;
-		}
-	}
-	div:last-child button, button:last-child {
-		border-right:1px solid #333;
-	}
-	button, button:hover {
-		outline:none !important;
-		border-bottom:none;
+		margin-right: 5px;
 	}
 }
 
@@ -777,11 +532,6 @@ header {
 
 .channel-options {
 	height:2em;
-}
-.channel-topic {
-	height:100%;
-	overflow-y:scroll;
-	overflow-x:hidden;
 }
 .room-specific {
 	height: 10%;
@@ -817,140 +567,7 @@ header {
 .messages-pane {
 	@include panel;
 	padding-bottom: $chatinput-height;
-}
-
-.supportbar {
-	height:100%;
-	width: 0;
-	.toggle-support-bar {
-		display: block;
-		position: absolute;
-		left:-30px;
-		top:50%;
-		font-size: 3em;
-		margin-top: -1em;
-	}
-	&.expanded {
-		width: $supportbar-width;
-		padding: 1em;
-		.toggle-support-bar {
-			left: -5px;
-			display: none;
-		}
-	}
-	&:hover .toggle-support-bar {
-		display: block;
-	}
-	position:absolute;
-	top:0;
-	right:0;
-	padding: 0em;
-	padding-top:0px;
-
-}
-.userlist {
-	@include transition(all 0.5s ease-in-out);
-	height:30%;
-	width:100%;
-	overflow-y:auto;
-	font-family: $pretty-font-family;
-
-	.nick {
-		max-width:12em;
-		text-overflow:ellipsis;
-		white-space:nowrap;
-		overflow:hidden;
-	}
-	.body {
-		padding-top:0.75em;
-		font-size:1em;
-		i {
-			margin-left:0.25em;
-			font-size:1.3em;
-		}
-	}
-	.idle > .zzz {
-		bottom:0;
-		opacity:1;
-		font-size:1em;
-		opacity:1;
-		color:#bbb;
-	}
-	.zzz {
-		color:inherit;
-		font-size:0.75em;
-		letter-spacing:-0.15em;
-		position:relative;
-		bottom:0.5em;
-		opacity:0.75;
-	}
-	.icon-phone {
-		color:green;
-	}
-
-	&.maximized {
-		height:90%;
-		margin-bottom:-30px;
-	}
-}
-.linklog {
-	@include transition(all 0.5s ease-in-out);
-	height:60%;
-	width:100%;
-	z-index:4;
-	position:relative;
-	overflow-y:auto;
-	.media-scroll {
-		position: absolute;
-		width:100%;
-		height:100%;
-		top:0;
-		left:0;
-		padding-top:30px;
-	}
-	.body {
-		overflow-x:hidden;
-		padding-right:10px;
-		height:100%;
-	}
-	object {
-		display:block;
-		margin-bottom:1em;
-		width:100%;
-		height:auto;
-	}
-	a {
-		display:block;
-		margin-bottom:1em;
-	}
-	.options {
-		position:absolute;
-		height:100%;
-		right:0;
-		bottom:0;
-		border-bottom:1px solid #444;
-	}
-
-	.maximizeMediaLog {
-		display:none;
-	}
-	&.minimized {
-		height:30px;
-		overflow:hidden;
-		.disableMediaLog, .clearMediaLog {
-			display:none;
-		} /* these aren't relevant while the media log is small */
-		.maximizeMediaLog {
-			display:block;
-		}
-	}
-
-	&.not-initialized {
-		.header .options {
-			display:none;
-		}
-	}
-
+	background: $teagreen;
 }
 
 .close-button {
@@ -962,130 +579,6 @@ header {
 	padding:0.5em 0.75em;
 	font-size:0.8em;
 	background:rgba(0,0,0,0.85);
-}
-
-
-.media-buttons {
-	background: #222;
-	font-size:0.8em;
-	a {
-		@include transition(all 0.25s ease-in-out);
-		text-shadow:1px 1px 0px rgba(0,0,0,0.5);
-		display:inline-block;
-		color:#777;
-		text-decoration: none;
-		font-family:$pretty-font-family;
-		margin:0.25em 0.5em;
-		&:hover {
-			color:#aaa;
-		}
-	}
-
-	a.close {
-		float:right;
-	}
-
-	/* tweaks to make icon sizes more consistent */
-	.icon-external-link {
-		font-size:1.1em;
-	}
-	.icon-collapse-alt, .icon-expand-alt {
-		font-size:1.3em;
-	}
-	.icon-remove {
-		font-size:1.3em;
-	}
-}
-
-.youtubeEmbed {
-	cursor: pointer;
-	.imageThumbnail {
-		@include transition(all 0.5s ease-in-out);
-		opacity:0.55;
-	}
-	.play-icon {
-		@include transition(all 0.5s ease-in-out);
-		color: white;
-		display: block;
-		width: 100%;
-		position: absolute;
-		font-size: 5em;
-		margin-top: 70px;
-		text-align: center;
-	}
-	&:hover {
-		.imageThumbnail {
-			opacity:1;
-		}
-		.play-icon {
-			color: #c22;
-			opacity: 0;
-		}
-	}
-	.video {
-		display:none;
-	}
-}
-
-.media-item {
-	width:100%;
-	max-width:100%;
-	margin-bottom:1em;
-	position: relative;
-	.object {
-		position:relative;
-		z-index:1;
-	}
-	.close-button {
-		z-index:2;
-	}
-
-	.media-buttons {
-		font-size:0.9em;
-	}
-
-	.min {
-		display:none;
-	}
-	&.minimized {
-		.min {
-			display:block;
-		}
-		.max {
-			display:none;
-		}
-	}
-}
-
-.imageThumbnail {
-	width:100%;
-	max-width:100%;
-	margin-bottom:1em;
-	position:relative;
-
-	.icon-youtube-play {
-		@include transition(all 0.5s ease-in-out);
-		font-size:5em;
-		cursor:pointer;
-		position: absolute;
-		height: 100%;
-		text-align: center;
-		width: 100%;
-		vertical-align: middle;
-		padding-top: 25%;
-		color:white;
-		text-shadow: 3px 3px 1px rgba(0,0,0,0.85);
-		&:hover {
-			color:#CD332D;
-		}
-	}
-	.media-object > a {
-		display:block;
-	}
-	img {
-		width:100%;
-		height:auto;
-	}
 }
 
 .unknown {
@@ -1105,33 +598,26 @@ hr {
 	outline: 0;
 }
 
-.modal {
-	textarea {
-		font-size: 0.9em;
-	}
-}
 
 .chatMessage {
 	@include transition(all 0.25s ease-in-out);
-	height:auto;
-	position:relative;
-	margin: 0;
+	background: $white;
+	box-shadow: inset 1px 1px 0px darken($white, 15%);
+	margin: 0.5em 0;
+	height: auto;
+	position: relative;
 
 	.pgp-armored-body {
 		display: none;
 	}
 	.sub-icon {
-		text-shadow: -1px -1px 5px black;
+		text-shadow: -1px 0px 0px white;
 		top: 3px;
 		left: 4px;
 	}
 	.fl {
 		float:left;
 		margin-right:10px;
-	}
-	&:nth-child(2n) {
-		background:#2f2f2f;
-		background:rgba(100,100,127,0.1);
 	}
 	&.highlight {
 		background:#555;
@@ -1141,17 +627,10 @@ hr {
 		}
 	}
 	&.fromlog {
-		background: #1f1f1f;
-		background:rgba(100,100,127,0.1);
-		.body {
-			color: #888;
-		}
+		background: #fafafa;
 	}
 	&.private.me, &.private {
-		background:rgba(0,0,30,0.5);
-		.private-icon {
-			color:#00ffbb;
-		}
+		background: $private;
 	}
 	& > div {
 		vertical-align: top;
@@ -1210,7 +689,6 @@ hr {
 		top:0;
 		left:0;
 		text-align: right;
-		color:#53D940;
 		width:$nick-width;
 		text-overflow:ellipsis;
 		white-space:nowrap;
@@ -1221,24 +699,28 @@ hr {
 		&.me {
 			color:yellow;
 		}
+		.decorators {
+			@include unselectable;
+		}
+		.nick-decorator {
+			margin-right: -5px;
+		}
+		.decorators .nick-decorator:last-child {
+			margin-right: 0;
+		}
 		.nickname {
 			display:inline;
-			margin-left:0.5em;
 			height: 1.4em;
 		}
 		.fa-stack {
 			@include unselectable;
-			top: -0.35em;
+			width: 1.5em;
 			height: 1.4em;
-			width:0.5em;
-		}
-		> span {
-			display: inline-block;
+			line-height: 1.5em;
 		}
 		.transmitting {
 			width: 10px;
 			height: 10px;
-			margin-right: 8px;
 			display: none;
 			position: relative;
 			&.active {
@@ -1247,7 +729,9 @@ hr {
 		}
 		> .github-nickname {
 			display: none;
-			font-size: 1.2em;
+			font-size: 3em;
+			color: $teagreen;
+			text-shadow: 1px 1px 0px #aaa;
 		}
 	}
 
@@ -1277,8 +761,10 @@ hr {
 		}
 	}
 	.private-icon {
-		position:absolute;
-		left:$nick-width;
+		position: absolute;
+		left: $nick-width;
+		color: $teagreen;
+		text-shadow: -1px -1px 0px #666;
 	}
 
 	&.context, &.context-persistent {
@@ -1310,122 +796,6 @@ hr {
 }
 .operator {
 	color:red;
-}
-
-.backdrop {
-	@include panel;
-	z-index:1000;
-	background:rgba(0,0,0,0.75);
-}
-.modal {
-	font-family:$pretty-font-family;
-	position:relative;
-	width:32em;
-	background:#1d1f1f;
-	box-shadow:inset -2px -2px 0px -1px rgba(155,225,255,0.1);
-	padding:2em;
-	height:32em;
-	overflow:hidden;
-	z-index:2;
-
-	.modal-title {
-		position: absolute;
-		top: 0;
-		left: 0;
-		margin-top: 0;
-		font-style: normal;
-		width: 100%;
-		background: #333;
-		padding-left: inherit;
-		line-height: 1.3em;
-	}
-
-	.close-button {
-		@include unselectable;
-		position: absolute;
-		top: 0;
-		right: 0;
-		z-index: 2;
-		background: #333;
-	}
-
-	&.centered {
-		top:50%;
-		margin:auto;
-		margin-top:-15em;
-	}
-
-	> .field {
-		position:relative;
-		z-index:2;
-	}
-
-	.field {
-		label {
-			display:inline-block;
-			width:auto;
-			margin-bottom: 0.5em
-		}
-		label.description {
-			font-size:0.9em;
-			float:right;
-			color: #777;
-		}
-		input {
-
-		}
-		textarea {
-			width: 100%;
-			height: 6em;
-			display: block;
-			resize: none;
-		}
-	}
-
-	.user-emblem {
-		@include unselectable();
-		@include panel;
-		z-index:1;
-		font-size: 300px;
-		color: #1a1a1a;
-		text-align: center;
-		text-shadow:-1px -1px 0px rgba(255,255,255,0.1);
-	}
-
-	section {
-		display: none;
-		&.active {
-			display: block;
-		}
-	}
-	.field {
-		margin:1em 0 ;
-	}
-	input[type='text'], input[type='password'] {
-		min-height:2em;
-		height:2em;
-		width:100%;
-		padding:0.25em 1em;
-	}
-	button {
-		@include fancyButton;
-		text-transform: none;
-	}
-}
-
-.crypto-key-popup {
-	z-index:2;
-	.anti-surveillance {
-		@include unselectable();
-		float:left;
-		margin:0 0.25em 0 0;
-		font-size: 6em;
-		color: #1a1a1a;
-		text-align: center;
-		.fa-eye-slash {
-			color:yellow;
-		}
-	}
 }
 
 .progress-bar {
@@ -1481,4 +851,12 @@ hr {
 
 .growl {
 	display: none;
+}
+
+.beginning-of-time {
+	margin-bottom: 1em;
+	padding: 1em;
+	text-align: center;
+	font-family: $pretty-font-family;
+	border-radius: 20px;
 }

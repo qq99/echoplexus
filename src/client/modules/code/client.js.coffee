@@ -8,8 +8,8 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
   htmlEditorTemplate: jsCodeReplTemplate
 
   events:
-    "click .evaluate": "_repl"
-    "click .refresh": "refreshIframe"
+    "click .j-evaluate": "_repl"
+    "click .j-refresh": "refreshIframe"
 
   initialize: (opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))

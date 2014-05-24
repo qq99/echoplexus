@@ -15,18 +15,10 @@ module.exports.ColorModel = class ColorModel extends Backbone.Model
       @set "g", opts.g
       @set "b", opts.b
     else
-      r = parseInt(Math.random() * 200 + 55, 10) # push the baseline away from black
-      g = parseInt(Math.random() * 200 + 55, 10)
-      b = parseInt(Math.random() * 200 + 55, 10)
-      threshold = 50
-      color = 35
+      r = parseInt(Math.random() * 200, 10)
+      g = parseInt(Math.random() * 200, 10)
+      b = parseInt(Math.random() * 200, 10)
 
-      #Calculate the manhattan distance to the colors
-      #If the colors are within the threshold, invert them
-      if Math.abs(r - color) + Math.abs(g - color) + Math.abs(b - color) <= threshold
-        r = 255 - r
-        g = 255 - g
-        b = 255 - b
       @set "r", r
       @set "g", g
       @set "b", b
@@ -326,6 +318,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
       type: "private" if !!msg.targetNick
       class: "private" if !!msg.targetNick
     })
+
+    window.events.trigger "unidle"
 
     if sign and !encrypt
       @signMessage(msg)

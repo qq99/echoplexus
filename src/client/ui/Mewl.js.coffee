@@ -1,56 +1,63 @@
 mewlTemplate = require("../templates/MewlNotification.html")
 
-  # Displays a little modal-like alert box with
+# Displays a little modal-like alert box with
 module.exports.MewlNotification = class MewlNotification extends Backbone.View
 
   template: mewlTemplate
   className: "growl"
 
+  events:
+    "click .j-close": "hide"
+
   initialize: (opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))
 
     # defaults
+    @closable = true
+    @classes = "notif-white"
     @position = "bottom right"
     @padding = 10
-    @lifespan = opts.lifespan or 3000
+    @lifespan = opts.lifespan || 3000
 
-    # override defaults
-    _.extend this, opts
-    @$el.html @template(
-      title: opts.title
-      body: opts.body
-    )
+    @set(opts)
     @$el.addClass @position
     @place().show()
+
+  render: ->
+    @$el.html @template(
+      classes: @classes
+      title: @title
+      body: @body
+      closable: @closable
+    )
+
+  set: (opts) ->
+    _.extend this, opts
+    @render()
 
   show: ->
     self = this
     $("body").append @$el
-    _.defer ->
-      self.$el.addClass "shown"
+    _.defer => @$el.addClass "shown"
 
-    setTimeout @hide, @lifespan
-    this
+    setTimeout @hide, @lifespan if @lifespan != Infinity
+
+    return @ # for chaining
 
   hide: ->
-    self = this
-    @$el.removeClass "shown"
-    window.events.trigger "growl:hide",
-      height: parseInt(self.$el.outerHeight(), 10)
+    @$el.on 'webkitTransitionEnd transitionend msTransitionEnd oTransitionEnd', => @$el.remove()
+    @$el.addClass "slide-right"
 
-    setTimeout ->
-      self.remove()
-
+    return @ # for chaining
 
   place: ->
-    cssString = undefined
-    curValue = undefined
-    $otherEl = undefined
     $otherGrowls = $(".growl:visible." + @position.replace(" ", ".")) # finds all with the same position settings as ours
-    if @position.indexOf("bottom") isnt -1
-      cssString = "bottom"
+
+    cssString = if @position.indexOf("bottom") != -1
+      "bottom"
     else
-      cssString = "top"
+      "top"
+
     max = -Infinity
     heightOfMax = 0
 
@@ -68,4 +75,5 @@ module.exports.MewlNotification = class MewlNotification extends Backbone.View
     max += heightOfMax
     max += @padding # some padding
     @$el.css cssString, max
-    this
+
+    return @ # for chaining

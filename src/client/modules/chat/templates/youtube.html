@@ -1,44 +1,32 @@
 <div class="media-item youtubeEmbed">
 	<div class="media-buttons">
 		<a rel="noreferrer" class="to-external" href="<%- originalSrc %>" target="_blank">
-			<span class="explanatory-text">Direct</span>
 			<i class="icon fa fa-external-link"></i>
 		</a>
-		<a class="hide" href="#">
-			<span class="explanatory-text">Hide</span>
-			<i class="icon fa fa-minus-square-o"></i>
+		<a class="play-icon" href="#">
+			<i class="fa fa-youtube-play"></i>
 		</a>
 		<a class="close" href="#">
 			<i class="icon fa fa-times-circle"></i>
 		</a>
 	</div>
 	<div class="media-object">
-		<div class="max">
-			<div class="video">
-				<object width="254" height="200">
-	            	<param name="movie" value="<%- src %>&wmode=gpu"></param>
-	            	<param name="allowFullScreen" value="true"></param>
-	                <param name="allowscriptaccess" value="always"></param>
-	                <param name="wMode" value="gpu"></param>
-	                <embed
-	                	src="<%- src %>&wmode=gpu"
-	                	type="application/x-shockwave-flash"
-	                	allowscriptaccess="always"
-	                	allowfullscreen="true"
-	                	width="254"
-	                	height="200">
-	                </embed>
-	            </object>
-	        </div>
-	        <div class="youtube imageThumbnail">
-	        	<i class="play-icon fa fa-youtube-play"></i>
-	        	<img src="<%- img_src %>">
-	        </div>
+		<div class="video">
+			<object>
+            	<param name="movie" value="<%- src %>&wmode=gpu"></param>
+            	<param name="allowFullScreen" value="true"></param>
+                <param name="allowscriptaccess" value="always"></param>
+                <param name="wMode" value="gpu"></param>
+                <embed
+                	src="<%- src %>&wmode=gpu"
+                	type="application/x-shockwave-flash"
+                	allowscriptaccess="always"
+                	allowfullscreen="true">
+                </embed>
+            </object>
         </div>
-		<div class="min">
-			<a rel="noreferrer" href="<%- originalSrc %>" target="_blank">
-				<%- originalSrc %>
-			</a>
-		</div>
+        <div class="youtube imageThumbnail">
+        	<img src="<%- img_src %>">
+        </div>
 	</div>
 </div>

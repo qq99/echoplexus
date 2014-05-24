@@ -16,6 +16,7 @@
 
 #coding .codeClient {
   height:100%;
+  background: $teagreen;
   overflow:hidden;
   .codelog {
     width:50%;
@@ -29,12 +30,12 @@
 
     .repl-options {
       font-size:1em;
-      height:1em;
+      height: $repl-options-height;
       position: relative;
       z-index:2;
-      padding:0 1em;
-      button {
-        color:greenyellow;
+      padding: 1em;
+      .btn {
+        margin-left: 0.5em;
       }
     }
 
@@ -49,17 +50,18 @@
     }
     .htmlREPL {
       top:0;
-      padding-top:2em;
+      padding-top: $repl-options-height;
     }
     iframe {
       background: white;
       height:90%;
       width:100%;
+      border: 1px solid #999;
     }
   }
 
   .CodeMirror {
-    background:rgba(109,116,15,0.06);
+    background: #3d3d3d;
     width:100%;
     height:100%;
   }
@@ -70,11 +72,6 @@
     height:100%;
   }
   .editor {
-    &:first-child .explanation {
-      border-top-right-radius:1em;
-    }
-  }
-  .editor {
     width:100%;
     height:50%;
     position:relative;
@@ -82,12 +79,11 @@
       position:relative;
       z-index:10;
       height:30px;
-      font-family:$pretty-font-family;
-      font-size:0.7em;
-      padding: 0.5em 1em;
-      background: #272822;
-      border-bottom:1px solid #333;
-      border-top:1px solid #333;
+      font-family: $pretty-font-family;
+      font-size: 1em;
+      line-height: 1em;
+      padding: 0.5em 2em;
+      background: $teagreen;
     }
     .textarea_container {
       width:100%;

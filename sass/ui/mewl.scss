@@ -1,0 +1,130 @@
+@mixin radial-gradient($gradient...) {
+  background-image: -webkit-radial-gradient($gradient);
+  background-image:    -moz-radial-gradient($gradient);
+  background-image:      -o-radial-gradient($gradient);
+  background-image:         radial-gradient($gradient);
+}
+@mixin linear-gradient($gradientLine, $colorStops...) {
+  background-image: -webkit-linear-gradient($gradientLine, $colorStops);
+  background-image:    -moz-linear-gradient($gradientLine, $colorStops);
+  background-image:      -o-linear-gradient($gradientLine, $colorStops);
+  @if length($gradientLine) == 2 {
+  background-image:         linear-gradient(to #{inverse-side(nth($gradientLine, 1))} #{inverse-side(nth($gradientLine, 2))}, $colorStops);
+  } @else {
+  background-image:         linear-gradient(to #{inverse-side($gradientLine)}, $colorStops);
+  }
+}
+
+
+/*
+ * Copyright (c) 2012-2013 Thibaut Courouble
+ * http://www.cssflow.com
+ *
+ * Licensed under the MIT License:
+ * http://www.opensource.org/licenses/mit-license.php
+ */
+
+$mewl-padding: 0.5em;
+.growl {
+  @include transition(all 0.5s ease-in-out);
+  display:block;
+  opacity:0;
+  position:absolute;
+  min-width:10em;
+  max-width:40em;
+  z-index:10000;
+  font-size:0.95em;
+  overflow:hidden;
+  font-family: $pretty-font-family;
+  border-radius:10px;
+  padding: 3px;
+
+  // positioning:
+  &.top {
+    top:1em;
+    padding-bottom: $mewl-padding;
+  }
+  &.bottom {
+    bottom:1em;
+    padding-top: $mewl-padding;
+  }
+  &.left {
+    left:1em;
+    padding-right: $mewl-padding;
+  }
+  &.right {
+    right:1em;
+    padding-left: $mewl-padding;
+  }
+
+  // actually show it
+  &.shown {
+    opacity:1;
+  }
+  &.slide-right {
+    right: -5em;
+    opacity: 0;
+  }
+}
+
+.notif {
+  position: relative;
+  width: 288px;
+  padding: 0.5em 1em;
+  color: rgba(#ccc, .9);
+  text-shadow: 1px 1px rgba(black, 0.3);
+  border: 1px solid;
+  border-color: rgba(#111, .6) rgba(#111, .7) rgba(#111, .9);
+  border-radius: 5px;
+  box-shadow: inset 0 0 1px rgba(white, .5),
+                      0 1px 2px rgba(black, .3);
+
+  p { margin: 0; }
+
+  a {
+    font-weight: bold;
+    color: rgba(#ddd, .9);
+    text-decoration: none;
+  }
+
+  .action-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0;
+  }
+}
+
+.notif-title {
+  margin: 0;
+  line-height: 22px;
+  font-size: 13px;
+  font-weight: bold;
+  color: rgba(white, .95);
+}
+
+.notif-white {
+  color: rgba(#333, .9);
+  text-shadow: 0 1px rgba(white, .2);
+  background-color: rgba(white, .9);
+  border-color: rgba(#444, .6) rgba(#444, .7) rgba(#444, .8);
+  /* rgba(white, .4), rgba(white, .33) 50%, rgba(#eaeaea, .3) 50%, rgba(#eaeaea, .35) 100% */
+  @include linear-gradient(top,
+                           rgba(white, .55),
+                           rgba(white, .45) 50%,
+                           rgba(#dedede, .45) 50%,
+                           rgba(#dedede, .55));
+  // box-shadow: inset 0 0 1px rgba(white, .7),
+  //                     0 1px 2px rgba(black, .2);
+
+  &:before {
+    background-color: rgba(white, .1);
+    border-right-color: rgba(#333, .3);
+    box-shadow: 1px 0 rgba(white, .15);
+  }
+
+  .notif-title { color: rgba(black, .8); }
+
+  a { color: rgba(#282828, .9); }
+}

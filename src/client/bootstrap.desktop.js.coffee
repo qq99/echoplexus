@@ -1,7 +1,9 @@
 require("./bootstrap.core.js.coffee").core()
 ChannelSwitcher   = require("./ui/ChannelSwitcher.js.coffee").ChannelSwitcher
 utility           = require("./utility.js.coffee")
-TouchGestures   = require("../mobile/ui/gestures.js.coffee").TouchGestures
+TouchGestures     = require("../mobile/ui/gestures.js.coffee").TouchGestures
+Mewl              = require("./ui/Mewl.js.coffee").MewlNotification
+
 
 $(document).ready ->
 
@@ -28,15 +30,19 @@ $(document).ready ->
 
   tooltipTemplate = $("#tooltip").html()
 
-  VisibilityManager.onChange (visibility) ->
-    if visibility == "visible"
+  notIdle = -> 
+    console.log window.visibility_status
+    if window.visibility_status == "visible"
       document.title = "echoplexus"
-      faviconizer.setConnected()  if typeof window.disconnected is "undefined" or not window.disconnected
+      faviconizer.setConnected() if typeof window.disconnected is "undefined" or not window.disconnected
       if ua.node_webkit
         win = gui.Window.get()
         win.requestAttention false
 
       window.events.trigger "unidle" # fire an event that signals we're no longer idle
+
+  VisibilityManager.onChange notIdle
+  $(document).on "click keyup", notIdle
 
   setTimeout (->
     # reconnect the socket manually using the navigator's onLine property
@@ -56,15 +62,55 @@ $(document).ready ->
     console.log "navigator has no internet connectivity"
     faviconizer.setDisconnected()
 
-  io.connect window.location.origin,
+  appSocket = io.connect window.location.origin,
     "connect timeout": 1000
     reconnect: true
     "reconnection delay": 2000
     "max reconnection attempts": 1000
 
+  createConnectionGrowl = (options) ->
+    clearTimeout window.hideConnectionGrowl
+    if window.connectionGrowl
+      window.connectionGrowl.set options
+    else
+      window.connectionGrowl = new Mewl(options)
+
+    return
+
+  appSocket.on 'disconnect', ->
+    createConnectionGrowl
+      title: "Lost Connection"
+      body: "Disconnected from the server"
+      classes: "action-btn-delete"
+      lifespan: Infinity
+      closable: false
+
+    window.disconnected = true
+    faviconizer.setDisconnected()
+
+  appSocket.on 'reconnecting', (nextRetry) ->
+    createConnectionGrowl
+      title: "Lost Connection"
+      body: "Reconnecting in " + nextRetry / 1000.0 + " seconds"
+      classes: "action-btn-delete"
+
+  appSocket.on 'reconnect', ->
+    createConnectionGrowl
+      title: "Connection Restored"
+      body: "We now return you to your regular service"
+      classes: "action-btn-primary"
+
+    window.disconnected = false
+    faviconizer.setConnected()
+
+    window.hideConnectionGrowl = setTimeout ->
+      window.connectionGrowl.hide()
+      delete window.connectionGrowl
+    , 5000
+
 
   channelSwitcher = new ChannelSwitcher()
-  $("header").append channelSwitcher.$el
+  # $(".channel-switcher-container").append channelSwitcher.$el
   $("span.options").on "click", (ev) ->
     $(this).siblings("div.options").toggle()
 
@@ -150,11 +196,19 @@ $(document).ready ->
 
   window.events.on "chat:activity", (data) ->
     $(".button[data-target='#chatting']").addClass "activity"  unless chatModeActive()
-    unless document.hasFocus()
+    if window.visibility_status != "visible"
       faviconizer.setActivity()
       document.title = "!echoplexus"
       if ua.node_webkit
         win = gui.Window.get()
         win.requestAttention true
 
-  Gestures = new TouchGestures if utility.isMobile()
+  window.events.on "showPrivateOverlay", ->
+    $("#is-private, #info-overlay").show()
+    $("#panes").hide()
+    $("#channel-password").focus()
+  window.events.on "hidePrivateOverlay", ->
+    $("#is-private, #info-overlay").hide()
+    $("#panes").show()
+
+  Gestures = new TouchGestures# if utility.isMobile()

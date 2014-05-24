@@ -2,7 +2,7 @@ Client                    = require('../client.js.coffee')
 ClientModel               = Client.ClientModel
 ClientsCollection         = Client.ClientsCollection
 Loader                    = require('../loader.js.coffee').Loader
-channelSelectorTemplate   = require('../templates/channelSelector.html')
+buttonTemplate            = require('../templates/channelSelectorButton.html')
 
 # Clients:
 # abstract this to config.coffee
@@ -13,10 +13,53 @@ CallClient                = require('../modules/call/client.js.coffee').CallClie
 InfoClient                = require('../modules/info/client.js.coffee').InfoClient
 utility                   = require("../utility.js.coffee")
 
+module.exports.ChannelButton = class ChannelButton extends Backbone.View
+  events:
+    "click .close": "leaveChannel"
+    "click button": "showChannel"
+
+  initialize: (opts) ->
+    _.bindAll.apply(_, [this].concat(_.functions(this)))
+    @channelName = opts.channelName
+    @data = new Backbone.Model
+      topic: ""
+      channelName: opts.channelName
+      activeUsers: 1
+      totalUsers: 1
+    @render()
+
+  leaveChannel: ->
+    window.events.trigger("leaveChannel", @channelName)
+
+  showChannel: ->
+    window.events.trigger("showChannel", @channelName)
+
+  setActive: ->
+    @$el.find("button").addClass("active").removeClass("activity")
+
+  setInactive: ->
+    @$el.find("button").removeClass("active")
+
+  destroy: ->
+    @$el.remove()
+
+  render: ->
+    @$el.html(buttonTemplate())
+
+    @stickit @data,
+      ".j-channel-btn":
+        attributes: [{
+          name: 'data-channel'
+          observe: 'channelName'
+        }]
+      ".channel-name": "channelName"
+      ".active": "activeUsers"
+      ".total": "totalUsers"
+      ".topic": "topic"
+
 module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
-  className: "channelSwitcher"
-  template: channelSelectorTemplate
+  el: ".channel-switcher-contents"
 
   loader: (new Loader()).modules
   modules: [ChatClient, CodeClient, DrawingClient, CallClient, InfoClient]
@@ -57,49 +100,46 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     $(window).on "unload", @quickKill
 
   attachEvents: ->
+
+    window.events.on "showChannel", (channel) =>
+      @showChannel channel
+
     window.events.on "joinChannel", (channel) =>
       @joinAndShowChannel channel
 
     window.events.on "leaveChannel", (channel) =>
-      @leaveChannel channel
+      if channel
+        @leaveChannel channel
+      else
+        @leaveChannel @activeChannel
 
     window.events.on "channelPassword", (data) =>
       window.events.trigger "channelPassword:#{@activeChannel}",
         password: data.password
 
     # show an input after clicking "+ Join Channel"
-    @$el.on "click", ".join", =>
-      if utility.isMobile()
-        channelName = prompt("Which channel?")
+    $(document).on "click", ".j-channel-btn.join", =>
+      if true
+        channelName = prompt("Join which channel?")
         @joinAndShowChannel channelName
       else
-        @$el.find("input.channelName").toggle()
-
-    # join a channel by typing in the name after clicking the "+ Join Channel" button and clicking enter
-    @$el.on "keydown", "input.channelName", (ev) =>
-      if ev.keyCode is 13 # enter key
-        channelName = $(ev.currentTarget).val()
-        ev.preventDefault()
-        @joinAndShowChannel channelName
-
+        @$el.find("input.channel-name").toggle()
 
     # kill the channel when clicking the channel button's close icon
-    @$el.on "click", ".channels .channelBtn .close", (ev) =>
-      $chatButton = $(ev.currentTarget).parents(".channelBtn")
+    @$el.on "click", ".channels .j-channel-btn .close", (ev) =>
+      $chatButton = $(ev.currentTarget).parents(".j-channel-btn")
       channel = $chatButton.data("channel")
-      ev.stopPropagation() # prevent the event from bubbling up to the .channelBtn bound below
+      ev.stopPropagation()
       ev.preventDefault()
       @leaveChannel channel
 
     # make the channel corresponding to the clicked channel button active:
-    @$el.on "click", ".channels .channelBtn", (ev) =>
+    @$el.on "click", ".channels .j-channel-btn", (ev) =>
       channel = $(ev.currentTarget).data("channel")
       @showChannel channel
 
     window.events.on "nextChannel", @showNextChannel
     window.events.on "previousChannel", @showPreviousChannel
-    window.events.on "leaveChannel", =>
-      @leaveChannel @activeChannel
 
     window.events.on "chat:activity", (data) =>
       @channelActivity data
@@ -116,39 +156,30 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
 
   leaveChannel: (channelName) ->
-
     # don't leave an undefined channel or the last channel
-    return  if (typeof channelName is "undefined") or (@sortedChannelNames.length is 1)
-    channelViews = @channels[channelName].get("modules")
-    $channelButton = @$el.find(".channelBtn[data-channel='" + channelName + "']")
+    return if (typeof channelName is "undefined") or (@sortedChannelNames.length is 1)
+
+    channelModel = @channels[channelName]
+
+    channelViews = channelModel.get("modules")
 
     # remove the views, then their $els
     _.each channelViews, (module, key) ->
       module.view.kill()
       module.view.$el.remove()
 
+    channelModel.get("button").destroy()
 
     # update / delete references:
-    @sortedChannelNames = _.without(@sortedChannelNames, channelName)
-    delete @activeChannel
-
+    @showPreviousChannel() if channelName == @activeChannel # show them something while we quit this
+    @sortedChannelNames = _.uniq _.without(@sortedChannelNames, channelName)
     delete @channels[channelName]
-
-
-    # click on the button closest to this channel's button and activate it before we delete this one:
-    if $channelButton.prev().length
-      $channelButton.prev().click()
-    else
-      $channelButton.next().click()
-    @sortedChannelNames = _.uniq(@sortedChannelNames)
 
     # update stored channels for revisit/refresh
     window.localStorage.setObj "joined_channels", @sortedChannelNames
 
-    # remove the button in the channel switcher too:
-    $channelButton.remove()
-
   showNextChannel: ->
+    console.log @activeChannel
     return  unless @hasActiveChannel()
     activeChannelIndex = _.indexOf(@sortedChannelNames, @activeChannel)
     targetChannelIndex = activeChannelIndex + 1
@@ -173,21 +204,20 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     channel = @channels[channelName]
     return if !channel
     if channel.isPrivate && !channel.authenticated
-      showPrivateOverlay()
+      window.events.trigger "showPrivateOverlay"
     else
-      hidePrivateOverlay()
+      window.events.trigger "hidePrivateOverlay"
 
     channelsToDeactivate = _.without(_.keys(@channels), channelName)
 
     # tell the views to deactivate
     _.each channelsToDeactivate, (channelName) =>
+      @channels[channelName].get("button").setInactive()
       _.each @channels[channelName].get("modules"), (module) ->
         module.view.$el.hide()
         module.view.trigger "hide"
 
-    # style the buttons depending on which view is active
-    $(".channels .channelBtn", @$el).removeClass "active"
-    $(".channels .channelBtn[data-channel='" + channelName + "']", @$el).addClass("active").removeClass "activity"
+    channel.get("button").setActive()
 
     # send events to the view we're showing:
     _.each channel.get("modules"), (module) ->
@@ -205,19 +235,23 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     # keep track of which one we were viewing:
     window.localStorage.setObj "activeChannel", channelName
 
+    window.events.trigger "unidle"
+
   channelActivity: (data) ->
     fromChannel = data.channelName
 
     # if we hear that there's activity from a channel, but we're not looking at it, add a style to the button to notify the user:
-    $(".channels .channelBtn[data-channel='" + fromChannel + "']").addClass "activity"  if fromChannel isnt @activeChannel
+    $("[data-channel='" + fromChannel + "']", @$el).addClass "activity"  if fromChannel isnt @activeChannel
 
   joinChannel: (channelName) ->
-
     if !@channels[channelName]?
       cryptokey = window.localStorage.getItem("chat:cryptokey:#{channelName}")
       cryptokey = undefined if cryptokey == ''
 
+      button = new ChannelButton({channelName: channelName})
+
       channel = new Backbone.Model
+        button: button
         clients: new ClientsCollection()
         modules: []
         authenticated: false
@@ -247,6 +281,9 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
       @channels[channelName] = channel
       @loading -= 1
+
+      @attachChannelButton(button)
+
       @render()
 
     @sortedChannelNames.push channelName
@@ -263,11 +300,13 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     # update stored channels for revisit/refresh
     window.localStorage.setObj "joined_channels", @sortedChannelNames
 
+  attachChannelButton: (buttonView) ->
+    @$el.append buttonView.$el
+
   render: ->
     channelNames = _.sortBy(_.keys(@channels), (key) ->
       key
     )
-    @$el.html @template(channels: channelNames)
 
     # clear out old pane:
     _.each @channels, (channel, channelName) ->

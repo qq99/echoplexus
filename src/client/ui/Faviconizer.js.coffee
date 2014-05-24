@@ -11,10 +11,16 @@ module.exports.Faviconizer = class Faviconizer
   disconnected: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB90HGQEjAqwgHS4AAAJYSURBVDjLpVMxT9tAFP7OseXYjoQogw1UGaJK3bxDhcSCqUTFkoUudOBPdWZhajNUjWQGFpBSJpAXKipFCZSEi5OALXyxdfZdN9Q0YeonveGe3n1673vfg5QS84Ix5hZFcckYc1+qkVKCJGmKf5Fnmatpmg/AAUA5556q6wHmgNyPx1MJJc9dQogvhHCklCCEQFEUKqX0hKrOkJCft7fPD1NKl3Pu53nuSCnRbDYBADs7O1BVlWqa5jFCpkhI6+oKAPBKUdwkSXzOuSOEQKPRgKZpkFIiz3PU63VomkYty/LGQjyTkG8/fuC1rruj0cjPsswRQuDk5AS6rkPXdQBAlmVI0xRbW1vQdZ0uLS15v7MsAABydnbm9vt9fzKZOEVR4Pz8HAsLCyiXy1OzpmmKKIqwvr4OwzDo8vKy94uxoLS5uekPBoM3cRzj4uIClUoFlmXNqK2qKqSUuL6+hmEYlTRN3w2K4rNSLpf3GWN0NBqBMQYhBF6ClBKTyQSMMWoYxqfw8RFK8+YmsG3b45xT0zTR7/eRJMnMxyRJ0Ov14DgOdRzn/fdu9zKMIijDOEaj2w2q1aonhKBZlqHdbuPp6elvV6LT6cCyLFqtVr2vnc7lMI4xjGOowygCABxFUfChVvPG4/FxGIY25xyrq6sAgLu7O5RKJVqr1byjdnvaB28PDqbardu222q1jsMwtE3TBCEEpmnStbU17wuls0609/ZmxProOO7p6an/8PDgLC4u0o2NDe/o/n7+LZi7u3MV319ZcYMgOHRdd/+w1wte2gzB9jb+B38ALsRj19PJcOEAAAAASUVORK5CYII="
 
   setActivity: ->
+    return if @state == 'activity'
     @setIcon @activity
+    @state = 'activity'
 
   setConnected: ->
+    return if @state == 'connected'
     @setIcon @connected
+    @state = 'connected'
 
   setDisconnected: ->
+    return if @state == 'disconnected'
     @setIcon @disconnected
+    @state = 'disconnected'

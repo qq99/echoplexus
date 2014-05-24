@@ -33,8 +33,20 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
     @render()
     @attachEvents()
 
+    $(".colorpicker", @$el).spectrum
+      color: @style.strokeStyle
+      showAlpha: true
+      clickoutFiresChange: true
+      showInput: true
+      showInitial: true
+      showButtons: false
+      change: (color) =>
+        @style.strokeStyle = color.toRgbString()
+
     @on "show", =>
       @$el.show()
+
+    window.events.on "sectionActive:#{@module.section}", @resizeCanvas
 
     @on "hide", =>
       @$el.hide()
@@ -115,16 +127,6 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
     @$el.on "click", ".tool.info", ->
       $(this).find(".tool-options").toggleClass "active"
 
-    @$el.on "click", ".tool.color", ->
-      options = $(this).find(".tool-options-contents")
-      swatch = $("<div class=\"swatch\"></div>")
-      options.html ""
-      _(30).times ->
-        randomColor = (new ColorModel()).toRGB()
-        swatch.clone().css("background", randomColor).data("color", randomColor).appendTo options
-
-      $(this).find(".tool-options").toggleClass "active"
-
     key "]", =>
       @style.lineWidth += 0.25  if @$el.is(":visible")
 
@@ -189,8 +191,6 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
         #Add the coordinate to the path
         path.push msg.coord
 
-        console.log @
-
         #Draw the line
         @drawLine ctx, path
 
@@ -249,6 +249,15 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
     @$el.html @template()
     @$el.attr "data-channel", @channelName
 
+  resizeCanvas: ->  
+    area = @$el.find(".canvas-area")
+    w = @$el.width()
+    h = @$el.height()
+
+    oldData = @ctx.getImageData(0, 0, @ctx.canvas.clientWidth, @ctx.canvas.clientHeight)
+    $("canvas", @$el).attr("width", w)
+    $("canvas", @$el).attr("width", w)
+    @ctx.putImageData(oldData, 0, 0)
 
   #Catmull-Rom spline
   catmull: (path, ctx, tens) ->

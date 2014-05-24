@@ -23,6 +23,7 @@ module.exports.core = ->
   require("./visibility.js.coffee")
   require("./events.js.coffee")()
 
+  window.visibility_status = "visible"
   VisibilityManager.onChange (visibility) ->
     window.visibility_status = visibility # duplicate the visibility status as a property we can look up at any time
 
@@ -31,14 +32,6 @@ module.exports.core = ->
     $("#coding").is ":visible"
   window.chatModeActive = ->
     $("#chatting").is ":visible"
-
-  window.showPrivateOverlay = ->
-    $("#is-private, #info-overlay").show()
-    $("#panes").hide()
-    $("#channel-password").focus()
-  window.hidePrivateOverlay = ->
-    $("#is-private, #info-overlay").hide()
-    $("#panes").show()
 
   window.turnOffLiveReload = ->
     $(".livereload").attr "checked", false

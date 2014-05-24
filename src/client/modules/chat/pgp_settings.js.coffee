@@ -115,7 +115,7 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
   enabled: ->
     return !!@get('armored_keypair')
 
-  requestPassphrase: ->
+  requestPassphrase: (callback) ->
     (new PGPPassphraseModal(
       pgp_settings: this
       on_unlock: ->
@@ -130,9 +130,9 @@ module.exports.PGPSettings = class PGPSettings extends Backbone.Model
         @usablePrivateKey '', ->
           callback?(null) # if it unlocked it, we'll call the callback with success
       catch e # else, we'll display the modal to get them to unlock their key
-        @requestPassphrase()
+        @requestPassphrase(callback)
     else # there was a key error, so make them unlock
-      @requestPassphrase()
+      @requestPassphrase(callback)
 
   usablePublicKey: (armored_public_key) ->
     dearmored_pubs = openpgp.key.readArmored(armored_public_key)

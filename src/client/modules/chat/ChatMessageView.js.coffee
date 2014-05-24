@@ -76,7 +76,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
     @$el.find(".webshot-badge").remove()
     oldText = @$el.find(".body-content").text().trim()
 
-    # store the old text with the node
+    # keep track of the old text in case they cancel
     @oldText = oldText
 
     # make the entry editable
@@ -104,7 +104,7 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
         @stopInlineEdit ev
 
   stopInlineEdit: (ev) ->
-    $(ev.target).removeAttr("contenteditable").blur()
+    $(ev.target).removeAttr("contenteditable").blur().text(@oldText)
 
   toggleArmored: (ev) ->
     $message = $(ev.currentTarget).parents(".chatMessage")
@@ -177,15 +177,14 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       pre = targetContent.slice(0, badgeLocation)
       post = targetContent.slice(badgeLocation)
       targetContent = pre + badge + post
-    if @autoloadMedia
-
-      # insert image into media pane
-      img = @linkedImageTemplate(
-        url: msg.original_url
-        image_url: msg.webshot
-        title: msg.title
-      )
-      $(".linklog .body", @$el).prepend img
+    
+    # insert image into media pane
+    window.events.trigger "linklog:#{@room}:webshot", 
+      url: msg.original_url
+      image_url: msg.webshot
+      timestamp: Number(new Date())
+      title: msg.title
+      excerpt: msg.excerpt
 
     # modify content of user-sent chat message
     @$el.find(".body").html targetContent

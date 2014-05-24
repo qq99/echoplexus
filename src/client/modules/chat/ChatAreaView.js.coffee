@@ -43,6 +43,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
 
     @scrollToLatest = _.debounce(@_scrollToLatest, 200) # if we're pulling a batch, do the scroll just once
 
+    @button = options.button
     @room = options.room
     @me = options.me
 
@@ -111,26 +112,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
     # remove it from view on close button
     @$el.on "click", ".close", (ev) ->
       $button = $(this)
-      $button.closest(".media-item").remove()
-
-
-    # minimize/maximize the media item
-    @$el.on "click", ".hide, .show", (ev) ->
-      $button = $(this)
-      $button.toggleClass("hide").toggleClass "show"
-
-      # change the icon
-      $button.find("i").toggleClass("fa-minus-square-o").toggleClass "fa-plus-square-o"
-
-      # toggle the displayed view (.min|.max)
-      $button.closest(".media-item").toggleClass "minimized"
-
-      # update the text
-      if $button.hasClass("hide")
-        $button.find(".explanatory-text").text "Hide"
-      else
-        $button.find(".explanatory-text").text "Show"
-
+      $button.closest(".media-item-container").remove()
 
   _scrollToLatest: (ev) -> #Get the last message and scroll that into view
     now = Number(new Date())
@@ -242,31 +224,32 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
         userHTML += userItem
 
       $userlist.append userHTML
-      $(".userlist .count .active .value", @$el).html nActive
-      $(".userlist .count .total .value", @$el).html total
+      @button.data.set
+        activeUsers: nActive
+        totalUsers: total
     else
 
   setTopic: (newTopic) ->
-    $(".channel-topic .value", @$el).html newTopic
+    $(".channel-topic .value", @$el).text newTopic
+    @button.data.set("topic", newTopic)
 
   showQuotationContext: (ev) ->
     $this = $(ev.currentTarget)
     quoting = $this.attr("rel")
-    $quoted = $(".chatMessage[data-sequence='" + quoting + "']")
-    excerpt = undefined
-    excerpt = $quoted.find(".nick").text().trim() + ": " + $quoted.find(".body").text().trim()
+    $quoted = $(".chatMessage[data-sequence='" + quoting + "']", @$el)
+    excerpt = $quoted.find(".nick").text().trim() + ": " + $quoted.find(".body-content").text().trim()
     $this.attr "title", excerpt
     $quoted.addClass "context"
 
   hideQuotationContext: (ev) ->
     $this = $(ev.currentTarget)
     quoting = $this.attr("rel")
-    $quoted = $(".chatMessage[data-sequence='" + quoting + "']")
+    $quoted = $(".chatMessage[data-sequence='" + quoting + "']", @$el)
     $quoted.removeClass "context"
 
   addQuotationHighlight: (ev) ->
     quoting = $(ev.target).attr("rel")
-    $quoted = $(".chatMessage[data-sequence='" + quoting + "']")
+    $quoted = $(".chatMessage[data-sequence='" + quoting + "']", @$el)
     $(".chatMessage", @$el).removeClass "context-persistent"
     $quoted.addClass "context-persistent"
 

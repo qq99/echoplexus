@@ -2,13 +2,15 @@
   <h2>Media &amp; Links</h2>
   <div class="options">
     <div class="button-group">
-      <button class="fancy maximizeMediaLog">Enable</button>
-      <div>
-        <button class="fancy disableMediaLog">Disable</button>
-      </div>
-      <div>
-        <button class="fancy clearMediaLog">Clear</button>
-      </div>
+      <button class="maximizeMediaLog action-btn">
+        <i class="fa fa-chevron-up"></i>
+      </button>
+      <button class="disableMediaLog action-btn">
+        <i class="fa fa-chevron-down"></i>
+      </button>
+      <button class="clearMediaLog action-btn action-btn-delete">
+        <i class="fa fa-trash-o"></i>
+      </button>
     </div>
   </div>
 </div>
@@ -32,13 +34,13 @@
 
   </div>
   <div class="flex-buttons">
-    <div class="cancel-upload button">
-      <p>Cancel</p>
-    </div>
-    <div class="upload button">
+    <button class="action-btn cancel-upload">
+      Cancel
+    </button>
+    <button class="action-btn action-btn-primary upload">
       <i class="fa fa-upload"></i>
-      <p>Confirm Upload</p>
-    </div>
+      Upload
+    </button>
   </div>
 </div>
 <div class="drag-mask"></div>

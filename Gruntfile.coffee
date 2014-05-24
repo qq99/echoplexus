@@ -42,6 +42,7 @@ module.exports = (grunt) ->
           "vendor/codemirror/mode/htmlembedded/htmlembedded.js"
           "vendor/hammerjs/hammer.js"
           "vendor/emojify.js/emojify.js"
+          "vendor/spectrum/spectrum.js"
           "lib/CryptoJS-3.1.2/components/core.js"
           "lib/CryptoJS-3.1.2/components/enc-base64.js"
           "lib/CryptoJS-3.1.2/components/enc-utf16.js"
@@ -121,7 +122,7 @@ module.exports = (grunt) ->
         tasks: ["concat_sourcemap"]
 
       coffee:
-        files: ["src/client/**/*.coffee", "src/client/**/*.html", "src/embedded-client/**/*.coffee", "src/embedded-client/**/*.html"]
+        files: ["src/mobile/**/*.coffee", "src/client/**/*.coffee", "src/client/**/*.html", "src/embedded-client/**/*.coffee", "src/embedded-client/**/*.html"]
         tasks: ["browserify:app", "browserify:embedded", "browserify:mobile", "concat_sourcemap"]
 
       sass:
@@ -176,13 +177,13 @@ module.exports = (grunt) ->
 
     exec:
       server:
-        command: 'supervisor -n error -w . src/server/main.coffee'
+        command: 'supervisor -n error -w src/server src/server/main.coffee'
         stdout: true
       production:
         command: 'supervisor --poll-interval 60000 -w . src/server/main.coffee'
         stdout: true
       dependencies:
-        command: 'npm install; bower install;'
+        command: 'npm install; bower install --allow-root;'
         stdout: true
       download_apk:
         command: 'wget https://controller.apk.firefox.com/application.apk?manifestUrl=https%3A%2F%2Fchat.echoplex.us%2Fmanifest.webapp -O echoplexus.apk'

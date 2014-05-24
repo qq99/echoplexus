@@ -66,7 +66,7 @@ $base-color: #555;
 }
 
 /* DOUBLE UP*/
-$double-up-color-one: #E74C3C;
+$double-up-color-one: darken($teagreen, 40%);
 
 .csspinner.double-up:after {
   border-right: $border-width solid $double-up-color-one;
@@ -75,4 +75,19 @@ $double-up-color-one: #E74C3C;
   border-bottom: $border-width double $double-up-color-one;
 }
 
-
+.csspinner.block {
+  display: block;
+  width: 2em;
+  height: 2em;
+}
+.csspinner.center {
+  position: relative;
+  left: 50%;
+  margin-left: -1em;
+}
+.csspinner.block.double-up:after {
+  width: 100%;
+  height: 100%;
+  left: -25%;
+  top: -25%;
+}

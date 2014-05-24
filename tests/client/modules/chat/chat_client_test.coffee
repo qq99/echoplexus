@@ -190,7 +190,7 @@ describe 'ChatClient', ->
       it 'decrypts the topic when I supply it with a valid encrypted topic', ->
         encryptedTopic = cryptoWrapper.encryptObject("hey dudes", "foo")
         @subject.me.set 'cryptokey', "foo"
-        spy(@subject.chatLog, 'setTopic')
+        stub(@subject.chatLog, 'setTopic')
 
         @subject.raw_topic =
           body: JSON.stringify(encryptedTopic)
@@ -201,7 +201,7 @@ describe 'ChatClient', ->
 
       it 'sets the topic to the ciphertext when I do not have a cryptokey', ->
         encryptedTopic = cryptoWrapper.encryptObject("hey dudes", "foo")
-        spy(@subject.chatLog, 'setTopic')
+        stub(@subject.chatLog, 'setTopic')
 
         @subject.raw_topic =
           body: JSON.stringify(encryptedTopic)
@@ -213,7 +213,7 @@ describe 'ChatClient', ->
 
       it 'sets the topic to plaintext when the topic is plaintext and I have a cryptokey', ->
         @subject.me.set 'cryptokey', "foo"
-        spy(@subject.chatLog, 'setTopic')
+        stub(@subject.chatLog, 'setTopic')
 
         @subject.raw_topic =
           body: 'hi there'
@@ -223,7 +223,7 @@ describe 'ChatClient', ->
         assert.equal "hi there", @subject.chatLog.setTopic.args[0]
 
       it 'sets the topic to plaintext when the topic is plaintext and I have no cryptokey', ->
-        spy(@subject.chatLog, 'setTopic')
+        stub(@subject.chatLog, 'setTopic')
 
         @subject.raw_topic =
           body: 'hi there'
@@ -292,20 +292,16 @@ describe 'ChatClient', ->
         assert.equal true, @subject.channel.isPrivate
 
       it 'shows an overlay if the channel is active', ->
-        window.showPrivateOverlay = stub()
-
-        @subject.show()
+        @subject.hidden = false
         @subject.channelIsPrivate()
 
-        assert window.showPrivateOverlay.called
+        assert window.events.trigger.calledWith("showPrivateOverlay")
 
       it 'does not show an overlay if the channel is not active', ->
-        window.showPrivateOverlay = stub()
-
-        @subject.hide()
+        @subject.hidden = true
         @subject.channelIsPrivate()
 
-        assert.equal false, window.showPrivateOverlay.called
+        assert.equal false, window.events.trigger.calledWith("showPrivateOverlay")
 
       it 'attempts to automatically authenticate', ->
         @subject.autoAuth = stub()
@@ -339,32 +335,34 @@ describe 'ChatClient', ->
 
         assert @subject.me.authenticate_via_password.calledWithMatch('my secret')
 
-      it 'shows an error when no password or token was supplied, or authentication was unsuccessful', ->
+      it 'shows an error when authentication was unsuccessful', ->
         authResult = $.Deferred()
-        window.hidePrivateOverlay = stub()
-        window.showPrivateOverlay = stub()
-
         dfrdStub = stub($, 'Deferred').returns(authResult)
+        stub(@subject.me, "authenticate_via_password")
 
-        @subject.show()
-        @subject.authenticate({})
+        @subject.hidden = false
+        @subject.authenticate({password: 'yoyo'})
 
-        authResult.reject(null, "Error")
+        authResult.reject("Error: I am the server response to the req")
 
-        assert showPrivateOverlay.called
-
+        assert.equal true, window.events.trigger.calledWith("showPrivateOverlay")
+        assert.equal true, dfrdStub.calledOnce
         dfrdStub.restore()
+
+      it 'shows no error when no password or token was supplied', ->
+        @subject.hidden = false
+        @subject.authenticate({})
+        assert.equal false, window.events.trigger.calledWith("showPrivateOverlay")
 
       it 'marks channel as authenticated and hides overlay when authentication succeeds', ->
         authResult = $.Deferred()
-        window.hidePrivateOverlay = stub()
-
         dfrdStub = stub($, 'Deferred').returns(authResult)
 
+        @subject.hidden = true
         @subject.authenticate({password: 'my secret'})
         authResult.resolve()
 
         assert.equal true, @subject.channel.authenticated
-        assert hidePrivateOverlay.called
+        assert window.events.trigger.calledWith("hidePrivateOverlay")
 
         dfrdStub.restore()

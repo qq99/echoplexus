@@ -28,6 +28,7 @@ module.exports.CryptoModal = class CryptoModal extends Backbone.View
     "keydown input.crypto-key": "checkToSetKey"
     "click .set-encryption-key": "setCryptoKey"
     "click .cancel": "remove"
+    "click .close-button": "remove"
 
   initialize: (opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))
@@ -84,6 +85,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       pgp_settings: @pgp_settings
 
     @chatLog = new ChatAreaView
+      button: @channel.get("button")
       room: @channelName
       persistentLog: @persistentLog
       me: @me
@@ -177,10 +179,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     $(".messages", @$el).on "mousewheel DOMMouseScroll", @scrollSyncLogs
 
   events:
-    "click button.syncLogs": "activelySyncLogs"
     "click button.deleteLocalStorage": "deleteLocalStorage"
     "click button.deleteLocalStorageAndQuit": "logOut"
-    "click button.clearChatlog": "clearChatlog"
     "click .reply-button": "reply"
     "keydown .chatinput textarea": "handleChatInputKeydown"
     "click button.not-encrypted": "showCryptoModal"
@@ -292,31 +292,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @$el.hide()
     @hidden = true
 
-  bindReconnections: ->
-    #Bind the disconnnections, send message on disconnect
-    @socket.on "disconnect", =>
-      @chatLog.renderChatMessage @chatLog.createChatMessage({
-        body: "Disconnected from the server"
-        type: "SYSTEM"
-        timestamp: new Date().getTime()
-        nickname: ""
-        class: "client"
-      })
-
-      window.disconnected = true
-      faviconizer.setDisconnected()
-
-
-    #On reconnection attempts, print out the retries
-    @socket.on "reconnecting", (nextRetry) =>
-      @chatLog.renderChatMessage @chatLog.createChatMessage({
-        body: "Connection lost, retrying in " + nextRetry / 1000.0 + " seconds"
-        type: "SYSTEM"
-        timestamp: new Date().getTime()
-        nickname: ""
-        class: "client"
-      })
-
+  bindReconnections: ->   
     #On successful reconnection, render the chatmessage, and emit a subscribe event
     @socket.on "reconnect", =>
 
@@ -329,8 +305,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @me.inactive "", @channelName, @socket  if @me.get("idle")
         @postSubscribe()
 
-
-
   kill: ->
     @detachEvents()
     @socket.emit "unsubscribe:" + @channelName
@@ -338,14 +312,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       @socket.removeAllListeners "#{key}:#{@channelName}"
 
   postSubscribe: (data) ->
-    @chatLog.renderChatMessage @chatLog.createChatMessage({
-      body: "Connected. Now talking in channel " + @channelName
-      type: "SYSTEM"
-      timestamp: new Date().getTime()
-      nickname: ""
-      class: "client"
-    })
-
     if pub = @pgp_settings.get("armored_keypair")?.public
       @socket.emit "set_public_key:#{@channelName}",
         armored_public_key: pub
@@ -360,11 +326,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   autoNick: ->
     acked = $.Deferred()
-    storedNick = $.cookie("nickname:" + @channelName)
-    if storedNick
-      @me.setNick storedNick, @channelName, acked
-    else
-      acked.reject()
+    storedNick = $.cookie("nickname:" + @channelName) || "Anonymous"
+    @me.setNick storedNick, @channelName, acked
     acked.promise()
 
   authenticate: (data) ->
@@ -381,11 +344,11 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     $.when(acked).done =>
       @channel.authenticated = true
-      hidePrivateOverlay()
+      window.events.trigger "hidePrivateOverlay"
 
     $.when(acked).fail (err) =>
-      if !@hidden
-        showPrivateOverlay()
+      if !@hidden and err
+        window.events.trigger "showPrivateOverlay"
         growl = new Mewl(
           title: @channelName + ": Error"
           body: err
@@ -405,7 +368,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   channelIsPrivate: =>
     @channel.isPrivate = true
-    showPrivateOverlay() if !@hidden
+    window.events.trigger "showPrivateOverlay" if !@hidden
 
     @autoAuth()
 
@@ -488,6 +451,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         message = @checkToNotify message
         @persistentLog.add msg
         @chatLog.renderChatMessage message
+        return
 
       "chat:batch": (msgs) =>
         for msg in msgs
@@ -501,26 +465,30 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
           chatlog.scrollTop = chatlog.scrollHeight - @previousScrollHeight
 
         @scrollSyncLocked = false # unlock the lock on scrolling to sync logs
+        return
 
       "client:changed": (alteredClient) =>
         prevClient = @channel.get("clients").findWhere(id: alteredClient.id)
         alteredClient.color = new ColorModel(alteredClient.color)  if alteredClient.color
         if prevClient
           prevClient.set alteredClient
-          prevClient.unset "encrypted_nick"  if !alteredClient.encrypted_nick?
+          prevClient.unset "encrypted_nick"  if !alteredClient.encrypted_nick
           # backbone won't unset undefined
 
           # check to see if it's ME that's being updated
           # TODO: this is hacky, but it fixes notification nick checking :s
           if prevClient.get("id") is @me.get("id")
             @me.set alteredClient
-            @me.unset "encrypted_nick"  if !alteredClient.encrypted_nick?
+            @me.unset "encrypted_nick"  if !alteredClient.encrypted_nick
         # backbone won't unset undefined
         else # there was no previous client by this id
           @channel.get("clients").add alteredClient
 
+        return
+
       "client:removed": (alteredClient) =>
         prevClient = @channel.get("clients").remove(id: alteredClient.id)
+        return
 
       private_message: (msg) =>
         message = @chatLog.createChatMessage(msg)
@@ -528,32 +496,36 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
         @persistentLog.add msg
         @chatLog.renderChatMessage message
+        return
 
       webshot: (msg) =>
         @chatLog.renderWebshot msg
+        return
 
       subscribed: =>
         @postSubscribe()
+        return
 
       "chat:edit": (msg) =>
         message = @chatLog.createChatMessage(msg)
         message = @checkToNotify(message) # the edit might have been to add a "@nickname", so check again to notify
         @persistentLog.replaceMessage msg # replace the message with the edited version in local storage
         @chatLog.replaceChatMessage message # replace the message with the edited version in the chat log
+        return
 
       "client:id": (msg) =>
         @me.set "id", msg.id
+        return
 
       "token": (msg) =>
         $.cookie "token:#{msg.type}:#{@channelName}", msg.token, window.COOKIE_OPTIONS
+        return
 
       userlist: (msg) =>
-
-        # update the pool of possible autocompletes
-        @channel.get("clients").reset msg.users
+        @channel.get("clients").reset msg.users # update the pool of possible autocompletes
+        return
 
       "chat:currentID": (msg) =>
-        missed = undefined
         @persistentLog.latestIs msg.mID # store the server's current sequence number
 
         # find out only what we missed since we were last connected to this channel
@@ -563,18 +535,22 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         if missed?.length
           socket.emit "chat:history_request:#{@channelName}", requestRange: missed
 
+        return
+
       topic: (msg) =>
         return if msg.body is null
 
         @raw_topic = msg
         @decryptTopic()
+        return
 
       antiforgery_token: (msg) =>
         @me.antiforgery_token = msg.antiforgery_token if msg.antiforgery_token
+        return
 
       file_uploaded: (msg) =>
         fromClient = @channel.get("clients").findWhere(id: msg.from_user)
-        return if typeof !fromClient?
+        return if typeof !fromClient
 
         if @me.is(fromClient)
           nick = "You"
@@ -589,6 +565,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
         @chatLog.renderChatMessage message
         @persistentLog.add msg.toJSON()
+        return
 
     _.each @socketEvents, (value, key) =>
       # listen to a subset of event
@@ -597,6 +574,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   detachEvents: ->
     window.events.off null, null, this
     $(window).off "resize", @chatLog.scrollToLatest
+    return
 
   attachEvents: ->
 
@@ -610,10 +588,12 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       @chatLog.renderChatMessage message
       if (data.store_local_render) # we might store some of these pre-renders locally, when we only get receipts
         @persistentLog.add _.extend(data, {sending: false})
+      return
 
     window.events.on "echo_received:#{@channelName}", (msg, overwrite) =>
       if overwrite
         message = @chatLog.createChatMessage(msg)
+        message.set("you", true)
 
         body = message.get("body")
         @scrollback.replace body, "/edit ##{message.get("mID")} #{body}" # https://github.com/qq99/echoplexus/issues/113 "Local scrollback should be considered an implicit edit operation"
@@ -623,22 +603,30 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @chatLog.replaceChatMessage message, true
       else
         @chatLog.markReceipt msg.echo_id
+      
+      return
 
     window.events.on "chat:broadcast", (data) ->
       @me.speak
         body: data.body
+
+      return
     , this
 
     window.events.on "channelPassword:#{@channelName}", (data) ->
       @authenticate(password: data.password)
+
+      return
     , this
 
     window.events.on "unidle", ->
-      if @$el.is(":visible") and @me?
+      if @$el.is(":visible") and @me
         @me.active @channelName, @socket
 
         clearTimeout @idleTimer
         @startIdleTimer()
+
+      return
     , this
 
     window.events.on "beginEdit:#{@channelName}", (data) ->
@@ -646,6 +634,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       msgText = $(".chatMessage[data-sequence='" + mID + "'] .body-content", @$el).text()
 
       $(".chatinput textarea", @$el).val("/edit ##{mID} #{msgText}").focus()
+
+      return
     , this
 
     # finalize the edit
@@ -654,15 +644,21 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         mID: data.mID
         body: data.newText
         type: 'edit'
+
+      return
     , this
 
     # let the chat server know our call status so we can advertise that to other users
     window.events.on "in_call:#{@channelName}", (data) ->
       @socket.emit "in_call:#{@channelName}"
+
+      return
     , this
 
     window.events.on "left_call:#{@channelName}", (data) ->
       @socket.emit "left_call:#{@channelName}"
+
+      return
     , this
 
 
@@ -712,6 +708,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         text[0] = text[0]  if text.length is 1
         $this.val text.join(" ")
 
+     return
+
   activelySyncLogs: (ev) ->
     missed = @persistentLog.getMissingIDs(25)
     if missed and missed.length
@@ -719,6 +717,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       @socket.emit "chat:history_request:" + @channelName,
         requestRange: missed
 
+    return
 
   reply: (ev) ->
     ev.preventDefault()
@@ -733,10 +732,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       $textarea.val ">>" + mID
     $textarea.focus()
 
+    return
+
   deleteLocalStorage: (ev) ->
     @persistentLog.destroy()
     @chatLog.clearChat() # visually reinforce to the user that it deleted them by clearing the chatlog
     @chatLog.medialog.clearMediaContents() # "
+    return
 
   logOut: (ev) ->
 
@@ -754,19 +756,19 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       body: "All local data erased."
       lifespan: 7000
     )
-
-  clearChatlog: ->
-    @chatLog.clearChat()
+    return
 
   startIdleTimer: ->
     @idleTimer = setTimeout(=>
-      @me.inactive "", @channelName, @socket if @me?
+      @me.inactive "", @channelName, @socket if @me
     , 1000 * 30)
+    return
 
   rerenderInputBox: ->
     $(".chatinput", @$el).remove() # remove old
     # re-render the chat input area now that we've encrypted:
     @$el.find(".chatarea-contents").append @inputTemplate(encrypted: !!@me.get('cryptokey'))
+    return
 
   showCryptoModal: ->
     modal = new CryptoModal(channelName: @channelName)
@@ -781,12 +783,14 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       _.defer ->
         $(".chatinput textarea", @$el).focus()
       @me.setNick @me.get("nick"), @channelName
+    return
 
   showPGPModal: ->
     modal = new PGPModal
       channelName: @channelName
       me: @me
       pgp_settings: @pgp_settings
+    return
 
   clearCryptoKey: ->
     @me.unset 'cryptokey'
@@ -796,9 +800,11 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     window.localStorage.setItem "chat:cryptokey:" + @channelName, ""
     @me.unset "encrypted_nick"
     @me.setNick "Anonymous", @channelName
+    return
 
   unlockKeypair: ->
     if @me.pgp_settings.enabled()
       @me.pgp_settings.prompt()
     else
       @showPGPModal()
+    return

@@ -1,0 +1,290 @@
+$nav-secondary: #2A2C2B;
+
+.supportbar {
+  z-index: 300;
+  background: $nav-secondary;
+  color: lighten($nav-primary, 30%);
+  height:100%;
+  width: 0;
+  &.expanded {
+    width: $supportbar-width;
+    padding: 1em;
+    .toggle-support-bar {
+      left: -5px;
+      display: none;
+    }
+  }
+  &:hover .toggle-support-bar {
+    display: block;
+  }
+  position:absolute;
+  top:0;
+  right:0;
+  padding: 0em;
+  padding-top:0px;
+}
+
+.toggle-support-bar {
+  display: block;
+  color: lighten($nav-primary, 50%);
+  text-shadow: -1px 0px 0px darken($nav-primary, 20%);
+  position: absolute;
+  left:-1em;
+  top:50%;
+  font-size: 3em;
+  margin-top: -1em;
+}
+
+.userlist {
+  @include transition(all 0.5s ease-in-out);
+  height: 30%;
+  width: 100%;
+  overflow-y: auto;
+  font-family: $pretty-font-family;
+
+  .nick {
+    max-width: 12em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .body {
+    font-size: 0.9em;
+    i {
+      margin-left: 0.25em;
+      font-size: 1.3em;
+    }
+  }
+  .idle > .zzz {
+    bottom: 0;
+    opacity: 1;
+    font-size: 1em;
+    opacity: 1;
+    color: #bbb;
+  }
+  .zzz {
+    color: inherit;
+    font-size: 0.75em;
+    letter-spacing: -0.15em;
+    position: relative;
+    bottom: 0.5em;
+    opacity: 0.75;
+  }
+  .icon-phone {
+    color:green;
+  }
+
+  &.maximized {
+    height: 100%;
+    margin-bottom: -30px;
+  }
+}
+.linklog {
+  @include transition(all 0.5s ease-in-out);
+  height:70%;
+  width:100%;
+  z-index:4;
+  position:relative;
+  overflow-y:auto;
+  .media-scroll {
+    position: absolute;
+    width:100%;
+    height:100%;
+    top:0;
+    left:0;
+    padding-top:30px;
+  }
+  .body {
+    overflow-x:hidden;
+    padding-right:10px;
+    height:100%;
+  }
+  object {
+    display:block;
+    margin-bottom:1em;
+    width:100%;
+    height:auto;
+  }
+  a {
+    color: inherit;
+    display:block;
+  }
+  .options {
+    position:absolute;
+    height:100%;
+    right:0;
+    bottom:0;
+  }
+
+  .maximizeMediaLog {
+    display:none;
+  }
+  &.minimized {
+    height:30px;
+    overflow:hidden;
+    .disableMediaLog, .clearMediaLog {
+      display:none;
+    } /* these aren't relevant while the media log is small */
+    .maximizeMediaLog {
+      display:block;
+    }
+  }
+
+  &.not-initialized {
+    .header .options {
+      display:none;
+    }
+  }
+
+}
+
+.media-item-container {
+  margin-bottom: 0.5em;
+  .excerpt {
+    font-size: 0.9em;
+    padding: 0.5em 1em;
+    background: $teagreen;
+    color: lighten($nav-primary, 15%);
+  }
+}
+
+.media-item {
+  width:100%;
+  max-width:100%;
+  position: relative;
+  img {
+    display: block;
+  }
+  a {
+    color: inherit;
+  }
+  .object {
+    position:relative;
+    z-index:1;
+  }
+  .close-button {
+    z-index:2;
+  }
+
+  .min {
+    display:none;
+  }
+  &:hover {
+    .media-buttons {
+      display: flex;
+    }
+  }
+  &.minimized {
+    .min {
+      display:block;
+    }
+    .max {
+      display:none;
+    }
+  }
+}
+
+.media-buttons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  display: none;
+  align-items: center;
+  text-align: center;
+  font-size: 2.2em;
+  min-height: 3em;
+  z-index: 20;
+  a {
+    @include transition(all 0.25s ease-in-out);
+    flex: 1 100%;
+    display: inline-block;
+    color: white;
+    text-decoration: none;
+    font-family: sans-serif;
+    margin: 0;
+    &:hover {
+      color:#aaa;
+    }
+  }
+
+  a.close {
+    float:right;
+  }
+
+  /* tweaks to make icon sizes more consistent */
+  .icon-external-link {
+    font-size:1.1em;
+  }
+  .icon-collapse-alt, .icon-expand-alt {
+    font-size:1.3em;
+  }
+  .icon-remove {
+    font-size:1.3em;
+  }
+  &.collapsed {
+    height: 25px;
+    position: relative;
+    display: flex;
+    font-size: 1em;
+    .play-icon {
+      font-size: 1em;
+    }
+  }
+  .play-icon:hover {
+    color: #b31217;
+  }
+}
+
+.youtubeEmbed {
+  .video {
+    display:none;
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    padding-top: 25px;
+    height: 0;
+    object, iframe, embed {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  }
+  .play-icon {
+    font-size: 2em;
+  }
+}
+
+.imageThumbnail {
+  width:100%;
+  max-width:100%;
+  position:relative;
+
+  .icon-youtube-play {
+    @include transition(all 0.5s ease-in-out);
+    font-size:5em;
+    cursor:pointer;
+    position: absolute;
+    height: 100%;
+    text-align: center;
+    width: 100%;
+    vertical-align: middle;
+    padding-top: 25%;
+    color:white;
+    text-shadow: 3px 3px 1px rgba(0,0,0,0.85);
+    &:hover {
+      color:#CD332D;
+    }
+  }
+  .media-object > a {
+    display:block;
+  }
+  img {
+    width:100%;
+    height:auto;
+  }
+}
