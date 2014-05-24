@@ -67,6 +67,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @hidden = true
     @config = opts.config
     @module = opts.module
+    @opts = opts
 
     console.log opts
     if opts.extra.irc
@@ -106,15 +107,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @render()
     @attachEvents()
     @bindReconnections() # Sets up the client for Disconnect messages and Reconnect messages
-
-    # initialize the channel
-    if opts.extra.irc
-      @socket.emit "subscribe", 
-        room: @channelName
-        irc_options: opts.extra.irc
-      , @postSubscribe
-    else
-      @socket.emit "subscribe", room: @channelName, @postSubscribe
+    @subscribe =>
+      @postSubscribe()
 
     # if there's something in the persistent chatlog, render it:
     unless @persistentLog.empty()
@@ -191,6 +185,15 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     # doesn't work when defined as a backbone event :(
     @scrollSyncLogs = _.throttle(@_scrollSyncLogs, 500) # so we don't sync too quickly
     $(".messages", @$el).on "mousewheel DOMMouseScroll", @scrollSyncLogs
+
+  subscribe: (cb) ->
+    if @opts.extra.irc
+      @socket.emit "subscribe", 
+        room: @channelName
+        irc_options: @opts.extra.irc
+      , cb
+    else
+      @socket.emit "subscribe", room: @channelName, cb
 
   events:
     "click button.deleteLocalStorage": "deleteLocalStorage"
@@ -306,17 +309,13 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @$el.hide()
     @hidden = true
 
-  bindReconnections: ->   
+  bindReconnections: ->
     #On successful reconnection, render the chatmessage, and emit a subscribe event
     @socket.on "reconnect", =>
 
       #Resend the subscribe event
-      @socket.emit "subscribe",
-        room: @channelName
-        reconnect: true
-      , => # server acks and we:
-        # if we were idle on reconnect, report idle immediately after ack
-        @me.inactive "", @channelName, @socket  if @me.get("idle")
+      @subscribe => # server acks and we:
+        @me.inactive "", @channelName, @socket  if @me.get("idle") # if we were idle on reconnect, report idle immediately after ack
         @postSubscribe()
 
   kill: ->

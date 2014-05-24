@@ -16,32 +16,49 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
   name: "IrcProxyServer"
   namespace: "/irc"
 
-  subscribeSuccess: (effectiveRoom, socket, channel, client, data) ->
-    return if !data.irc_options
-    console.log data
-    client.room = data.irc_options.room
-    client.server = data.irc_options.server
-    return if !client.room or !client.server
+  publishUserList: (socket, channel, client) ->
+    room = channel.get("name")
+    socket.in(room).emit("userlist:#{room}", {
+      users: client.ircClient.clients.toJSON()
+      room: room
+    })
 
-    client = new irc.Client client.server, 'echoplexion',
-      channels: [client.room]
+  subscribeSuccess: (effectiveRoom, socket, channel, client, data) ->
+    return if !data.irc_options or !data.irc_options.room or !data.irc_options.server
+
+    client.set
+      irc_room: data.irc_options.room
+      irc_server: data.irc_options.server
+
+    ircClient = new irc.Client client.get("irc_server"), 'echoplexion',
+      channels: [client.get("irc_room")]
       userName: 'echoplexus using nodebot'
       realName: 'echoplexus IRC proxy'
       debug: true
 
-    socket.ircClient = client # associate this client instance with this socket
-    socket.ircRoom = client.room
+    if !ircClient.clients
+      ircClient.clients = new Backbone.Collection
 
-    client.addListener 'error', (message) ->
+    client.ircClient = ircClient # associate this client instance with this socket
+
+    ircClient.addListener 'error', (message) ->
         console.log('error: ', message)
 
-    client.addListener 'names', (channel, nicks) ->
-      console.log channel, nicks
+    ircClient.addListener 'names', (room, names) =>
+      names = Object.keys(names)
+      names = for name in names
+        {nick: name}
+      ircClient.clients.set(names, {silent: true})
+      @publishUserList(socket, channel, client)
 
-    client.addListener 'pm', (from, message) ->
+    ircClient.addListener 'nick', (oldNick, newNick, channels, message) =>
+      ircClient.clients.findWhere({nick: oldNick}).set("nick", newNick)
+      @publishUserList(socket, channel, client)
+
+    ircClient.addListener 'pm', (from, message) ->
         console.log(from + ' => ME: ' + message)
 
-    client.addListener 'message', (from, to, message) ->
+    ircClient.addListener 'message', (from, to, message) ->
       console.log(from, to, message)
       console.log 'emitting to', "chat:#{effectiveRoom}"
       socket.emit "chat:#{effectiveRoom}",
@@ -49,16 +66,18 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
         nickname: from
         timestamp: Number(new Date())
 
-    client.addListener 'pm', (nick, message) ->
+    ircClient.addListener 'pm', (nick, message) ->
         console.log('Got private message from %s: %s', nick, message)
 
-    client.addListener 'join', (channel, who) ->
-        console.log('%s has joined %s', who, channel)
+    ircClient.addListener 'join', (room, nick, message) =>
+      ircClient.clients.add({nick: nick})
+      @publishUserList(socket, channel, client)
 
-    client.addListener 'part', (channel, who, reason) ->
-        console.log('%s has left %s: %s', who, channel, reason)
+    ircClient.addListener 'part', (room, nick, message) =>
+      ircClient.clients.remove(ircClient.clients.findWhere({nick: nick}))
+      @publishUserList(socket, channel, client)
 
-    client.addListener 'kick', (channel, who, kicked_by, reason) ->
+    ircClient.addListener 'kick', (channel, who, kicked_by, reason) ->
         console.log('%s was kicked from %s by %s: %s', who, channel, kicked_by, reason)
 
   subscribeError: (err, socket, channel, client) ->
@@ -74,13 +93,17 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
 
   events:
     "chat": (namespace, socket, channel, client, data, ack) ->
-      room = "#" + channel.get("name").split("#").pop()
-      socket.ircClient.say room, data.body
+      return if !client.ircClient
+      room = client.get("irc_room")
+      client.ircClient.say room, data.body
       ack?(_.extend(data, {
+        you: true
+        nickname: client.ircClient.nick
         timestamp: Number(new Date())
       }))
 
     "unsubscribe": (namespace, socket, channel, client) ->
+      return if !client.ircClient
       console.log 'User left channel'
-      socket.ircClient.disconnect("Bye!")
+      client.ircClient.disconnect("Bye!")
       channel.clients.remove(client)
