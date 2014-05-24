@@ -203,4 +203,12 @@ $(document).ready ->
         win = gui.Window.get()
         win.requestAttention true
 
+  window.events.on "showPrivateOverlay", ->
+    $("#is-private, #info-overlay").show()
+    $("#panes").hide()
+    $("#channel-password").focus()
+  window.events.on "hidePrivateOverlay", ->
+    $("#is-private, #info-overlay").hide()
+    $("#panes").show()
+
   Gestures = new TouchGestures# if utility.isMobile()

@@ -344,11 +344,11 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     $.when(acked).done =>
       @channel.authenticated = true
-      hidePrivateOverlay()
+      window.events.trigger "hidePrivateOverlay"
 
     $.when(acked).fail (err) =>
       if !@hidden and err
-        showPrivateOverlay()
+        window.events.trigger "showPrivateOverlay"
         growl = new Mewl(
           title: @channelName + ": Error"
           body: err
@@ -368,7 +368,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   channelIsPrivate: =>
     @channel.isPrivate = true
-    showPrivateOverlay() if !@hidden
+    window.events.trigger "showPrivateOverlay" if !@hidden
 
     @autoAuth()
 

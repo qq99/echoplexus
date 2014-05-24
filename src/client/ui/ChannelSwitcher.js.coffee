@@ -204,9 +204,9 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     channel = @channels[channelName]
     return if !channel
     if channel.isPrivate && !channel.authenticated
-      showPrivateOverlay()
+      window.events.trigger "showPrivateOverlay"
     else
-      hidePrivateOverlay()
+      window.events.trigger "hidePrivateOverlay"
 
     channelsToDeactivate = _.without(_.keys(@channels), channelName)
 

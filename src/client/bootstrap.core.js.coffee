@@ -33,14 +33,6 @@ module.exports.core = ->
   window.chatModeActive = ->
     $("#chatting").is ":visible"
 
-  window.showPrivateOverlay = ->
-    $("#is-private, #info-overlay").show()
-    $("#panes").hide()
-    $("#channel-password").focus()
-  window.hidePrivateOverlay = ->
-    $("#is-private, #info-overlay").hide()
-    $("#panes").show()
-
   window.turnOffLiveReload = ->
     $(".livereload").attr "checked", false
 
