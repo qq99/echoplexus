@@ -45,9 +45,9 @@ The most important part of echoplexus is the support for anonymity.  Users hate 
 
 echoplexus will attempt to embed any image URLs directly into the Media bar on the right side.  Similarly, it will attempt to parse YouTube URLs and embed an object.  When the server encounters a URL, it can take a screenshot of the page in question along and attempt to provide a short excerpt to the user.  To protect your privacy, media embedding is disabled for the client by default.
 
-You can edit any message you've sent up to 2 hours ago, as long as you haven't lost your connection.  This duration is configurable by server operators.  You can edit across connections (regardless of time elapsed) if you were identified when you sent the message.  You can do this by double clicking the message, or clicking the pencil icon that appears while hovering the message.
+You can edit any message you've sent up to 2 hours ago, as long as you haven't lost your connection.  This duration is configurable by server operators.  You can do this by double clicking the message, or clicking the pencil icon that appears while hovering the message.
 
-When you join a channel, you'll automatically sync some of the most recent chat history you may have missed while you were away.  At any time, you can pull the chatlog history for that channel.  Messages sent by identified users will have a green lock icon while hovering the chat message, allowing you to protect your identity throughout history.
+When you join a channel, you'll automatically sync some of the most recent chat history you may have missed while you were away.  At any time, you can pull the chatlog history for that channel.
 
 Currently Supported Commands:
 - `/join [channel_name]`: Join a channel
