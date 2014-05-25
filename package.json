@@ -62,8 +62,8 @@
     "browserify": "~3.20.2",
     "testem": "~0.6.2",
     "grunt-contrib-sass": "0.7.3",
-    "irc": "~0.3.6",
-    "q": "~1.0.1"
+    "q": "~1.0.1",
+    "irc": "git://github.com/qq99/node-irc.git#5bd1f4f95a6d3c9aa77b965b0a6107cd22a17373"
   },
   "devDependencies": {
     "bower": "~0.9.2",
