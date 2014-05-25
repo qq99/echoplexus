@@ -76,7 +76,7 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       @publishUserList(socket, channel, client)
 
     ircClient.addListener 'message', (from, to, message) ->
-      if to == client.get("irc_room")
+      if to != client.get("nick")
         namespace = "chat"
         type = ""
       else
@@ -151,8 +151,9 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
     "nickname": (namespace, socket, channel, client, data, ack) ->
       return if !client.ircClient
 
-      client.ircClient.hasRegistered.done =>
-        client.ircClient.send "NICK", data.nick
-        client.set "nick", data.nick # assume it was successful :/
-        @updateClientAttributes(socket, channel, client) # force resync
-        ack()
+      nick = data.nick || "echoplexion"
+      #client.ircClient.hasRegistered.done =>
+      client.ircClient.send "NICK", nick
+      client.set "nick", nick # assume it was successful :/
+      @updateClientAttributes(socket, channel, client) # force resync
+      ack()
