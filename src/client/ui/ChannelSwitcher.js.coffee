@@ -28,6 +28,11 @@ module.exports.ChannelButton = class ChannelButton extends Backbone.View
       totalUsers: 1
     @render()
 
+    window.events.on "chat:activity", (data) =>
+      return if @opts.channelName != data.channelName
+      $button = @$el.find("button")
+      $button.addClass("activity") if !$button.hasClass("active")
+
   leaveChannel: ->
     window.events.trigger("leaveChannel", @channelName)
 
@@ -141,10 +146,6 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     window.events.on "nextChannel", @showNextChannel
     window.events.on "previousChannel", @showPreviousChannel
 
-    window.events.on "chat:activity", (data) =>
-      @channelActivity data
-
-
   quickKill: ->
 
     # https://github.com/qq99/echoplexus/issues/118
@@ -235,12 +236,6 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     window.localStorage.setObj "activeChannel", channelName
 
     window.events.trigger "unidle"
-
-  channelActivity: (data) ->
-    fromChannel = data.channelName
-
-    # if we hear that there's activity from a channel, but we're not looking at it, add a style to the button to notify the user:
-    $("[data-channel='" + fromChannel + "']", @$el).addClass "activity"  if fromChannel isnt @activeChannel
 
   joinChannel: (channelName, options = {}) ->
     if !@channels[channelName]?
