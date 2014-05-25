@@ -472,7 +472,6 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			room = channel.get("name")
 
 			newName = data.nick
-			prevName = client.get("nick")
 
 			client.unset "encrypted_nick"
 			if data.encrypted_nick?

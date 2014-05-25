@@ -6,6 +6,7 @@ Client           = require('../client/client.js').ClientModel
 Clients          = require('../client/client.js').ClientsCollection
 config           = require('./config.coffee').Configuration
 irc              = require("irc")
+q                = require('q')
 DEBUG            = config.DEBUG
 
 # this server is meant to expose all manners of metadata about the host
@@ -27,6 +28,7 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
     return if !data.irc_options or !data.irc_options.room or !data.irc_options.server
 
     client.set
+      nick: 'echoplexion'
       irc_room: data.irc_options.room
       irc_server: data.irc_options.server
 
@@ -36,10 +38,25 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       realName: 'echoplexus IRC proxy'
       debug: true
 
-    if !ircClient.clients
+    if !ircClient.clients # create it once
       ircClient.clients = new Backbone.Collection
 
     client.ircClient = ircClient # associate this client instance with this socket
+
+    ircClient._hasRegistered = q.defer()
+    ircClient.hasRegistered = ircClient._hasRegistered.promise
+
+    ircClient.addListener 'registered', (message) =>
+      socket.emit "chat:#{effectiveRoom}",
+        body: message.args?[1] # cnxn message
+        nickname: message.server
+        timestamp: Number(new Date())
+
+      actualNick = message.args[0] # server may override our choice!
+      client.set "nick", actualNick
+      @updateClientAttributes(socket, channel, client)
+
+      ircClient._hasRegistered.resolve(actualNick)
 
     ircClient.addListener 'error', (message) ->
         console.log('error: ', message)
@@ -47,27 +64,41 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
     ircClient.addListener 'names', (room, names) =>
       names = Object.keys(names)
       names = for name in names
-        {nick: name}
+        if name == client.get("nick") # this works because IRC requires nicks to be unique
+          {nick: name, id: client.get("id")} # inject our own ID so we don't totally clobber our own client collection state
+        else # we don't have IDs or even track state of the other dudes
+          {nick: name}
       ircClient.clients.set(names, {silent: true})
       @publishUserList(socket, channel, client)
 
     ircClient.addListener 'nick', (oldNick, newNick, channels, message) =>
-      ircClient.clients.findWhere({nick: oldNick}).set("nick", newNick)
+      ircClient.clients.findWhere({nick: oldNick})?.set("nick", newNick)
       @publishUserList(socket, channel, client)
 
-    ircClient.addListener 'pm', (from, message) ->
-        console.log(from + ' => ME: ' + message)
-
     ircClient.addListener 'message', (from, to, message) ->
-      console.log(from, to, message)
-      console.log 'emitting to', "chat:#{effectiveRoom}"
-      socket.emit "chat:#{effectiveRoom}",
+      if to == client.get("irc_room")
+        namespace = "chat"
+        type = ""
+      else
+        namespace = "private_message"
+        type = "private"
+        message = "@#{to}: #{message}"
+
+      socket.emit "#{namespace}:#{effectiveRoom}",
         body: message
         nickname: from
+        type: type
         timestamp: Number(new Date())
 
-    ircClient.addListener 'pm', (nick, message) ->
-        console.log('Got private message from %s: %s', nick, message)
+    ircClient.addListener 'notice', (from = "", to, text, message) ->
+      socket.emit "private_message:#{effectiveRoom}",
+        body: "@#{to}: #{text}"
+        nickname: from
+        type: 'private'
+        timestamp: Number(new Date())
+
+    ircClient.addListener 'topic', (room, topic, nick, message) ->
+      socket.emit "topic:#{effectiveRoom}", body: topic
 
     ircClient.addListener 'join', (room, nick, message) =>
       ircClient.clients.add({nick: nick})
@@ -77,16 +108,26 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       ircClient.clients.remove(ircClient.clients.findWhere({nick: nick}))
       @publishUserList(socket, channel, client)
 
-    ircClient.addListener 'kick', (channel, who, kicked_by, reason) ->
-        console.log('%s was kicked from %s by %s: %s', who, channel, kicked_by, reason)
+    ircClient.addListener 'kick', (room, who, kicked_by, reason = "No reason cited") ->
+      socket.emit "chat:#{effectiveRoom}",
+        body: "#{who} was kicked by #{kicked_by}: #{reason}"
+        nickname: ""
+        timestamp: Number(new Date())
+
+    # let the knewly joined know their ID
+    socket.emit("client:id:#{effectiveRoom}", {
+      id: client.get("id")
+    })
+
+  # force an update on the connected client's representation of his own state:
+  updateClientAttributes: (socket, channel, client) ->
+    room = channel.get("name")
+    socket.emit("client:changed:#{room}", client.attributes)
 
   subscribeError: (err, socket, channel, client) ->
     room = channel.get("name")
 
-    if err and err instanceof ApplicationError.AuthenticationError
-      console.log("InfoServer: ", err)
-      socket.in(room).emit("private:#{room}")
-    else
+    if err
       socket.in(room).emit("chat:#{room}", @serverSentMessage({
         body: err.message
       }, room))
@@ -104,6 +145,14 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
 
     "unsubscribe": (namespace, socket, channel, client) ->
       return if !client.ircClient
-      console.log 'User left channel'
       client.ircClient.disconnect("Bye!")
       channel.clients.remove(client)
+
+    "nickname": (namespace, socket, channel, client, data, ack) ->
+      return if !client.ircClient
+
+      client.ircClient.hasRegistered.done =>
+        client.ircClient.send "NICK", data.nick
+        client.set "nick", data.nick # assume it was successful :/
+        @updateClientAttributes(socket, channel, client) # force resync
+        ack()
