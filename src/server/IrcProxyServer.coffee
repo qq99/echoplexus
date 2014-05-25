@@ -55,15 +55,13 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       actualNick = message.args[0] # server may override our choice!
       client.set "nick", actualNick
       @updateClientAttributes(socket, channel, client)
-
-      console.log 'resolving dfrd'
       ircClient._hasRegistered.resolve(actualNick)
 
     ircClient.addListener 'error', (message) ->
         console.log('error: ', message)
 
     ircClient.addListener 'names', (room, names) =>
-      names = Object.keys(names)
+      names = _.uniq(Object.keys(names))
       names = for name in names
         if name == client.get("nick") # this works because IRC requires nicks to be unique
           {nick: name, id: client.get("id")} # inject our own ID so we don't totally clobber our own client collection state
@@ -144,6 +142,16 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
         timestamp: Number(new Date())
       }))
 
+    "directed_message": (namespace, socket, channel, client, data, ack) ->
+      return if !data.directed_to
+      room = channel.get("name")
+      client.ircClient.say data.directed_to.nick, data.body
+      ack?(_.extend(data, {
+        nickname: client.ircClient.nick
+        you: true
+        timestamp: Number(new Date())
+      }))
+
     "unsubscribe": (namespace, socket, channel, client) ->
       return if !client.ircClient
       client.ircClient.disconnect("Bye!")
@@ -153,9 +161,7 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       return if !client.ircClient
 
       nick = data.nick || "echoplexion"
-      console.log 'waiting on promise'
       client.ircClient.hasRegistered.done =>
-        console.log 'calling fnc'
         client.ircClient.send "NICK", nick
         client.set "nick", nick # assume it was successful :/
         @updateClientAttributes(socket, channel, client) # force resync

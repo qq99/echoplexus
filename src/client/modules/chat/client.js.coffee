@@ -311,14 +311,15 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   bindReconnections: ->
     #On successful reconnection, render the chatmessage, and emit a subscribe event
-    @socket.on "reconnect", =>
-
+    @reconnect = @socket.on "reconnect", =>
+      return if @dead
       #Resend the subscribe event
       @subscribe => # server acks and we:
         @me.inactive "", @channelName, @socket  if @me.get("idle") # if we were idle on reconnect, report idle immediately after ack
         @postSubscribe()
 
   kill: ->
+    @dead = true # @socket.removeListener 'reconnect', @reconnect doesn't work ARGH
     @detachEvents()
     @socket.emit "unsubscribe:" + @channelName
     _.each @socketEvents, (method, key) =>
@@ -688,14 +689,6 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         if userInput.match(REGEXES.commands.join) # /join [channel_name]
           channelName = userInput.replace(REGEXES.commands.join, "").trim()
           window.events.trigger "joinChannel", channelName
-        else if userInput.match(REGEXES.commands.irc) 
-          channelName = userInput.replace(REGEXES.commands.irc, "").trim()
-          [server, room] = channelName.split("#")
-          room = "##{room}"
-          window.events.trigger "joinChannel", channelName,
-            irc:
-              server: server
-              room: room
         else
           @me.speak
             body: userInput

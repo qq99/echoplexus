@@ -46,6 +46,7 @@ module.exports.SyncedEditor = class SyncedEditor extends Backbone.View
   postSubscribe: ->
 
   kill: ->
+    @dead = true
     _.each @socketEvents, (method, key) =>
       @socket.removeAllListeners "#{key}:#{@channelKey}"
 
@@ -113,7 +114,7 @@ module.exports.SyncedEditor = class SyncedEditor extends Backbone.View
 
     #On successful reconnect, attempt to rejoin the room
     socket.on "reconnect", =>
-
+      return if @dead
       #Resend the subscribe event
       socket.emit "subscribe",
         room: @channelName

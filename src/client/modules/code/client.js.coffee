@@ -87,6 +87,7 @@ module.exports.CodeClient = class CodeClient extends Backbone.View
       @syncedHtml.trigger "show"
 
   kill: ->
+    @dead = true
     window.events.off null, null, this
     @syncedJs and @syncedJs.kill()
     @syncedHtml and @syncedHtml.kill()

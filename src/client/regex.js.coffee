@@ -19,7 +19,6 @@ module.exports.REGEXES =
     password: /^\/(password|pw)/
     private_message: /^\/(pm|w|whisper|t|tell) /
     join: /^\/(join|j)/
-    irc: /^\/(irc)/
     leave: /^\/leave/
     pull_logs: /^\/(pull|p|sync|s) /
     set_color: /^\/(color|c) /
