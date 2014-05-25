@@ -44,10 +44,10 @@ module.exports.CallClient = class CallClient extends Backbone.View
       @socket.emit "subscribe", room: @channelName
 
       #On successful reconnect, attempt to rejoin the room
-      socket.on "reconnect", =>
+      @socket.on "reconnect", =>
         return if @dead
         #Resend the subscribe event
-        socket.emit "subscribe",
+        @socket.emit "subscribe",
           room: @channelName
           reconnect: true
 

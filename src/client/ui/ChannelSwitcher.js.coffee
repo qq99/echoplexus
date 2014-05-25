@@ -18,12 +18,12 @@ module.exports.ChannelButton = class ChannelButton extends Backbone.View
     "click .close": "leaveChannel"
     "click button": "showChannel"
 
-  initialize: (opts) ->
+  initialize: (@opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))
-    @channelName = opts.channelName
+    @channelName = @opts.channelName
     @data = new Backbone.Model
       topic: ""
-      channelName: opts.channelName
+      channelName: @opts.irc?.room || @opts.channelName
       activeUsers: 1
       totalUsers: 1
     @render()
@@ -45,6 +45,9 @@ module.exports.ChannelButton = class ChannelButton extends Backbone.View
 
   render: ->
     @$el.html(buttonTemplate())
+
+    if @opts.irc
+      @$el.find(".j-usersummary .active, .j-usersummary .delimiter").remove()
 
     @stickit @data,
       ".j-channel-btn":
