@@ -56,6 +56,7 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       client.set "nick", actualNick
       @updateClientAttributes(socket, channel, client)
 
+      console.log 'resolving dfrd'
       ircClient._hasRegistered.resolve(actualNick)
 
     ircClient.addListener 'error', (message) ->
@@ -152,8 +153,10 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       return if !client.ircClient
 
       nick = data.nick || "echoplexion"
-      #client.ircClient.hasRegistered.done =>
-      client.ircClient.send "NICK", nick
-      client.set "nick", nick # assume it was successful :/
-      @updateClientAttributes(socket, channel, client) # force resync
-      ack()
+      console.log 'waiting on promise'
+      client.ircClient.hasRegistered.done =>
+        console.log 'calling fnc'
+        client.ircClient.send "NICK", nick
+        client.set "nick", nick # assume it was successful :/
+        @updateClientAttributes(socket, channel, client) # force resync
+        ack()

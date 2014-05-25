@@ -79,7 +79,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
     # node_webkit cannot specify channel to join via URL
     unless window.ua.node_webkit
-      channelFromSlug = window.location.pathname
+      channelFromSlug = window.location.pathname + window.location.hash
       if joinChannels.indexOf(channelFromSlug) < 0
         storedActiveChannel = channelFromSlug
         joinChannels.push channelFromSlug
@@ -92,9 +92,6 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
       @showChannel storedActiveChannel
     else if joinChannels.length
       @showChannel joinChannels[0]
-
-
-
 
     @attachEvents()
     $(window).on "unload", @quickKill
@@ -179,7 +176,6 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     window.localStorage.setObj "joined_channels", @sortedChannelNames
 
   showNextChannel: ->
-    console.log @activeChannel
     return  unless @hasActiveChannel()
     activeChannelIndex = _.indexOf(@sortedChannelNames, @activeChannel)
     targetChannelIndex = activeChannelIndex + 1
@@ -249,6 +245,12 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
       cryptokey = undefined if cryptokey == ''
 
       button = new ChannelButton({channelName: channelName})
+
+      if channelName.indexOf('/irc/') == 0
+        serverAndRoom = channelName.replace("/irc/", "")
+        options.irc =
+          server: serverAndRoom.substring(0, serverAndRoom.indexOf("#"))
+          room:   serverAndRoom.substring(serverAndRoom.indexOf("#"))
 
       channel = new Backbone.Model
         button: button
