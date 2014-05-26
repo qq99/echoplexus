@@ -242,8 +242,8 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
       cryptokey = window.localStorage.getItem("chat:cryptokey:#{channelName}")
       cryptokey = undefined if cryptokey == ''
 
-      if channelName.indexOf('/irc/') == 0
-        serverAndRoom = channelName.replace("/irc/", "")
+      if channelName.indexOf('/irc:') == 0
+        serverAndRoom = channelName.replace("/irc:", "")
         options.irc =
           server: serverAndRoom.substring(0, serverAndRoom.indexOf("#"))
           room:   serverAndRoom.substring(serverAndRoom.indexOf("#"))
