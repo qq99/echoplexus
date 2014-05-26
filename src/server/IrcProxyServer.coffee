@@ -89,12 +89,19 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
         type: type
         timestamp: Number(new Date())
 
-    ircClient.addListener 'notice', (from = "", to, text, message) ->
-      socket.emit "private_message:#{effectiveRoom}",
-        body: "@#{to}: #{text}"
+    ircClient.addListener 'notice', (from = "", to, text, message) =>
+      data = 
+        body: text
         nickname: from
-        type: 'private'
         timestamp: Number(new Date())
+
+      if !from
+        socket.emit "chat:#{effectiveRoom}", data
+      else
+        data.type = 'private'
+        data.body = "@#{to}: #{text}"
+        socket.emit "private_message:#{effectiveRoom}", data
+
 
     ircClient.addListener 'topic', (room, topic, nick, message) ->
       socket.emit "topic:#{effectiveRoom}", body: topic
