@@ -53,7 +53,7 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
         timestamp: Number(new Date())
 
       socket.emit "chat:#{effectiveRoom}",
-        body: "Please wait while we echoplexus connects you to your room..."
+        body: "Please wait while echoplexus connects you to your room..."
         nickname: config.features.SERVER_NICK
         type: "SYSTEM"
         timestamp: Number(new Date())
