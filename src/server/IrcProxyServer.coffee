@@ -36,7 +36,7 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       channels: [client.get("irc_room")]
       userName: 'echoplexus using nodebot'
       realName: 'echoplexus IRC proxy'
-      debug: true
+      #debug: true
 
     if !ircClient.clients # create it once
       ircClient.clients = new Backbone.Collection
@@ -46,16 +46,22 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
     ircClient._hasRegistered = q.defer()
     ircClient.hasRegistered = ircClient._hasRegistered.promise
 
-    ircClient.addListener 'registered', (message) =>
+    ircClient.addListener 'registered', (message) => # initial connection to server
       socket.emit "chat:#{effectiveRoom}",
         body: message.args?[1] # cnxn message
         nickname: message.server
         timestamp: Number(new Date())
 
+      socket.emit "chat:#{effectiveRoom}",
+        body: "Please wait while we echoplexus connects you to your room..."
+        nickname: config.features.SERVER_NICK
+        type: "SYSTEM"
+        timestamp: Number(new Date())
+
       actualNick = message.args[0] # server may override our choice!
       client.set "nick", actualNick
       @updateClientAttributes(socket, channel, client)
-      ircClient._hasRegistered.resolve(actualNick)
+      
 
     ircClient.addListener 'error', (message) ->
         console.log('error: ', message)
@@ -67,6 +73,7 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
           {nick: name, id: client.get("id")} # inject our own ID so we don't totally clobber our own client collection state
         else # we don't have IDs or even track state of the other dudes
           {nick: name}
+
       ircClient.clients.set(names, {silent: true})
       @publishUserList(socket, channel, client)
 
@@ -119,6 +126,17 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
         body: "#{who} was kicked by #{kicked_by}: #{reason}"
         nickname: ""
         timestamp: Number(new Date())
+
+    ircClient.addListener 'raw', (message) ->
+      #console.log message.command
+      if message.command == 'rpl_channelmodeis' # a good signal that we're ready to use the client
+        ircClient._hasRegistered.resolve()  
+
+        socket.emit "chat:#{effectiveRoom}",
+          body: "Connected!"
+          nickname: config.features.SERVER_NICK
+          type: "SYSTEM"
+          timestamp: Number(new Date())
 
     # let the knewly joined know their ID
     socket.emit("client:id:#{effectiveRoom}", {
