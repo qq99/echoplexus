@@ -211,7 +211,6 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
           fingerprint_trust: KEYSTORE.trust_status(user.getPGPFingerprint())
           using_encryption: (typeof user.get("encrypted_nick") isnt "undefined")
           id: user.id
-          color: user.get("color").toRGB()
           identified: user.get("identified")
           idle: user.get("idle")
           idleSince: user.get("idleSince")

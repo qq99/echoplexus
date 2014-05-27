@@ -54,7 +54,6 @@ module.exports.ClientsCollection = class ClientsCollection extends Backbone.Coll
 module.exports.ClientModel = class ClientModel extends Backbone.Model
   supported_metadata: ["email", "website_url", "country_code", "gender"]
   defaults:
-    nick: "Anonymous"
     idle: false
     isServer: false
     authenticated: false

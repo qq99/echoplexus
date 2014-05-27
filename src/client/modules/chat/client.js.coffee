@@ -69,15 +69,12 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @module = opts.module
     @opts = opts
 
-    console.log opts
     if opts.extra.irc
-      console.log 'trying with ', opts.extra.irc
       @socket = io.connect(@config.host + "/irc")
     else
       @socket = io.connect(@config.host + "/chat")
     @channel = opts.channel
     @channelName = opts.room
-    console.log 'listening on channel name', @channelName
     @channel.get("clients").model = ClientModel
     @autocomplete = new Autocomplete()
     @scrollback = new Scrollback()
@@ -238,8 +235,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   # return false;
   dropObject: (ev) ->
     @noop ev
-    console.log ev.originalEvent.dataTransfer # will report .files.length => 0 (it's just a console bug though!)
-    console.log ev.originalEvent.dataTransfer.files[0] # it actually exists :o
+    #console.log ev.originalEvent.dataTransfer # will report .files.length => 0 (it's just a console bug though!)
+    #console.log ev.originalEvent.dataTransfer.files[0] # it actually exists :o
     file = ev.originalEvent.dataTransfer.files[0]
     if typeof file is "undefined" or file is null
       @clearUploadStaging()
@@ -340,7 +337,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   autoNick: ->
     acked = $.Deferred()
-    storedNick = $.cookie("nickname:" + @channelName) || "Anonymous"
+    storedNick = $.cookie("nickname:" + @channelName)
+    return if !storedNick
     @me.setNick storedNick, @channelName, acked
     acked.promise()
 

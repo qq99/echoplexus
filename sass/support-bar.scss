@@ -43,6 +43,7 @@ $nav-secondary: #2A2C2B;
   font-family: $pretty-font-family;
 
   .nick {
+    color: lighten($nav-primary, 50%);
     max-width: 12em;
     text-overflow: ellipsis;
     white-space: nowrap;
