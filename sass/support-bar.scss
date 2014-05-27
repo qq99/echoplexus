@@ -48,6 +48,9 @@ $nav-secondary: #2A2C2B;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    &.active {
+      color: $active-color;
+    }
   }
   .body {
     font-size: 0.9em;

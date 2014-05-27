@@ -1,5 +1,10 @@
 <div class="user" rel="<%- id %>">
-	<span class="nick"><%- nick %></span>
+	<span
+		class="nick <%- nickClass %>"
+		<% if (idle) { %>
+		data-timestamp="<%- idleSince %>"
+		<% } %>
+	><%- nick %></span>
 	<% if (using_encryption) { %>
 		<span
 			data-tooltip-title="Encrypted"
@@ -21,17 +26,6 @@
 	<span class="operator" title="This user is the channel operator.">
 		<i class="icon fa fa-gavel"></i>
 	</span>
-	<% } %>
-
-	<% if (idle === true) { %>
-		<span class="idle" data-timestamp="<%- idleSince %>">
-			<span class="zzz">Z
-				<span class="zzz">Z
-					<span class="zzz">Z
-					</span>
-				</span>
-			</span>
-		</span>
 	<% } %>
 	<% if (inCall === true) { %>
 		<span class="inCall" title="In call">

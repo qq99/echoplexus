@@ -131,7 +131,7 @@ $module-button-height: 3.5em;
       display: inline-block;
     }
     .active {
-      color: #277527;
+      color: $active-color;
     }
   }
   button.active {
