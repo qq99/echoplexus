@@ -24,7 +24,7 @@ exports.Configuration =
 
     webshot_previews: # requires phantomjs to be installed
       enabled: true # http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
-      PHANTOMJS_PATH: "/opt/bin/phantomjs"
+      PHANTOMJS_PATH: "/usr/bin/phantomjs" # sudo apt-get install phantomjs
 
     rate_limiting: # slows down spammers
       enabled: true
@@ -39,5 +39,8 @@ exports.Configuration =
   server_hosted_file_transfer:
     enabled: false
     size_limit: "10mb" # nginx user? make sure this matches your nginx configuration: e.g., look for line `client_max_body_size 10M;`
+
+  features:
+    irc_server: false # beta atm, you may not want to enable this as server stability isn't guaranteed
 
   DEBUG: false

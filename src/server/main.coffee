@@ -193,5 +193,6 @@ redisC.select redis_db, (err, reply) ->
   infoServer = new InfoServer sio, Channels, ChannelModel
   infoServer.start()
 
-  ircProxyServer = new IrcProxyServer sio, Channels, ChannelModel
-  ircProxyServer.start()
+  if config.features.irc_server
+    ircProxyServer = new IrcProxyServer sio, Channels, ChannelModel
+    ircProxyServer.start()
