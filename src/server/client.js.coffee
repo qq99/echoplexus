@@ -154,4 +154,4 @@ module.exports.ServerClient = class ServerClient extends Client
         reply # just in case
 
   toJSON: ->
-    @pick(["nick", "id", "idle", "idleSince", "authenticated", "operator", "permissions"])
+    @pick(["nick", "id", "idle", "idleSince", "authenticated", "operator", "permissions", "encrypted_nick"])
