@@ -18,6 +18,7 @@ exports.Configuration =
 
   features:
     SERVER_NICK: "Server"
+    irc_server: false # beta atm, you may not want to enable this as server stability isn't guaranteed
 
   chat:
     log: true # keeps a log server-side for participants who may have been offline
@@ -39,8 +40,5 @@ exports.Configuration =
   server_hosted_file_transfer:
     enabled: false
     size_limit: "10mb" # nginx user? make sure this matches your nginx configuration: e.g., look for line `client_max_body_size 10M;`
-
-  features:
-    irc_server: false # beta atm, you may not want to enable this as server stability isn't guaranteed
 
   DEBUG: false
