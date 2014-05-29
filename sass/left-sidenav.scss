@@ -115,6 +115,7 @@ $module-button-height: 3.5em;
     font-size: 0.9em;
     width: 100%;
     display: block;
+    color: lighten($nav-primary, 30%);
   }
   .topic {
     font-size:0.7em;
@@ -138,7 +139,7 @@ $module-button-height: 3.5em;
     .topic {
       max-height: 100%;
       white-space: normal;
-      color: lighten($nav-primary, 30%);
+      color: lighten($nav-primary, 40%);
     }
   }
 }
