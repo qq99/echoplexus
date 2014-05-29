@@ -29,6 +29,7 @@ module.exports.REGEXES =
     github: /^\/github /
     roll: /^\/(roll|r)( |)/
     destroy: /^\/destroy/
+    pseudonym: /^\/(pseudonym|nym)/
 
   github_subcommands:
     track: /^track/

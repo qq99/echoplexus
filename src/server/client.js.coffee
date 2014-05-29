@@ -33,8 +33,7 @@ module.exports.ServerClient = class ServerClient extends Client
   initialize: ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))
 
-    randomName = @names[Math.floor( Math.random() * @names.length )]
-    @set "nick", randomName
+    @setPseudonym()
 
     @on "change:identified", (data) =>
       @loadMetadata()
@@ -57,6 +56,13 @@ module.exports.ServerClient = class ServerClient extends Client
 
     if (config?.chat?.rate_limiting?.enabled)
       @tokenBucket = new TokenBucket
+
+  setPseudonym: ->
+    randomName = @names[Math.floor( Math.random() * @names.length )]
+    @unset "encrypted_nick"
+    @set "nick", randomName
+
+    return
 
   setIdentityToken: (callback) ->
     room = @get("room")
@@ -146,3 +152,6 @@ module.exports.ServerClient = class ServerClient extends Client
           trigger: true
 
         reply # just in case
+
+  toJSON: ->
+    @pick(["nick", "id", "idle", "idleSince", "authenticated", "operator", "permissions"])

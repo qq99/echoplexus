@@ -294,11 +294,11 @@ describe 'ChatClient', ->
         @subject.clearCryptoKey()
         assert @subject.rerenderInputBox.called
 
-      it 'unsets my nick, and sets it to Anonymous for security', ->
+      it 'unsets my nick, and asks for a new pseudonym for security', ->
         @subject.clearCryptoKey()
 
         assert.equal undefined, @subject.me.get("encrypted_nick")
-        assert @fakeSocket.emit.calledWith "nickname:/foo"
+        assert @fakeSocket.emit.calledWith "pseudonym:/foo"
 
     describe '#show', ->
       it 'sets .hidden to false', ->

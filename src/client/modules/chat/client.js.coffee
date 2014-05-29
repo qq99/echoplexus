@@ -217,6 +217,15 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     # load more messages as we scroll upwards
     @activelySyncLogs()  if ev.currentTarget.scrollTop is 0 and not @scrollSyncLocked
 
+  findMyself: (inAnother) -> # truly the most zen / hipster method
+    if inAnother && inAnother.id == @me.get("id")
+      @me.set(inAnother)
+    else
+      myself = @channel.get("clients").findWhere(id: @me.get("id"))
+      @me.set(myself.attributes) if myself
+
+    return
+
   showDragUIHelper: (ev) ->
     @noop ev
     $(".linklog", @$el).addClass "drag-into"
@@ -486,15 +495,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
           prevClient.set alteredClient
           prevClient.unset "encrypted_nick"  if !alteredClient.encrypted_nick
           # backbone won't unset undefined
-
-          # check to see if it's ME that's being updated
-          # TODO: this is hacky, but it fixes notification nick checking :s
-          if prevClient.get("id") is @me.get("id")
-            @me.set alteredClient
-            @me.unset "encrypted_nick"  if !alteredClient.encrypted_nick
-        # backbone won't unset undefined
         else # there was no previous client by this id
           @channel.get("clients").add alteredClient
+
+        @findMyself(alteredClient)
 
         return
 
@@ -527,6 +531,9 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
       "client:id": (msg) =>
         @me.set "id", msg.id
+
+        @findMyself() # get introspective
+
         return
 
       "token": (msg) =>
@@ -535,6 +542,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
       userlist: (msg) =>
         @channel.get("clients").reset msg.users # update the pool of possible autocompletes
+
+        @findMyself()
+
+
         return
 
       "chat:currentID": (msg) =>
@@ -810,8 +821,11 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
     @rerenderInputBox()
     window.localStorage.setItem "chat:cryptokey:#{@channelName}", ""
+    $.cookie "nickname:#{@channelName}", null
     @me.unset "encrypted_nick"
-    @me.setNick "Anonymous", @channelName
+
+    @me.speak
+      body: "/pseudonym"
     return
 
   unlockKeypair: ->
