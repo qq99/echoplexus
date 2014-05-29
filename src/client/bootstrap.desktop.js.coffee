@@ -156,7 +156,7 @@ $(document).ready ->
 
 
   # change tabs:
-  tabs = $("#buttons .tabButton")
+  tabs = $("#module-buttons .tabButton")
   activeTabIndex = $("#buttons .active").index()
   key "⌘+ctrl+down, alt+shift+k, alt+shift+d", ->
     activeTabIndex += 1

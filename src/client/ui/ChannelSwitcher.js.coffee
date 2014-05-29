@@ -16,7 +16,7 @@ utility                   = require("../utility.js.coffee")
 module.exports.ChannelButton = class ChannelButton extends Backbone.View
   events:
     "click .close": "leaveChannel"
-    "click button": "showChannel"
+    "click .j-channel-btn": "showChannel"
 
   initialize: (@opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))
@@ -30,7 +30,7 @@ module.exports.ChannelButton = class ChannelButton extends Backbone.View
 
     window.events.on "chat:activity", (data) =>
       return if @opts.channelName != data.channelName
-      $button = @$el.find("button")
+      $button = @$el.find(".j-channel-btn")
       $button.addClass("activity") if !$button.hasClass("active")
 
   leaveChannel: ->
@@ -40,10 +40,10 @@ module.exports.ChannelButton = class ChannelButton extends Backbone.View
     window.events.trigger("showChannel", @channelName)
 
   setActive: ->
-    @$el.find("button").addClass("active").removeClass("activity")
+    @$el.find(".j-channel-btn").addClass("active").removeClass("activity")
 
   setInactive: ->
-    @$el.find("button").removeClass("active")
+    @$el.find(".j-channel-btn").removeClass("active")
 
   destroy: ->
     @$el.remove()
