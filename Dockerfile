@@ -12,7 +12,7 @@ FROM ubuntu
 RUN apt-get update
 RUN apt-get install -y build-essential python ruby git redis-server nodejs phantomjs npm
 RUN gem install sass
-RUN npm install -g coffee-script grunt grunt-cli supervisor bower
+RUN npm install -g coffee-script grunt grunt-cli supervisor bower testem browserify
 RUN ln -sf /usr/bin/nodejs /usr/bin/node
 RUN service redis-server start
 RUN apt-get install -y tmux

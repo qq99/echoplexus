@@ -248,6 +248,8 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
           server: serverAndRoom.substring(0, serverAndRoom.indexOf("#"))
           room:   serverAndRoom.substring(serverAndRoom.indexOf("#"))
 
+      config = _.extend({host: window.SOCKET_HOST}, options)
+
       button = new ChannelButton(_.extend({channelName: channelName}, options))
 
       channel = new Backbone.Model
@@ -257,6 +259,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
         authenticated: false
         isPrivate: false
         cryptokey: cryptokey
+
 
       # create an instance of each module:
       _.each @modules, (ClientModule, idx) =>
@@ -269,8 +272,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
           view: new ClientModule(
             channel: channel
             room: channelName
-            config:
-              host: window.SOCKET_HOST
+            config: config
             extra: options
             module: @loader[idx]
           )

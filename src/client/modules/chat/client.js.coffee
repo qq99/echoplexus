@@ -69,7 +69,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @module = opts.module
     @opts = opts
 
-    if opts.extra.irc
+    if opts.config.irc
       @socket = io.connect(@config.host + "/irc")
     else
       @socket = io.connect(@config.host + "/chat")
@@ -87,7 +87,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       socket: @socket
       room: opts.room
       peers: @channel.get("clients")
-      irc: opts.extra.irc
+      irc: opts.config.irc
       pgp_settings: @pgp_settings
 
     @chatLog = new ChatAreaView
@@ -184,10 +184,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     $(".messages", @$el).on "mousewheel DOMMouseScroll", @scrollSyncLogs
 
   subscribe: (cb) ->
-    if @opts.extra.irc
+    if @opts.config.irc
       @socket.emit "subscribe", 
         room: @channelName
-        irc_options: @opts.extra.irc
+        irc_options: @opts.config.irc
       , cb
     else
       @socket.emit "subscribe", room: @channelName, cb
@@ -809,7 +809,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @channel.unset("cryptokey")
 
     @rerenderInputBox()
-    window.localStorage.setItem "chat:cryptokey:" + @channelName, ""
+    window.localStorage.setItem "chat:cryptokey:#{@channelName}", ""
     @me.unset "encrypted_nick"
     @me.setNick "Anonymous", @channelName
     return
