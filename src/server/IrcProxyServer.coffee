@@ -27,6 +27,9 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
   subscribeSuccess: (effectiveRoom, socket, channel, client, data) ->
     return if !data.irc_options or !data.irc_options.room or !data.irc_options.server
 
+    socket.on "disconnect", =>
+      @disconnect(client, channel)
+
     client.set
       nick: 'echoplexion'
       irc_room: data.irc_options.room
@@ -121,6 +124,10 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       ircClient.clients.remove(ircClient.clients.findWhere({nick: nick}))
       @publishUserList(socket, channel, client)
 
+    ircClient.addListener 'quit', (nick, reason, room, message) =>
+      ircClient.clients.remove(ircClient.clients.findWhere({nick: nick}))
+      @publishUserList(socket, channel, client)
+
     ircClient.addListener 'kick', (room, who, kicked_by, reason = "No reason cited") ->
       socket.emit "chat:#{effectiveRoom}",
         body: "#{who} was kicked by #{kicked_by}: #{reason}"
@@ -156,6 +163,11 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
         body: err.message
       }, room))
 
+  disconnect: (client, channel) ->
+    return if !client.ircClient
+    client.ircClient.disconnect("Bye!")
+    channel.clients.remove(client)
+
   events:
     "chat": (namespace, socket, channel, client, data, ack) ->
       return if !client.ircClient
@@ -178,9 +190,7 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
       }))
 
     "unsubscribe": (namespace, socket, channel, client) ->
-      return if !client.ircClient
-      client.ircClient.disconnect("Bye!")
-      channel.clients.remove(client)
+      @disconnect(socket, channel)
 
     "nickname": (namespace, socket, channel, client, data, ack) ->
       return if !client.ircClient
