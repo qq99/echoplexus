@@ -171,7 +171,7 @@ console.log "Listening on port", config.host.PORT
 sio = sio.listen(server)
 sio.enable "browser client minification"
 sio.enable "browser client gzip"
-sio.set "log level", 1
+#sio.set "log level", 1
 
 ChannelStructures = require("./Channels.js.coffee")
 ChannelModel = ChannelStructures.ServerChannelModel
