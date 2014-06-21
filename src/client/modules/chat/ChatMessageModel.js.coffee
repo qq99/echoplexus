@@ -214,7 +214,7 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
       body = body.replace(REGEXES.urls.all_others, "<a rel=\"noreferrer\" target=\"_blank\" href=\"$1\">$1</a>")
       body = body.replace(REGEXES.users.mentions, "<span class=\"mention\">$1</span>")
 
-      body = emojify.run(body)
+      body = emojify.replace(body)
 
 
     @set 'formatted_body', body
