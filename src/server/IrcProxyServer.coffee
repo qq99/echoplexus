@@ -172,7 +172,12 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
     "chat": (namespace, socket, channel, client, data, ack) ->
       return if !client.ircClient
       room = client.get("irc_room")
-      client.ircClient.say room, data.body
+
+      if data.encrypted?.ct
+        client.ircClient.say room, data.encrypted.ct
+      else
+        client.ircClient.say room, data.body
+
       ack?(_.extend(data, {
         you: true
         nickname: client.ircClient.nick
@@ -182,7 +187,12 @@ module.exports.IrcProxyServer = class IrcProxyServer extends AbstractServer
     "directed_message": (namespace, socket, channel, client, data, ack) ->
       return if !data.directed_to
       room = channel.get("name")
-      client.ircClient.say data.directed_to.nick, data.body
+
+      if data.encrypted?.ct
+        client.ircClient.say data.directed_to.nick, data.encrypted.ct
+      else
+        client.ircClient.say data.directed_to.nick, data.body
+
       ack?(_.extend(data, {
         nickname: client.ircClient.nick
         you: true
