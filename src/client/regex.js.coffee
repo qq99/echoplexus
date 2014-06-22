@@ -17,7 +17,7 @@ module.exports.REGEXES =
     public: /^\/public/
     help: /^\/help/
     password: /^\/(password|pw)/
-    private_message: /^\/(pm|w|whisper|t|tell) /
+    private_message: /^\/(pm|w|whisper|t|tell|msg) /
     join: /^\/(join|j)/
     leave: /^\/leave/
     pull_logs: /^\/(pull|p|sync|s) /
