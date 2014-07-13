@@ -6,7 +6,7 @@ module.exports.REGEXES =
     all_others: /(\b(https?|http):(\/\/|&#x2F;&#x2F;)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|;])/gi
 
   users:
-    mentions: /(@[^\b\s]*)/gi
+    mentions: /((^@[^\b\s]*)|((?:\s+)@[^\b\s]*))/gi
 
   commands:
     nick: /^\/(nick|n) /

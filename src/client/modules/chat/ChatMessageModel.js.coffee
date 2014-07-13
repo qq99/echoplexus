@@ -175,28 +175,21 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
       window.events.trigger "linklog:#{@room}:youtube", {url: url, timestamp: @get('timestamp')}
 
   format_body: ->
-    msg = this
-    nickname  = msg.get("nickname")
-
-
-    body = msg.get("body")
-
+    body = @get("body")
     opts = {}  if !opts
 
     # only extract links from user-sent messages
-    if msg.get("class") isnt "identity" and msg.get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar
+    if @get("class") isnt "identity" and @get("trustworthiness") isnt "limited" # setting nick to a image URL or youtube URL should not update media bar
       @extract_images()
       @extract_youtubes()
       @extract_links()
 
     # sanitize the body:
-    if msg.get("trustworthiness") is "limited"
+    if @get("trustworthiness") is "limited"
       sanitizer = new HTMLSanitizer
       body = sanitizer.sanitize(body, ["A", "I", "IMG","UL","LI"], ["href", "title", "class", "src", "target", "rel"])
-      nickname = sanitizer.sanitize(nickname, ["I"], ["class"])
     else
       body = _.escape(body)
-      nickname = _.escape(nickname)
 
       # convert new lines to breaks:
       if body.match(/\n/g)
@@ -210,8 +203,7 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
       # format >>quotations:
       body = body.replace(REGEXES.commands.reply, "<a rel=\"$2\" class=\"quotation\" href=\"#" + @room + "$2\">&gt;&gt;$2</a>")
 
-      # hyperify hyperlinks for the chatlog:
-      body = body.replace(REGEXES.urls.all_others, "<a rel=\"noreferrer\" target=\"_blank\" href=\"$1\">$1</a>")
+      body = body.replace(REGEXES.urls.all_others, "<a rel=\"noreferrer\" target=\"_blank\" href=\"$1\">$1</a>") # hyperify hyperlinks for the chatlog:
       body = body.replace(REGEXES.users.mentions, "<span class=\"mention\">$1</span>")
 
       body = emojify.replace(body)
