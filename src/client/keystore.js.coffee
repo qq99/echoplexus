@@ -34,6 +34,7 @@ module.exports.Keystore = class Keystore
     @save()
 
   markSeen: (fingerprint, nick, channel) ->
+    return if !@keystore[fingerprint]
     @keystore[fingerprint].last_used_at = (new Date()).getTime()
     @keystore[fingerprint].last_used_by = nick
     @keystore[fingerprint].last_used_in = channel
