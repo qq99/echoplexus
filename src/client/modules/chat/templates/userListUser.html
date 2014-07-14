@@ -16,7 +16,7 @@
 	<% if (has_public_key) { %>
 		<span
 			data-tooltip-title="PGP Public Key Fingerprint"
-			data-tooltip-body="<%- fingerprint %>"
+			data-tooltip-body="<%- splitFingerprint(fingerprint) %>"
 			class='fingerprint tooltip-target'>
 				<i class="pgp-fingerprint-icon <%- fingerprint_trust %> fa fa-key" data-fingerprint="<%- fingerprint %>"></i>
 		</span>

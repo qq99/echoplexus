@@ -19,7 +19,7 @@
 			<% if (pgp_encrypted) { %>
 			<span class="nick-decorator fa-stack tooltip-target"
 				data-tooltip-title="PGP Encrypted"
-				data-tooltip-body="This message encrypted by <%- fingerprint %>."
+				data-tooltip-body="This message encrypted by <%- splitFingerprint(fingerprint) %>."
 				data-tooltip-class="success from-left">
 				<i class="trusted fa fa-lock fa-stack-1x encrypted"></i>
 			</span>
@@ -29,7 +29,7 @@
 			<span
 				class="nick-decorator pgp-verification-icon fa-stack tooltip-target"
 				data-tooltip-title="PGP Signature Verified"
-				data-tooltip-body="This message was signed by <%- fingerprint %>."
+				data-tooltip-body="This message was signed by <%- splitFingerprint(fingerprint) %>."
 				data-tooltip-class="success from-left"
 				data-fingerprint="<%- fingerprint %>">
 				<i class="fa fa-user fa-stack-1x"></i>
@@ -39,7 +39,7 @@
 			<span
 				class="nick-decorator fa-stack tooltip-target"
 				data-toolttip-title="PGP Signature Verification Failed"
-				data-tooltip-body="This message cannot be reliably linked to <%- fingerprint %>."
+				data-tooltip-body="This message cannot be reliably linked to <%- splitFingerprint(fingerprint) %>."
 				data-tooltip-class="danger from-left">
 				<i class="fa fa-user fa-stack-1x"></i>
 				<i class="sub-icon death-warning fa fa-times fa-stack-1x"></i>
@@ -55,7 +55,7 @@
 			<% } else if (pgp_verified == "unknown_public_key") { %>
 			<span class="nick-decorator fa-stack"
 				data-toolttip-title="PGP Signature Status"
-				data-tooltip-body="Cannot attempt to verify signature; unknown public key for fingerprint <%- fingerprint %>."
+				data-tooltip-body="Cannot attempt to verify signature; unknown public key for fingerprint <%- splitFingerprint(fingerprint) %>."
 				data-tooltip-class="danger from-left">
 				<i class="fa fa-user fa-stack-1x"></i>
 				<i class="sub-icon unknown fa fa-question fa-stack-1x"></i>

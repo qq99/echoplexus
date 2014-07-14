@@ -52,3 +52,6 @@ module.exports.versionStringToNumber = (versionString) ->
     i--
 
   sum
+
+window.splitFingerprint = (s) ->
+  s.substring(0,20) + "\n" + s.substring(20,40)
