@@ -53,6 +53,7 @@
     top: -$arrow-height;
     right: 1em;
     margin-left: -$arrow-width;
+    border-style: inset !important;
   }
   &.on-top::before {
     /* downward arrow */
