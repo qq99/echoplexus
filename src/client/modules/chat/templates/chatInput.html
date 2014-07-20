@@ -1,19 +1,43 @@
 <section class="chatinput">
 	<div class="channel-options">
 		<div class="button-group">
-			<button class="pgp-settings button action-btn action-btn-primary attached-to-top">PGP</button>
+			<button
+				class="pgp-settings button action-btn action-btn-primary attached-to-top tooltip-target"
+				data-tooltip-body="Alter your PGP settings"
+				data-tooltip-class="on-top from-left"
+				title="PGP Settings"
+				>PGP</button>
 			<!-- <button class="deleteLocalStorageAndQuit button">Nuke</button> -->
 			<% if (encrypted) { %>
-				<button class="encrypted button action-btn action-btn-success attached-to-top" title="Encrypted">
+				<button
+					class="encrypted button action-btn action-btn-success attached-to-top tooltip-target"
+					data-tooltip-body="Shared secret encryption is currently ON"
+					data-tooltip-class="on-top from-left"
+					title="Encrypted">
 					<i class="fa fa-lock"></i>
 				</button>
 			<% } else { %>
-				<button class="shared-secret not-encrypted button action-btn attached-to-top" title="Not Encrypted">
+				<button
+					class="shared-secret not-encrypted button action-btn attached-to-top tooltip-target"
+					data-tooltip-body="Shared secret encryption is currently OFF"
+					data-tooltip-class="on-top from-left"
+					title="Not Encrypted">
 					<i class="fa fa-unlock-alt"></i>
 				</button>
 			<% } %>
-			<button class="deleteLocalStorage button action-btn action-btn-delete attached-to-top">
+			<button
+				class="deleteLocalStorage button action-btn action-btn-delete attached-to-top tooltip-target"
+				data-tooltip-body="Delete your local copy of chat logs for this channel"
+				data-tooltip-class="on-top from-left"
+				>
 				<i class="fa fa-trash-o"></i>
+			</button>
+			<button
+				class="sync button action-btn attached-to-top tooltip-target"
+				data-tooltip-body="Fetch a batch of chat messages you may have missed while you were gone"
+				data-tooltip-class="on-top from-left"
+				>
+				<i class="fa fa-refresh"></i>
 			</button>
 		</div>
 	</div>
