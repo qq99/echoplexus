@@ -8,6 +8,15 @@ Major:
   - Unfortunately, IRC support in echoplexus is not yet multiplexed so each channel you connect to will be its own connection and thus requires a unique nick
   - This feature must be enabled in server config.coffee; it's not necessarily a feature that every operator would want, so it's opt-in
 
+Minor:
+- "Zzz" for idle users in the user list has been removed in favour of simply colouring the active users a blue colour
+- Client fields are now whitelisted when userlist data is transmitted, ensuring that we only transmit the need-to-know information
+- New users users will now appear with a random human first name, rather than "Anonymous"
+- `/pseudonym` command added, which will give you a new random human name
+- fixed the firefox channel close button bug
+- various fixes for emoji related bugs (using fork of emojify.js)
+- adjusted styles
+
 0.2.5
 =====
 
