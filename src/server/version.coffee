@@ -1,1 +1,1 @@
-module.exports.LATEST_SUPPORTED_CLIENT_VERSION = '0.2.5';
+module.exports.LATEST_SUPPORTED_CLIENT_VERSION = '0.2.6';

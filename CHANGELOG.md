@@ -1,3 +1,19 @@
+0.2.6
+=====
+
+Major:
+- addition of an IRC proxy server
+  - Echoplexus will bridge a connection to the irc network&channel of your choice (so beware if you assumed you were connecting directly to said network!)
+  - To join a network, join a channel name like: `irc:chat.freenode.net#foo`
+  - Unfortunately, IRC support in echoplexus is not yet multiplexed so each channel you connect to will be its own connection and thus requires a unique nick
+  - This feature must be enabled in server config.coffee; it's not necessarily a feature that every operator would want, so it's opt-in
+
+0.2.5
+=====
+
+Major:
+- new UI, more accessible and appealing to more people (I hope)
+
 0.2.4
 =====
 
