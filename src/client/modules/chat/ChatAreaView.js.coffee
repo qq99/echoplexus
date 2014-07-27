@@ -202,6 +202,7 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       total = 0
       _.each users.models, (user) =>
         nickname = @me.getNickOf(user)
+        nickClass = if user.get("idle") then "idle" else "active"
 
         # add him to the visual display
         userItem = @userTemplate(
@@ -211,8 +212,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
           fingerprint_trust: KEYSTORE.trust_status(user.getPGPFingerprint())
           using_encryption: (typeof user.get("encrypted_nick") isnt "undefined")
           id: user.id
-          color: user.get("color").toRGB()
           identified: user.get("identified")
+          nickClass: nickClass
           idle: user.get("idle")
           idleSince: user.get("idleSince")
           operator: user.get("operator")

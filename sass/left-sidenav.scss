@@ -34,7 +34,7 @@ $module-button-height: 3.5em;
   bottom: 0;
   width: 100%;
 
-  button {
+  .button {
     font-size: 1.5em;
   }
   .button-description {
@@ -65,7 +65,7 @@ $module-button-height: 3.5em;
   .activity-indicator {
     display: none;
     position: absolute;
-    width: 2px;
+    width: 4px;
     height: 100%;
     left: 0;
     top: 0;
@@ -81,7 +81,7 @@ $module-button-height: 3.5em;
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  button {
+  .button {
     width: 100%;
     font-size: 1.3em;
     .channel-button-content {
@@ -105,7 +105,7 @@ $module-button-height: 3.5em;
       text-shadow: 1px 1px 0px darken($nav-primary, 10%);
     }
   }
-  button.active {
+  .button.active {
     background: lighten($nav-primary, 5%);
   }
   .channel-button-body {
@@ -115,6 +115,7 @@ $module-button-height: 3.5em;
     font-size: 0.9em;
     width: 100%;
     display: block;
+    color: lighten($nav-primary, 30%);
   }
   .topic {
     font-size:0.7em;
@@ -131,19 +132,19 @@ $module-button-height: 3.5em;
       display: inline-block;
     }
     .active {
-      color: #277527;
+      color: $active-color;
     }
   }
-  button.active {
+  .button.active {
     .topic {
       max-height: 100%;
       white-space: normal;
-      color: lighten($nav-primary, 30%);
+      color: lighten($nav-primary, 40%);
     }
   }
 }
 
-.channels button {
+.channels .button {
   border-bottom: 1px solid lighten($nav-primary, 5%);
 }
 

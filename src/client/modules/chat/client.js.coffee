@@ -67,7 +67,12 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @hidden = true
     @config = opts.config
     @module = opts.module
-    @socket = io.connect(@config.host + "/chat")
+    @opts = opts
+
+    if opts.config.irc
+      @socket = io.connect(@config.host + "/irc")
+    else
+      @socket = io.connect(@config.host + "/chat")
     @channel = opts.channel
     @channelName = opts.room
     @channel.get("clients").model = ClientModel
@@ -82,6 +87,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
       socket: @socket
       room: opts.room
       peers: @channel.get("clients")
+      irc: opts.config.irc
       pgp_settings: @pgp_settings
 
     @chatLog = new ChatAreaView
@@ -98,9 +104,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @render()
     @attachEvents()
     @bindReconnections() # Sets up the client for Disconnect messages and Reconnect messages
-
-    # initialize the channel
-    @socket.emit "subscribe", room: @channelName, @postSubscribe
+    @subscribe =>
+      @postSubscribe()
 
     # if there's something in the persistent chatlog, render it:
     unless @persistentLog.empty()
@@ -178,9 +183,19 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @scrollSyncLogs = _.throttle(@_scrollSyncLogs, 500) # so we don't sync too quickly
     $(".messages", @$el).on "mousewheel DOMMouseScroll", @scrollSyncLogs
 
+  subscribe: (cb) ->
+    if @opts.config.irc
+      @socket.emit "subscribe", 
+        room: @channelName
+        irc_options: @opts.config.irc
+      , cb
+    else
+      @socket.emit "subscribe", room: @channelName, cb
+
   events:
     "click button.deleteLocalStorage": "deleteLocalStorage"
     "click button.deleteLocalStorageAndQuit": "logOut"
+    "click button.sync": "activelySyncLogs"
     "click .reply-button": "reply"
     "keydown .chatinput textarea": "handleChatInputKeydown"
     "click button.not-encrypted": "showCryptoModal"
@@ -203,6 +218,15 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     # load more messages as we scroll upwards
     @activelySyncLogs()  if ev.currentTarget.scrollTop is 0 and not @scrollSyncLocked
 
+  findMyself: (inAnother) -> # truly the most zen / hipster method
+    if inAnother && inAnother.id == @me.get("id")
+      @me.set(inAnother)
+    else
+      myself = @channel.get("clients").findWhere(id: @me.get("id"))
+      @me.set(myself.attributes) if myself
+
+    return
+
   showDragUIHelper: (ev) ->
     @noop ev
     $(".linklog", @$el).addClass "drag-into"
@@ -221,8 +245,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   # return false;
   dropObject: (ev) ->
     @noop ev
-    console.log ev.originalEvent.dataTransfer # will report .files.length => 0 (it's just a console bug though!)
-    console.log ev.originalEvent.dataTransfer.files[0] # it actually exists :o
+    #console.log ev.originalEvent.dataTransfer # will report .files.length => 0 (it's just a console bug though!)
+    #console.log ev.originalEvent.dataTransfer.files[0] # it actually exists :o
     file = ev.originalEvent.dataTransfer.files[0]
     if typeof file is "undefined" or file is null
       @clearUploadStaging()
@@ -292,20 +316,17 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @$el.hide()
     @hidden = true
 
-  bindReconnections: ->   
+  bindReconnections: ->
     #On successful reconnection, render the chatmessage, and emit a subscribe event
-    @socket.on "reconnect", =>
-
+    @reconnect = @socket.on "reconnect", =>
+      return if @dead
       #Resend the subscribe event
-      @socket.emit "subscribe",
-        room: @channelName
-        reconnect: true
-      , => # server acks and we:
-        # if we were idle on reconnect, report idle immediately after ack
-        @me.inactive "", @channelName, @socket  if @me.get("idle")
+      @subscribe => # server acks and we:
+        @me.inactive "", @channelName, @socket  if @me.get("idle") # if we were idle on reconnect, report idle immediately after ack
         @postSubscribe()
 
   kill: ->
+    @dead = true # @socket.removeListener 'reconnect', @reconnect doesn't work ARGH
     @detachEvents()
     @socket.emit "unsubscribe:" + @channelName
     _.each @socketEvents, (method, key) =>
@@ -326,7 +347,8 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   autoNick: ->
     acked = $.Deferred()
-    storedNick = $.cookie("nickname:" + @channelName) || "Anonymous"
+    storedNick = $.cookie("nickname:" + @channelName)
+    return if !storedNick
     @me.setNick storedNick, @channelName, acked
     acked.promise()
 
@@ -439,7 +461,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
   listen: ->
     socket = @socket
     @socketEvents =
-      chat: (msg) =>
+      "chat": (msg) =>
         window.events.trigger "message", socket, @, msg
         message = @chatLog.createChatMessage(msg)
 
@@ -474,15 +496,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
           prevClient.set alteredClient
           prevClient.unset "encrypted_nick"  if !alteredClient.encrypted_nick
           # backbone won't unset undefined
-
-          # check to see if it's ME that's being updated
-          # TODO: this is hacky, but it fixes notification nick checking :s
-          if prevClient.get("id") is @me.get("id")
-            @me.set alteredClient
-            @me.unset "encrypted_nick"  if !alteredClient.encrypted_nick
-        # backbone won't unset undefined
         else # there was no previous client by this id
           @channel.get("clients").add alteredClient
+
+        @findMyself(alteredClient)
 
         return
 
@@ -515,6 +532,9 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
       "client:id": (msg) =>
         @me.set "id", msg.id
+
+        @findMyself() # get introspective
+
         return
 
       "token": (msg) =>
@@ -523,6 +543,10 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
       userlist: (msg) =>
         @channel.get("clients").reset msg.users # update the pool of possible autocompletes
+
+        @findMyself()
+
+
         return
 
       "chat:currentID": (msg) =>
@@ -797,9 +821,12 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
     @channel.unset("cryptokey")
 
     @rerenderInputBox()
-    window.localStorage.setItem "chat:cryptokey:" + @channelName, ""
+    window.localStorage.setItem "chat:cryptokey:#{@channelName}", ""
+    $.cookie "nickname:#{@channelName}", null
     @me.unset "encrypted_nick"
-    @me.setNick "Anonymous", @channelName
+
+    @me.speak
+      body: "/pseudonym"
     return
 
   unlockKeypair: ->

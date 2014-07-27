@@ -19,35 +19,19 @@ From there, you may do one of the following, depending on your needs:
 ##Dependencies:
 
 ### node.js
-
-For server, confirmed working v0.10.10, and should be OK with v0.10.1*.  You might have luck with your current node, so perhaps try that before you do the following:
-
-    $ git pull https://github.com/joyent/node.git
-    $ git checkout v0.10.10
-    $ ./configure
-    $ make
-    $ make install
-
-Known Issues:
-
-- Node v0.10.8 and v0.10.9 have an [incompatibility with socket.io and HTTPS](https://github.com/joyent/node/pull/5624).
-- Node v0.11.* has issues with node-sass.
+Confirmed working nodejs is v0.10.25.  You might have luck with your current node, so perhaps try that before you do the following:
 
 ### node.js Packages
 Install the required server-side packages
 
     $ npm install
-    $ npm install -g coffee-script grunt grunt-cli supervisor (probably need `sudo`)
+    $ npm install -g coffee-script grunt grunt-cli supervisor bower browserify testem (probably need `sudo`)
 
 ### bower Packages
 Install the required client-side libraries
-If you have bower installed globally, you can run:
+If you have bower installed globally (the previous step), you can run:
 
     $ bower install
-
-Otherwise, you should install it:
-
-    $ npm install -g bower
     
 ### Ruby
 
@@ -63,9 +47,11 @@ Echoplexus uses Redis for chatlog persistence
 
 For taking screenshots of websites to embed in the chat.
 
-Download from http://phantomjs.org/
+Recent ubuntus can install it via:
 
-Install the binary to `/opt/bin/phantomjs`
+    $ sudo apt-get install phantomjs
+
+Otherwise, download from http://phantomjs.org/.  Install the binary to `/usr/bin/phantomjs`.
 
 If you don't want to do this step, set "phantomjs_screenshot" to false in `server/config.js`.
 
@@ -77,6 +63,8 @@ If you have grunt installed globally, you can simply run:
 
     $ grunt
 
+This will create all the files you need to run echoplexus, but will leave CSS and JS unminified.
+
 ####Production:
 If you have grunt installed globally, you can simply run:
 
@@ -87,10 +75,9 @@ Create a copy of the sample config file for the server, and change any relevant 
 
     $ cp src/server/config.sample.coffee src/server/config.coffee
 
-
 Run `grunt exec` for a dev server, or `grunt exec:production` for a production server.  The former will stop on errors and restart immediately when a file changes.  The latter will wait 60s before restarting.  The server will become available on http://localhost:8080/ under the default configuration.
 
-If you want to host behind nginx, you will have to get a build with WebSockets enabled.  Recommended 1.5.0 or higher
+If you want to host behind nginx, you will have to get a build with WebSockets enabled.  Recommended version of nginx is 1.5.0 or higher
 
 ###Web Server Proxying:
 

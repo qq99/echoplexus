@@ -43,6 +43,14 @@ module.exports.CallClient = class CallClient extends Backbone.View
 
       @socket.emit "subscribe", room: @channelName
 
+      #On successful reconnect, attempt to rejoin the room
+      @socket.on "reconnect", =>
+        return if @dead
+        #Resend the subscribe event
+        @socket.emit "subscribe",
+          room: @channelName
+          reconnect: true
+
       window.events.on "sectionActive:calling", @subdivideVideos, this
       @onResize = _.debounce(@subdivideVideos, 250)
       $(window).on "resize", @onResize
@@ -179,6 +187,7 @@ module.exports.CallClient = class CallClient extends Backbone.View
     @rtc.disconnect()
 
   kill: ->
+    @dead = true
     window.events.off null, null, this
     @disconnect()
     _.each @socketEvents, (method, key) =>

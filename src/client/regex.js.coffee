@@ -6,7 +6,7 @@ module.exports.REGEXES =
     all_others: /(\b(https?|http):(\/\/|&#x2F;&#x2F;)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|;])/gi
 
   users:
-    mentions: /(@[^\b\s]*)/gi
+    mentions: /((^@[^\b\s]*)|((?:\s+)@[^\b\s]*))/gi
 
   commands:
     nick: /^\/(nick|n) /
@@ -17,7 +17,7 @@ module.exports.REGEXES =
     public: /^\/public/
     help: /^\/help/
     password: /^\/(password|pw)/
-    private_message: /^\/(pm|w|whisper|t|tell) /
+    private_message: /^\/(pm|w|whisper|t|tell|msg) /
     join: /^\/(join|j)/
     leave: /^\/leave/
     pull_logs: /^\/(pull|p|sync|s) /
@@ -29,6 +29,7 @@ module.exports.REGEXES =
     github: /^\/github /
     roll: /^\/(roll|r)( |)/
     destroy: /^\/destroy/
+    pseudonym: /^\/(pseudonym|nym)/
 
   github_subcommands:
     track: /^track/

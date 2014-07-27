@@ -367,26 +367,6 @@ header {
 	position: relative;
 	min-height:26px;
 	z-index:2;
-	.count {
-		position: absolute;
-		top: 0;
-		right: 0;
-		font-size: 0.75em;
-		div	{
-			display:inline-block;
-			margin-left: 0.5em;
-			&.active {
-				.value {
-					color:green;
-				}
-			}
-			&.total {
-				.value {
-					color:yellow;
-				}
-			}
-		}
-	}
 }
 
 #info-overlay {

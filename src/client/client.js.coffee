@@ -54,7 +54,6 @@ module.exports.ClientsCollection = class ClientsCollection extends Backbone.Coll
 module.exports.ClientModel = class ClientModel extends Backbone.Model
   supported_metadata: ["email", "website_url", "country_code", "gender"]
   defaults:
-    nick: "Anonymous"
     idle: false
     isServer: false
     authenticated: false
@@ -415,6 +414,8 @@ module.exports.ClientModel = class ClientModel extends Backbone.Model
         dice: body
     else if body.match(REGEXES.commands.destroy)
       socket.emit "destroy_logs:#{room}"
+    else if body.match(REGEXES.commands.pseudonym)
+      socket.emit "pseudonym:#{room}"
     else if body.match(REGEXES.commands.github)
       body = body.replace(REGEXES.commands.github, "").trim()
       split = body.split(" ")

@@ -308,6 +308,13 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			socket.in(room).emit("chat:#{room}", @serverSentMessage({
 				body: "Please view the README for more information at https://github.com/qq99/echoplexus"
 			}, room))
+			return
+
+		"pseudonym": (namespace, socket, channel, client, data) ->
+			room = channel.get("name")
+
+			client.setPseudonym()
+			return
 
 		"roll": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
@@ -322,7 +329,7 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			socket.in(room).emit("chat:#{room}", @serverSentMessage({
 				body: "You #{result}"
 			}, room))
-
+			return
 
 		"chown": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
@@ -342,6 +349,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					body: response
 				}, room))
 				@publishUserList(channel)
+
+			return
 
 		"chmod": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
@@ -416,6 +425,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					body: "The permissions [#{errors}] don't exist or you can't bestow them."
 				}, room))
 
+			return
+
 		"make_public": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 
@@ -432,6 +443,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 				@broadcast(socket, channel, "This channel is now public.")
 
+			return
+
 		"make_private": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 
@@ -447,6 +460,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					return
 
 				@broadcast socket, channel, "This channel is now private.  Please remember your password."
+
+			return
 
 		"join_private": (namespace, socket, channel, client, data, ack) ->
 			room = channel.get("name")
@@ -468,11 +483,12 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					ack?(null)
 					@generateAuthenticationToken(socket, client, channel) if !data.token
 
+			return
+
 		"nickname": (namespace, socket, channel, client, data, ack) ->
 			room = channel.get("name")
 
 			newName = data.nick
-			prevName = client.get("nick")
 
 			client.unset "encrypted_nick"
 			if data.encrypted_nick?
@@ -490,6 +506,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 			ack()
 
+			return
+
 		"topic": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 
@@ -502,6 +520,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 			@sio.of(@namespace).in(room).emit("topic:#{room}", {
 				body: channel.get("topicObj")
 			})
+
+			return
 
 		"destroy_logs": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
@@ -516,6 +536,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				else
 					@broadcast(socket, channel, "Chatlogs for #{room} have been erased.")
 
+			return
+
 		"chat:history_request": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 			jsonArray = []
@@ -529,6 +551,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				# emit the logged replies to the client requesting them
 				socket.in(room).emit("chat:batch:#{room}", _.without(reply, null))
 
+			return
+
 		"chat:idle": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 
@@ -536,11 +560,15 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				idle: true,
 				idleSince: Number(new Date())
 
+			return
+
 		"chat:unidle": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 			client.set
 				idle: false
 				idleSince: null
+
+			return
 
 		"directed_message": (namespace, socket, channel, client, data, ack) ->
 			room = channel.get("name")
@@ -574,6 +602,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				echo_id: echo_id
 			}))
 
+			return
+
 		"user:set_color": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
 
@@ -585,6 +615,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 					}, room))
 					return
 				client.trigger("change", client) # setting sub-model won't trigger change on main, so we fire it manually
+
+			return
 
 		"set_public_key": (namespace, socket, channel, client, data) ->
 			if data.armored_public_key
@@ -599,6 +631,8 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 				client.unset('armored_public_key')
 
 			@publishUserList(channel)
+
+			return
 
 		"chat": (namespace, socket, channel, client, data, ack) ->
 			room = channel.get("name")
@@ -652,11 +686,15 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 						redisC.hset "chatlog:identity_tokens:#{room}", mID, client.identity_token, (err, reply) ->
 							throw err if err
 
+			return
+
 		"in_call": (namespace, socket, channel, client) ->
 			client.set("inCall", true)
+			return
 
 		"left_call": (namespace, socket, channel, client) ->
 			client.set("inCall", false)
+			return
 
 		"add_github_webhook": (namespace, socket, channel, client, data) ->
 			room = channel.get("name")
@@ -678,8 +716,10 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 						body: "Github webhook integrations are now enabled for #{repoUrl}.  Please set up your hook to point to: #{@urlRoot()}api/github/postreceive/#{token}"
 					}, room))
 
+			return
 
 		"unsubscribe": (namespace, socket, channel, client) ->
 			channel.clients.remove(client)
+			return
 
 

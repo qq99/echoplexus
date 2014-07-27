@@ -16,17 +16,22 @@ utility                   = require("../utility.js.coffee")
 module.exports.ChannelButton = class ChannelButton extends Backbone.View
   events:
     "click .close": "leaveChannel"
-    "click button": "showChannel"
+    "click .j-channel-btn": "showChannel"
 
-  initialize: (opts) ->
+  initialize: (@opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))
-    @channelName = opts.channelName
+    @channelName = @opts.channelName
     @data = new Backbone.Model
       topic: ""
-      channelName: opts.channelName
+      channelName: @opts.irc?.room || @opts.channelName
       activeUsers: 1
       totalUsers: 1
     @render()
+
+    window.events.on "chat:activity", (data) =>
+      return if @opts.channelName != data.channelName
+      $button = @$el.find(".j-channel-btn")
+      $button.addClass("activity") if !$button.hasClass("active")
 
   leaveChannel: ->
     window.events.trigger("leaveChannel", @channelName)
@@ -35,16 +40,19 @@ module.exports.ChannelButton = class ChannelButton extends Backbone.View
     window.events.trigger("showChannel", @channelName)
 
   setActive: ->
-    @$el.find("button").addClass("active").removeClass("activity")
+    @$el.find(".j-channel-btn").addClass("active").removeClass("activity")
 
   setInactive: ->
-    @$el.find("button").removeClass("active")
+    @$el.find(".j-channel-btn").removeClass("active")
 
   destroy: ->
     @$el.remove()
 
   render: ->
     @$el.html(buttonTemplate())
+
+    if @opts.irc
+      @$el.find(".j-usersummary .active, .j-usersummary .delimiter").remove()
 
     @stickit @data,
       ".j-channel-btn":
@@ -79,7 +87,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
     # node_webkit cannot specify channel to join via URL
     unless window.ua.node_webkit
-      channelFromSlug = window.location.pathname
+      channelFromSlug = window.location.pathname + window.location.hash
       if joinChannels.indexOf(channelFromSlug) < 0
         storedActiveChannel = channelFromSlug
         joinChannels.push channelFromSlug
@@ -93,9 +101,6 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     else if joinChannels.length
       @showChannel joinChannels[0]
 
-
-
-
     @attachEvents()
     $(window).on "unload", @quickKill
 
@@ -104,8 +109,8 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     window.events.on "showChannel", (channel) =>
       @showChannel channel
 
-    window.events.on "joinChannel", (channel) =>
-      @joinAndShowChannel channel
+    window.events.on "joinChannel", (channel, opts) =>
+      @joinAndShowChannel channel, opts
 
     window.events.on "leaveChannel", (channel) =>
       if channel
@@ -141,10 +146,6 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     window.events.on "nextChannel", @showNextChannel
     window.events.on "previousChannel", @showPreviousChannel
 
-    window.events.on "chat:activity", (data) =>
-      @channelActivity data
-
-
   quickKill: ->
 
     # https://github.com/qq99/echoplexus/issues/118
@@ -179,7 +180,6 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
     window.localStorage.setObj "joined_channels", @sortedChannelNames
 
   showNextChannel: ->
-    console.log @activeChannel
     return  unless @hasActiveChannel()
     activeChannelIndex = _.indexOf(@sortedChannelNames, @activeChannel)
     targetChannelIndex = activeChannelIndex + 1
@@ -237,18 +237,20 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
     window.events.trigger "unidle"
 
-  channelActivity: (data) ->
-    fromChannel = data.channelName
-
-    # if we hear that there's activity from a channel, but we're not looking at it, add a style to the button to notify the user:
-    $("[data-channel='" + fromChannel + "']", @$el).addClass "activity"  if fromChannel isnt @activeChannel
-
-  joinChannel: (channelName) ->
+  joinChannel: (channelName, options = {}) ->
     if !@channels[channelName]?
       cryptokey = window.localStorage.getItem("chat:cryptokey:#{channelName}")
       cryptokey = undefined if cryptokey == ''
 
-      button = new ChannelButton({channelName: channelName})
+      if channelName.indexOf('/irc:') == 0
+        serverAndRoom = channelName.replace("/irc:", "")
+        options.irc =
+          server: serverAndRoom.substring(0, serverAndRoom.indexOf("#"))
+          room:   serverAndRoom.substring(serverAndRoom.indexOf("#"))
+
+      config = _.extend({host: window.SOCKET_HOST}, options)
+
+      button = new ChannelButton(_.extend({channelName: channelName}, options))
 
       channel = new Backbone.Model
         button: button
@@ -257,6 +259,7 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
         authenticated: false
         isPrivate: false
         cryptokey: cryptokey
+
 
       # create an instance of each module:
       _.each @modules, (ClientModule, idx) =>
@@ -269,9 +272,8 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
           view: new ClientModule(
             channel: channel
             room: channelName
-            config:
-              host: window.SOCKET_HOST
-
+            config: config
+            extra: options
             module: @loader[idx]
           )
           config: @loader[idx]
@@ -317,10 +319,10 @@ module.exports.ChannelSwitcher = class ChannelSwitcher extends Backbone.View
 
 
 
-  joinAndShowChannel: (channelName) ->
+  joinAndShowChannel: (channelName, opts) ->
     return  if typeof channelName is "undefined" or channelName is null # prevent null channel names
     # keep channel names consistent with URL slug
     channelName = "/" + channelName  if channelName.charAt(0) isnt "/"
-    @joinChannel channelName
-    @showChannel channelName
+    @joinChannel channelName, opts
+    @showChannel channelName, opts
 

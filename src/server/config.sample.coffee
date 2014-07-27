@@ -18,13 +18,14 @@ exports.Configuration =
 
   features:
     SERVER_NICK: "Server"
+    irc_server: false # beta atm, you may not want to enable this as server stability isn't guaranteed
 
   chat:
     log: true # keeps a log server-side for participants who may have been offline
 
     webshot_previews: # requires phantomjs to be installed
       enabled: true # http://www.youtube.com/watch?feature=player_detailpage&v=k3-zaTr6OUo#t=23s
-      PHANTOMJS_PATH: "/opt/bin/phantomjs"
+      PHANTOMJS_PATH: "/usr/bin/phantomjs" # sudo apt-get install phantomjs
 
     rate_limiting: # slows down spammers
       enabled: true

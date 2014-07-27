@@ -19,14 +19,17 @@ $(document).ready ->
       left: targetOffset.left + ($target.width() / 2)
       top: targetOffset.top + ($target.height())
     ).addClass(tclass).find(".title").text(title).end().find(".body").text body
-    @tooltip_timer = setTimeout(->
-      $("body").append $tooltip
-      $tooltip.fadeIn()
-    , 350)
+
+    $("body").append $tooltip
+    
+    if tclass?.indexOf("on-top") > -1
+      $tooltip.css(
+        top: targetOffset.top - $tooltip.height() - 20
+      )
+
+    _.defer -> $tooltip.fadeIn()
   ).on "mouseleave", ".tooltip-target", (ev) ->
-    clearTimeout @tooltip_timer
-    $("body .tooltip").fadeOut ->
-      $(this).remove()
+    $("body .tooltip").remove()
 
   tooltipTemplate = $("#tooltip").html()
 
@@ -156,7 +159,7 @@ $(document).ready ->
 
 
   # change tabs:
-  tabs = $("#buttons .tabButton")
+  tabs = $("#module-buttons .tabButton")
   activeTabIndex = $("#buttons .active").index()
   key "⌘+ctrl+down, alt+shift+k, alt+shift+d", ->
     activeTabIndex += 1

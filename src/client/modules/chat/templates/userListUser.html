@@ -1,8 +1,13 @@
 <div class="user" rel="<%- id %>">
-	<span class="nick" style="color: <%- color %>"><%- nick %></span>
+	<span
+		class="nick <%- nickClass %>"
+		<% if (idle) { %>
+		data-timestamp="<%- idleSince %>"
+		<% } %>
+	><%- nick %></span>
 	<% if (using_encryption) { %>
 		<span
-			data-tooltip-title="Encrypted"
+			data-tooltip-title="Shared Secret Encrypted"
 			data-tooltip-body="This user is using encryption.  If you wish to talk to him, you'll need to use the same password."
 			class='tooltip-target encrypted'>
 				<i class="icon fa fa-key encrypted"></i>
@@ -11,7 +16,7 @@
 	<% if (has_public_key) { %>
 		<span
 			data-tooltip-title="PGP Public Key Fingerprint"
-			data-tooltip-body="<%- fingerprint %>"
+			data-tooltip-body="<%- splitFingerprint(fingerprint) %>"
 			class='fingerprint tooltip-target'>
 				<i class="pgp-fingerprint-icon <%- fingerprint_trust %> fa fa-key" data-fingerprint="<%- fingerprint %>"></i>
 		</span>
@@ -21,17 +26,6 @@
 	<span class="operator" title="This user is the channel operator.">
 		<i class="icon fa fa-gavel"></i>
 	</span>
-	<% } %>
-
-	<% if (idle === true) { %>
-		<span class="idle" data-timestamp="<%- idleSince %>">
-			<span class="zzz">Z
-				<span class="zzz">Z
-					<span class="zzz">Z
-					</span>
-				</span>
-			</span>
-		</span>
 	<% } %>
 	<% if (inCall === true) { %>
 		<span class="inCall" title="In call">

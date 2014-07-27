@@ -1,4 +1,4 @@
-[echoplexus](https://echoplex.us) (v0.2.5)
+[echoplexus](https://echoplex.us) (v0.2.6)
 ==================
 
 [![Stories in Ready](https://badge.waffle.io/qq99/echoplexus.png)](http://waffle.io/qq99/echoplexus)

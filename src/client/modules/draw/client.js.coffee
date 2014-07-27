@@ -56,7 +56,8 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
     #Background (where everything gets drawn ultimately)
     @ctx = @layerBackground.getContext("2d")
 
-  kill: ->
+  kill: -> @dead = true
+
 
   getCoords: (ev) ->
     if typeof ev.offsetX is "undefined"
@@ -230,7 +231,7 @@ module.exports.DrawingClient = class DrawingClient extends Backbone.View
 
     #On successful reconnect, attempt to rejoin the room
     socket.on "reconnect", =>
-
+      return if @dead
       #Resend the subscribe event
       socket.emit "subscribe",
         room: @channelName

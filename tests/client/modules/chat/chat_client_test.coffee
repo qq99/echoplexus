@@ -54,7 +54,31 @@ describe 'ChatClient', ->
       assert.equal @subject.me, @subject.chatLog.me
 
     it 'attempts to subscribe', ->
-      assert @fakeSocket.emit.calledWith("subscribe")
+      assert @fakeSocket.emit.calledWith("subscribe", {room: '/foo'})
+
+    it 'attempts to connect to the /chat namespace with no special arguments', ->
+      assert io.connect.calledWith('http://localhost/chat')
+
+  describe '#initialize with IRC options', ->
+    beforeEach ->
+      @subject = new ChatClient
+        channel: @channel
+        room: 'irc:chat.freenode.net#freenode'
+        config:
+          host: 'http://localhost'
+          irc:
+            room: '#freenode'
+            server: 'chat.freenode.net'
+
+    it 'attempts to connect to the /irc namespace when special arguments are provided', ->
+      assert io.connect.calledWith('http://localhost/irc')
+
+    it 'attempts to subscribe', ->
+      assert @fakeSocket.emit.calledWith "subscribe", 
+        room: 'irc:chat.freenode.net#freenode'
+        irc_options:
+          room: '#freenode'
+          server: 'chat.freenode.net'
 
   describe 'instance methods', ->
     beforeEach ->
@@ -270,11 +294,11 @@ describe 'ChatClient', ->
         @subject.clearCryptoKey()
         assert @subject.rerenderInputBox.called
 
-      it 'unsets my nick, and sets it to Anonymous for security', ->
+      it 'unsets my nick, and asks for a new pseudonym for security', ->
         @subject.clearCryptoKey()
 
         assert.equal undefined, @subject.me.get("encrypted_nick")
-        assert.equal "Anonymous", @subject.me.get("nick")
+        assert @fakeSocket.emit.calledWith "pseudonym:/foo"
 
     describe '#show', ->
       it 'sets .hidden to false', ->
