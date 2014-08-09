@@ -185,7 +185,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
 
   subscribe: (cb) ->
     if @opts.config.irc
-      @socket.emit "subscribe", 
+      @socket.emit "subscribe",
         room: @channelName
         irc_options: @opts.config.irc
       , cb
@@ -553,7 +553,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @persistentLog.latestIs msg.mID # store the server's current sequence number
 
         # find out only what we missed since we were last connected to this channel
-        missed = @persistentLog.getListOfMissedMessages()
+        missed = @persistentLog.getMissedSinceLastTime()
 
         # then pull it, if there was anything
         if missed?.length
@@ -627,7 +627,7 @@ module.exports.ChatClient = class ChatClient extends Backbone.View
         @chatLog.replaceChatMessage message, true
       else
         @chatLog.markReceipt msg.echo_id
-      
+
       return
 
     window.events.on "chat:broadcast", (data) ->

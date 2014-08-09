@@ -45,9 +45,6 @@ module.exports.Log = class Log
     # sort the log for consistency:
     @log = _.sortBy(@log, "timestamp")
 
-    # cull the older log entries
-    @log.shift()  if @log.length > @options.logMax
-
     # presist to localStorage:
     @options.storage.setObj "log:#{@options.namespace}", @log
 
@@ -105,7 +102,7 @@ module.exports.Log = class Log
         return
       i--
 
-  getListOfMissedMessages: ->
+  getMissedSinceLastTime: ->
     return if !Storage?
     known = @knownIDs()
     clientLatest = known[known.length - 1] or -1
@@ -125,27 +122,27 @@ module.exports.Log = class Log
       return null
     missed
 
-  getMissingIDs: (N) -> # fills in any holes in our chat history
+  getMissingIDs: (sensibleMaximum = 50) -> # fills in any holes in our chat history
     return if !Storage?
-    # compile a list of the message IDs we know about
     known = @knownIDs()
 
     # if we don't know about the server-sent latest ID, add it to the list:
-    known.push @latestID + 1  if known[known.length - 1] isnt @latestID
-    known.unshift -1 # a default element
+    if known.indexOf(@latestID) < 0
+      known.push @latestID + 1 # we don't really know this one, but its our upperbound
 
-    # compile a list of message IDs we know nothing about:
+    ascending = known.sort (a,b) ->
+      return a - b
+
     holes = []
-    i = known.length - 1
+    knownId = ascending.pop()
+    i = knownId
+    while i >= 0
+      if i != knownId
+        holes.push(i)
+      else if i == knownId && ascending.length
+        knownId = ascending.pop()
 
-    while i > 0
-      diff = known[i] - known[i - 1]
-      j = 1
-
-      while j < diff
-        holes.push known[i] - j
-        # only get N holes if we were requested to limit ourselves
-        return holes  if N and (holes.length is N)
-        j++
+      return holes if holes.length == sensibleMaximum
       i--
-    holes
+
+    return holes

@@ -91,16 +91,6 @@ describe 'Log', ->
 
       assert.deepEqual @initialSet, @subject.log
 
-    it 'will cull older log entries if it exceeds the user defined threshold', ->
-      @subject.add
-        body: 'hi'
-        timestamp: 5
-      @subject.add
-        body: 'there'
-        timestamp: 4
-
-      assert.deepEqual [{timestamp:1},{timestamp:2},{timestamp:3},{body:'there', timestamp: 4},{body:'hi',timestamp: 5}], @subject.log
-
     it 'will sort log entries by timestamp upon being added', ->
       @subject.add
         timestamp: 1.5
@@ -188,6 +178,15 @@ describe 'Log', ->
       @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
       assert.deepEqual [], @subject.knownIDs()
 
+    it 'returns a list of all mIDs we know about, after adding with .add', ->
+      @fakeStorage.setObj('log:/', [])
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+      for i in _.range(100, 95, -1)
+        @subject.add({mID: i, timestamp: Number(new Date())})
+
+      assert.deepEqual [100,99,98,97,96], @subject.knownIDs()
+
   describe "#getMessage", ->
     beforeEach ->
       @initialSet = [{mID: 0, body: 'hi'},{},{mID: 5, body: 'there'}]
@@ -217,7 +216,7 @@ describe 'Log', ->
       @subject.replaceMessage({mID:999, body:'ghost'})
       assert.deepEqual @initialSet, @subject.log
 
-  describe '#getListOfMissedMessages', ->
+  describe '#getMissedSinceLastTime', ->
     beforeEach ->
       @initialSet = [{mID: 0, body: 'hi'},{},{mID: 5, body: 'there'}]
       @fakeStorage.setObj('log:/', @initialSet)
@@ -226,13 +225,14 @@ describe 'Log', ->
 
     it 'will give us a list of all IDs higher than our latestID when the server is ahead of us', ->
       @subject.latestID = 10
-      assert.deepEqual [10, 9, 8, 7, 6], @subject.getListOfMissedMessages()
+      assert.deepEqual [10, 9, 8, 7, 6], @subject.getMissedSinceLastTime()
 
       @subject.latestID = 8
-      assert.deepEqual [8, 7, 6], @subject.getListOfMissedMessages()
+      assert.deepEqual [8, 7, 6], @subject.getMissedSinceLastTime()
+
     it 'will return null if the server is not ahead of us', ->
       @subject.latestID = 5
-      assert.equal null, @subject.getListOfMissedMessages()
+      assert.equal null, @subject.getMissedSinceLastTime()
 
   describe '#getMissingIDs', ->
     beforeEach ->
@@ -256,3 +256,23 @@ describe 'Log', ->
 
       @subject.latestID = 10
       assert.deepEqual [10,9,7,6,5,3,2,1,0], @subject.getMissingIDs()
+
+    it 'takes a parameter requesting how many missing IDs to return, returns correct value independent of the logMax storage value', ->
+      @fakeStorage.setObj('log:/', [])
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+      for id in _.range(100, 80, -1) # adds 100..81 to log
+        @subject.add({mID: id, timestamp: Number(new Date())})
+
+      assert.deepEqual 20, @subject.knownIDs().length
+      assert.deepEqual [80, 79, 78, 77, 76], @subject.getMissingIDs(5)
+
+    it 'with no parameter is supplied, it defaults to a sensible max of 50', ->
+      @fakeStorage.setObj('log:/', [])
+      @subject = new Log({namespace: '/', storage: @fakeStorage, logMax: 5})
+
+      for id in _.range(100, 80, -1) # adds 100..81 to log
+        @subject.add({mID: id, timestamp: Number(new Date())})
+
+      assert.deepEqual 20, @subject.knownIDs().length
+      assert.deepEqual 50, @subject.getMissingIDs().length
