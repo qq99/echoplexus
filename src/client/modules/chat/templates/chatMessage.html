@@ -53,10 +53,10 @@
 				<i class="sub-icon death-warning fa fa-ban fa-stack-1x"></i>
 			</span>
 			<% } else if (pgp_verified == "unknown_public_key") { %>
-			<span class="nick-decorator fa-stack"
+			<span class="nick-decorator fa-stack tooltip-target"
 				data-toolttip-title="PGP Signature Status"
 				data-tooltip-body="Cannot attempt to verify signature; unknown public key for fingerprint <%- splitFingerprint(fingerprint) %>."
-				data-tooltip-class="danger from-left">
+				data-tooltip-class="from-left">
 				<i class="fa fa-user fa-stack-1x"></i>
 				<i class="sub-icon unknown fa fa-question fa-stack-1x"></i>
 			</span>
@@ -87,7 +87,9 @@
 	</div>
 	<div class="body">
 		<% if (isPrivateMessage) { %>
-			<span class="private-icon" title="This is a private message.  Only people who had your nickname at the time of sending have received it.">
+			<span class="private-icon tooltip-target"
+				data-tooltip-title="Private Message"
+				data-tooltip-body="Only people who had your nickname at the time of sending have received this message.">
 				<i class="fa fa-long-arrow-right"></i>
 			</span>
 		<% } %>

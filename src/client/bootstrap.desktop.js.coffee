@@ -20,8 +20,11 @@ $(document).ready ->
       top: targetOffset.top + ($target.height())
     ).addClass(tclass).find(".title").text(title).end().find(".body").text body
 
+    if !title
+      $tooltip.find(".title").hide()
+
     $("body").append $tooltip
-    
+
     if tclass?.indexOf("on-top") > -1
       $tooltip.css(
         top: targetOffset.top - $tooltip.height() - 20
@@ -33,7 +36,7 @@ $(document).ready ->
 
   tooltipTemplate = $("#tooltip").html()
 
-  notIdle = -> 
+  notIdle = ->
     console.log window.visibility_status
     if window.visibility_status == "visible"
       document.title = "echoplexus"
