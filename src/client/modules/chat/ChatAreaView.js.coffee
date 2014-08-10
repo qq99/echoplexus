@@ -138,6 +138,8 @@ module.exports.ChatAreaView = class ChatAreaView extends Backbone.View
       @renderChatMessage(msg)
 
     else
+      toReplace = @messages.findWhere({mID: msg.get("mID")})
+      msg.set("references", toReplace.get("references")) # we must be sure to keep this copy around
       @messages.add(msg, {merge: true})
 
   markReceipt: (echo_id) ->

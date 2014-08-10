@@ -2,9 +2,13 @@ CryptoWrapper               = require("../../CryptoWrapper.coffee").CryptoWrappe
 cryptoWrapper               = new CryptoWrapper
 HTMLSanitizer               = require("../../utility.js.coffee").HTMLSanitizer
 REGEXES                     = require("../../regex.js.coffee").REGEXES
+ColorModel                  = require('../../client.js.coffee').ColorModel
 
 module.exports.ChatMessage = class ChatMessage extends Backbone.Model
   idAttribute: 'mID'
+
+  defaults:
+    'references': []
 
   initialize: (model, opts) ->
     _.bindAll.apply(_, [this].concat(_.functions(this)))
@@ -21,6 +25,25 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
       @unwrap()
 
     @format_body()
+
+    @nReferences = 0
+
+    window.events.on "color:query:#{@room}", (mID, ack) =>
+      if @get("mID") == mID
+        @nReferences += 1
+        if color = @get("thread_color")
+          ack(color)
+        else
+          @color = new ColorModel()
+          rgb = @color.toRGB()
+          @set("thread_color", rgb)
+          ack(rgb)
+
+    window.events.on "color:dereference:#{@room}", (mID) =>
+      if @get("mID") == mID
+        @nReferences -= 1
+        if @nReferences == 0
+          @set("thread_color", "")
 
   decryptSharedSecret: () ->
     cryptokey = @me.get("cryptokey")
@@ -174,6 +197,30 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
     for url in youtubes
       window.events.trigger "linklog:#{@room}:youtube", {url: url, timestamp: @get('timestamp')}
 
+  calculate_references: (body) ->
+    previousReferences = @get('references')
+    matches = body.match(REGEXES.commands.reply)
+    if matches
+      currentReferences = for match in body.match(REGEXES.commands.reply)
+        number = match.replace(/[^0-9]/g, "")
+        parseInt(number, 10)
+    else
+      currentReferences = []
+
+    # update colors
+    @set('references', currentReferences)
+    newReferences = _.without(currentReferences, previousReferences)
+    for ref in newReferences
+      window.events.trigger "color:query:#{@room}", ref, (result) =>
+        @set("thread_color", result)
+
+    # dereference anything not in our current references
+    # TODO: this doesn't actually work atm, need a better way of tracking references
+    # calculate_references is being called twice, inflating the ref count
+    toDeref = _.difference(previousReferences, currentReferences)
+    for ref in toDeref
+      window.events.trigger "color:dereference:#{@room}", ref
+
   format_body: ->
     body = @get("body")
     opts = {}  if !opts
@@ -199,6 +246,7 @@ module.exports.ChatMessage = class ChatMessage extends Backbone.Model
           line = "<pre>" + line + "</pre>"
           body += line
 
+      @calculate_references(body)
 
       # format >>quotations:
       body = body.replace(REGEXES.commands.reply, "<a rel=\"$2\" class=\"quotation\" href=\"#" + @room + "$2\">&gt;&gt;$2</a>")

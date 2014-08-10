@@ -25,6 +25,12 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
         observe: 'nickname'
         onGet: (val) -> 'display: none;' if val == 'GitHub'
       }]
+    ".thread-color":
+      attributes: [{
+        name: 'style'
+        observe: 'thread_color'
+        onGet: (val) -> "background: #{val};"
+      }]
     ".github-nickname":
       attributes: [{
         name: 'style'
@@ -177,9 +183,9 @@ module.exports.ChatMessageView = class ChatMessageView extends Backbone.View
       pre = targetContent.slice(0, badgeLocation)
       post = targetContent.slice(badgeLocation)
       targetContent = pre + badge + post
-    
+
     # insert image into media pane
-    window.events.trigger "linklog:#{@room}:webshot", 
+    window.events.trigger "linklog:#{@room}:webshot",
       url: msg.original_url
       image_url: msg.webshot
       timestamp: Number(new Date())

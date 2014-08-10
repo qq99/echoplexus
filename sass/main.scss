@@ -634,6 +634,14 @@ hr {
 		}
 	}
 
+	.thread-color {
+		position: absolute;
+		left: 0;
+		top: 0;
+		height: 100%;
+		width: 3px;
+		padding: 0;
+	}
 	.body {
 		word-break:break-word;
 		word-wrap:break-word;
