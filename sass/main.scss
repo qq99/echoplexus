@@ -619,6 +619,8 @@ hr {
 	}
 
 	.body-text-area {
+		max-height: 15em;
+		overflow-y: auto;
 		.un-keyblock {
 			display: none;
 		}
