@@ -103,7 +103,7 @@ app.post "/api/github/postreceive/:token", (req, res) ->
     if room
       try
         payload = JSON.parse(req.body.payload)
-        console.log payload
+        DEBUG && console.log(payload)
         message = GithubWebhook.prettyPrint(payload)
         EventBus.trigger("github:postreceive:#{room}", message)
       catch e
@@ -119,7 +119,7 @@ app.post "/*", authMW, bodyParser, (req, res, next) ->
   newFilename = uuid.v4() + "." + file.name.replace(RegExp(" ", "g"), "_")
   finalPath = SANDBOXED_FOLDER + "/" + newFilename
   serverPath = urlRoot() + "sandbox/" + newFilename
-  console.log newFilename
+  DEBUG && console.log("Path for new user uploaded file: #{newFilename}")
 
   # delete the file immediately if the message was malformed
   if typeof req.get("From-User") is "undefined" or typeof req.get("Channel") is "undefined"

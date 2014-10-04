@@ -3,6 +3,7 @@ redisC             = require("./RedisClient.coffee").RedisClient(config.redis?.p
 crypto             = require('crypto')
 utility            = new (require("./utility.coffee").Utility)
 async              = require("async")
+DEBUG              = config.DEBUG
 
 # hackish, as anybody could really end up spoofing this information
 # so, we don't let them do too much with this capability
@@ -25,7 +26,7 @@ module.exports.allowRepository = (room, repo_url, callback) ->
         webhook: (callback) ->
           redisC.hset "github:webhooks", repo_url, JSON.stringify(rooms), callback
       }, (err, stored) ->
-        console.log err, hash, stored
+        DEBUG && console.log(err, hash, stored)
         throw err if err
         callback?(null, hash)
 
