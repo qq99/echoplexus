@@ -32,7 +32,7 @@ Install the required client-side libraries
 If you have bower installed globally (the previous step), you can run:
 
     $ bower install
-    
+
 ### Ruby
 
 Any version will do.  `gem install sass`
@@ -54,6 +54,8 @@ Recent ubuntus can install it via:
 Otherwise, download from http://phantomjs.org/.  Install the binary to `/usr/bin/phantomjs`.
 
 If you don't want to do this step, set "phantomjs_screenshot" to false in `server/config.js`.
+
+Not seeing your webshot previews?  Seeing `Can't open ./PhantomJS-Screenshot.js.coffee`?  Try downloading PhantomJS, as there is a known issue with the Debian repository :(
 
 ###Building
 

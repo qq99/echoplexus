@@ -17,6 +17,8 @@ DEBUG            = config.DEBUG
 GithubWebhook    = require("./GithubWebhookIntegration.coffee")
 EventBus         = require("./EventBus.coffee").EventBus()
 
+StringDecoder    = require('string_decoder').StringDecoder;
+
 # 3rd party
 openpgp          = require("../../lib/openpgpjs/openpgp.min.js")
 
@@ -272,11 +274,12 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 					((url, fileName) => # run our screenshotting routine in a self-executing closure so we can keep the current filename & url
 						output = config.SANDBOXED_FOLDER + "/" + fileName
-						console.log("Processing ", url)
+						console.log "Processing", url, "and saving to", output
 						pageData = null
 
+						decoder = new StringDecoder('utf8')
 						screenshotter = spawn(config.chat.webshot_previews.PHANTOMJS_PATH,
-							['./PhantomJS-Screenshot.js.coffee', url, output],
+							['PhantomJS-Screenshot.js.coffee', url, output],
 							{
 								cwd: __dirname
 								timeout: 30*1000 # after 30s, we'll consider phantomjs to have failed to screenshot and kill it
@@ -284,14 +287,15 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 
 						screenshotter.stdout.on 'data', (data) ->
 							try
-								pageData = JSON.parse(data.toString()) if data # explicitly cast it, who knows what type it is having come from a process
+								pageData = JSON.parse(data.toString()) if data # explicitly cast it
 							catch e # if the result was not JSON'able
-								console.log e
+								console.log "Could not convert #{e} to JSON"
 
 						screenshotter.stderr.on 'data', (data) ->
-							console.log data
+							console.log "stderr: ", decoder.write(data)
 
 						screenshotter.on "exit", (data) =>
+							console.log "Screenshotter exited with", data
 							# DEBUG && console.log('screenshotter exit: ' + data.toString())
 							if pageData
 								pageData.webshot = @urlRoot() + 'sandbox/' + fileName
@@ -721,5 +725,3 @@ module.exports.ChatServer = class ChatServer extends AbstractServer
 		"unsubscribe": (namespace, socket, channel, client) ->
 			channel.clients.remove(client)
 			return
-
-
