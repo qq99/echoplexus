@@ -1,3 +1,5 @@
+## This project is no longer actively maintained, sorry :)
+
 [echoplexus](https://echoplex.us) (v0.2.6)
 ==================
 
